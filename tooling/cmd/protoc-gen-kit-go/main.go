@@ -2,8 +2,8 @@
 package main
 
 import (
-	"github.com/sandbox-kit/kit/tooling/internal/adaptergen"
-	"github.com/sandbox-kit/kit/tooling/internal/clientgen"
+	adaptergen "github.com/sandbox-kit/kit/tooling/internal/go/adapter_gen"
+	clientgen "github.com/sandbox-kit/kit/tooling/internal/go/client_gen"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 

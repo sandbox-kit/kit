@@ -5,7 +5,7 @@ package modal
 
 import (
 	errors "errors"
-	core "github.com/sandbox-kit/kit/core"
+	core "github.com/sandbox-kit/kit/sdks/go/core"
 )
 
 // Adapter borrows an opaque SDK client without importing that SDK.

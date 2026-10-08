@@ -10,10 +10,11 @@ option go_package = "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;
 // These annotations are build-time metadata; SDK clients and credentials are
 // ordinary language objects and are never serialized into these messages.
 message ClientDeclaration {
-  // Exported Go type name. The constructor is generated as New<go_name>.
-  string go_name = 1;
-  // Exported Go interface name for the smallest provider identity boundary.
-  string go_provider_interface = 2;
+  // Canonical type name; each language generator supplies its constructor style.
+  string name = 1;
+  // Canonical provider contract name (interface, protocol, or trait by language).
+  string provider_interface = 2;
+  reserved "go_name", "go_provider_interface";
   // Removed the accessor that exposed a provider-specific public API.
   reserved 3;
   reserved "go_provider_accessor";
@@ -22,8 +23,10 @@ message ClientDeclaration {
 // AdapterDeclaration generates an SDK-independent provider adapter shell.
 message AdapterDeclaration {
   string provider_name = 1;
-  string go_name = 2;
-  string go_constructor = 3;
+  string name = 2;
+  // Constructor naming belongs to the language generator (New in Go).
+  reserved 3;
+  reserved "go_name", "go_constructor";
   // SDK imports belong to application-local bindings, not adapter modules.
   reserved 4, 5;
   reserved "go_sdk_import", "go_sdk_client_type";

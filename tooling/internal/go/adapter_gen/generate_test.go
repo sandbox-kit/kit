@@ -15,7 +15,7 @@ import (
 
 func validSpec() *codegenv1.AdapterDeclaration {
 	return &codegenv1.AdapterDeclaration{
-		ProviderName: "custom", GoName: "Bridge", GoConstructor: "Attach",
+		ProviderName: "custom", Name: "Bridge",
 	}
 }
 
@@ -60,7 +60,7 @@ func TestGeneratesSDKIndependentAdapterAndConfiguredNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, expected := range []string{
-		"type Bridge[C any] struct", "func Attach[C any](client *C)",
+		"type Bridge[C any] struct", "func New[C any](client *C)",
 		"client: client", `return "custom"`,
 		"core.Provider",
 	} {
@@ -81,9 +81,9 @@ func TestRejectsInvalidDeclarations(t *testing.T) {
 		name string
 		edit func(*codegenv1.AdapterDeclaration)
 	}{
-		{"unexported name", func(s *codegenv1.AdapterDeclaration) { s.GoName = "adapter" }},
-		{"invalid constructor", func(s *codegenv1.AdapterDeclaration) { s.GoConstructor = "New()" }},
-		{"duplicate declaration", func(s *codegenv1.AdapterDeclaration) { s.GoConstructor = s.GoName }},
+		{"unexported name", func(s *codegenv1.AdapterDeclaration) { s.Name = "adapter" }},
+		{"invalid name", func(s *codegenv1.AdapterDeclaration) { s.Name = "Adapter()" }},
+		{"duplicate declaration", func(s *codegenv1.AdapterDeclaration) { s.Name = "New" }},
 		{"missing provider", func(s *codegenv1.AdapterDeclaration) { s.ProviderName = "" }},
 	} {
 		t.Run(change.name, func(t *testing.T) {

@@ -3,7 +3,7 @@ package modal
 import (
 	"testing"
 
-	"github.com/sandbox-kit/kit/core"
+	"github.com/sandbox-kit/kit/sdks/go/core"
 )
 
 // Only the application imports the real SDK. The adapter treats it as opaque.

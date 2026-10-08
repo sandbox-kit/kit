@@ -18,8 +18,8 @@ func Generate(plugin *protogen.Plugin, file *protogen.File) error {
 		return nil
 	}
 	declaration := proto.GetExtension(options, codegenv1.E_Client).(*codegenv1.ClientDeclaration)
-	name := declaration.GetGoName()
-	provider := declaration.GetGoProviderInterface()
+	name := declaration.GetName()
+	provider := declaration.GetProviderInterface()
 	for _, ident := range []string{name, provider} {
 		first, _ := utf8.DecodeRuneInString(ident)
 		if !token.IsIdentifier(ident) || !unicode.IsUpper(first) {

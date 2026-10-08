@@ -3,6 +3,22 @@
 Sandbox Kit provides a common interface over existing provider SDKs. It is built
 incrementally, starting with client and adapter initialization.
 
+## Language boundaries
+
+Shared declarations live under `proto/`. Go runtime modules are under
+`sdks/go/` and its example is under `examples/go/`. Other runtime SDKs and
+examples will get sibling directories when implemented.
+
+All generators are written in Go in the single `tooling/` module. Target-specific
+emitters live under `tooling/internal/<language>/`; currently only the Go emitter
+exists. Future non-Go SDK consumers will not need to install the generator or Go.
+
+Declaration names such as `Client`, `Provider`, and `Adapter` are common metadata.
+Constructor conventions belong to each generator: Go emits `NewClient` and
+adapter `New`; another language can emit a class constructor or factory.
+The shared contracts must not acquire Go-only types or runtime dependencies.
+Standard protobuf language options, such as `go_package`, remain output hints.
+
 ## Current API
 
 The application imports its SDK, core, and the selected adapter. It initializes
@@ -33,7 +49,7 @@ The opaque pointer is not proof that a client has the expected SDK methods.
 Actual operation mappings will need explicit typed bindings. There is no raw
 SDK accessor or provider-specific result type in the common public API.
 
-See [the complete runnable example](../examples/README.md).
+See [the complete runnable Go example](../examples/go/README.md).
 
 ## Operation contracts and mappings: planned
 

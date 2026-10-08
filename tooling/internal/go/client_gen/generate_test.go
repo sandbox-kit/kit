@@ -16,7 +16,7 @@ import (
 func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (string, error) {
 	t.Helper()
 	options := &descriptorpb.FileOptions{
-		GoPackage: proto.String("github.com/sandbox-kit/kit/core;core"),
+		GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/core;core"),
 	}
 	if declaration != nil {
 		proto.SetExtension(options, codegenv1.E_Client, declaration)
@@ -46,7 +46,7 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (st
 
 func TestGeneratesConfiguredNamesAndValidGo(t *testing.T) {
 	source, err := generateForTest(t, &codegenv1.ClientDeclaration{
-		GoName: "Session", GoProviderInterface: "Backend",
+		Name: "Session", ProviderInterface: "Backend",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -68,7 +68,7 @@ func TestRejectsInvalidOrCollidingNames(t *testing.T) {
 	for _, name := range []string{"", "client", "type", "Client;panic()", "Provider"} {
 		t.Run(name, func(t *testing.T) {
 			_, err := generateForTest(t, &codegenv1.ClientDeclaration{
-				GoName: name, GoProviderInterface: "Provider",
+				Name: name, ProviderInterface: "Provider",
 			})
 			if err == nil {
 				t.Fatal("invalid declaration was accepted")

@@ -1,15 +1,30 @@
 # Repository instructions
 
-For every implemented public feature, add or update a runnable example under
-`examples/`, document how users run it, and update `examples/README.md`.
-Maintain one runnable program at the root of `examples/`; extend it instead of
-adding parallel tutorials or example modules.
+Keep shared contracts under `proto/`. Runtime SDK code belongs in
+`sdks/<language>/` and usage examples in `examples/<language>/`.
+All generators are implemented in the single Go module under `tooling/`;
+target-language emitters belong in `tooling/internal/<language>/`.
+Do not put language runtime dependencies in shared contracts.
+Keep contract declarations language-neutral; implement constructor conventions
+and language-specific APIs in each generator.
+
+For every implemented public feature, update that language's runnable example
+and guide. Maintain one example per implemented language instead of parallel
+tutorials. Update `examples/README.md` when adding a new language.
 Keep examples synchronized with the actual implemented API. Clearly label
 planned APIs and demonstration providers; do not present them as working
 production integrations. Verify changed examples before handing off the feature.
 Update relevant project Markdown whenever the API, architecture, dependencies,
 or file layout changes. Check links and commands, and distinguish implemented
 behavior from planned contracts and integrations.
+Keep temporary generator binaries, verification caches, and scratch files outside
+the checkout, in the operating system's temporary/cache directories. Do not
+create a repository-local `work/` folder. Generated SDK source remains in its
+declared output directories. Generation must clean up its temporary binaries.
+Use reusable Cobra commands as developer tooling entry points rather than
+duplicating workflows in task-runner files. Command constructors must avoid
+global flag state and side effects, and subprocesses must receive the command's
+context.
 
 Sandbox Kit is a unified interface over existing provider SDKs. Core operations
 must expose shared request and response contracts; adapters map those contracts

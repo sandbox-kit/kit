@@ -3,7 +3,7 @@ package core_test
 import (
 	"testing"
 
-	"github.com/sandbox-kit/kit/core"
+	"github.com/sandbox-kit/kit/sdks/go/core"
 )
 
 type testProvider struct {

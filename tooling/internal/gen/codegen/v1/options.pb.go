@@ -27,12 +27,12 @@ const (
 // ordinary language objects and are never serialized into these messages.
 type ClientDeclaration struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Exported Go type name. The constructor is generated as New<go_name>.
-	GoName string `protobuf:"bytes,1,opt,name=go_name,json=goName,proto3" json:"go_name,omitempty"`
-	// Exported Go interface name for the smallest provider identity boundary.
-	GoProviderInterface string `protobuf:"bytes,2,opt,name=go_provider_interface,json=goProviderInterface,proto3" json:"go_provider_interface,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Canonical type name; each language generator supplies its constructor style.
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Canonical provider contract name (interface, protocol, or trait by language).
+	ProviderInterface string `protobuf:"bytes,2,opt,name=provider_interface,json=providerInterface,proto3" json:"provider_interface,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ClientDeclaration) Reset() {
@@ -65,16 +65,16 @@ func (*ClientDeclaration) Descriptor() ([]byte, []int) {
 	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ClientDeclaration) GetGoName() string {
+func (x *ClientDeclaration) GetName() string {
 	if x != nil {
-		return x.GoName
+		return x.Name
 	}
 	return ""
 }
 
-func (x *ClientDeclaration) GetGoProviderInterface() string {
+func (x *ClientDeclaration) GetProviderInterface() string {
 	if x != nil {
-		return x.GoProviderInterface
+		return x.ProviderInterface
 	}
 	return ""
 }
@@ -83,8 +83,7 @@ func (x *ClientDeclaration) GetGoProviderInterface() string {
 type AdapterDeclaration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderName  string                 `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
-	GoName        string                 `protobuf:"bytes,2,opt,name=go_name,json=goName,proto3" json:"go_name,omitempty"`
-	GoConstructor string                 `protobuf:"bytes,3,opt,name=go_constructor,json=goConstructor,proto3" json:"go_constructor,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -126,16 +125,9 @@ func (x *AdapterDeclaration) GetProviderName() string {
 	return ""
 }
 
-func (x *AdapterDeclaration) GetGoName() string {
+func (x *AdapterDeclaration) GetName() string {
 	if x != nil {
-		return x.GoName
-	}
-	return ""
-}
-
-func (x *AdapterDeclaration) GetGoConstructor() string {
-	if x != nil {
-		return x.GoConstructor
+		return x.Name
 	}
 	return ""
 }
@@ -171,14 +163,13 @@ var File_kit_codegen_v1_options_proto protoreflect.FileDescriptor
 
 const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"\n" +
-	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"|\n" +
-	"\x11ClientDeclaration\x12\x17\n" +
-	"\ago_name\x18\x01 \x01(\tR\x06goName\x122\n" +
-	"\x15go_provider_interface\x18\x02 \x01(\tR\x13goProviderInterfaceJ\x04\b\x03\x10\x04R\x14go_provider_accessor\"\xbf\x01\n" +
+	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"\x92\x01\n" +
+	"\x11ClientDeclaration\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12-\n" +
+	"\x12provider_interface\x18\x02 \x01(\tR\x11providerInterfaceJ\x04\b\x03\x10\x04R\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xb2\x01\n" +
 	"\x12AdapterDeclaration\x12#\n" +
-	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12\x17\n" +
-	"\ago_name\x18\x02 \x01(\tR\x06goName\x12%\n" +
-	"\x0ego_constructor\x18\x03 \x01(\tR\rgoConstructorJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\rgo_sdk_importR\x12go_sdk_client_typeR\x0fgo_sdk_accessor:Y\n" +
+	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04nameJ\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aR\ago_nameR\x0ego_constructorR\rgo_sdk_importR\x12go_sdk_client_typeR\x0fgo_sdk_accessor:Y\n" +
 	"\x06client\x12\x1c.google.protobuf.FileOptions\x18\xb8\x8e\x03 \x01(\v2!.kit.codegen.v1.ClientDeclarationR\x06client:\\\n" +
 	"\aadapter\x12\x1c.google.protobuf.FileOptions\x18\xb9\x8e\x03 \x01(\v2\".kit.codegen.v1.AdapterDeclarationR\aadapterBFZDgithub.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1b\x06proto3"
 

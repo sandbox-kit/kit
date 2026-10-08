@@ -1,20 +1,20 @@
-module github.com/sandbox-kit/kit/examples
+module github.com/sandbox-kit/kit/examples/go
 
 go 1.26.1
 
 // These replacements make the example work with or without workspace mode.
-replace github.com/sandbox-kit/kit/core => ../core
+replace github.com/sandbox-kit/kit/sdks/go/core => ../../sdks/go/core
 
-replace github.com/sandbox-kit/kit/adapters/modal => ../adapters/modal
+replace github.com/sandbox-kit/kit/sdks/go/adapters/modal => ../../sdks/go/adapters/modal
 
-replace github.com/sandbox-kit/kit/adapters/daytona => ../adapters/daytona
+replace github.com/sandbox-kit/kit/sdks/go/adapters/daytona => ../../sdks/go/adapters/daytona
 
 require (
 	github.com/daytona/clients/sdk-go v0.222.0
 	github.com/modal-labs/modal-client/go v0.11.0
-	github.com/sandbox-kit/kit/adapters/daytona v0.0.0
-	github.com/sandbox-kit/kit/adapters/modal v0.0.0
-	github.com/sandbox-kit/kit/core v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/adapters/daytona v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/adapters/modal v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/core v0.0.0
 )
 
 require (

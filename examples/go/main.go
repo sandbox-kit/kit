@@ -8,9 +8,9 @@ import (
 
 	daytonaSDK "github.com/daytona/clients/sdk-go/pkg/daytona"
 	modalSDK "github.com/modal-labs/modal-client/go"
-	daytonaAdapter "github.com/sandbox-kit/kit/adapters/daytona"
-	modalAdapter "github.com/sandbox-kit/kit/adapters/modal"
-	"github.com/sandbox-kit/kit/core"
+	daytonaAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/daytona"
+	modalAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/modal"
+	"github.com/sandbox-kit/kit/sdks/go/core"
 )
 
 func main() {

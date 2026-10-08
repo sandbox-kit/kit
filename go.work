@@ -1,9 +1,9 @@
 go 1.26.1
 
 use (
-	./adapters/daytona
-	./adapters/modal
-	./core
-	./examples
+	./examples/go
+	./sdks/go/adapters/daytona
+	./sdks/go/adapters/modal
+	./sdks/go/core
 	./tooling
 )
