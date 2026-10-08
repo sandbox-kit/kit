@@ -1,0 +1,40 @@
+version: 1
+config_message: Config
+provider_field: provider
+# The runtime factory constructs an SDK from shared settings.
+provider_contract: Provider
+validation:
+  version: 1
+  messages:
+    Config:
+      fields:
+        endpoint: {nonblank: true, format: http_url}
+        region: {nonblank: true}
+        timeout: {minimum: 0}
+    AuthConfig:
+      constraints:
+        - {op: exactly_one, fields: [api_key, token_pair, bearer_token, oauth_refresh]}
+    APIKeyCredentials:
+      fields:
+        key: {nonblank: true, sensitive: true}
+    TokenPairCredentials:
+      fields:
+        id: {nonblank: true, sensitive: true}
+        secret: {nonblank: true, sensitive: true}
+    BearerTokenCredentials:
+      fields:
+        token: {nonblank: true, sensitive: true}
+    OAuthCredentials:
+      fields:
+        refresh_token: {nonblank: true, sensitive: true}
+        client_id: {nonblank: true}
+        client_secret: {nonblank: true, sensitive: true}
+        jwt_key: {nonblank: true, sensitive: true}
+      constraints:
+        - {op: exactly_one, fields: [client_secret, jwt_key]}
+    Scope:
+      fields:
+        app_name: {nonblank: true}
+        environment: {nonblank: true}
+        organization_id: {nonblank: true}
+        project_id: {nonblank: true}

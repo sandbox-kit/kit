@@ -1,0 +1,209 @@
+syntax = "proto3";
+package kit.sandbox.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "kit/codegen/v1/options.proto";
+
+option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
+option (kit.codegen.v1.native_types) = true;
+
+// Creation config only. No lifecycle operations or SDK credentials live here.
+// Missing optional values defer to the provider; adapters must reject requested
+// options they cannot honor rather than drop them or pretend they are supported.
+message CreateOptions {
+  // Absent defers to provider; explicit empty requests unnamed creation/restore.
+  optional string name = 1;
+  SandboxSource source = 2;
+  RuntimeConfig runtime = 3;
+  IsolationConfig isolation = 4;
+  Resources resources = 5;
+  Placement placement = 6;
+  map<string, string> environment = 7;
+  map<string, string> labels = 8;
+  NetworkConfig network = 9;
+  SecurityConfig security = 10;
+  LifetimePolicy lifetime = 11;
+  ProvisioningOptions provisioning = 12 [json_name = "creation"];
+  reserved 13;
+  reserved "provider_context";
+  ReadinessProbe readiness = 14;
+  ObservabilityConfig observability = 15;
+  // Provider-specific declarative options. Never SDK objects or auth credentials.
+  // Future storage, GPU, and harness configuration can be introduced additively.
+  google.protobuf.Struct provider_options = 16;
+}
+
+message SandboxSource {
+  // Absent source also means provider default. A default need not be an image.
+  oneof kind {
+    ProviderDefaultSource provider_default = 1;
+    ImageSource image = 2;
+    SnapshotSource snapshot = 3;
+    WarmPoolSource warm_pool = 4;
+  }
+}
+message ProviderDefaultSource {}
+message ImageSource { string reference = 1; }
+message SnapshotSource {
+  string reference = 1;
+  SnapshotKind kind = 2;
+  optional string provider_kind = 3;
+}
+message WarmPoolSource { string reference = 1; }
+enum SnapshotKind {
+  SNAPSHOT_KIND_DEFAULT = 0;
+  SNAPSHOT_KIND_FILESYSTEM = 1;
+  SNAPSHOT_KIND_MEMORY = 2;
+  SNAPSHOT_KIND_IMAGE = 3;
+  SNAPSHOT_KIND_MACHINE = 4;
+  SNAPSHOT_KIND_CHECKPOINT = 5;
+  SNAPSHOT_KIND_PROVIDER_SPECIFIC = 6;
+}
+message RuntimeConfig {
+  // A language/toolbox hint; this does not promise installation of a runtime.
+  optional string language = 1;
+  optional string version = 2;
+  optional string user = 3;
+  optional string working_directory = 4;
+  repeated string entrypoint = 5;
+  optional bool pty = 6;
+}
+message IsolationConfig {
+  IsolationKind kind = 1;
+  optional string provider_kind = 2;
+  optional bool nested_virtualization = 3;
+}
+enum IsolationKind {
+  ISOLATION_KIND_DEFAULT = 0;
+  ISOLATION_KIND_CONTAINER = 1;
+  ISOLATION_KIND_MICROVM = 2;
+  ISOLATION_KIND_LINUX_VM = 3;
+  ISOLATION_KIND_WORKER = 4;
+  ISOLATION_KIND_PROVIDER_SPECIFIC = 5;
+}
+message Resources {
+  optional double cpu_cores = 1;
+  optional double cpu_limit_cores = 2;
+  // Explicit units: adapters convert to the native API's units and precision.
+  optional uint64 memory_mib = 3;
+  optional uint64 memory_limit_mib = 4;
+  optional uint64 disk_mib = 5;
+  // GPU requests and resizing are outside this increment. Do not infer limits
+  // from reservations or implement resizing through creation settings.
+}
+message Placement {
+  optional string cloud = 1;
+  // Ordered preferences, not an assurance of multi-region support.
+  repeated string regions = 2;
+  optional string target = 3;
+}
+message StringAllowlist {
+  // Present but empty means deny all; absent means unspecified.
+  repeated string entries = 1;
+}
+message NetworkConfig {
+  EgressMode egress = 1;
+  StringAllowlist outbound_cidrs = 2;
+  StringAllowlist outbound_domains = 3;
+  StringAllowlist inbound_cidrs = 4;
+  optional bool private_network = 5;
+  optional string linked_sandbox = 6;
+  optional string proxy_reference = 7;
+  optional string outbound_proxy_url = 8;
+  optional string custom_domain = 9;
+  repeated PortBinding ports = 10;
+}
+enum EgressMode {
+  EGRESS_MODE_DEFAULT = 0;
+  EGRESS_MODE_ALLOW_ALL = 1;
+  // All networking, including private connections, is blocked.
+  EGRESS_MODE_BLOCK_ALL = 2;
+  EGRESS_MODE_RESTRICTED = 3;
+}
+message PortBinding {
+  uint32 port = 1;
+  PortTransport transport = 2;
+}
+enum PortTransport {
+  PORT_TRANSPORT_DEFAULT = 0;
+  PORT_TRANSPORT_TLS = 1;
+  PORT_TRANSPORT_HTTP2_TLS = 2;
+  PORT_TRANSPORT_PLAIN = 3;
+}
+message SecurityConfig {
+  optional bool public_access = 1;
+  optional bool workload_identity = 2;
+  repeated SecretReference secrets = 3;
+}
+message SecretReference {
+  string reference = 1;
+  optional string environment_variable = 2;
+  SecretInjection injection = 3;
+}
+enum SecretInjection {
+  SECRET_INJECTION_DEFAULT = 0;
+  SECRET_INJECTION_ENVIRONMENT = 1;
+  SECRET_INJECTION_EGRESS_PLACEHOLDER = 2;
+}
+// These are policies requested at creation, not Stop/Pause/Delete operations.
+message LifetimePolicy {
+  // Absent = provider default; explicit zero = unlimited, if supported.
+  google.protobuf.Duration maximum_lifetime = 1;
+  optional bool ephemeral = 2;
+  AutomaticAction idle_terminate = 3;
+  AutomaticAction idle_stop = 4;
+  AutomaticAction idle_pause = 5;
+  AutomaticAction stopped_archive = 6;
+  AutomaticAction stopped_delete = 7;
+}
+message AutomaticAction {
+  PolicyMode mode = 1;
+  // AFTER with a zero duration means immediate, not disabled.
+  google.protobuf.Duration after = 2;
+}
+enum PolicyMode {
+  POLICY_MODE_DEFAULT = 0;
+  POLICY_MODE_DISABLED = 1;
+  POLICY_MODE_AFTER = 2;
+}
+message ProvisioningOptions {
+  // Client operation deadline, distinct from sandbox lifetime and queue time.
+  // Absent = no additional kit deadline; explicit zero = no kit deadline.
+  google.protobuf.Duration timeout = 1;
+  google.protobuf.Duration queue_timeout = 2;
+  WaitCondition wait_for = 3;
+}
+enum WaitCondition {
+  WAIT_CONDITION_DEFAULT = 0;
+  WAIT_CONDITION_SUBMITTED = 1;
+  WAIT_CONDITION_SCHEDULED = 2;
+  WAIT_CONDITION_STARTED = 3;
+  WAIT_CONDITION_READY = 4;
+}
+message ReadinessProbe {
+  oneof check {
+    uint32 tcp_port = 1;
+    CommandProbe command = 2;
+  }
+}
+message CommandProbe { repeated string argv = 1; }
+message ObservabilityConfig {
+  optional bool verbose = 1;
+  optional string telemetry_endpoint = 2;
+}
+message CreateResult { SandboxInfo sandbox = 1; }
+message SandboxInfo {
+  string id = 1;
+  string provider = 2;
+  optional string name = 3;
+  // Original provider state; no invented cross-provider lifecycle state machine.
+  optional string provider_state = 4;
+  optional string region = 5;
+  IsolationConfig isolation = 6;
+  Resources resources = 7;
+  map<string, string> labels = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Struct provider_metadata = 10;
+}

@@ -1,1 +1,6 @@
 .DS_Store
+
+# Local credentials; only blank templates belong in Git.
+.env
+.env.*
+!.env.example

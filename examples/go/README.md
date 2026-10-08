@@ -1,98 +1,37 @@
-# Sandbox Kit: client initialization
+# Go examples
 
-One runnable example shows the complete initialization flow for Modal and
-Daytona:
+Requires Go 1.26.1 or newer and this repository checkout. Each example is a
+standalone module with local replacements for the SDK and its selected provider.
 
-1. Your application initializes the official SDK with its authentication configuration.
-2. Pass that client to the selected adapter's `New` constructor.
-3. Pass the adapter to `core.NewClient` and use the common client API.
+| Project | Required `.env` values |
+| --- | --- |
+| [create-modal-sandbox](create-modal-sandbox/README.md) | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `MODAL_APP_NAME`; environment defaults to `main` |
+| [create-daytona-sandbox](create-daytona-sandbox/README.md) | `DAYTONA_API_KEY` |
 
-Read [main.go](main.go). The provider-specific functions keep the three steps
-explicit and handle errors. Modal's SDK client is closed by the application,
-after the core client is finished.
-
-## Run
-
-From the repository root:
+From the repository root, choose one:
 
 ```sh
-cd examples/go
-go run . --help
+cd examples/go/create-daytona-sandbox
+# Or: cd examples/go/create-modal-sandbox
+cp .env.example .env   # Skip if .env already exists.
+# Edit .env, then:
+go run .
 ```
 
-Requires Go 1.26.1 or newer. Dependencies may be downloaded on the first run.
-Help does not initialize a provider or require credentials.
+Each `main.go` loads `.env`, constructs the common client, creates one sandbox,
+prints its ID, and releases SDK resources. There are no CLI flags, provider
+selectors, or simulated backends. The SDK itself does not load `.env`; examples
+use `godotenv`. Shell environment values take precedence over file values.
 
-For Modal, configure its SDK profile or set `MODAL_TOKEN_ID` and
-`MODAL_TOKEN_SECRET`, then run:
+`.env` is Git-ignored. `.env.example` contains only blank credentials/defaults.
+Modal app setup is documented in its project guide.
 
-```sh
-go run . modal
-```
+Running creates real resources. `client.Close` does not stop/delete the sandbox;
+use provider management tools for that cleanup. Execution and lifecycle operations
+are not included.
 
-For Daytona, set `DAYTONA_API_KEY`, or set `DAYTONA_JWT_TOKEN` together with
-`DAYTONA_ORGANIZATION_ID`, then run:
-
-```sh
-go run . daytona
-```
-
-Expected output for the selected provider:
-
-```text
-Sandbox Kit ready: modal
-```
-
-or `Sandbox Kit ready: daytona`.
-
-## The important lines
-
-Once your SDK client is initialized:
-
-These are the application imports for the Modal path; the complete program also
-imports Modal's SDK to initialize the client:
-
-```go
-import (
-    "fmt"
-
-    modalAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/modal"
-    "github.com/sandbox-kit/kit/sdks/go/core"
-)
-```
-
-Inside your application function:
-
-```go
-provider, err := modalAdapter.New(sdkClient)
-if err != nil {
-    return err
-}
-client, err := core.NewClient(provider)
-if err != nil {
-    return err
-}
-fmt.Println(client.ProviderName())
-```
-
-The Daytona path imports `github.com/sandbox-kit/kit/sdks/go/adapters/daytona` and uses
-`daytonaAdapter.New(sdkClient)`. Both produce the same
-`*core.Client`. Core and adapters do not import official SDKs; only the application
-does. This example imports both providers to demonstrate both paths in one
-program. Your application can depend on only its chosen provider.
-
-This increment covers initialization and provider identity. It does not create
-sandboxes or demonstrate shared operation responses yet. The adapter borrows the
-SDK pointer without reauthenticating or changing its configuration.
-
-## Verify
+Compile either project without provisioning:
 
 ```sh
 GOWORK=off go test ./...
 ```
-
-The tests cover help, invalid selection, and injection of both SDK client types
-without authenticating or contacting a provider.
-Local `replace` directives resolve core and adapters from this checkout, so the
-example also builds with workspace mode disabled. Credentialed runs use the
-provider SDK's normal initialization behavior.

@@ -13,31 +13,41 @@ message ClientDeclaration {
   // Canonical type name; each language generator supplies its constructor style.
   string name = 1;
   // Canonical provider contract name (interface, protocol, or trait by language).
-  string provider_interface = 2;
+  string backend_interface = 2;
   reserved "go_name", "go_provider_interface";
   // Removed the accessor that exposed a provider-specific public API.
   reserved 3;
   reserved "go_provider_accessor";
+  // Optional local creation surface; SDK handle generation is language-specific.
+  string creation_service = 4;
+  // Native initialization settings; runtime provider factories are attached by emitters.
+  string config_message = 5;
 }
 
-// AdapterDeclaration generates an SDK-independent provider adapter shell.
-message AdapterDeclaration {
+// ProviderDeclaration generates a typed, optionally installed provider integration.
+message ProviderDeclaration {
   string provider_name = 1;
   string name = 2;
   // Constructor naming belongs to the language generator (New in Go).
   reserved 3;
   reserved "go_name", "go_constructor";
-  // SDK imports belong to application-local bindings, not adapter modules.
+  // Retired SDK binding fields; language bindings now live in sdks.
   reserved 4, 5;
   reserved "go_sdk_import", "go_sdk_client_type";
   // The SDK client is an internal implementation detail of the adapter.
   reserved 6;
   reserved "go_sdk_accessor";
+  map<string, TargetSDK> sdks = 7;
+  reserved 8;
+  reserved "creation_fields";
 }
+message TargetSDK { string import_path = 1; string client_type = 2; }
 
 extend google.protobuf.FileOptions {
   ClientDeclaration client = 51000;
-  AdapterDeclaration adapter = 51001;
+  ProviderDeclaration provider = 51001;
+  // Generate ordinary target-language data types from this shared schema.
+  bool native_types = 51003;
 }
 
 // Extension number 51002 belonged to the removed SDK-binding initialization

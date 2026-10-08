@@ -62,7 +62,7 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 			if len(runner.steps) == 0 || runner.steps[0].name != "custom-go" {
 				t.Fatal("generation did not use the configured executable")
 			}
-			if !failure && len(runner.steps) != 6 {
+			if !failure && len(runner.steps) != 7 {
 				t.Fatalf("expected bootstrap and three SDK generations, got %d steps", len(runner.steps))
 			}
 			toolsDir := filepath.Dir(runner.steps[0].args[2])
@@ -89,15 +89,12 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(runner.steps) != 6 {
-		t.Fatalf("expected five module tests and example help, got %d", len(runner.steps))
+		t.Fatalf("expected six module tests, got %d", len(runner.steps))
 	}
-	for i, module := range []string{"sdks/go/core", "tooling", "sdks/go/adapters/modal", "sdks/go/adapters/daytona", "examples/go"} {
+	for i, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go/create-modal-sandbox", "examples/go/create-daytona-sandbox"} {
 		if runner.steps[i].dir != filepath.Join(repo, filepath.FromSlash(module)) || runner.steps[i].args[0] != "test" {
 			t.Fatalf("incorrect verification step for %s", module)
 		}
-	}
-	if strings.Join(runner.steps[5].args, " ") != "run . --help" {
-		t.Fatal("verification must only run example help, not a credentialed provider")
 	}
 }
 

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package kit.sandbox.v1;
+
+import "kit/codegen/v1/options.proto";
+import "kit/sandbox/v1/sandbox.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
+option (kit.codegen.v1.native_types) = true;
+
+option (kit.codegen.v1.client) = {
+  name: "Client"
+  backend_interface: "Backend"
+  creation_service: "SandboxCreation"
+  config_message: "Config"
+};
+
+// Initializes a provider SDK. Provider factories are native runtime objects,
+// attached by generators; they are not serialized protobuf fields.
+message Config {
+  AuthConfig auth = 1;
+  optional string endpoint = 2;
+  optional string region = 3;
+  Scope scope = 4 [json_name = "context"];
+  // Default Kit operation deadline; explicit operation settings override it.
+  // Nil preserves SDK defaults; zero adds no Kit deadline.
+  google.protobuf.Duration timeout = 5;
+}
+message AuthConfig {
+  // Absent auth uses the provider SDK's normal environment/profile resolution.
+  oneof credentials {
+    APIKeyCredentials api_key = 1;
+    TokenPairCredentials token_pair = 2;
+    BearerTokenCredentials bearer_token = 3;
+    OAuthCredentials oauth_refresh = 4;
+  }
+}
+message APIKeyCredentials { string key = 1; }
+message TokenPairCredentials { string id = 1; string secret = 2; }
+message BearerTokenCredentials { string token = 1; }
+message OAuthCredentials {
+  string refresh_token = 1;
+  string client_id = 2;
+  optional string client_secret = 3;
+  optional string jwt_key = 4;
+}
+message Scope {
+  optional string app_name = 1;
+  optional string environment = 2;
+  optional string organization_id = 3;
+  optional string project_id = 4;
+}
+
+// Describes local SDK methods for generation; no gRPC service is deployed.
+service SandboxCreation {
+  rpc Create(CreateOptions) returns (CreateResult);
+}

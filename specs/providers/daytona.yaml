@@ -1,0 +1,117 @@
+version: 1
+provider: daytona
+runtime:
+  go:
+    cleanup: {method: Close, accepts_context: true, returns_error: true}
+groups:
+  - name: mapCommonCreateFields
+    direction: request
+    source: {name: CreateOptions}
+    target:
+      name: SandboxBaseParams
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: SandboxBaseParams
+          fields: {name: Name, environment: EnvVars, labels: Labels}
+    fields:
+      - {from: name, to: name}
+      - {from: environment, to: environment}
+      - {from: labels, to: labels}
+  - name: mapResources
+    direction: request
+    source: {name: Resources}
+    target:
+      name: Resources
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: Resources
+          fields: {cpu: CPU, memory: Memory, disk: Disk}
+    fields:
+      - {from: cpu_cores, to: cpu, transform: whole, maximum: 2147483647, cast: integer}
+      - {from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
+      - {from: disk_mib, to: disk, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
+  - name: mapSandboxInfo
+    direction: response
+    source:
+      name: Sandbox
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/daytona
+          name: Sandbox
+          fields: {id: ID, name: Name, state: State, region: Target, labels: Labels}
+    target: {name: SandboxInfo}
+    fields:
+      - {from: id, to: id}
+      - {from: name, to: name}
+      - {from: state, to: provider_state, cast: string}
+      - {from: region, to: region}
+      - {from: labels, to: labels}
+  - name: mapAllocatedResources
+    direction: response
+    when:
+      - {field: cpu, greater_than: 0}
+      - {field: memory, greater_than: 0}
+      - {field: disk, greater_than: 0}
+    source:
+      name: Sandbox
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/daytona
+          name: Sandbox
+          fields: {cpu: Cpu, memory: Memory, disk: Disk}
+    target: {name: Resources}
+    fields:
+      - {from: cpu, to: cpu_cores, cast: number}
+      - {from: memory, to: memory_mib, transform: multiply, factor: 1024}
+      - {from: disk, to: disk_mib, transform: multiply, factor: 1024}
+  - name: mapClientSettings
+    direction: request
+    source: {name: Config}
+    target:
+      name: DaytonaConfig
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: DaytonaConfig
+          fields: {endpoint: APIUrl, region: Target}
+    fields:
+      - {from: endpoint, to: endpoint}
+      - {from: region, to: region}
+  - name: mapAPIKeyCredentials
+    direction: request
+    source: {name: APIKeyCredentials}
+    target:
+      name: DaytonaConfig
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: DaytonaConfig
+          fields: {key: APIKey}
+    fields:
+      - {from: key, to: key}
+  - name: mapBearerAuth
+    direction: request
+    source: {name: BearerTokenCredentials}
+    target:
+      name: DaytonaConfig
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: DaytonaConfig
+          fields: {token: JWTToken}
+    fields:
+      - {from: token, to: token}
+  - name: mapScope
+    direction: request
+    source: {name: Scope}
+    target:
+      name: DaytonaConfig
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: DaytonaConfig
+          fields: {organization_id: OrganizationID}
+    fields:
+      - {from: organization_id, to: organization_id}

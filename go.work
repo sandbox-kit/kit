@@ -1,9 +1,10 @@
 go 1.26.1
 
 use (
-	./examples/go
-	./sdks/go/adapters/daytona
-	./sdks/go/adapters/modal
-	./sdks/go/core
+	./examples/go/create-modal-sandbox
+	./examples/go/create-daytona-sandbox
+	./sdks/go/providers/daytona
+	./sdks/go/providers/modal
+	./sdks/go/sandbox
 	./tooling
 )

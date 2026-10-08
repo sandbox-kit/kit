@@ -1,0 +1,59 @@
+version: 1
+messages:
+  SandboxSource:
+    constraints:
+      - {op: at_most_one, fields: [provider_default, image, snapshot, warm_pool]}
+  ImageSource:
+    fields:
+      reference: {nonblank: true}
+  SnapshotSource:
+    fields:
+      reference: {nonblank: true}
+  WarmPoolSource:
+    fields:
+      reference: {nonblank: true}
+  Resources:
+    fields:
+      cpu_cores: {finite: true, exclusive_minimum: 0}
+      cpu_limit_cores: {finite: true, minimum: 0}
+      memory_mib: {exclusive_minimum: 0}
+      disk_mib: {exclusive_minimum: 0}
+    constraints:
+      - {op: limit, field: cpu_limit_cores, other: cpu_cores}
+      - {op: limit, field: memory_limit_mib, other: memory_mib}
+  Placement:
+    fields:
+      regions: {each: true, nonblank: true}
+  ProvisioningOptions:
+    fields:
+      timeout: {minimum: 0}
+      queue_timeout: {minimum: 0}
+  LifetimePolicy:
+    fields:
+      maximum_lifetime: {minimum: 0}
+  AutomaticAction:
+    fields:
+      after: {minimum: 0}
+      mode: {minimum: 0, maximum: 2}
+    constraints:
+      - {op: requires_any, fields: [after], when: {field: mode, equals: 2}}
+      - {op: forbids, fields: [after], when: {field: mode, not_equals: 2}}
+  NetworkConfig:
+    constraints:
+      - {op: requires_any, fields: [outbound_cidrs, outbound_domains], when: {field: egress, equals: 3}}
+      - {op: forbids, fields: [outbound_cidrs, outbound_domains, private_network, linked_sandbox, inbound_cidrs, ports], when: {field: egress, equals: 2}}
+      - {op: forbids, fields: [outbound_cidrs, outbound_domains], when: {field: egress, equals: 1}}
+  PortBinding:
+    fields:
+      port: {minimum: 1, maximum: 65535}
+  ReadinessProbe:
+    fields:
+      tcp_port: {minimum: 1, maximum: 65535}
+    constraints:
+      - {op: exactly_one, fields: [tcp_port, command]}
+  CommandProbe:
+    fields:
+      argv: {min_items: 1}
+  SecretReference:
+    fields:
+      reference: {nonblank: true}
