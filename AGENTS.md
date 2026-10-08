@@ -9,8 +9,8 @@ Keep contract declarations language-neutral; implement constructor conventions
 and language-specific APIs in each generator.
 
 For every implemented public feature, update that language's runnable example
-and guide. Maintain one example per implemented language instead of parallel
-tutorials. Update `examples/README.md` when adding a new language.
+and guide. Maintain small provider-specific example projects under each language directory.
+Each example should demonstrate one operation without provider selection or CLI flags. Update `examples/README.md` when adding a new language.
 Keep examples synchronized with the actual implemented API. Clearly label
 planned APIs and demonstration providers; do not present them as working
 production integrations. Verify changed examples before handing off the feature.

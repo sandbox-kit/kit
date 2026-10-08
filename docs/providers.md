@@ -28,4 +28,4 @@ Future harness integrations remain separately installable. Sandbox lifecycle,
 GPU, storage, browsers, computer use and macOS/Windows support remain later work.
 
 See [configuration](configuration.md), [sandbox creation](sandbox-creation.md),
-[code generation](code-generation.md), and [the Go example](../examples/go/README.md).
+[code generation](code-generation.md), and [the Go examples](../examples/go/README.md).

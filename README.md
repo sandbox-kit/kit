@@ -17,7 +17,7 @@ sdks/go/sandbox/            Go client runtime
 sdks/go/providers/        Separately installable Go provider integrations
 tooling/                 One Go module for all SDK generators
 tooling/internal/go/     Emitters for Go SDK output
-examples/go/             One runnable Go example
+examples/go/             Independent provider examples
 docs/                    Shared architecture and design notes
 ```
 
@@ -46,22 +46,20 @@ the client owns SDK cleanup. Lifecycle operations and harness integrations remai
 See [client configuration](docs/configuration.md) and
 [creation semantics](docs/sandbox-creation.md).
 
-## Try the Go example
+## Try the Go examples
 
-From the repository root:
+Choose one standalone project:
 
 ```sh
-cd examples/go
-go run . --help
-go run . demo
-go run . modal
-# Or: go run . daytona
+cd examples/go/create-modal-sandbox
+# Or: cd examples/go/create-daytona-sandbox
+cp .env.example .env  # Skip if .env already exists.
+# Fill in the provider's credentials and required settings.
+go run .
 ```
 
-Help and the simulated creation demo require no credentials or cloud resources.
-Modal/Daytona modes initialize SDKs from the shared client configuration. Add
-`--create` to provision a sandbox. Provider runs need valid credentials/context;
-see [the Go example guide](examples/go/README.md) and [main.go](examples/go/main.go).
+Each project authenticates and creates one real sandbox using our SDK. There are
+no flags or provider selectors. See [the examples index](examples/go/README.md).
 
 See the [Modal guide](sdks/go/providers/modal/README.md),
 [Daytona guide](sdks/go/providers/daytona/README.md), and

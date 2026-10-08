@@ -43,7 +43,7 @@ sdks/go/providers/daytona/ Optional Daytona integration (package daytona)
 proto/kit/sandbox/v1/      Shared SDK contracts
 proto/kit/providers/       Provider generation declarations
 tooling/internal/go/      Go emitters written in Go
-examples/go/              One runnable example
+examples/go/              Independent provider examples
 ```
 
 Go emitter directories retain the explicit `*_gen` convention. `provider_gen`

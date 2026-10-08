@@ -41,3 +41,6 @@ See [the spec format and extension workflow](../docs/code-generation.md).
 Future emitters belong in `internal/<language>/`; add language SDK bindings while
 reusing semantic rules. Other language and harness emitters are not implemented.
 Generated source should be changed through specs/generators, then regenerated.
+
+Verification tests both example projects without running them; `go run .` now provisions a
+real sandbox using its local `.env` file.

@@ -1,9 +1,10 @@
 # SDK examples
 
-Keep one runnable example per implemented language.
+## Go
 
-Currently available: [Go initialization and creation](go/README.md), covering
-common Modal/Daytona client configuration, explicit cloud creation, and a simulated
-creation flow in one program.
+- [Create a Modal sandbox](go/create-modal-sandbox/README.md)
+- [Create a Daytona sandbox](go/create-daytona-sandbox/README.md)
 
-Add other language examples alongside `go/` when those SDKs are implemented.
+Each is a standalone Go project configured through its own `.env` file.
+Examples focus on authentication and creating one sandbox. Offline verification
+compiles both projects without provisioning cloud resources.

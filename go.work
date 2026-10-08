@@ -1,7 +1,8 @@
 go 1.26.1
 
 use (
-	./examples/go
+	./examples/go/create-modal-sandbox
+	./examples/go/create-daytona-sandbox
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
 	./sdks/go/sandbox
