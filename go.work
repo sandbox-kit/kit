@@ -1,0 +1,9 @@
+go 1.26.1
+
+use (
+	./adapters/daytona
+	./adapters/modal
+	./core
+	./examples
+	./tooling
+)

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package kit.adapters.daytona.v1;
+
+import "kit/codegen/v1/options.proto";
+
+option go_package = "github.com/sandbox-kit/kit/adapters/daytona;daytona";
+
+option (kit.codegen.v1.adapter) = {
+  provider_name: "daytona"
+  go_name: "Adapter"
+  go_constructor: "New"
+};

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package kit.adapters.modal.v1;
+
+import "kit/codegen/v1/options.proto";
+
+option go_package = "github.com/sandbox-kit/kit/adapters/modal;modal";
+
+option (kit.codegen.v1.adapter) = {
+  provider_name: "modal"
+  go_name: "Adapter"
+  go_constructor: "New"
+};

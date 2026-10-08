@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package kit.core.v1;
+
+import "kit/codegen/v1/options.proto";
+
+option go_package = "github.com/sandbox-kit/kit/core;core";
+
+option (kit.codegen.v1.client) = {
+  go_name: "Client"
+  go_provider_interface: "Provider"
+};
+
+// Only initialization is defined in this increment. Shared request/response schemas
+// and provider-specific bindings will be added after adapter design review.

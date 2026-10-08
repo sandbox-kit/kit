@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package kit.codegen.v1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1";
+
+// ClientDeclaration describes a local SDK client, not an RPC service.
+// These annotations are build-time metadata; SDK clients and credentials are
+// ordinary language objects and are never serialized into these messages.
+message ClientDeclaration {
+  // Exported Go type name. The constructor is generated as New<go_name>.
+  string go_name = 1;
+  // Exported Go interface name for the smallest provider identity boundary.
+  string go_provider_interface = 2;
+  // Removed the accessor that exposed a provider-specific public API.
+  reserved 3;
+  reserved "go_provider_accessor";
+}
+
+// AdapterDeclaration generates an SDK-independent provider adapter shell.
+message AdapterDeclaration {
+  string provider_name = 1;
+  string go_name = 2;
+  string go_constructor = 3;
+  // SDK imports belong to application-local bindings, not adapter modules.
+  reserved 4, 5;
+  reserved "go_sdk_import", "go_sdk_client_type";
+  // The SDK client is an internal implementation detail of the adapter.
+  reserved 6;
+  reserved "go_sdk_accessor";
+}
+
+extend google.protobuf.FileOptions {
+  ClientDeclaration client = 51000;
+  AdapterDeclaration adapter = 51001;
+}
+
+// Extension number 51002 belonged to the removed SDK-binding initialization
+// generator. Keep it retired if these annotations are extended later.
