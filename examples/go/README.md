@@ -1,98 +1,125 @@
-# Sandbox Kit: client initialization
+# Go example: common client configuration and sandbox creation
 
-One runnable example shows the complete initialization flow for Modal and
-Daytona:
+One runnable program demonstrates the current API. It imports only sandbox and the
+optional Sandbox Kit adapters; adapters initialize their official SDKs internally.
+The previous borrowed-SDK constructor flow has been removed.
 
-1. Your application initializes the official SDK with its authentication configuration.
-2. Pass that client to the selected adapter's `New` constructor.
-3. Pass the adapter to `core.NewClient` and use the common client API.
-
-Read [main.go](main.go). The provider-specific functions keep the three steps
-explicit and handle errors. Modal's SDK client is closed by the application,
-after the core client is finished.
-
-## Run
-
-From the repository root:
+## Run locally without credentials
 
 ```sh
 cd examples/go
 go run . --help
-```
-
-Requires Go 1.26.1 or newer. Dependencies may be downloaded on the first run.
-Help does not initialize a provider or require credentials.
-
-For Modal, configure its SDK profile or set `MODAL_TOKEN_ID` and
-`MODAL_TOKEN_SECRET`, then run:
-
-```sh
-go run . modal
-```
-
-For Daytona, set `DAYTONA_API_KEY`, or set `DAYTONA_JWT_TOKEN` together with
-`DAYTONA_ORGANIZATION_ID`, then run:
-
-```sh
-go run . daytona
-```
-
-Expected output for the selected provider:
-
-```text
-Sandbox Kit ready: modal
-```
-
-or `Sandbox Kit ready: daytona`.
-
-## The important lines
-
-Once your SDK client is initialized:
-
-These are the application imports for the Modal path; the complete program also
-imports Modal's SDK to initialize the client:
-
-```go
-import (
-    "fmt"
-
-    modalAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/modal"
-    "github.com/sandbox-kit/kit/sdks/go/core"
-)
-```
-
-Inside your application function:
-
-```go
-provider, err := modalAdapter.New(sdkClient)
-if err != nil {
-    return err
-}
-client, err := core.NewClient(provider)
-if err != nil {
-    return err
-}
-fmt.Println(client.ProviderName())
-```
-
-The Daytona path imports `github.com/sandbox-kit/kit/sdks/go/adapters/daytona` and uses
-`daytonaAdapter.New(sdkClient)`. Both produce the same
-`*core.Client`. Core and adapters do not import official SDKs; only the application
-does. This example imports both providers to demonstrate both paths in one
-program. Your application can depend on only its chosen provider.
-
-This increment covers initialization and provider identity. It does not create
-sandboxes or demonstrate shared operation responses yet. The adapter borrows the
-SDK pointer without reauthenticating or changing its configuration.
-
-## Verify
-
-```sh
+go run . demo
 GOWORK=off go test ./...
 ```
 
-The tests cover help, invalid selection, and injection of both SDK client types
-without authenticating or contacting a provider.
-Local `replace` directives resolve core and adapters from this checkout, so the
-example also builds with workspace mode disabled. Credentialed runs use the
-provider SDK's normal initialization behavior.
+The demo implements the same provider/backend contracts but creates no cloud
+resources. Expected output: `Simulated sandbox created: demo-sandbox (demo)`.
+
+## Common client config
+
+```go
+client, err := sandbox.NewClient(sandbox.Config{
+    Provider: daytona.New(),
+    Auth: &sandbox.AuthConfig{
+        APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+    },
+    Endpoint: sandbox.Value("https://app.daytona.io/api"),
+    Region: sandbox.Value("us"),
+    Timeout: sandbox.Value(30 * time.Second),
+})
+if err != nil {
+    return err
+}
+defer client.Close(context.Background())
+```
+
+Use a target/endpoint valid for your account; the strings above illustrate fields.
+`Config` is generated from protobuf and YAML. `Provider` is a typed factory
+attachment, not an arbitrary value or an initialized SDK client. A name-only
+interface does not satisfy the initialization contract. Valid custom factories
+can implement `sandbox.Provider` and return the full `sandbox.Backend` contract.
+
+For Modal, change the selected provider and supported authentication:
+
+```go
+client, err := sandbox.NewClient(sandbox.Config{
+    Provider: modal.New(),
+    Auth: &sandbox.AuthConfig{
+        TokenPair: &sandbox.TokenPairCredentials{
+            ID: os.Getenv("MODAL_TOKEN_ID"),
+            Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+        },
+    },
+    Scope: &sandbox.Scope{
+        AppName: sandbox.Value("my-existing-app"),
+        Environment: sandbox.Value("main"),
+    },
+    Timeout: sandbox.Value(30 * time.Second),
+})
+```
+
+Check `err` and close this client when finished too. App context belongs in
+`Config`, not in each creation request. Modal uses token-pair or OAuth
+refresh credentials; Daytona uses API key or bearer/JWT credentials. Daytona
+bearer authentication requires an organization in `Scope.OrganizationID` or
+its SDK environment settings. Omit `Auth` entirely to use SDK profile/environment
+resolution; an explicit empty `AuthConfig` is invalid.
+
+Modal does not expose a per-client endpoint override in the pinned Go SDK.
+Setting `Config.Endpoint` for Modal returns a local error before SDK
+initialization. Daytona supports endpoint and region/target directly. Modal
+region is a default placement for later creation requests, which may override it.
+Unsupported authentication/context settings are rejected before SDK initialization.
+
+## Initialize a real provider
+
+Configure credentials in your environment, then:
+
+```sh
+go run . modal --app my-existing-app
+go run . daytona
+```
+
+These initialize SDKs and print `Sandbox Kit ready: <provider>`. They do not
+verify credentials through a cloud API or provision a sandbox.
+
+## Explicit cloud creation
+
+```sh
+go run . modal --app my-existing-app --create --image python:3.11
+go run . daytona --create --image python:3.11
+```
+
+`--create` provisions real resources. Additional flags include `--region`,
+`--endpoint` (Daytona), `--environment` (Modal), `--organization` (Daytona), and
+`--timeout`. SDK environment/profile defaults remain available for omitted settings.
+`main.go` checks construction and creation errors and propagates SDK cleanup errors.
+
+Both providers use the same creation API:
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+    Source: &sandbox.SandboxSource{
+        Image: &sandbox.ImageSource{Reference: "python:3.11"},
+    },
+    Resources: &sandbox.Resources{
+        CPUCores: sandbox.Value(2.0),
+        MemoryMiB: sandbox.Value(uint64(4096)),
+    },
+    Environment: map[string]string{"MODE": "development"},
+})
+if err != nil {
+    return err
+}
+fmt.Println(instance.ID(), instance.ProviderName())
+```
+
+An explicit `Provisioning.Timeout` overrides the client default, including zero.
+The caller's context deadline still applies. `Close` releases SDK resources; it
+does not delete the created sandbox. Sandbox lifecycle methods are a later increment.
+
+See [client configuration](../../docs/configuration.md),
+[creation support](../../docs/sandbox-creation.md), and
+[generator inputs](../../docs/code-generation.md).
+The example uses local module replacements; packages are not published yet.

@@ -1,49 +1,43 @@
 # SDK generation tooling
 
-All SDK generators are implemented in this one Go module, regardless of the
-language they emit. Shared inputs live in the repository's `proto/` directory.
+All generators are written in this Go module. Shared inputs are `proto/` and
+`specs/`; SDK runtimes do not need Go tooling or YAML files installed.
 
 ```text
-cmd/protoc-gen-kit-go/    Current Go-output plugin
-cmd/sandbox-kit/         Cobra developer CLI
-internal/commands/       Reusable generation and verification commands
-internal/go/client_gen/  Go client emitter
-internal/go/adapter_gen/ Go adapter emitter
-internal/gen/            Generated Go bindings for shared annotation metadata
+cmd/sandbox-kit/              Cobra developer CLI
+cmd/protoc-gen-kit-go/        Go output plugin
+internal/spec/               Strict YAML loader and portable rule model
+internal/go/types_gen/       Native Go structs and validator tags
+internal/go/validation_gen/  Shared field and cross-field validation
+internal/go/mapping_gen/     Typed request/response mappings and conversions
+internal/go/client_gen/      Local client methods and interfaces
+internal/go/provider_gen/     Provider constructors, state, SDK cleanup and delegation
+internal/gen/               Protobuf annotation bindings used only by tooling
 ```
 
-Only Go SDK generation exists today. Add future target emitters under
-`internal/<language>/` and their entry points under `cmd/`, using Go throughout.
-Each emitter owns the target language's naming conventions, syntax, and package
-layout. SDK runtime dependencies belong in that language's SDK, not this tooling.
-
-Run the reusable Cobra commands from this directory:
+From this directory:
 
 ```sh
-GOWORK=off go install ./cmd/sandbox-kit
-sandbox-kit --help
-sandbox-kit generate go
-sandbox-kit test go
+GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit test go
 ```
 
-The CLI finds the repository by walking up from the working directory, or accepts
-an explicit `--repo` path. `--go-binary` and `--protoc` select the tool executables.
-Subprocesses receive cancellation from the command context and run with
-`GOWORK=off`. Cobra is a tooling dependency; it is not an SDK runtime dependency.
+Or install with `GOWORK=off go install ./cmd/sandbox-kit`, then use
+`sandbox-kit generate go`. Requires Go 1.26.1+ and protoc for generation.
+The CLI discovers the repository or accepts `--repo`; `--go-binary` and
+`--protoc` select executables. Subprocesses receive cancellation and `GOWORK=off`.
+Temporary generator binaries are cleaned up outside the checkout; no `work/`
+directory is needed. The normal external Go cache is used.
 
-Ensure `GOBIN` (or `$(go env GOPATH)/bin` when unset) is on `PATH`. For a run
-without installation, use `GOWORK=off go run ./cmd/sandbox-kit generate go`.
-The installed binary can run from the repository root, or anywhere with an
-explicit `--repo /absolute/path/to/kit`.
+Generation bootstraps protobuf annotation bindings, then emits native runtime
+source. Protobuf is a build-time schema input; the public API has no protobuf
+objects and no generated gRPC transport. Client generation emits the common config and provider/backend contracts, a configuration-based
+constructor, default operation deadlines, and SDK cleanup delegation. `specs/client.yaml`
+defines initialization validation and native provider selection. Provider YAML includes
+SDK initialization mappings. Go runtime validation uses
+`go-playground/validator/v10` with generated tags and struct-level validators.
 
-Generation bootstraps the annotation bindings before building the plugin. Those
-bindings are tooling implementation details, not runtime SDK contracts. The
-protobuf dependency and generator version are pinned in this module's `go.mod`.
-
-Generator binaries live in a system temporary directory and are cleaned up on
-exit. Go's build cache stays outside the checkout. Generated source is the only
-generation output kept in the repository.
-
-Go is needed to build and run this toolchain in development or CI. SDK packages
-are not published yet. Future generated packages will target their native
-runtimes; non-Go SDK consumers will not need Go or the tooling module.
+See [the spec format and extension workflow](../docs/code-generation.md).
+Future emitters belong in `internal/<language>/`; add language SDK bindings while
+reusing semantic rules. Other language and harness emitters are not implemented.
+Generated source should be changed through specs/generators, then regenerated.

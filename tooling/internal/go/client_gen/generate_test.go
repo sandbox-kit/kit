@@ -16,16 +16,20 @@ import (
 func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (string, error) {
 	t.Helper()
 	options := &descriptorpb.FileOptions{
-		GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/core;core"),
+		GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox"),
 	}
 	if declaration != nil {
+		declaration.CreationService = "SandboxCreation"
+		declaration.ConfigMessage = "Config"
 		proto.SetExtension(options, codegenv1.E_Client, declaration)
 	}
 	plugin, err := (protogen.Options{}).New(&pluginpb.CodeGeneratorRequest{
 		FileToGenerate: []string{"client.proto"},
 		ProtoFile: []*descriptorpb.FileDescriptorProto{{
 			Name: proto.String("client.proto"), Syntax: proto.String("proto3"),
-			Package: proto.String("kit.core.v1"), Options: options,
+			Package: proto.String("kit.sandbox.v1"), Options: options,
+			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Config")}, {Name: proto.String("CreateOptions")}, {Name: proto.String("CreateResult")}},
+			Service:     []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("SandboxCreation"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Create"), InputType: proto.String(".kit.sandbox.v1.CreateOptions"), OutputType: proto.String(".kit.sandbox.v1.CreateResult")}}}},
 		}},
 	})
 	if err != nil {
@@ -46,15 +50,15 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (st
 
 func TestGeneratesConfiguredNamesAndValidGo(t *testing.T) {
 	source, err := generateForTest(t, &codegenv1.ClientDeclaration{
-		Name: "Session", ProviderInterface: "Backend",
+		Name: "Session", BackendInterface: "Backend",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := parser.ParseFile(token.NewFileSet(), "client.kit.go", source, parser.AllErrors); err != nil {
+	if _, err := parser.ParseFile(token.NewFileSet(), "client.gen.go", source, parser.AllErrors); err != nil {
 		t.Fatal(err)
 	}
-	for _, expected := range []string{"type Session struct", "func NewSession(provider Backend)", "ProviderName() string"} {
+	for _, expected := range []string{"type Session struct", "func NewSession(config Config)", "ProviderName() string"} {
 		if !strings.Contains(source, expected) {
 			t.Fatalf("missing configured declaration: %s", expected)
 		}
@@ -68,7 +72,7 @@ func TestRejectsInvalidOrCollidingNames(t *testing.T) {
 	for _, name := range []string{"", "client", "type", "Client;panic()", "Provider"} {
 		t.Run(name, func(t *testing.T) {
 			_, err := generateForTest(t, &codegenv1.ClientDeclaration{
-				Name: name, ProviderInterface: "Provider",
+				Name: name, BackendInterface: "Provider",
 			})
 			if err == nil {
 				t.Fatal("invalid declaration was accepted")

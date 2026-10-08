@@ -50,9 +50,10 @@ func generateGo(cmd *cobra.Command, root string, config *settings, runner runner
 		{toolingDir, config.goBinary, []string{"build", "-o", kitPlugin, "./cmd/protoc-gen-kit-go"}},
 	}
 	for _, target := range []struct{ directory, module, source string }{
-		{"sdks/go/core", "github.com/sandbox-kit/kit/sdks/go/core", "kit/core/v1/client.proto"},
-		{"sdks/go/adapters/modal", "github.com/sandbox-kit/kit/sdks/go/adapters/modal", "kit/adapters/modal/v1/adapter.proto"},
-		{"sdks/go/adapters/daytona", "github.com/sandbox-kit/kit/sdks/go/adapters/daytona", "kit/adapters/daytona/v1/adapter.proto"},
+		{"sdks/go/sandbox", "github.com/sandbox-kit/kit/sdks/go/sandbox", "kit/sandbox/v1/sandbox.proto"},
+		{"sdks/go/sandbox", "github.com/sandbox-kit/kit/sdks/go/sandbox", "kit/sandbox/v1/client.proto"},
+		{"sdks/go/providers/modal", "github.com/sandbox-kit/kit/sdks/go/providers/modal", "kit/providers/modal/v1/provider.proto"},
+		{"sdks/go/providers/daytona", "github.com/sandbox-kit/kit/sdks/go/providers/daytona", "kit/providers/daytona/v1/provider.proto"},
 	} {
 		steps = append(steps, step{root, config.protoc, []string{
 			"-I", filepath.Join(root, "proto"), "--plugin=protoc-gen-kit-go=" + kitPlugin,
@@ -65,6 +66,6 @@ func generateGo(cmd *cobra.Command, root string, config *settings, runner runner
 			return err
 		}
 	}
-	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Generated Go client and adapters.")
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Generated Go client and providers.")
 	return err
 }

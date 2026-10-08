@@ -1,18 +1,20 @@
 # Sandbox Kit
 
 Sandbox Kit is being built incrementally as a unified interface over existing
-sandbox SDKs. Shared operation requests and responses are the next design step.
-Applications supply their already initialized provider SDK clients.
+sandbox SDKs. A shared creation contract and client API are now implemented.
+Applications supply a common client configuration; optional providers initialize
+their provider SDK internally.
 
-Go is the first implemented language. Core, Modal, and Daytona adapters are
+Go is the first implemented language. Sandbox, Modal, and Daytona adapters are
 separate Go modules. Harness adapters are planned and will also be optional.
 
 ## Repository layout
 
 ```text
 proto/                   Shared contracts and generation declarations
-sdks/go/core/            Go client runtime
-sdks/go/adapters/        Separately installable Go provider adapters
+specs/                   Portable validation and provider mapping YAML
+sdks/go/sandbox/            Go client runtime
+sdks/go/providers/        Separately installable Go provider integrations
 tooling/                 One Go module for all SDK generators
 tooling/internal/go/     Emitters for Go SDK output
 examples/go/             One runnable Go example
@@ -26,17 +28,23 @@ language's constructor, packaging, and async/streaming conventions.
 
 ## Implemented today
 
-* `core.NewClient(provider)` creates the common `*core.Client`.
-* `modal.New(sdkClient)` and `daytona.New(sdkClient)` borrow an existing SDK pointer.
+* `sandbox.NewClient(sandbox.Config{...})` validates common configuration and initializes a provider SDK.
+* `modal.New()` and `daytona.New()` select an optional provider.
 * `client.ProviderName()` identifies the selected provider.
-* Constructors reject nil injection and make no provider calls.
+* `client.Create(ctx, request)` delegates to a creation binding and returns a
+  common `Sandbox` handle with `ID()`, `ProviderName()`, and `Info()`.
+* Optional typed adapters depend on their respective official SDK and own creation mappings.
+* Common auth, endpoint, region, context, and operation timeout settings are generated.
+* `client.Close(ctx)` releases the initialized SDK; sandbox deletion is separate.
+* Native Go configuration, validator tags/cross-field checks, and resource mappings
+  are generated from protobuf and language-neutral YAML specs.
 
-Core has no external dependencies. Each adapter depends only on core. Official
-SDK imports and authentication configuration stay in the application. The caller
-owns SDK cleanup, and the common API does not expose the raw SDK client.
-
-Sandbox creation, execution, lifecycle operations, unified operation responses,
-and harness integrations are not implemented yet.
+Sandbox has no provider SDK or protobuf runtime dependency. It uses
+`go-playground/validator/v10` for generated validation. Installing an adapter also
+installs its official SDK. Factories map common settings into SDK initialization;
+the client owns SDK cleanup. Lifecycle operations and harness integrations remain future increments.
+See [client configuration](docs/configuration.md) and
+[creation semantics](docs/sandbox-creation.md).
 
 ## Try the Go example
 
@@ -45,16 +53,19 @@ From the repository root:
 ```sh
 cd examples/go
 go run . --help
+go run . demo
 go run . modal
 # Or: go run . daytona
 ```
 
-Help requires no credentials. Provider runs need the chosen SDK's configuration;
+Help and the simulated creation demo require no credentials or cloud resources.
+Modal/Daytona modes initialize SDKs from the shared client configuration. Add
+`--create` to provision a sandbox. Provider runs need valid credentials/context;
 see [the Go example guide](examples/go/README.md) and [main.go](examples/go/main.go).
 
-See the [Modal guide](sdks/go/adapters/modal/README.md),
-[Daytona guide](sdks/go/adapters/daytona/README.md), and
-[architecture notes](docs/adapter-design.md) for details.
+See the [Modal guide](sdks/go/providers/modal/README.md),
+[Daytona guide](sdks/go/providers/daytona/README.md), and
+[architecture notes](docs/providers.md) for details.
 
 ## Generate and verify
 
@@ -78,11 +89,12 @@ installing, use `GOWORK=off go run ./cmd/sandbox-kit generate go` from `tooling/
 After installation, commands can also run from the repository root. From an
 unrelated directory, pass `--repo /absolute/path/to/kit`.
 
-[Client declarations](proto/kit/core/v1/client.proto) and
-[adapter declarations](proto/kit/adapters/) drive the Go
+[Client declarations](proto/kit/sandbox/v1/client.proto) and
+[adapter declarations](proto/kit/providers/) drive the Go
 `protoc-gen-kit-go` plugin. Generation produces interfaces, structs,
-constructors, and provider identity methods. Protobuf is build-time metadata for
-this increment; core and adapters need no protobuf or gRPC runtime.
+constructors, native creation data types, and local creation methods. YAML specs
+generate validation and selected typed mappings. See [generation specifications](docs/code-generation.md)
+for coverage and extension instructions. No gRPC service/client or additional network hop is added.
 
 Declaration names are language-neutral. Constructor naming belongs to the target
 generator. Standard `go_package` options direct Go output without changing shared
@@ -108,5 +120,7 @@ install their native packages without needing Go or this tooling module.
 The v0.0.0 requirements are development placeholders; modules are not published yet.
 
 Go import paths now include `sdks/go`, for example
-`github.com/sandbox-kit/kit/sdks/go/core` and
-`github.com/sandbox-kit/kit/sdks/go/adapters/modal`.
+`github.com/sandbox-kit/kit/sdks/go/sandbox` and
+`github.com/sandbox-kit/kit/sdks/go/providers/modal`.
+
+See [naming and migration](docs/naming.md) for package, type, field and generated naming conventions.

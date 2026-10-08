@@ -1,0 +1,66 @@
+version: 1
+provider: modal
+runtime:
+  go:
+    state:
+      - {name: scope, type: Scope, optional: true}
+      - {name: region, type: string}
+    cleanup: {method: Close, accepts_context: false, returns_error: false}
+groups:
+  - name: mapCommonCreateFields
+    direction: request
+    source: {name: CreateOptions}
+    target:
+      name: SandboxCreateParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: SandboxCreateParams
+          fields: {name: Name, environment: Env, labels: Tags}
+    fields:
+      - {from: name, to: name}
+      - {from: environment, to: environment}
+      - {from: labels, to: labels}
+  - name: mapResources
+    direction: request
+    source: {name: Resources}
+    target:
+      name: SandboxCreateParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: SandboxCreateParams
+          fields: {cpu: CPU, cpu_limit: CPULimit, memory: MemoryMiB, memory_limit: MemoryLimitMiB}
+    fields:
+      - {from: cpu_cores, to: cpu}
+      - {from: cpu_limit_cores, to: cpu_limit}
+      - {from: memory_mib, to: memory, maximum: 2147483647, cast: integer}
+      - {from: memory_limit_mib, to: memory_limit, maximum: 2147483647, cast: integer}
+  - name: mapTokenPairCredentials
+    direction: request
+    source: {name: TokenPairCredentials}
+    target:
+      name: ClientParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: ClientParams
+          fields: {id: TokenID, secret: TokenSecret}
+    fields:
+      - {from: id, to: id}
+      - {from: secret, to: secret}
+  - name: mapOAuthAuth
+    direction: request
+    source: {name: OAuthCredentials}
+    target:
+      name: OAuthCredentialsParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: OAuthCredentialsParams
+          fields: {refresh_token: RefreshToken, client_id: ClientID, client_secret: ClientSecret, jwt_key: JWTKey}
+    fields:
+      - {from: refresh_token, to: refresh_token}
+      - {from: client_id, to: client_id}
+      - {from: client_secret, to: client_secret}
+      - {from: jwt_key, to: jwt_key}

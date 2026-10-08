@@ -4,60 +4,58 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 
-	daytonaSDK "github.com/daytona/clients/sdk-go/pkg/daytona"
-	modalSDK "github.com/modal-labs/modal-client/go"
-	daytonaAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/daytona"
-	modalAdapter "github.com/sandbox-kit/kit/sdks/go/adapters/modal"
-	"github.com/sandbox-kit/kit/sdks/go/core"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
-func TestSDKClientsUseTheCommonClient(t *testing.T) {
-	// Construct only SDK structs: adapter/core initialization must not perform
-	// authentication or network work. The application supplies these SDK types.
-	for _, test := range []struct {
-		name        string
-		newProvider func() (core.Provider, error)
-	}{
-		{"modal", func() (core.Provider, error) { return modalAdapter.New(&modalSDK.Client{}) }},
-		{"daytona", func() (core.Provider, error) { return daytonaAdapter.New(&daytonaSDK.Client{}) }},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			provider, err := test.newProvider()
-			if err != nil {
-				t.Fatal(err)
-			}
-			client, err := core.NewClient(provider)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if client.ProviderName() != test.name {
-				t.Fatal("incorrect provider selected")
-			}
-		})
+func TestExamplesUseCommonConfiguration(t *testing.T) {
+	for _, name := range []string{"modal", "daytona"} {
+		config := clientConfig(name, settings{timeout: time.Second})
+		if config.Provider.Name() != name || config.Timeout == nil {
+			t.Fatal("missing provider or common settings")
+		}
+	}
+	t.Setenv("MODAL_TOKEN_ID", "test-id")
+	t.Setenv("MODAL_TOKEN_SECRET", "test-secret")
+	modal := clientConfig("modal", settings{app: "my-app"})
+	if modal.Auth.TokenPair.ID != "test-id" || modal.Scope.GetAppName() != "my-app" {
+		t.Fatal("Modal common config missing")
+	}
+	t.Setenv("DAYTONA_API_KEY", "test-key")
+	daytona := clientConfig("daytona", settings{endpoint: "https://example.invalid", region: "region"})
+	if daytona.Auth.APIKey.Key != "test-key" || daytona.GetRegion() != "region" || daytona.GetEndpoint() != "https://example.invalid" {
+		t.Fatal("Daytona common config missing")
 	}
 }
-
-func TestHelpDoesNotRequireProviderCredentials(t *testing.T) {
-	for _, args := range [][]string{nil, {"-h"}, {"--help"}} {
+func TestHelpDoesNotInitializeSDK(t *testing.T) {
+	for _, args := range [][]string{nil, {"--help"}, {"modal", "--help"}} {
 		var output bytes.Buffer
 		if err := run(args, &output); err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(output.String(), "<modal|daytona>") {
-			t.Fatal("missing provider usage")
+		if output.Len() == 0 {
+			t.Fatal("missing help")
+		}
+	}
+}
+func TestCreationDemo(t *testing.T) {
+	var out bytes.Buffer
+	if err := run([]string{"demo"}, &out); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out.String(), "Simulated sandbox created: demo-sandbox (demo)") {
+		t.Fatal(out.String())
+	}
+}
+func TestInvalidArgumentsDoNotInitializeSDK(t *testing.T) {
+	for _, args := range [][]string{{"unknown"}, {"modal", "daytona"}, {"modal", "--bad-flag"}} {
+		var output bytes.Buffer
+		if err := run(args, &output); err == nil {
+			t.Fatal("invalid arguments accepted")
 		}
 	}
 }
 
-func TestInvalidArgumentsDoNotInitializeAnSDK(t *testing.T) {
-	for _, args := range [][]string{{"unknown"}, {"modal", "daytona"}} {
-		var output bytes.Buffer
-		if err := run(args, &output); err == nil {
-			t.Fatal("invalid provider selection accepted")
-		}
-		if output.Len() != 0 {
-			t.Fatal("unexpected initialization output")
-		}
-	}
-}
+var _ sandbox.Provider = (*demoProvider)(nil)
+var _ sandbox.Backend = (*demoBackend)(nil)

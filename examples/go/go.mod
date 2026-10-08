@@ -3,18 +3,16 @@ module github.com/sandbox-kit/kit/examples/go
 go 1.26.1
 
 // These replacements make the example work with or without workspace mode.
-replace github.com/sandbox-kit/kit/sdks/go/core => ../../sdks/go/core
+replace github.com/sandbox-kit/kit/sdks/go/sandbox => ../../sdks/go/sandbox
 
-replace github.com/sandbox-kit/kit/sdks/go/adapters/modal => ../../sdks/go/adapters/modal
+replace github.com/sandbox-kit/kit/sdks/go/providers/modal => ../../sdks/go/providers/modal
 
-replace github.com/sandbox-kit/kit/sdks/go/adapters/daytona => ../../sdks/go/adapters/daytona
+replace github.com/sandbox-kit/kit/sdks/go/providers/daytona => ../../sdks/go/providers/daytona
 
 require (
-	github.com/daytona/clients/sdk-go v0.222.0
-	github.com/modal-labs/modal-client/go v0.11.0
-	github.com/sandbox-kit/kit/sdks/go/adapters/daytona v0.0.0
-	github.com/sandbox-kit/kit/sdks/go/adapters/modal v0.0.0
-	github.com/sandbox-kit/kit/sdks/go/core v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/providers/daytona v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/providers/modal v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/sandbox v0.0.0
 )
 
 require (
@@ -36,15 +34,22 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/daytona/clients/analytics-api-client-go v0.0.0-20260722121532-3d2223c79fe5 // indirect
 	github.com/daytona/clients/api-client-go v0.222.0 // indirect
+	github.com/daytona/clients/sdk-go v0.222.0 // indirect
 	github.com/daytona/clients/toolbox-api-client-go v0.222.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.30.5 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
 	github.com/kisielk/og-rek v1.3.0 // indirect
+	github.com/leodido/go-urn v1.5.0 // indirect
+	github.com/modal-labs/modal-client/go v0.11.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -57,11 +62,12 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476 // indirect
 	golang.org/x/net v0.58.0 // indirect
-	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/text v0.42.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/grpc v1.83.2 // indirect

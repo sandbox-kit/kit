@@ -15,7 +15,7 @@ func newTestCommand(config *settings, runner runner) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			for _, module := range []string{"sdks/go/core", "tooling", "sdks/go/adapters/modal", "sdks/go/adapters/daytona", "examples/go"} {
+			for _, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go"} {
 				if err := runner.run(cmd.Context(), step{
 					filepath.Join(root, filepath.FromSlash(module)), config.goBinary, []string{"test", "./..."},
 				}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {

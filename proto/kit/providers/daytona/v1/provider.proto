@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package kit.providers.daytona.v1;
+
+import public "kit/sandbox/v1/client.proto";
+import "kit/codegen/v1/options.proto";
+
+option go_package = "github.com/sandbox-kit/kit/sdks/go/providers/daytona;daytona";
+
+option (kit.codegen.v1.provider) = {
+  provider_name: "daytona"
+  name: "Backend"
+  sdks: { key: "go" value: { import_path: "github.com/daytona/clients/sdk-go/pkg/daytona" client_type: "Client" } }
+};

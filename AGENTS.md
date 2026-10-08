@@ -28,11 +28,32 @@ context.
 
 Sandbox Kit is a unified interface over existing provider SDKs. Core operations
 must expose shared request and response contracts; adapters map those contracts
-to their SDKs. Keep borrowed SDK clients internal, and do not expose a generic
+to their SDKs. Keep initialized SDK clients private, and do not expose a generic
 provider-specific client type or raw SDK accessor as the shared public API.
-Core, sandbox adapters, and harness adapters remain separate modules. Applications
-initialize/authenticate their SDK clients and retain ownership of their lifetime.
-Reusable adapter modules must not import or require official provider SDKs.
-Future SDK-specific mappings belong in application-owned bindings, and their
-callbacks must return shared contracts before crossing into core. Add that
-machinery when operation contracts exist, rather than speculative scaffolding.
+Sandbox, sandbox adapters, and harness adapters remain separate modules. Applications configure sandbox.NewClient through the generated Config.
+Optional provider factories initialize/authenticate SDKs from that common contract;
+the sandbox client owns SDK cleanup through Close.
+Optional provider integrations import and depend on their own official provider SDK.
+Providers own typed SDK method/configuration/response mapping. Applications install
+only the adapters they need and select their provider in Config.Provider. Do not use
+runtime SDK reflection or require application callbacks for standard operations.
+Public SDK configuration and responses use generated native language types;
+protobuf remains a schema/generation input and is not required in caller code.
+Creation uses the common protobuf request/response and returns a sandbox handle;
+lifecycle operations belong to that handle and are implemented separately.
+Preserve absent versus explicit configuration values, units, and source kinds.
+Bindings must reject unsupported intent before making provider calls.
+
+Validation and portable field mappings belong in versioned YAML under `specs/`.
+Keep semantic rules independent of target-language code; SDK member/type bindings
+belong under the language's binding section. Go validator tag translation belongs
+in the Go emitter. Generate shared validation and expressible mappings rather
+than maintaining duplicate handwritten rules. Add vocabulary operations with
+semantic tests; do not embed raw language code in YAML. Keep remaining SDK
+orchestration explicitly documented until a portable model is implemented.
+
+Use the naming conventions in docs/naming.md. Public Go SDK types belong in
+package sandbox; optional provider packages expose New and Provider, with private
+backend implementations. Keep initialisms and enum naming in the Go naming emitter.
+Generated Go filenames end in .gen.go. Preserve numeric enum values and explicit
+serialized field names when changing target-language identifiers.
