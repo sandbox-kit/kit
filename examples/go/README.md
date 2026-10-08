@@ -1,14 +1,37 @@
 # Go examples
 
-Two independent projects demonstrate authentication and sandbox creation:
+Requires Go 1.26.1 or newer and this repository checkout. Each example is a
+standalone module with local replacements for the SDK and its selected provider.
 
-- [Create a Modal sandbox](create-modal-sandbox/README.md)
-- [Create a Daytona sandbox](create-daytona-sandbox/README.md)
+| Project | Required `.env` values |
+| --- | --- |
+| [create-modal-sandbox](create-modal-sandbox/README.md) | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `MODAL_APP_NAME`; environment defaults to `main` |
+| [create-daytona-sandbox](create-daytona-sandbox/README.md) | `DAYTONA_API_KEY` |
 
-Each project contains its own `main.go`, `go.mod`, `.env.example`, and local `.env`.
-Fill in the local `.env`, then run `go run .` from that project directory.
-No flags, provider selection, command execution, or lifecycle operations are included.
-Each project installs only its own optional provider integration.
+From the repository root, choose one:
 
-The previous combined example and its `.env` have been removed. Relevant local
-settings were migrated to the corresponding project before deletion.
+```sh
+cd examples/go/create-daytona-sandbox
+# Or: cd examples/go/create-modal-sandbox
+cp .env.example .env   # Skip if .env already exists.
+# Edit .env, then:
+go run .
+```
+
+Each `main.go` loads `.env`, constructs the common client, creates one sandbox,
+prints its ID, and releases SDK resources. There are no CLI flags, provider
+selectors, or simulated backends. The SDK itself does not load `.env`; examples
+use `godotenv`. Shell environment values take precedence over file values.
+
+`.env` is Git-ignored. `.env.example` contains only blank credentials/defaults.
+Modal app setup is documented in its project guide.
+
+Running creates real resources. `client.Close` does not stop/delete the sandbox;
+use provider management tools for that cleanup. Execution and lifecycle operations
+are not included.
+
+Compile either project without provisioning:
+
+```sh
+GOWORK=off go test ./...
+```

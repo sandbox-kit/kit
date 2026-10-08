@@ -1,124 +1,192 @@
 # Sandbox Kit
 
-Sandbox Kit is being built incrementally as a unified interface over existing
-sandbox SDKs. A shared creation contract and client API are now implemented.
-Applications supply a common client configuration; optional providers initialize
-their provider SDK internally.
+Create sandboxes through one Go API, with separately installable provider
+integrations. Sandbox Kit currently supports **Modal** and **Daytona**. Providers
+initialize their official SDK internally from common client configuration; your
+application imports Sandbox Kit and the provider it needs.
 
-Go is the first implemented language. Sandbox, Modal, and Daytona adapters are
-separate Go modules. Harness adapters are planned and will also be optional.
+**Current scope:** authentication, sandbox creation, and shared identity/metadata.
+Execution, sandbox stop/delete, snapshots, and harness integrations are not yet
+implemented. Other languages are planned; Go is the implemented SDK today.
 
-## Repository layout
+## Start with a working example
 
-```text
-proto/                   Shared contracts and generation declarations
-specs/                   Portable validation and provider mapping YAML
-sdks/go/sandbox/            Go client runtime
-sdks/go/providers/        Separately installable Go provider integrations
-tooling/                 One Go module for all SDK generators
-tooling/internal/go/     Emitters for Go SDK output
-examples/go/             Independent provider examples
-docs/                    Shared architecture and design notes
-```
-
-New languages get sibling `sdks/<language>/` and `examples/<language>/`
-directories when implemented. Their emitters go under `tooling/internal/<language>/`
-and are also written in Go. All emitters reuse `proto/` and apply the output
-language's constructor, packaging, and async/streaming conventions.
-
-## Implemented today
-
-* `sandbox.NewClient(sandbox.Config{...})` validates common configuration and initializes a provider SDK.
-* `modal.New()` and `daytona.New()` select an optional provider.
-* `client.ProviderName()` identifies the selected provider.
-* `client.Create(ctx, request)` delegates to a creation binding and returns a
-  common `Sandbox` handle with `ID()`, `ProviderName()`, and `Info()`.
-* Optional typed adapters depend on their respective official SDK and own creation mappings.
-* Common auth, endpoint, region, context, and operation timeout settings are generated.
-* `client.Close(ctx)` releases the initialized SDK; sandbox deletion is separate.
-* Native Go configuration, validator tags/cross-field checks, and resource mappings
-  are generated from protobuf and language-neutral YAML specs.
-
-Sandbox has no provider SDK or protobuf runtime dependency. It uses
-`go-playground/validator/v10` for generated validation. Installing an adapter also
-installs its official SDK. Factories map common settings into SDK initialization;
-the client owns SDK cleanup. Lifecycle operations and harness integrations remain future increments.
-See [client configuration](docs/configuration.md) and
-[creation semantics](docs/sandbox-creation.md).
-
-## Try the Go examples
-
-Choose one standalone project:
+Requires **Go 1.26.1 or newer**. Modules are not published yet; use the development
+checkout. The current implementation is on the feature branch:
 
 ```sh
-cd examples/go/create-modal-sandbox
-# Or: cd examples/go/create-daytona-sandbox
-cp .env.example .env  # Skip if .env already exists.
-# Fill in the provider's credentials and required settings.
+git clone --branch feat/unified-sandbox-sdk https://github.com/sandbox-kit/kit.git
+cd kit
+```
+
+Choose one project:
+
+| Provider | Project | Required `.env` values |
+| --- | --- | --- |
+| Daytona | [create-daytona-sandbox](examples/go/create-daytona-sandbox/README.md) | `DAYTONA_API_KEY` |
+| Modal | [create-modal-sandbox](examples/go/create-modal-sandbox/README.md) | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `MODAL_APP_NAME` |
+
+For Daytona:
+
+```sh
+cd examples/go/create-daytona-sandbox
+cp .env.example .env   # Skip if you already have .env.
+# Edit .env and set DAYTONA_API_KEY from your dashboard.
 go run .
 ```
 
-Each project authenticates and creates one real sandbox using our SDK. There are
-no flags or provider selectors. See [the examples index](examples/go/README.md).
+For Modal, run the same commands from `examples/go/create-modal-sandbox` and fill
+in its token pair and an existing app name. `MODAL_ENVIRONMENT` defaults to `main`.
+See [Modal setup, including app creation](examples/go/create-modal-sandbox/README.md).
 
-See the [Modal guide](sdks/go/providers/modal/README.md),
-[Daytona guide](sdks/go/providers/daytona/README.md), and
-[architecture notes](docs/providers.md) for details.
+Each project has its own Go module and imports only its selected provider.
+There are no flags or provider selectors. Running it creates **one real sandbox**
+and prints its ID. `.env` is Git-ignored; commit only the blank `.env.example`.
 
-## Generate and verify
+## Use the SDK in Go
 
-Requires Go 1.26.1 or newer; generation also requires `protoc`.
-From the repository root:
+The main steps are select a provider, construct a client, and create a sandbox:
 
-```sh
-cd tooling
-GOWORK=off go install ./cmd/sandbox-kit
-sandbox-kit --help
-sandbox-kit generate go
-sandbox-kit test go
+```go
+import (
+    "context"
+    "fmt"
+    "os"
+
+    "github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+    "github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func createSandbox(ctx context.Context) error {
+    client, err := sandbox.NewClient(sandbox.Config{
+        Provider: daytona.New(),
+        Auth: &sandbox.AuthConfig{
+            APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+        },
+    })
+    if err != nil {
+        return err
+    }
+    defer client.Close(context.Background())
+
+    instance, err := client.Create(ctx, nil) // Daytona's default snapshot.
+    if err != nil {
+        return err
+    }
+    fmt.Println(instance.ID(), instance.ProviderName())
+    return nil
+}
 ```
 
-These reusable Cobra commands own the workflows directly. The repository
-contains several Go modules; inside one module, use `GOWORK=off go test ./...`.
+Applications must supply environment variables themselves. Only the example
+projects load `.env` using `godotenv`; the SDK does not load files automatically.
+The runnable examples also propagate SDK cleanup errors.
 
-Installation writes the executable to `GOBIN`, or `$(go env GOPATH)/bin` when
-`GOBIN` is unset. That directory must be on your shell's `PATH`. Without
-installing, use `GOWORK=off go run ./cmd/sandbox-kit generate go` from `tooling/`.
-After installation, commands can also run from the repository root. From an
-unrelated directory, pass `--repo /absolute/path/to/kit`.
+For Modal, select `modal.New()` and configure its supported credentials/scope:
 
-[Client declarations](proto/kit/sandbox/v1/client.proto) and
-[adapter declarations](proto/kit/providers/) drive the Go
-`protoc-gen-kit-go` plugin. Generation produces interfaces, structs,
-constructors, native creation data types, and local creation methods. YAML specs
-generate validation and selected typed mappings. See [generation specifications](docs/code-generation.md)
-for coverage and extension instructions. No gRPC service/client or additional network hop is added.
+```go
+config := sandbox.Config{
+    Provider: modal.New(),
+    Auth: &sandbox.AuthConfig{
+        TokenPair: &sandbox.TokenPairCredentials{
+            ID: os.Getenv("MODAL_TOKEN_ID"),
+            Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+        },
+    },
+    Scope: &sandbox.Scope{
+        AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+        Environment: sandbox.Value("main"),
+    },
+}
+```
 
-Declaration names are language-neutral. Constructor naming belongs to the target
-generator. Standard `go_package` options direct Go output without changing shared
-contract semantics. Future generators will apply their native language conventions.
+Import `github.com/sandbox-kit/kit/sdks/go/providers/modal`. Pass `config` to
+`sandbox.NewClient`, then create with an explicit image:
 
-Generation first bootstraps the annotation types, then builds the Go plugin.
-Generator binaries are built in a system temporary directory and removed when
-generation finishes. Go uses its normal external build cache; no `work/` folder
-is needed in the repository.
-The protobuf Go generator version is pinned in `tooling/go.mod`. Generated
-source belongs in version control and should be changed through its declarations
-and generator, rather than edited manually.
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+    Source: &sandbox.SandboxSource{
+        Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+    },
+})
+```
 
-The CLI discovers the repository from the current directory. Use `--repo`,
-`--go-binary`, or `--protoc` to select explicit paths. Generation cleans up its
-temporary tool directory on success or failure.
+Modal requires an existing app and image for the current mapping. Daytona can
+use its default snapshot with `nil` creation options. Both return the same
+`sandbox.Sandbox` handle. See [Modal](sdks/go/providers/modal/README.md) and
+[Daytona](sdks/go/providers/daytona/README.md) for provider-specific usage.
 
-Go is required to build the generator toolchain. Users of future non-Go SDKs will
-install their native packages without needing Go or this tooling module.
+## Configure creation
 
-`go.work` groups the local Go modules for editor support. Module-local
-`replace` directives also allow independent builds inside this checkout.
-The v0.0.0 requirements are development placeholders; modules are not published yet.
+Use `sandbox.CreateOptions` for image/snapshot source, runtime, isolation,
+resources, environment variables, labels, placement, and supported policies.
+Fields express intent; providers reject settings they cannot honor.
 
-Go import paths now include `sdks/go`, for example
-`github.com/sandbox-kit/kit/sdks/go/sandbox` and
-`github.com/sandbox-kit/kit/sdks/go/providers/modal`.
+```go
+options := &sandbox.CreateOptions{
+    Source: &sandbox.SandboxSource{
+        Image: &sandbox.ImageSource{Reference: "python:3.11"},
+    },
+    Resources: &sandbox.Resources{
+        CPUCores: sandbox.Value(2.0),
+        MemoryMiB: sandbox.Value(uint64(4096)),
+    },
+    Environment: map[string]string{"MODE": "development"},
+    Labels: map[string]string{"team": "sandbox-kit"},
+}
+```
 
-See [naming and migration](docs/naming.md) for package, type, field and generated naming conventions.
+`sandbox.Value` marks an optional value as supplied, including zero or false.
+Memory/disk units are MiB. Daytona resource overrides require an image source,
+whole CPU cores, and whole GiB expressed as MiB. Modal also supports fractional
+CPU. See [creation support and semantics](docs/sandbox-creation.md).
+
+Client settings live in `sandbox.Config`: `Provider`, `Auth`, `Scope`, `Endpoint`,
+`Region`, and `Timeout`. Supported auth modes and context differ by provider.
+For example, Modal's pinned Go SDK does not expose a per-client endpoint override.
+See [the configuration matrix](docs/configuration.md).
+
+`Config.Timeout` is a default operation deadline. Per-operation
+`CreateOptions.Provisioning.Timeout` overrides it; zero adds no Kit deadline.
+Caller context deadlines still apply. Provider SDK errors pass through unchanged.
+
+## Results and cleanup
+
+* `instance.ID()` — sandbox ID.
+* `instance.ProviderName()` — selected provider.
+* `instance.Info()` — copied shared metadata, including available provider state/resources.
+* `client.Close(ctx)` — release SDK resources.
+
+**Closing the client does not stop or delete a sandbox.** Use the provider's
+management tools/dashboard for sandbox cleanup until lifecycle methods are added.
+No additional gRPC service or middle service is introduced by Sandbox Kit.
+
+## Development
+
+The repository contains separate SDK/provider/example modules. `go.work` and local
+`replace` directives wire the checkout together; v0.0.0 requirements are development
+placeholders, not published releases. For your own application before publication,
+use local replacements for the SDK and selected provider, as the example modules do.
+
+From `tooling/`:
+
+```sh
+GOWORK=off go run ./cmd/sandbox-kit test go
+GOWORK=off go run ./cmd/sandbox-kit generate go  # Requires protoc.
+```
+
+Tests compile both examples without executing cloud creation. Protobuf and YAML
+are generation inputs; users receive native Go types without protobuf imports.
+
+```text
+sdks/go/sandbox/       Public Go SDK
+sdks/go/providers/     Optional provider modules
+examples/go/           Separate Modal and Daytona projects
+proto/                 Shared types and generation declarations
+specs/                 Validation and provider mapping rules
+tooling/               Go generators and Cobra development commands
+docs/                  Configuration, semantics, and design
+```
+
+Further reading: [code generation](docs/code-generation.md),
+[provider architecture](docs/providers.md), [naming](docs/naming.md).
