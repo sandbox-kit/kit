@@ -288,11 +288,11 @@ func (x *WarmPoolSource) GetReference() string {
 }
 
 type RuntimeConfig struct {
-	Language         *string  `json:"language,omitempty" validate:"omitnil"`
-	Version          *string  `json:"version,omitempty" validate:"omitnil"`
-	User             *string  `json:"user,omitempty" validate:"omitnil"`
-	WorkingDirectory *string  `json:"working_directory,omitempty" validate:"omitnil"`
-	Entrypoint       []string `json:"entrypoint" validate:""`
+	Language         *string  `json:"language,omitempty" validate:"omitnil,nonblank"`
+	Version          *string  `json:"version,omitempty" validate:"omitnil,nonblank"`
+	User             *string  `json:"user,omitempty" validate:"omitnil,nonblank"`
+	WorkingDirectory *string  `json:"working_directory,omitempty" validate:"omitnil,nonblank"`
+	Entrypoint       []string `json:"entrypoint" validate:"dive,nonblank"`
 	PTY              *bool    `json:"pty,omitempty" validate:"omitnil"`
 }
 
@@ -585,7 +585,7 @@ func (x *SecurityConfig) GetSecrets() []*SecretReference {
 
 type SecretReference struct {
 	Reference           string          `json:"reference,omitempty" validate:"nonblank"`
-	EnvironmentVariable *string         `json:"environment_variable,omitempty" validate:"omitnil"`
+	EnvironmentVariable *string         `json:"environment_variable,omitempty" validate:"omitnil,nonblank"`
 	Injection           SecretInjection `json:"injection,omitempty" validate:""`
 }
 
@@ -753,7 +753,7 @@ func (x *CommandProbe) GetArgv() []string {
 
 type ObservabilityConfig struct {
 	Verbose           *bool   `json:"verbose,omitempty" validate:"omitnil"`
-	TelemetryEndpoint *string `json:"telemetry_endpoint,omitempty" validate:"omitnil"`
+	TelemetryEndpoint *string `json:"telemetry_endpoint,omitempty" validate:"omitnil,nonblank"`
 }
 
 func (x *ObservabilityConfig) GetVerbose() bool {

@@ -90,10 +90,35 @@ field keys mapped to native members under `bindings.go`. A new SDK language adds
 its own bindings and emitter; the field rules and conversion semantics stay shared.
 Types/field names inside a language binding are SDK-specific, not portable rules.
 
-Supported conversions: copy, `whole`, `divide_exactly`, and `multiply`.
+Supported conversions: copy, `whole`, `divide_exactly`, `multiply`,
+`scaled_integer`, `duration_seconds`, and `policy_minutes`.
 `maximum` bounds the converted value. Division rejects remainders; multiplication
 checks unsigned overflow and negative input. Portable casts are `integer`,
 `number`, `unsigned`, and `string`; Go chooses the corresponding native type.
+
+`scaled_integer` requires a nonnegative finite shared double exactly representable
+at `factor` units per value; `maximum` bounds the scaled integer. It keeps the
+native float value and compensates for binary rounding before SDK truncation.
+Modal CPU uses factor 1000 and a uint32 maximum. `duration_seconds` requires a
+positive whole-second duration, bounds its seconds with `maximum`, and retains
+the native duration. Both operations preserve absent values and reject lossy
+input before SDK calls. Their target-language emitters must reproduce these
+semantics; SDK resource quotas still apply separately.
+
+`policy_minutes` maps an `AutomaticAction` to a native optional integer interval.
+Its `policy.disabled` declares `zero` or `reject`; `policy.immediate` declares
+whether AFTER zero represents an immediate action. Absent/default stays omitted.
+Delayed actions require representable whole minutes. Daytona declares these rules
+per action. Stop/pause zero disables them; only delete zero requests immediate
+action. Archive's maximum is declared in minutes. The service guide governs
+semantics where SDK parameter comments conflict; see [verification](provider-verification.md).
+
+Provider `checks` declare schema paths with numeric bounds, allowed string values,
+and formats (absolute paths, HTTP URLs, CIDRs, domains, environment keys). Checks
+preserve omitted values. Policy relationships reject conflicting idle delays and
+ephemeral combinations before native SDK calls. Enum membership is generated from
+protobuf descriptors. Resource constraints require positive limits to have a
+corresponding request. Account quotas and placement capacity stay provider-enforced.
 
 Request helpers preserve nil optional fields and return a remaining configuration
 with mapped fields cleared. backends reject remaining unsupported intent before
@@ -118,6 +143,20 @@ and optional pointer flag. Other languages can define their own runtime bindings
 and whether it returns an error. The adapter emitter generates the typed SDK call
 directly; separate handwritten cleanup forwarding functions are not needed.
 
+`runtime.go.constructor.function` names the SDK constructor taking a pointer to
+the mapped configuration and returning a client plus error. The emitter generates
+`newBackend`: normalize omitted config, map/validate it, call the constructor,
+preserve constructor errors, and capture configured backend state. State `capture`
+is a schema field path relative to Config (for example `region`, `scope`, or
+`scope.organization_id`), not a Go expression. Generated typed copies preserve
+nil and explicit values without aliasing caller data. Message copies follow all
+schema fields, including organization/project scope. The current emitter supports
+optional strings and messages containing scalar/nested message fields; collections,
+bytes, recursive messages, and real oneofs fail generation until copying support
+is added. Invalid paths and incompatible capture types also fail generation.
+A new language emitter implements these ownership semantics and binds its native
+constructor.
+
 ## Current coverage and extensions
 
 Common client and creation validation are generated. Config's native
@@ -129,10 +168,26 @@ Generated mappings cover both
 providers' name/environment/labels, resource requests and precision checks, plus
 Daytona sandbox metadata and allocated-resource conversions. They also cover
 Modal token-pair/OAuth credentials and Daytona API-key/bearer credentials,
-endpoint, region, and organization scope. Initialization helpers handle provider
-support checks and typed SDK constructors.
+endpoint, region, and organization scope. Configuration assembly, provider support
+checks, native SDK constructors, and state capture are generated.
 
-Provider orchestration and remaining semantic mappings stay in typed `create.go`
+The provider's `client` spec composes request mapping groups into initialization
+parameters. `settings` maps top-level config; `scope` maps scope; `auth` declares
+supported credential variants. Components reference a mapping `group`, and can
+declare additional `retained` fields captured by the backend. A `destination`
+attaches a mapped object by pointer using a named native binding and its declared
+`objects` type (Modal OAuth credentials). `managed` permits only Kit's provider
+selection and timeout; `retained` requires a matching state capture. Mapped fields
+and auth/scope components own their input automatically, while
+`rejected` identifies unsupported fields with diagnostic messages. Unknown fields,
+missing groups, incompatible full schema/native identities, conflicting ownership,
+and duplicate native destinations fail generation. Exclusive auth alternatives
+may share destinations with each other, but may not overwrite common settings or
+scope. Overrides are rejected; no implicit precedence exists. The resulting
+`provider.client.gen.go` validates common configuration,
+rejects unmapped intent, and leaves omitted credentials to SDK defaults.
+
+Provider orchestration and remaining semantic mappings stay in typed `sandbox.go`
 files: app/image/secret resolution, source choice, policy semantics, networking,
 readiness, and SDK invocation. These are not automatically portable yet. Do not
 claim that adding a language binding alone generates a complete adapter.

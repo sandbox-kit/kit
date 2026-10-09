@@ -17,7 +17,7 @@ Compatibility is pinned to Modal Go v0.11.0 and Daytona Go v0.222.0. Refer to th
 | Source | Explicit registry image; existing app name required | Default/specified snapshot, or registry image |
 | Runtime | Entrypoint, working directory, PTY | Toolbox language and user |
 | Isolation | Default, gVisor container, Linux VM | Nested KVM flag; class inherited from source |
-| Resources | Fractional CPU, CPU limit, MiB memory and memory limit | Whole CPU and whole GiB memory/disk, image source only |
+| Resources | CPU in 0.001-core increments, CPU limit, MiB memory and memory limit | Whole CPU and whole GiB memory/disk, image source only |
 | Placement | Cloud and region preferences | Target selected on initialized SDK; per-request placement rejected |
 | Environment/labels | Env map and tags | Env map and labels |
 | Secrets/security | Named secrets, workload identity | Egress-placeholder secrets, public access |
@@ -46,6 +46,13 @@ multiplies by 1024. Fractional GiB and out-of-range allocations are rejected.
 Reservations and limits differ; unsupported limits are not dropped. Allocated
 resources are mapped from SDK metadata, not echoed from the request.
 
+Modal CPU requests must be at least 0.125 physical cores and fit its uint32 mill
+CPU representation. Memory requests must be at least 128 MiB. Maximum lifetime
+requires positive whole seconds up to 24 hours; idle delays require positive
+whole seconds fitting the SDK representation.
+Generated mappings reject precision loss and overflow before SDK calls; provider
+quotas may impose stricter limits.
+
 Creation timeout, queue timeout, and sandbox lifetime are separate. Omitted creation timeout inherits `Config.Timeout`. Zero adds no Kit
 deadline; it does not remove the caller's context deadline.
 Policy DEFAULT defers, DISABLED disables, and AFTER supplies a delay. Zero AFTER
@@ -68,3 +75,10 @@ There is no extra retry layer or automatic cleanup of created cloud resources.
 GPU, resizing, storage/volumes, harnesses, browsers, computer use, macOS/Windows,
 and lifecycle operations remain future extensions. Tests use SDK service doubles
 and a fake HTTP transport, with no live provisioning.
+
+Daytona stop/pause support explicit disabling (native zero). Only delete supports
+immediate AFTER zero. Immediate stop/pause/archive and explicit archive/delete
+disabling are rejected. Archive delays cannot exceed 30 days. The pinned creation
+SDK rejects the service's -1 delete-disable sentinel. Provider-default behavior
+and account limits remain provider-controlled.
+See [reference verification](provider-verification.md).

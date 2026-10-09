@@ -7,8 +7,103 @@ import (
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	math "math"
+	time "time"
 )
 
+func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParams, sandbox.LifetimePolicy, error) {
+	target := types.SandboxBaseParams{}
+	remaining := sandbox.LifetimePolicy{}
+	if source != nil {
+		remaining = *source
+	}
+	if source == nil {
+		return target, remaining, nil
+	}
+	if policy := source.IdleStop; policy != nil {
+		switch policy.Mode {
+		case sandbox.PolicyModeDefault:
+		case sandbox.PolicyModeDisabled:
+			target.AutoStopInterval = sandbox.Value(0)
+		case sandbox.PolicyModeAfter:
+			if policy.After == nil {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: duration is required")
+			}
+			duration := *policy.After
+			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: delay cannot be represented in whole minutes (zero may disable this action)")
+			}
+			value := int(duration / time.Minute)
+			target.AutoStopInterval = &value
+		default:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: unknown policy mode")
+		}
+	}
+	remaining.IdleStop = nil
+	if policy := source.IdlePause; policy != nil {
+		switch policy.Mode {
+		case sandbox.PolicyModeDefault:
+		case sandbox.PolicyModeDisabled:
+			target.AutoPauseInterval = sandbox.Value(0)
+		case sandbox.PolicyModeAfter:
+			if policy.After == nil {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: duration is required")
+			}
+			duration := *policy.After
+			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: delay cannot be represented in whole minutes (zero may disable this action)")
+			}
+			value := int(duration / time.Minute)
+			target.AutoPauseInterval = &value
+		default:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: unknown policy mode")
+		}
+	}
+	remaining.IdlePause = nil
+	if policy := source.StoppedArchive; policy != nil {
+		switch policy.Mode {
+		case sandbox.PolicyModeDefault:
+		case sandbox.PolicyModeDisabled:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: explicit disabling is not representable; zero would trigger immediately")
+		case sandbox.PolicyModeAfter:
+			if policy.After == nil {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: duration is required")
+			}
+			duration := *policy.After
+			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: delay cannot be represented in whole minutes (zero may disable this action)")
+			}
+			if duration/time.Minute > 43200 {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: delay exceeds documented maximum")
+			}
+			value := int(duration / time.Minute)
+			target.AutoArchiveInterval = &value
+		default:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: unknown policy mode")
+		}
+	}
+	remaining.StoppedArchive = nil
+	if policy := source.StoppedDelete; policy != nil {
+		switch policy.Mode {
+		case sandbox.PolicyModeDefault:
+		case sandbox.PolicyModeDisabled:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: explicit disabling is not representable; zero would trigger immediately")
+		case sandbox.PolicyModeAfter:
+			if policy.After == nil {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: duration is required")
+			}
+			duration := *policy.After
+			if duration < 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: delay cannot be represented in whole minutes (zero may disable this action)")
+			}
+			value := int(duration / time.Minute)
+			target.AutoDeleteInterval = &value
+		default:
+			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: unknown policy mode")
+		}
+	}
+	remaining.StoppedDelete = nil
+	return target, remaining, nil
+}
 func mapCommonCreateFields(source *sandbox.CreateOptions) (types.SandboxBaseParams, sandbox.CreateOptions, error) {
 	target := types.SandboxBaseParams{}
 	remaining := sandbox.CreateOptions{}

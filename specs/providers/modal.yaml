@@ -1,12 +1,51 @@
 version: 1
 provider: modal
+checks:
+  - {path: resources.cpu_cores, minimum: 0.125}
+  - {path: resources.memory_mib, minimum: 128}
+  - {path: runtime.working_directory, format: absolute_path}
+  - {path: placement.cloud, allowed: [aws, gcp, oci, auto]}
+  - {path: network.outbound_cidrs.entries, format: cidr, allow_empty: true}
+  - {path: network.inbound_cidrs.entries, format: cidr}
+  - {path: network.outbound_domains.entries, format: domain, allow_empty: true}
+  - {path: environment, format: env_name}
+client:
+  target:
+    name: ClientParams
+    bindings:
+      go:
+        import: github.com/modal-labs/modal-client/go
+        name: ClientParams
+        fields: {oauth: OAuthCredentials}
+        objects:
+          oauth: {import: github.com/modal-labs/modal-client/go, name: OAuthCredentialsParams}
+  managed: [provider, timeout]
+  retained: [region]
+  rejected: {endpoint: "Endpoint cannot be configured through this SDK's public client constructor"}
+  scope: {field: scope, group: mapClientScope, retained: [app_name]}
+  auth:
+    - {field: token_pair, group: mapTokenPairCredentials}
+    - {field: oauth_refresh, group: mapOAuthAuth, destination: oauth}
 runtime:
   go:
+    constructor: {function: NewClientWithOptions}
     state:
-      - {name: scope, type: Scope, optional: true}
-      - {name: region, type: string}
+      - {name: scope, type: Scope, optional: true, capture: scope}
+      - {name: region, type: string, optional: true, capture: region}
     cleanup: {method: Close, accepts_context: false, returns_error: false}
 groups:
+  - name: mapClientScope
+    direction: request
+    source: {name: Scope}
+    target:
+      name: ClientParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: ClientParams
+          fields: {environment: Environment}
+    fields:
+      - {from: environment, to: environment}
   - name: mapCommonCreateFields
     direction: request
     source: {name: CreateOptions}
@@ -32,10 +71,34 @@ groups:
           name: SandboxCreateParams
           fields: {cpu: CPU, cpu_limit: CPULimit, memory: MemoryMiB, memory_limit: MemoryLimitMiB}
     fields:
-      - {from: cpu_cores, to: cpu}
-      - {from: cpu_limit_cores, to: cpu_limit}
+      - {from: cpu_cores, to: cpu, transform: scaled_integer, factor: 1000, maximum: 4294967295}
+      - {from: cpu_limit_cores, to: cpu_limit, transform: scaled_integer, factor: 1000, maximum: 4294967295}
       - {from: memory_mib, to: memory, maximum: 2147483647, cast: integer}
       - {from: memory_limit_mib, to: memory_limit, maximum: 2147483647, cast: integer}
+  - name: mapLifetimeDuration
+    direction: request
+    source: {name: LifetimePolicy}
+    target:
+      name: SandboxCreateParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: SandboxCreateParams
+          fields: {timeout: Timeout}
+    fields:
+      - {from: maximum_lifetime, to: timeout, transform: duration_seconds, maximum: 86400}
+  - name: mapIdleDuration
+    direction: request
+    source: {name: AutomaticAction}
+    target:
+      name: SandboxCreateParams
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: SandboxCreateParams
+          fields: {timeout: IdleTimeout}
+    fields:
+      - {from: after, to: timeout, transform: duration_seconds, maximum: 4294967295}
   - name: mapTokenPairCredentials
     direction: request
     source: {name: TokenPairCredentials}

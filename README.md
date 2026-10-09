@@ -139,7 +139,7 @@ options := &sandbox.CreateOptions{
 `sandbox.Value` marks an optional value as supplied, including zero or false.
 Memory/disk units are MiB. Daytona resource overrides require an image source,
 whole CPU cores, and whole GiB expressed as MiB. Modal also supports fractional
-CPU. See [creation support and semantics](docs/sandbox-creation.md).
+CPU in 0.001-core increments. See [creation support and semantics](docs/sandbox-creation.md).
 
 Client settings live in `sandbox.Config`: `Provider`, `Auth`, `Scope`, `Endpoint`,
 `Region`, and `Timeout`. Supported auth modes and context differ by provider.
@@ -175,7 +175,9 @@ GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate go  # Requires protoc.
 ```
 
-Tests compile both examples without executing cloud creation. Protobuf and YAML
+Tests compile all example projects and run local verification tests without cloud
+creation. [Resource and policy examples](examples/go/README.md) cover public API
+validation and SDK request mappings. Protobuf and YAML
 are generation inputs; users receive native Go types without protobuf imports.
 
 ```text

@@ -21,8 +21,9 @@ GOWORK=off go run ./cmd/sandbox-kit test go
 
 Generation rebuilds annotation bindings, then generates native SDK types,
 validators, client/provider contracts, constructors, and supported mappings.
-Verification tests the public SDK, tooling, both providers, and both standalone
-example projects. It does not execute the examples or provision cloud resources.
+Verification tests the public SDK, tooling, both providers, and all four standalone
+example projects, including the resources/policies projects. Their tests use local
+servers and dummy credentials; verification does not provision cloud resources.
 
 To install the reusable Cobra CLI:
 

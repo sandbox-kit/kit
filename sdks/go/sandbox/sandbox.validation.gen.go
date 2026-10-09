@@ -18,6 +18,11 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(AutomaticAction)
 		_ = x
+		switch x.GetMode() {
+		case 0, 1, 2:
+		default:
+			sl.ReportError(x, "Mode", "Mode", "known_enum", "")
+		}
 		count0 := 0
 		if x.After != nil {
 			count0++
@@ -34,8 +39,22 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, AutomaticAction{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(IsolationConfig)
+		_ = x
+		switch x.GetKind() {
+		case 0, 1, 2, 3, 4, 5:
+		default:
+			sl.ReportError(x, "Kind", "Kind", "known_enum", "")
+		}
+	}, IsolationConfig{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(NetworkConfig)
 		_ = x
+		switch x.GetEgress() {
+		case 0, 1, 2, 3:
+		default:
+			sl.ReportError(x, "Egress", "Egress", "known_enum", "")
+		}
 		count0 := 0
 		if x.OutboundCIDRs != nil {
 			count0++
@@ -80,6 +99,24 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, NetworkConfig{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(PortBinding)
+		_ = x
+		switch x.GetTransport() {
+		case 0, 1, 2, 3:
+		default:
+			sl.ReportError(x, "Transport", "Transport", "known_enum", "")
+		}
+	}, PortBinding{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(ProvisioningOptions)
+		_ = x
+		switch x.GetWaitFor() {
+		case 0, 1, 2, 3, 4:
+		default:
+			sl.ReportError(x, "WaitFor", "WaitFor", "known_enum", "")
+		}
+	}, ProvisioningOptions{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(ReadinessProbe)
 		_ = x
 		count0 := 0
@@ -102,6 +139,12 @@ func newCreateOptionsValidator() *v10.Validate {
 		if (true) && (x.GetMemoryLimitMiB() > 0 && x.GetMemoryLimitMiB() < x.GetMemoryMiB()) {
 			sl.ReportError(x, "memory_limit_mib", "memory_limit_mib", "limit", "")
 		}
+		if (true) && (x.GetCPULimitCores() > 0 && x.GetCPUCores() == 0) {
+			sl.ReportError(x, "cpu_limit_cores", "cpu_limit_cores", "requires_positive", "")
+		}
+		if (true) && (x.GetMemoryLimitMiB() > 0 && x.GetMemoryMiB() == 0) {
+			sl.ReportError(x, "memory_limit_mib", "memory_limit_mib", "requires_positive", "")
+		}
 	}, Resources{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(SandboxSource)
@@ -123,6 +166,24 @@ func newCreateOptionsValidator() *v10.Validate {
 			sl.ReportError(x, "provider_default,image,snapshot,warm_pool", "provider_default,image,snapshot,warm_pool", "at_most_one", "")
 		}
 	}, SandboxSource{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(SecretReference)
+		_ = x
+		switch x.GetInjection() {
+		case 0, 1, 2:
+		default:
+			sl.ReportError(x, "Injection", "Injection", "known_enum", "")
+		}
+	}, SecretReference{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(SnapshotSource)
+		_ = x
+		switch x.GetKind() {
+		case 0, 1, 2, 3, 4, 5, 6:
+		default:
+			sl.ReportError(x, "Kind", "Kind", "known_enum", "")
+		}
+	}, SnapshotSource{})
 	return v
 }
 

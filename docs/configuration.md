@@ -7,7 +7,7 @@ provider selections; SDK backends are private. Sandbox imports neither official 
 `Config` and authentication/context types are native Go output from
 `proto/kit/sandbox/v1/client.proto`. `specs/client.yaml` attaches the native provider
 contract and defines portable validation. Provider YAML generates the supported
-credential/client field mappings; typed initialization helpers perform SDK calls.
+credential/client field mappings, configuration assembly, and typed SDK construction.
 
 ## Common configuration
 

@@ -7,6 +7,8 @@ standalone module with local replacements for the SDK and its selected provider.
 | --- | --- |
 | [create-modal-sandbox](create-modal-sandbox/README.md) | `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `MODAL_APP_NAME`; environment defaults to `main` |
 | [create-daytona-sandbox](create-daytona-sandbox/README.md) | `DAYTONA_API_KEY` |
+| [create-modal-with-resources](create-modal-with-resources/README.md) | Modal credentials, app, and optional environment |
+| [create-daytona-with-policies](create-daytona-with-policies/README.md) | Daytona API key and optional endpoint/target |
 
 From the repository root, choose one:
 
@@ -30,8 +32,14 @@ Running creates real resources. `client.Close` does not stop/delete the sandbox;
 use provider management tools for that cleanup. Execution and lifecycle operations
 are not included.
 
-Compile either project without provisioning:
+Verify any project without provisioning:
 
 ```sh
 GOWORK=off go test ./...
 ```
+
+The resources/policies projects also include tests through the public SDK using
+dummy credentials and local servers. `go test -v ./...` runs these without cloud
+provisioning. Modal tests verify validation and scope ownership; Daytona tests
+also verify the serialized creation request through the official SDK. They do not
+claim to verify real provider scheduling or execution.

@@ -48,6 +48,20 @@ For explicit configuration, see [the provider guide](../../../sdks/go/providers/
 
 ## Scope and cleanup
 
+The example leaves lifetime policies at Daytona defaults. To explicitly disable
+auto-pause, replace its `client.Create(context.Background(), nil)` call with:
+
+```go
+instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+    Lifetime: &sandbox.LifetimePolicy{
+        IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
+    },
+})
+```
+
+Auto-stop and auto-pause support disabling with native zero. Explicit archive/delete
+disabling is rejected; immediate deletion uses zero. See [policy semantics](../../../docs/sandbox-creation.md).
+
 This example only authenticates and creates a sandbox. It does not execute
 commands or run sandbox lifecycle operations. Running it provisions a real sandbox.
 Deferred `client.Close` releases SDK resources but does not delete the sandbox;

@@ -22,6 +22,10 @@ func validSpec() *codegenv1.ProviderDeclaration {
 }
 
 func generateForTest(t *testing.T, declaration *codegenv1.ProviderDeclaration, withClient bool) (string, error) {
+	return generateRuntimeForTest(t, declaration, withClient, spec.RuntimeBinding{Cleanup: spec.Cleanup{Method: "Close", ReturnsError: true}})
+}
+
+func generateRuntimeForTest(t *testing.T, declaration *codegenv1.ProviderDeclaration, withClient bool, runtime spec.RuntimeBinding) (string, error) {
 	t.Helper()
 	options := &descriptorpb.FileOptions{GoPackage: proto.String("example.com/kit/custom;custom")}
 	if declaration != nil {
@@ -33,14 +37,19 @@ func generateForTest(t *testing.T, declaration *codegenv1.ProviderDeclaration, w
 	plugin, err := (protogen.Options{}).New(&pluginpb.CodeGeneratorRequest{
 		FileToGenerate: []string{"provider.proto"},
 		ProtoFile: []*descriptorpb.FileDescriptorProto{{
+			Name: proto.String("config.proto"), Syntax: proto.String("proto2"), Package: proto.String("kit.sandbox.v1"),
+			Options:     &descriptorpb.FileOptions{GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox")},
+			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Config"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("region"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}}}},
+		}, {
 			Name: proto.String("provider.proto"), Syntax: proto.String("proto3"),
-			Package: proto.String("kit.custom"), Options: options,
+			Dependency: []string{"config.proto"},
+			Package:    proto.String("kit.custom"), Options: options,
 		}},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(plugin, plugin.Files[0], spec.RuntimeBinding{Cleanup: spec.Cleanup{Method: "Close", ReturnsError: true}}); err != nil {
+	if err := Generate(plugin, plugin.Files[1], runtime); err != nil {
 		return "", err
 	}
 	response := plugin.Response()
@@ -51,6 +60,35 @@ func generateForTest(t *testing.T, declaration *codegenv1.ProviderDeclaration, w
 		return "", nil
 	}
 	return response.File[0].GetContent(), nil
+}
+
+func TestConstructorBindingsAndStateCapture(t *testing.T) {
+	runtime := spec.RuntimeBinding{
+		Constructor: spec.Constructor{Function: "NewConfiguredClient"},
+		Cleanup:     spec.Cleanup{Method: "Close", ReturnsError: true},
+		State:       []spec.StateField{{Name: "region", Type: "string", Optional: true, Capture: "region"}},
+	}
+	source, err := generateRuntimeForTest(t, validSpec(), false, runtime)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"sdk.NewConfiguredClient(&params)", "result.region = &value", "config.Region != nil", "config = &sandbox.Config{}", "return nil, err"} {
+		if !strings.Contains(source, want) {
+			t.Fatalf("missing %q", want)
+		}
+	}
+	if _, err := parser.ParseFile(token.NewFileSet(), "provider.gen.go", source, parser.AllErrors); err != nil {
+		t.Fatal(err)
+	}
+	runtime.State[0].Capture = "unknown"
+	if _, err := generateRuntimeForTest(t, validSpec(), false, runtime); err == nil {
+		t.Fatal("unknown capture accepted")
+	}
+	runtime.State = nil
+	runtime.Constructor.Function = "NewClient()"
+	if _, err := generateRuntimeForTest(t, validSpec(), false, runtime); err == nil {
+		t.Fatal("constructor expression accepted")
+	}
 }
 
 func TestGeneratesProviderBackendAndConfiguredNames(t *testing.T) {

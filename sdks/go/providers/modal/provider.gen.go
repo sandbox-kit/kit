@@ -22,9 +22,53 @@ func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
 type backend struct {
 	client *_go.Client
 	scope  *sandbox.Scope
-	region string
+	region *string
 }
 
+func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
+	if config == nil {
+		config = &sandbox.Config{}
+	}
+	params, err := mapClientConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	native, err := _go.NewClientWithOptions(&params)
+	if err != nil {
+		return nil, err
+	}
+	result := &backend{client: native}
+	captureBackendState(result, config)
+	return result, nil
+}
+func captureBackendState(result *backend, config *sandbox.Config) {
+	if config == nil {
+		return
+	}
+	if config.Scope != nil {
+		result.scope = &sandbox.Scope{}
+		if config.Scope.AppName != nil {
+			value := *config.Scope.AppName
+			result.scope.AppName = &value
+		}
+		if config.Scope.Environment != nil {
+			value := *config.Scope.Environment
+			result.scope.Environment = &value
+		}
+		if config.Scope.OrganizationID != nil {
+			value := *config.Scope.OrganizationID
+			result.scope.OrganizationID = &value
+		}
+		if config.Scope.ProjectID != nil {
+			value := *config.Scope.ProjectID
+			result.scope.ProjectID = &value
+		}
+	}
+	if config.Region != nil {
+		value := *config.Region
+		result.region = &value
+	}
+}
 func (*backend) Name() string { return "modal" }
 func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	return a.create(ctx, request)

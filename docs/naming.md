@@ -51,7 +51,8 @@ replaces `adapter_gen`. Generated files consistently end in `.gen.go`:
 `client.gen.go`, `client.types.gen.go`, `sandbox.types.gen.go`,
 `provider.gen.go`, and `provider.mappings.gen.go`, for example.
 
-`client.go` in a provider implements SDK construction; `sandbox.go` implements
+`provider.client.gen.go` assembles native SDK configuration; `provider.gen.go`
+constructs the SDK. `sandbox.go` implements
 sandbox creation. Names describe responsibilities, not an architecture layer.
 
 ## Generated language conventions

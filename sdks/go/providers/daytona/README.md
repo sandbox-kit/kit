@@ -72,9 +72,15 @@ configure the client's region/target instead. See [creation support](../../../..
 `client.Close(ctx)` releases SDK resources, not the sandbox. Execution and sandbox
 lifecycle methods remain future work. Provider SDK errors pass through unchanged.
 
+Lifetime policies have action-specific zero semantics: disabled stop/pause maps
+to zero; AFTER zero requests immediate deletion. Immediate stop/pause/archive and
+explicit disabling of archive/delete are rejected before SDK calls. Leave
+policies absent/default to defer to Daytona. See [creation semantics](../../../../docs/sandbox-creation.md).
+
 ## Development
 
 Run `GOWORK=off go test ./...` from this module. Local replacements resolve the
 public SDK. [Provider YAML](../../../../specs/providers/daytona.yaml) generates
 configuration, credential, resource and metadata mappings; typed SDK construction
-and semantic mappings live in `client.go` and `sandbox.go`.
+is generated. Configuration assembly is in `provider.client.gen.go`; creation
+orchestration and semantic mappings remain in `sandbox.go`.

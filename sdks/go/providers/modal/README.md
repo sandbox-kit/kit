@@ -64,9 +64,13 @@ id := instance.ID()
 ```
 
 The current mapping requires an explicit registry image. Default/snapshot/warm-pool
-sources are not implemented. Fractional CPU, supported memory limits, runtime
+sources are not implemented. CPU in 0.001-core increments, supported memory limits, runtime
 command/working directory, and other mapped creation settings are available;
 unsupported intent is rejected. See [creation support](../../../../docs/sandbox-creation.md).
+
+Requests require at least 0.125 CPU cores and 128 MiB memory when supplied.
+Maximum lifetime is capped at 24 hours. Omitted resource values retain Modal's
+defaults; account quotas and placement availability are checked by Modal.
 
 `client.Close(ctx)` releases the SDK, not the sandbox. Sandbox lifecycle methods
 remain future work. Provider SDK errors pass through unchanged.
@@ -76,4 +80,5 @@ remain future work. Provider SDK errors pass through unchanged.
 From this module, run `GOWORK=off go test ./...`. Local replacements resolve the
 public SDK from the checkout. Generated provider/client-field mappings come from
 [provider YAML](../../../../specs/providers/modal.yaml); typed SDK construction
-and semantic mappings live in `client.go` and `sandbox.go`.
+and scope capture are generated. Configuration assembly is in `provider.client.gen.go`;
+creation orchestration and semantic mappings remain in `sandbox.go`.

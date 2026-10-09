@@ -43,21 +43,27 @@ type Constraint struct {
 	When   *Condition `yaml:"when"`
 }
 type Binding struct {
-	Import string            `yaml:"import"`
-	Name   string            `yaml:"name"`
-	Fields map[string]string `yaml:"fields"`
+	Import  string             `yaml:"import"`
+	Name    string             `yaml:"name"`
+	Fields  map[string]string  `yaml:"fields"`
+	Objects map[string]Binding `yaml:"objects"`
 }
 type Type struct {
 	Name     string             `yaml:"name"`
 	Bindings map[string]Binding `yaml:"bindings"`
 }
 type Mapping struct {
-	From      string  `yaml:"from"`
-	To        string  `yaml:"to"`
-	Transform string  `yaml:"transform"`
-	Factor    uint64  `yaml:"factor"`
-	Maximum   *uint64 `yaml:"maximum"`
-	Cast      string  `yaml:"cast"`
+	Policy    *PolicyMapping `yaml:"policy"`
+	From      string         `yaml:"from"`
+	To        string         `yaml:"to"`
+	Transform string         `yaml:"transform"`
+	Factor    uint64         `yaml:"factor"`
+	Maximum   *uint64        `yaml:"maximum"`
+	Cast      string         `yaml:"cast"`
+}
+type PolicyMapping struct {
+	Disabled  string `yaml:"disabled"`
+	Immediate bool   `yaml:"immediate"`
 }
 type Comparison struct {
 	Field       string `yaml:"field"`
@@ -75,6 +81,13 @@ type StateField struct {
 	Name     string `yaml:"name"`
 	Type     string `yaml:"type"`
 	Optional bool   `yaml:"optional"`
+	Capture  string `yaml:"capture"`
+}
+
+// Constructor names the native constructor after common configuration mapping.
+// State capture uses portable config field paths, never target-language expressions.
+type Constructor struct {
+	Function string `yaml:"function"`
 }
 type Cleanup struct {
 	Method         string `yaml:"method"`
@@ -82,14 +95,44 @@ type Cleanup struct {
 	ReturnsError   bool   `yaml:"returns_error"`
 }
 type RuntimeBinding struct {
-	State   []StateField `yaml:"state"`
-	Cleanup Cleanup      `yaml:"cleanup"`
+	Constructor Constructor  `yaml:"constructor"`
+	State       []StateField `yaml:"state"`
+	Cleanup     Cleanup      `yaml:"cleanup"`
 }
 type Provider struct {
+	Checks   []Check                   `yaml:"checks"`
+	Client   *ClientMapping            `yaml:"client"`
 	Runtime  map[string]RuntimeBinding `yaml:"runtime"`
 	Version  int                       `yaml:"version"`
 	Provider string                    `yaml:"provider"`
 	Groups   []Group                   `yaml:"groups"`
+}
+type Check struct {
+	AllowEmpty        bool     `yaml:"allow_empty"`
+	ExclusivePolicies []string `yaml:"exclusive_policies"`
+	ForbidPolicyWith  string   `yaml:"forbid_policy_with"`
+	Path              string   `yaml:"path"`
+	Allowed           []string `yaml:"allowed"`
+	Minimum           *float64 `yaml:"minimum"`
+	Maximum           *float64 `yaml:"maximum"`
+	Format            string   `yaml:"format"`
+}
+
+// ClientMapping composes existing field mappings into native initialization params.
+type ClientMapping struct {
+	Target   Type              `yaml:"target"`
+	Managed  []string          `yaml:"managed"`
+	Retained []string          `yaml:"retained"`
+	Rejected map[string]string `yaml:"rejected"`
+	Settings string            `yaml:"settings"`
+	Scope    *ClientComponent  `yaml:"scope"`
+	Auth     []ClientComponent `yaml:"auth"`
+}
+type ClientComponent struct {
+	Field       string   `yaml:"field"`
+	Group       string   `yaml:"group"`
+	Retained    []string `yaml:"retained"`
+	Destination string   `yaml:"destination"`
 }
 
 func decode(path string, value any) error {
