@@ -3,6 +3,8 @@ go 1.26.1
 use (
 	./examples/go/create-modal-sandbox
 	./examples/go/create-daytona-sandbox
+	./examples/go/create-modal-with-resources
+	./examples/go/create-daytona-with-policies
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
 	./sdks/go/sandbox

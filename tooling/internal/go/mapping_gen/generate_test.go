@@ -44,6 +44,11 @@ func TestRejectsInvalidMappings(t *testing.T) {
 		func(s *spec.Provider) { s.Groups[0].Fields[0].To = "unbound" },
 		func(s *spec.Provider) { s.Groups[0].Fields[0].Factor = 0 },
 		func(s *spec.Provider) { s.Groups[0].Fields[0].Transform = "go_expression" },
+		func(s *spec.Provider) {
+			s.Groups[0].Fields[0].Transform = "policy_minutes"
+			s.Groups[0].Fields[0].Policy = &spec.PolicyMapping{Disabled: "zero"}
+		},
+		func(s *spec.Provider) { s.Groups[0].Fields[0].Policy = &spec.PolicyMapping{Disabled: "zero"} },
 		func(s *spec.Provider) { s.Groups[0].Fields = append(s.Groups[0].Fields, s.Groups[0].Fields[0]) },
 	} {
 		p := fixture(t)

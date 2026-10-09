@@ -23,7 +23,11 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	if request == nil {
 		request = &sandbox.CreateOptions{}
 	}
-	plan, err := planCreate(request, a.scope, a.region)
+	region := ""
+	if a.region != nil {
+		region = *a.region
+	}
+	plan, err := planCreate(request, a.scope, region)
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +60,9 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 
 func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region string) (createPlan, error) {
 	var plan createPlan
+	if err := validateProviderCreate(request); err != nil {
+		return plan, err
+	}
 	if err := sandbox.ValidateCreateOptions(request); err != nil {
 		return plan, err
 	}
@@ -200,10 +207,11 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 	if request.Lifetime != nil {
 		config := *request.Lifetime
 		if config.MaximumLifetime != nil {
-			if err := positiveWholeSeconds(*config.MaximumLifetime); err != nil {
+			mapped, _, err := mapLifetimeDuration(&config)
+			if err != nil {
 				return plan, err
 			}
-			plan.params.Timeout = *config.MaximumLifetime
+			plan.params.Timeout = mapped.Timeout
 		}
 		config.MaximumLifetime = nil
 		if config.IdleTerminate != nil {
@@ -216,10 +224,11 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 				if policy.After == nil {
 					return plan, fmt.Errorf("sandbox-kit modal: idle duration missing")
 				}
-				if err := positiveWholeSeconds(*policy.After); err != nil {
+				mapped, _, err := mapIdleDuration(policy)
+				if err != nil {
 					return plan, err
 				}
-				plan.params.IdleTimeout = *policy.After
+				plan.params.IdleTimeout = mapped.IdleTimeout
 			default:
 				return plan, fmt.Errorf("sandbox-kit modal: unknown idle policy")
 			}
@@ -278,10 +287,4 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		return plan, err
 	}
 	return plan, nil
-}
-func positiveWholeSeconds(value time.Duration) error {
-	if value <= 0 || value%time.Second != 0 {
-		return fmt.Errorf("sandbox-kit modal: lifetime/idle durations require positive whole seconds; zero would use a native default")
-	}
-	return nil
 }

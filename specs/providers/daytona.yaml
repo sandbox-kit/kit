@@ -1,9 +1,47 @@
 version: 1
 provider: daytona
+checks:
+  - {path: runtime.language, allowed: [python, javascript, typescript]}
+  - {path: network.outbound_proxy_url, format: http_url}
+  - {path: network.outbound_cidrs.entries, format: cidr}
+  - {path: network.outbound_domains.entries, format: domain}
+  - {path: security.secrets.environment_variable, format: env_name}
+  - {exclusive_policies: [idle_stop, idle_pause]}
+  - {path: idle_pause, forbid_policy_with: ephemeral}
+  - {path: idle_pause, forbid_policy_with: stopped_delete}
+  - {path: stopped_delete, forbid_policy_with: ephemeral}
+  - {path: stopped_archive, forbid_policy_with: ephemeral}
+client:
+  target:
+    name: DaytonaConfig
+    bindings:
+      go: {import: github.com/daytona/clients/sdk-go/pkg/types, name: DaytonaConfig}
+  settings: mapClientSettings
+  managed: [provider, timeout]
+  scope: {field: scope, group: mapScope}
+  auth:
+    - {field: api_key, group: mapAPIKeyCredentials}
+    - {field: bearer_token, group: mapBearerAuth}
 runtime:
   go:
+    constructor: {function: NewClientWithConfig}
     cleanup: {method: Close, accepts_context: true, returns_error: true}
 groups:
+  - name: mapLifetimePolicies
+    direction: request
+    source: {name: LifetimePolicy}
+    target:
+      name: SandboxBaseParams
+      bindings:
+        go:
+          import: github.com/daytona/clients/sdk-go/pkg/types
+          name: SandboxBaseParams
+          fields: {stop: AutoStopInterval, pause: AutoPauseInterval, archive: AutoArchiveInterval, delete: AutoDeleteInterval}
+    fields:
+      - {from: idle_stop, to: stop, transform: policy_minutes, policy: {disabled: zero, immediate: false}}
+      - {from: idle_pause, to: pause, transform: policy_minutes, policy: {disabled: zero, immediate: false}}
+      - {from: stopped_archive, to: archive, transform: policy_minutes, maximum: 43200, policy: {disabled: reject, immediate: false}}
+      - {from: stopped_delete, to: delete, transform: policy_minutes, policy: {disabled: reject, immediate: true}}
   - name: mapCommonCreateFields
     direction: request
     source: {name: CreateOptions}

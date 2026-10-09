@@ -48,6 +48,9 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 
 func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	var plan createPlan
+	if err := validateProviderCreate(request); err != nil {
+		return plan, err
+	}
 	if err := sandbox.ValidateCreateOptions(request); err != nil {
 		return plan, err
 	}
@@ -146,17 +149,13 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 			base.TtlMinutes = &minutes
 		}
 		config.MaximumLifetime = nil
-		for _, item := range []struct {
-			policy *sandbox.AutomaticAction
-			target **int
-		}{{config.IdleStop, &base.AutoStopInterval}, {config.IdlePause, &base.AutoPauseInterval}, {config.StoppedArchive, &base.AutoArchiveInterval}, {config.StoppedDelete, &base.AutoDeleteInterval}} {
-			value, err := policyMinutes(item.policy)
-			if err != nil {
-				return plan, err
-			}
-			*item.target = value
+		mapped, remaining, err := mapLifetimePolicies(&config)
+		if err != nil {
+			return plan, err
 		}
-		config.IdleStop, config.IdlePause, config.StoppedArchive, config.StoppedDelete = nil, nil, nil, nil
+		base.AutoStopInterval, base.AutoPauseInterval = mapped.AutoStopInterval, mapped.AutoPauseInterval
+		base.AutoArchiveInterval, base.AutoDeleteInterval = mapped.AutoArchiveInterval, mapped.AutoDeleteInterval
+		config = remaining
 		if err := sandbox.RejectUnmapped("daytona lifetime", &config); err != nil {
 			return plan, err
 		}
@@ -242,20 +241,4 @@ func durationMinutes(value time.Duration, zeroAllowed bool) (int, error) {
 		return 0, fmt.Errorf("sandbox-kit daytona: policy/queue durations require representable whole minutes")
 	}
 	return int(value / time.Minute), nil
-}
-func policyMinutes(policy *sandbox.AutomaticAction) (*int, error) {
-	if policy == nil || policy.Mode == sandbox.PolicyModeDefault {
-		return nil, nil
-	}
-	if policy.Mode == sandbox.PolicyModeDisabled {
-		return sandbox.Value(0), nil
-	}
-	if policy.Mode != sandbox.PolicyModeAfter || policy.After == nil {
-		return nil, fmt.Errorf("sandbox-kit daytona: invalid policy")
-	}
-	if *policy.After == 0 {
-		return nil, fmt.Errorf("sandbox-kit daytona: immediate policy cannot be represented as disabled numeric zero")
-	}
-	value, err := durationMinutes(*policy.After, false)
-	return &value, err
 }

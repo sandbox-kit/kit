@@ -105,21 +105,83 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 			if err != nil {
 				return err
 			}
-			optional := sf != nil && sf.Desc.HasPresence() && sf.Desc.Kind() != protoreflect.MessageKind
+			if mapping.Transform == "policy_minutes" {
+				if !request || sf == nil || sf.Message == nil || sf.Message.Desc.FullName() != "kit.sandbox.v1.AutomaticAction" || tf != nil || mapping.Policy == nil || (mapping.Policy.Disabled != "zero" && mapping.Policy.Disabled != "reject") || mapping.Cast != "" || mapping.Factor != 0 {
+					return fmt.Errorf("invalid policy_minutes mapping %s", mapping.From)
+				}
+				label := "sandbox-kit " + rules.Provider + ": " + mapping.From
+				fail := func(message string) {
+					g.P("return target,remaining,", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(", strconv.Quote(label+": "+message), ")")
+				}
+				g.P("if policy:=source.", from, ";policy!=nil{switch policy.Mode{")
+				g.P("case ", protogen.GoIdent{GoName: "PolicyModeDefault", GoImportPath: sandbox}, ":")
+				g.P("case ", protogen.GoIdent{GoName: "PolicyModeDisabled", GoImportPath: sandbox}, ":")
+				if mapping.Policy.Disabled == "zero" {
+					g.P("target.", to, "=", protogen.GoIdent{GoName: "Value", GoImportPath: sandbox}, "(0)")
+				} else {
+					fail("explicit disabling is not representable; zero would trigger immediately")
+				}
+				g.P("case ", protogen.GoIdent{GoName: "PolicyModeAfter", GoImportPath: sandbox}, ":")
+				g.P("if policy.After==nil{")
+				fail("duration is required")
+				g.P("}")
+				minute := protogen.GoIdent{GoName: "Minute", GoImportPath: "time"}
+				comparison := "<0"
+				if !mapping.Policy.Immediate {
+					comparison = "<=0"
+				}
+				g.P("duration:=*policy.After;if duration", comparison, " || duration%", minute, "!=0 || duration/", minute, ">2147483647{")
+				fail("delay cannot be represented in whole minutes (zero may disable this action)")
+				g.P("}")
+				if mapping.Maximum != nil {
+					g.P("if duration/", minute, ">", *mapping.Maximum, "{")
+					fail("delay exceeds documented maximum")
+					g.P("}")
+				}
+				g.P("value:=int(duration/", minute, ");target.", to, "=&value")
+				g.P("default:")
+				fail("unknown policy mode")
+				g.P("}}")
+				g.P("remaining.", from, "=nil")
+				continue
+			}
+			if mapping.Policy != nil {
+				return fmt.Errorf("policy rules require policy_minutes transform")
+			}
+			duration := sf != nil && sf.Message != nil && sf.Message.Desc.FullName() == "google.protobuf.Duration"
+			optional := sf != nil && sf.Desc.HasPresence() && (sf.Desc.Kind() != protoreflect.MessageKind || duration)
 			if optional {
 				g.P("if source.", from, "!=nil{")
 			}
 			value := "source." + from
 			if optional {
 				value = "source.Get" + from + "()"
+				if duration {
+					value = "*source." + from
+				}
 			}
 			g.P("{")
 			g.P("value:=", value)
 			invalid := ""
+			comparisonValue := ""
 			switch mapping.Transform {
 			case "":
 			case "whole":
 				invalid = "float64(value)!=" + g.QualifiedGoIdent(protogen.GoIdent{GoName: "Trunc", GoImportPath: "math"}) + "(float64(value))"
+			case "scaled_integer":
+				if mapping.Factor == 0 || sf == nil || sf.Desc.Kind() != protoreflect.DoubleKind || mapping.Cast != "" {
+					return fmt.Errorf("scaled_integer requires a shared double, positive factor, and no cast")
+				}
+				g.P("scaled:=", protogen.GoIdent{GoName: "Round", GoImportPath: "math"}, "(value*", mapping.Factor, ")")
+				invalid = fmt.Sprintf("%s(value) || %s(value,0) || value<0 || value!=scaled/%d", g.QualifiedGoIdent(protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}), g.QualifiedGoIdent(protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}), mapping.Factor)
+				comparisonValue = "scaled"
+			case "duration_seconds":
+				if sf == nil || sf.Message == nil || sf.Message.Desc.FullName() != "google.protobuf.Duration" || mapping.Cast != "" {
+					return fmt.Errorf("duration_seconds requires shared duration and no cast")
+				}
+				second := g.QualifiedGoIdent(protogen.GoIdent{GoName: "Second", GoImportPath: "time"})
+				invalid = "value<=0 || value%" + second + "!=0"
+				comparisonValue = "value/" + second
 			case "divide_exactly":
 				if mapping.Factor == 0 {
 					return fmt.Errorf("%s: divide factor must be positive", group.Name)
@@ -144,7 +206,11 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 				if invalid != "" {
 					invalid += " || "
 				}
-				invalid += fmt.Sprintf("%s>%d", value, *mapping.Maximum)
+				boundValue := value
+				if comparisonValue != "" {
+					boundValue = comparisonValue
+				}
+				invalid += fmt.Sprintf("%s>%d", boundValue, *mapping.Maximum)
 			}
 			if invalid != "" {
 				errreturn := "target,"
@@ -152,6 +218,10 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 					errreturn += "remaining,"
 				}
 				g.P("if ", invalid, "{return ", errreturn, protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(", strconv.Quote("sandbox-kit "+rules.Provider+": "+mapping.From+" cannot be represented"), ")}")
+			}
+			if mapping.Transform == "scaled_integer" {
+				// Compensate for binary rounding before SDKs truncate scaled values.
+				g.P("if value*", mapping.Factor, "<scaled{value=", protogen.GoIdent{GoName: "Nextafter", GoImportPath: "math"}, "(value,", protogen.GoIdent{GoName: "Inf", GoImportPath: "math"}, "(1))}")
 			}
 			switch mapping.Cast {
 			case "":

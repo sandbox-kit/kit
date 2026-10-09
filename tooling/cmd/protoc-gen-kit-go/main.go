@@ -56,6 +56,12 @@ func main() {
 					if err = providergen.Generate(plugin, file, mappings.Runtime["go"]); err != nil {
 						return err
 					}
+					if err = providergen.GenerateConfig(plugin, file, mappings); err != nil {
+						return err
+					}
+					if err = providergen.GenerateChecks(plugin, file, mappings); err != nil {
+						return err
+					}
 					if err = mappinggen.Generate(plugin, file, mappings); err != nil {
 						return err
 					}

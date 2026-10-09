@@ -1,25 +1,20 @@
 # Modal provider
 
-Use Modal through the common Sandbox Kit client. This optional Go module depends
-on the official Modal Go SDK v0.11.0; the public `sandbox` module does not.
-Packages are unpublished; start with [the checkout example](../../../../examples/go/create-modal-sandbox/README.md).
+Use Modal through the shared Sandbox Kit client. This optional module depends on
+the official Modal Go SDK v0.11.0. The public `sandbox` module has no Modal SDK
+dependency.
+
+Start with the [creation example](../../../../examples/go/create-modal-sandbox/README.md)
+or [resources example](../../../../examples/go/create-modal-with-resources/README.md).
+Modules currently use local development replacements.
 
 ## Configure the client
 
-```go
-import (
-    "context"
-    "os"
-
-    "github.com/sandbox-kit/kit/sdks/go/providers/modal"
-    "github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-```
-
-Inside your application:
+Import `github.com/sandbox-kit/kit/sdks/go/providers/modal` and the public
+`github.com/sandbox-kit/kit/sdks/go/sandbox` package.
 
 ```go
-client, err := sandbox.NewClient(sandbox.Config{
+config := sandbox.Config{
     Provider: modal.New(),
     Auth: &sandbox.AuthConfig{
         TokenPair: &sandbox.TokenPairCredentials{
@@ -28,52 +23,77 @@ client, err := sandbox.NewClient(sandbox.Config{
         },
     },
     Scope: &sandbox.Scope{
-        AppName: sandbox.Value("my-existing-app"),
+        AppName: sandbox.Value("existing-app"),
         Environment: sandbox.Value("main"),
     },
-})
-if err != nil {
-    return err
+    Timeout: sandbox.Value(2 * time.Minute),
 }
-defer client.Close(context.Background())
+client, err := sandbox.NewClient(config)
 ```
 
-Supply a context to creation. App name
-and token display name are separate. The app must exist in the selected workspace
-and environment. [The example guide](../../../../examples/go/create-modal-sandbox/README.md)
-explains credentials and one-time app creation.
+Check `err` before using the client. Call `client.Close(ctx)` when finished.
+See the runnable examples for imports and cleanup-error handling.
 
-Explicit token-pair and OAuth-refresh auth are supported. Omit `Auth` to use
-Modal's SDK environment/profile resolution. App scope is still needed for creation.
-`Config.Endpoint` is rejected because the pinned SDK has no public per-client
-override. `Config.Region` becomes a default sandbox placement preference.
-See [the complete configuration matrix](../../../../docs/configuration.md).
+The app must exist in the selected workspace/environment. App names and token
+display names identify different objects. Kit does not create apps automatically.
+
+| Client setting    | Support                                                 |
+| ----------------- | ------------------------------------------------------- |
+| Token pair        | Supported                                               |
+| OAuth refresh     | Supported with client ID and exactly one secret/JWT key |
+| Omitted auth      | Native SDK environment/profile resolution               |
+| Scope             | App name and environment                                |
+| Region            | Default sandbox placement preference                    |
+| Endpoint override | Rejected through the pinned public constructor          |
+
+See [common configuration](../../../../docs/configuration.md) for the full matrix.
 
 ## Create a sandbox
+
+With a caller context `ctx` and an initialized client:
 
 ```go
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
     Source: &sandbox.SandboxSource{
         Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
     },
+    Resources: &sandbox.Resources{
+        CPUCores: sandbox.Value(0.5),
+        MemoryMiB: sandbox.Value(uint64(512)),
+    },
+    Lifetime: &sandbox.LifetimePolicy{
+        MaximumLifetime: sandbox.Value(5 * time.Minute),
+    },
 })
-if err != nil {
-    return err
-}
-id := instance.ID()
 ```
 
-The current mapping requires an explicit registry image. Default/snapshot/warm-pool
-sources are not implemented. Fractional CPU, supported memory limits, runtime
-command/working directory, and other mapped creation settings are available;
-unsupported intent is rejected. See [creation support](../../../../docs/sandbox-creation.md).
+Check `err`, then use `instance.ID()` or `instance.Info()`.
 
-`client.Close(ctx)` releases the SDK, not the sandbox. Sandbox lifecycle methods
-remain future work. Provider SDK errors pass through unchanged.
+Supplied requests require at least 0.125 physical CPU cores and 128 MiB memory.
+CPU precision is 0.001 cores; maximum lifetime is positive whole seconds up to
+24 hours. Positive resource limits require a request and cannot be smaller.
+Omitted values retain provider defaults.
 
-## Development
+The integration also maps supported runtime, isolation, placement, security,
+network, readiness, and observability fields. Default/snapshot/warm-pool sources
+and unsupported fields are rejected. See [creation coverage](../../../../docs/sandbox-creation.md).
 
-From this module, run `GOWORK=off go test ./...`. Local replacements resolve the
-public SDK from the checkout. Generated provider/client-field mappings come from
-[provider YAML](../../../../specs/providers/modal.yaml); typed SDK construction
-and semantic mappings live in `client.go` and `sandbox.go`.
+## Ownership and verification
+
+Native SDK errors pass through unchanged. Account permissions, resource quotas,
+and placement availability remain provider-enforced. Closing the client releases
+SDK resources without terminating the sandbox.
+
+From this directory:
+
+```sh
+GOWORK=off go test ./...
+```
+
+Tests use native SDK doubles and generated mapping checks without cloud
+provisioning. [Provider YAML](../../../../specs/providers/modal.yaml) generates
+configuration assembly, SDK construction, state capture, validation, and field
+conversions. `sandbox.go` contains remaining creation orchestration.
+
+See [generation](../../../../docs/code-generation.md) and
+[reference verification](../../../../docs/provider-verification.md).

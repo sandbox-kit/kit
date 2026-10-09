@@ -56,7 +56,10 @@ func TestUnrepresentableConfigRejectedBeforeCall(t *testing.T) {
 		{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}}, Resources: &sandbox.Resources{MemoryMiB: sandbox.Value(uint64(1000))}},
 		{Resources: &sandbox.Resources{CPUCores: sandbox.Value(2.0)}},
 		{Placement: &sandbox.Placement{Regions: []string{"region"}}},
+		{Lifetime: &sandbox.LifetimePolicy{IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}}},
 		{Lifetime: &sandbox.LifetimePolicy{IdleStop: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}}},
+		{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
+		{Lifetime: &sandbox.LifetimePolicy{StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
 	} {
 		adapter := &backend{client: &sdk.Client{}}
 		client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})

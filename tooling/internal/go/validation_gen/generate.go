@@ -50,6 +50,17 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 	for name := range rules.Messages {
 		names = append(names, name)
 	}
+	for _, m := range f.Messages {
+		if _, ok := rules.Messages[m.GoIdent.GoName]; ok {
+			continue
+		}
+		for _, fld := range m.Fields {
+			if fld.Desc.Kind() == protoreflect.EnumKind {
+				names = append(names, m.GoIdent.GoName)
+				break
+			}
+		}
+	}
 	sort.Strings(names)
 	g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+".validation.gen.go", f.GoImportPath)
 	g.P("// Code generated from YAML validation specifications. DO NOT EDIT.")
@@ -105,10 +116,35 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 				return fmt.Errorf("%s.%s: choose one minimum", name, n)
 			}
 		}
-		if len(r.Constraints) == 0 {
+		hasEnums := false
+		for _, fld := range m.Fields {
+			if fld.Desc.Kind() == protoreflect.EnumKind {
+				hasEnums = true
+			}
+		}
+		if len(r.Constraints) == 0 && !hasEnums {
 			continue
 		}
 		g.P("v.RegisterStructValidation(func(sl ", validator("StructLevel"), "){x:=sl.Current().Interface().(", name, ");_ = x")
+		for _, fld := range m.Fields {
+			if fld.Desc.Kind() != protoreflect.EnumKind {
+				continue
+			}
+			if fld.Desc.IsList() {
+				return fmt.Errorf("repeated enum validation not implemented")
+			}
+			g.P("switch x.Get", naming.FieldName(fld), "(){")
+			values := []string{}
+			seen := map[int32]bool{}
+			for _, v := range fld.Enum.Values {
+				n := int32(v.Desc.Number())
+				if !seen[n] {
+					values = append(values, strconv.Itoa(int(n)))
+					seen[n] = true
+				}
+			}
+			g.P("case ", strings.Join(values, ","), ": default: sl.ReportError(x,", strconv.Quote(naming.FieldName(fld)), ",", strconv.Quote(naming.FieldName(fld)), ",\"known_enum\",\"\")}")
+		}
 		for i, c := range r.Constraints {
 			condition := "true"
 			if c.When != nil {
@@ -132,7 +168,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			}
 			invalid := ""
 			switch c.Op {
-			case "limit":
+			case "limit", "requires_positive":
 				limit, err := field(m, c.Field)
 				if err != nil {
 					return err
@@ -145,6 +181,9 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 					return fmt.Errorf("%s: limit requires compatible numeric scalars", name)
 				}
 				invalid = "x.Get" + naming.FieldName(limit) + "()>0 && x.Get" + naming.FieldName(limit) + "()<x.Get" + naming.FieldName(other) + "()"
+				if c.Op == "requires_positive" {
+					invalid = "x.Get" + naming.FieldName(limit) + "()>0 && x.Get" + naming.FieldName(other) + "()==0"
+				}
 			case "at_most_one", "exactly_one", "requires_any", "forbids":
 				if len(c.Fields) == 0 {
 					return fmt.Errorf("%s: %s needs fields", name, c.Op)

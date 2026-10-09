@@ -21,6 +21,15 @@ messages:
     constraints:
       - {op: limit, field: cpu_limit_cores, other: cpu_cores}
       - {op: limit, field: memory_limit_mib, other: memory_mib}
+      - {op: requires_positive, field: cpu_limit_cores, other: cpu_cores}
+      - {op: requires_positive, field: memory_limit_mib, other: memory_mib}
+  RuntimeConfig:
+    fields:
+      language: {nonblank: true}
+      version: {nonblank: true}
+      user: {nonblank: true}
+      working_directory: {nonblank: true}
+      entrypoint: {each: true, nonblank: true}
   Placement:
     fields:
       regions: {each: true, nonblank: true}
@@ -57,3 +66,7 @@ messages:
   SecretReference:
     fields:
       reference: {nonblank: true}
+      environment_variable: {nonblank: true}
+  ObservabilityConfig:
+    fields:
+      telemetry_endpoint: {nonblank: true}

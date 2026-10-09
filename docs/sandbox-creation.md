@@ -1,70 +1,105 @@
-# Sandbox creation contract
+# Sandbox creation
 
-The shared protobuf schema generates native Go `sandbox.CreateOptions` and response
-structs, plus a local `Client.Create` method. It does not generate network RPCs.
-Creation returns a `Sandbox` handle with `ID()`, `ProviderName()`, and copied `Info()`.
-Lifecycle methods are not implemented in this increment.
+`Client.Create(ctx, options)` returns a `sandbox.Sandbox` with `ID()`,
+`ProviderName()`, and copied `Info()` metadata. Creation settings are distinct
+from future operations on an existing sandbox.
 
-## Implemented provider mappings
+## Supported creation settings
 
-Compatibility is pinned to Modal Go v0.11.0 and Daytona Go v0.222.0. Refer to the
-[Modal sandbox reference](https://modal.com/docs/sdk/go/latest/Sandbox),
-[Daytona client reference](https://www.daytona.io/docs/en/go-sdk/daytona/), and
-[Daytona types](https://www.daytona.io/docs/en/go-sdk/types/) when upgrading.
+The integrations target Modal Go v0.11.0 and Daytona Go v0.222.0.
 
-| Group | Modal | Daytona |
-| --- | --- | --- |
-| Source | Explicit registry image; existing app name required | Default/specified snapshot, or registry image |
-| Runtime | Entrypoint, working directory, PTY | Toolbox language and user |
-| Isolation | Default, gVisor container, Linux VM | Nested KVM flag; class inherited from source |
-| Resources | Fractional CPU, CPU limit, MiB memory and memory limit | Whole CPU and whole GiB memory/disk, image source only |
-| Placement | Cloud and region preferences | Target selected on initialized SDK; per-request placement rejected |
-| Environment/labels | Env map and tags | Env map and labels |
-| Secrets/security | Named secrets, workload identity | Egress-placeholder secrets, public access |
-| Network | CIDR/domain egress, inbound CIDRs, private network, explicit port transport, custom domain | CIDR/domain egress, outbound proxy URL, linked sandbox |
-| Lifetime | Positive whole-second maximum lifetime and idle termination | Whole-minute TTL, ephemeral, auto-stop/pause/archive/delete |
-| Wait | Default/scheduled; ready requires probe and positive creation timeout | Default/submitted/started |
-| Observability | Verbose | Telemetry endpoint |
+| Setting                | Modal                                                                   | Daytona                                                            |
+| ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Source                 | Explicit registry image and an existing app                             | Default/specified snapshot or registry image                       |
+| Runtime                | Entrypoint, absolute working directory, PTY                             | Toolbox language and user                                          |
+| Isolation              | Default, gVisor container, Linux VM                                     | Nested KVM flag; class inherited from source                       |
+| Resources              | Fractional CPU, CPU limit, memory request/limit                         | Whole CPU and GiB memory/disk; image source required for overrides |
+| Placement              | Cloud and region preferences                                            | Client target; request placement unsupported                       |
+| Environment and labels | Environment map and tags                                                | Environment map and labels                                         |
+| Security               | Named secrets and workload identity                                     | Egress-placeholder secrets and public access                       |
+| Network                | Egress allowlists, inbound CIDRs, private network, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
+| Lifetime               | Maximum lifetime and idle termination                                   | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout          | Default/submitted/started                                          |
+| Observability          | Verbose output                                                          | Telemetry endpoint                                                 |
 
-Unsupported options are rejected before SDK calls. Default/snapshot/warm-pool
-creation is not implemented for Modal; warm pools and explicit snapshot kinds
-are rejected for Daytona. Provider-options extensions are rejected until mapped.
+Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
+explicit snapshot kinds are not mapped. Supplied unsupported fields and
+`ProviderOptions` are rejected before native creation calls.
 
-All shared validation is generated from YAML, along with common field copies,
-resource mappings, and Daytona metadata conversions. Other semantics and typed
-SDK call sequences remain explicit in adapters. See [generation specifications](code-generation.md).
+## Presence, units, and limits
 
-## Presence and units
+Omitted fields retain provider defaults. `sandbox.Value(v)` marks an optional
+value as supplied, including zero or false; validation determines whether that
+explicit value can be honored.
 
-Absent optional values defer to the provider. Explicit zero/false is preserved.
-Source alternatives are mutually exclusive. Runtime language is a hint, not a
-promise to install a language, and does not determine isolation.
+| Resource         | Modal                                          | Daytona                             |
+| ---------------- | ---------------------------------------------- | ----------------------------------- |
+| CPU              | Physical cores; minimum 0.125, precision 0.001 | Whole CPU cores                     |
+| Memory           | MiB; minimum request 128                       | Whole GiB expressed as MiB          |
+| Disk             | Creation override unsupported                  | Whole GiB expressed as MiB          |
+| Maximum lifetime | Positive whole seconds, up to 24 hours         | Whole-minute TTL; zero disables TTL |
 
-Shared memory/disk units are MiB. Daytona requests divide exactly by 1024; its
-pinned sandbox metadata documents memory/disk in GiB, so response mapping
-multiplies by 1024. Fractional GiB and out-of-range allocations are rejected.
-Reservations and limits differ; unsupported limits are not dropped. Allocated
-resources are mapped from SDK metadata, not echoed from the request.
+Daytona request conversion divides MiB exactly by 1024. Allocated metadata
+converts GiB back to MiB. Snapshot creation inherits snapshot resources.
+Positive CPU or memory limits require a corresponding request and cannot be
+lower than that request.
 
-Creation timeout, queue timeout, and sandbox lifetime are separate. Omitted creation timeout inherits `Config.Timeout`. Zero adds no Kit
-deadline; it does not remove the caller's context deadline.
-Policy DEFAULT defers, DISABLED disables, and AFTER supplies a delay. Zero AFTER
-means immediate; adapters reject it where native numeric zero means disabled.
+Local checks cover syntax, known enums, documented bounds, precision, and
+supported combinations. Account quotas, class-specific permissions, image
+existence, regions, and capacity remain provider-enforced. Metadata availability
+varies; resource metadata represents SDK-reported allocation, not echoed requests.
 
-Present empty allowlists mean deny-all. Modal outbound wrappers preserve this;
-unsupported inbound/daytona empty-list mappings are rejected. Secrets contain
-references, not credentials. AuthConfig is configured through `Config.Auth`, while account permissions
-are enforced by the provider. Modal app/environment now lives in
-`Config.Scope`; it is not a per-sandbox creation field. See
-[client configuration](configuration.md).
+## Policy semantics
 
-## Ownership and scope
+`PolicyModeDefault` defers to the provider. `PolicyModeDisabled` requests explicit
+disabling. `PolicyModeAfter` supplies a delay; a zero delay requests an immediate
+action and must not be interpreted as disabling.
 
-The client owns its initialized SDK and clones declarative requests/returned metadata. Provider errors pass
-through unchanged; local validation errors retain validator details through wrapping.
-Cancellation is checked before delegation and forwarded to the provider SDK.
-There is no extra retry layer or automatic cleanup of created cloud resources.
+Current Daytona mappings follow the service guide where SDK comments conflict:
 
-GPU, resizing, storage/volumes, harnesses, browsers, computer use, macOS/Windows,
-and lifecycle operations remain future extensions. Tests use SDK service doubles
-and a fake HTTP transport, with no live provisioning.
+| Action          | Disabled    | AFTER zero  | Positive delay                 |
+| --------------- | ----------- | ----------- | ------------------------------ |
+| Idle stop       | Native zero | Rejected    | Whole minutes                  |
+| Idle pause      | Native zero | Rejected    | Whole minutes                  |
+| Stopped archive | Rejected    | Rejected    | Whole minutes, at most 30 days |
+| Stopped delete  | Rejected    | Native zero | Whole minutes                  |
+
+Daytona archive zero selects 30 days rather than immediate archival. The service
+uses -1 to disable deletion, but the pinned creation SDK rejects negative
+intervals, so that request is unsupported at creation.
+
+Positive stop and pause delays are mutually exclusive. Ephemeral requests cannot
+combine with positive pause, archive, or delayed-delete policies. Positive pause
+also conflicts with immediate deletion.
+
+Modal idle termination supports disabled or positive whole-second delays.
+Its maximum lifetime and idle delay remain separate settings.
+
+## Networking and waiting
+
+A present empty allowlist means deny-all. Modal outbound wrappers preserve this.
+Empty inbound Modal allowlists and empty Daytona allowlists are rejected because
+their native meanings do not match that intent.
+
+Mapped network values receive CIDR/domain checks. Modal validates environment
+keys; Daytona validates secret environment-variable names. Cloud names and
+toolbox languages use declared supported values. Secrets are references to
+provider-managed secrets, not authentication credentials.
+
+Creation timeout, queue timeout, and lifetime are distinct. Omitted creation
+timeout inherits `Config.Timeout`; explicit zero adds no Kit deadline.
+Caller deadlines and native SDK timeouts still apply. Modal ready waiting also
+requires a readiness probe and a positive creation timeout.
+
+## Results, cleanup, and future work
+
+Kit copies requests and result metadata. Provider errors pass through unchanged,
+and cancellation is forwarded to the SDK. No additional retry layer or automatic
+cloud cleanup is added.
+
+Closing the client releases SDK resources. Use provider tools for sandbox
+cleanup. Execution, lifecycle methods, GPU requests, resizing, storage, harnesses,
+browsers, computer use, and macOS/Windows support remain future work.
+
+See [configuration](configuration.md), [provider reference verification](provider-verification.md),
+and [generation rules](code-generation.md).

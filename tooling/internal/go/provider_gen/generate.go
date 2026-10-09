@@ -70,6 +70,27 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 		}
 	}
 	g.P("}")
+	if runtime.Constructor.Function != "" {
+		if !token.IsIdentifier(runtime.Constructor.Function) {
+			return fmt.Errorf("invalid SDK constructor %q", runtime.Constructor.Function)
+		}
+		g.P("func newBackend(config *", protogen.GoIdent{GoName: "Config", GoImportPath: sandboxPath}, ")(", protogen.GoIdent{GoName: "Backend", GoImportPath: sandboxPath}, ",error){")
+		g.P("if config==nil {config=&sandbox.Config{}}")
+		g.P("params,err:=mapClientConfig(config);if err!=nil{return nil,err}")
+		g.P("native,err:=", protogen.GoIdent{GoName: runtime.Constructor.Function, GoImportPath: client.GoImportPath}, "(&params);if err!=nil{return nil,err}")
+		g.P("result:=&", name, "{client:native}")
+		g.P("captureBackendState(result,config);return result,nil}")
+		g.P("func captureBackendState(result *", name, ",config *", protogen.GoIdent{GoName: "Config", GoImportPath: sandboxPath}, "){")
+		g.P("if config==nil{return}")
+		for _, field := range runtime.State {
+			if field.Capture != "" {
+				if err := capture(g, plugin, field.Capture, field.Type, field.Optional, "result."+field.Name); err != nil {
+					return err
+				}
+			}
+		}
+		g.P("}")
+	}
 	g.P("func(*", name, ")Name()string{return ", strconv.Quote(spec.GetProviderName()), "}")
 	g.P("func(a *", name, ")Create(ctx ", protogen.GoIdent{GoName: "Context", GoImportPath: "context"}, ",request *", request, ")(*", response, ",error){return a.create(ctx,request)}")
 	if !token.IsIdentifier(runtime.Cleanup.Method) {

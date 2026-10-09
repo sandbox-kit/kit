@@ -23,6 +23,27 @@ type backend struct {
 	client *daytona.Client
 }
 
+func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
+	if config == nil {
+		config = &sandbox.Config{}
+	}
+	params, err := mapClientConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	native, err := daytona.NewClientWithConfig(&params)
+	if err != nil {
+		return nil, err
+	}
+	result := &backend{client: native}
+	captureBackendState(result, config)
+	return result, nil
+}
+func captureBackendState(result *backend, config *sandbox.Config) {
+	if config == nil {
+		return
+	}
+}
 func (*backend) Name() string { return "daytona" }
 func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	return a.create(ctx, request)
