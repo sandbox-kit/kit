@@ -1,51 +1,53 @@
 # Daytona provider
 
-Use Daytona through the common Sandbox Kit client. This optional Go module
-depends on the official Daytona Go SDK v0.222.0; the public `sandbox` module does
-not. Packages are unpublished; start with [the checkout example](../../../../examples/go/create-daytona-sandbox/README.md).
+Use Daytona through the shared Sandbox Kit client. This optional module depends
+on the official Daytona Go SDK v0.222.0. The public `sandbox` module has no
+Daytona SDK dependency.
+
+Start with the [creation example](../../../../examples/go/create-daytona-sandbox/README.md)
+or [policy example](../../../../examples/go/create-daytona-with-policies/README.md).
+Modules currently use local development replacements.
 
 ## Configure the client
 
-```go
-import (
-    "context"
-    "os"
-
-    "github.com/sandbox-kit/kit/sdks/go/providers/daytona"
-    "github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-```
-
-Inside your application:
+Import `github.com/sandbox-kit/kit/sdks/go/providers/daytona` and the public
+`github.com/sandbox-kit/kit/sdks/go/sandbox` package.
 
 ```go
-client, err := sandbox.NewClient(sandbox.Config{
+config := sandbox.Config{
     Provider: daytona.New(),
     Auth: &sandbox.AuthConfig{
         APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
     },
-})
-if err != nil {
-    return err
+    Timeout: sandbox.Value(2 * time.Minute),
 }
-defer client.Close(context.Background())
+client, err := sandbox.NewClient(config)
 ```
 
-Supply a context to creation. Omitted `Auth` uses
-SDK environment resolution. Bearer/JWT auth is also supported; it requires an
-organization in `Config.Scope.OrganizationID` or SDK environment settings.
-Endpoint and target can be set through `Config.Endpoint` and `Config.Region`, or
-left to the SDK's defaults. See [configuration](../../../../docs/configuration.md).
+Check `err` before using the client and call `client.Close(ctx)` when finished.
+The runnable examples include imports and cleanup-error handling.
+
+| Client setting   | Support                           |
+| ---------------- | --------------------------------- |
+| API key          | Supported                         |
+| Bearer/JWT token | Supported; organization required  |
+| Omitted auth     | Native SDK environment resolution |
+| Scope            | Organization ID                   |
+| Endpoint         | `Config.Endpoint` maps to API URL |
+| Region           | `Config.Region` maps to target    |
+
+Organization, endpoint, and target may use SDK environment defaults when omitted.
+See [common configuration](../../../../docs/configuration.md).
 
 ## Create a sandbox
 
-Use the default snapshot:
+With a caller context `ctx` and an initialized client, use the default snapshot:
 
 ```go
 instance, err := client.Create(ctx, nil)
 ```
 
-Or request an image and resources:
+Or create from an image with resource requests:
 
 ```go
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
@@ -58,29 +60,47 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
         DiskMiB: sandbox.Value(uint64(8192)),
     },
 })
-if err != nil {
-    return err
-}
-id := instance.ID()
 ```
 
-Check `err` for default creation too. Shared units are MiB; requests must represent
-whole CPU cores and whole GiB allocations. Snapshot sources inherit resources,
-so resource overrides require an image. Per-request placement is rejected;
-configure the client's region/target instead. See [creation support](../../../../docs/sandbox-creation.md).
+Check `err`, then use `instance.ID()` or `instance.Info()`.
 
-`client.Close(ctx)` releases SDK resources, not the sandbox. Execution and sandbox
-lifecycle methods remain future work. Provider SDK errors pass through unchanged.
+CPU requests must be whole cores. Memory/disk requests must be whole GiB
+expressed as MiB. Snapshot creation inherits resources, so overrides require an
+image. Account quotas remain provider-enforced; standard-tier limits are not
+hardcoded into the SDK.
 
-Lifetime policies have action-specific zero semantics: disabled stop/pause maps
-to zero; AFTER zero requests immediate deletion. Immediate stop/pause/archive and
-explicit disabling of archive/delete are rejected before SDK calls. Leave
-policies absent/default to defer to Daytona. See [creation semantics](../../../../docs/sandbox-creation.md).
+Toolbox languages are `python`, `javascript`, and `typescript`. Per-request
+placement is unsupported; use the client's region/target.
 
-## Development
+## Creation policies
 
-Run `GOWORK=off go test ./...` from this module. Local replacements resolve the
-public SDK. [Provider YAML](../../../../specs/providers/daytona.yaml) generates
-configuration, credential, resource and metadata mappings; typed SDK construction
-is generated. Configuration assembly is in `provider.client.gen.go`; creation
-orchestration and semantic mappings remain in `sandbox.go`.
+| Request                      | Mapping                                      |
+| ---------------------------- | -------------------------------------------- |
+| Default/absent policy        | Omitted; provider default applies            |
+| Disabled stop/pause          | Native zero                                  |
+| Immediate delete             | Native zero                                  |
+| Immediate stop/pause/archive | Rejected                                     |
+| Disabled archive/delete      | Rejected by the current creation integration |
+
+Archive delays cannot exceed 30 days. Conflicting idle actions and ephemeral
+policies fail local validation. See [creation semantics](../../../../docs/sandbox-creation.md)
+for the full matrix and the SDK/service documentation conflict.
+
+## Ownership and verification
+
+Provider errors pass through unchanged. Closing the client releases SDK resources
+without stopping or deleting the sandbox. Lifecycle methods remain future work.
+
+From this directory:
+
+```sh
+GOWORK=off go test ./...
+```
+
+Tests use a fake HTTP transport and generated checks without cloud provisioning.
+[Provider YAML](../../../../specs/providers/daytona.yaml) generates construction,
+configuration assembly, field/policy conversions, and validation.
+`sandbox.go` retains remaining creation orchestration.
+
+See [generation](../../../../docs/code-generation.md) and
+[reference verification](../../../../docs/provider-verification.md).

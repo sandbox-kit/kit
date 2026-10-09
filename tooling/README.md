@@ -1,31 +1,21 @@
 # SDK generation tooling
 
-Developer commands and all SDK emitters live in this Go module. They are not
-runtime dependencies of applications using Sandbox Kit. Currently only Go output
-is implemented; future language emitters will also be written in Go.
+This Go module contains the Cobra CLI and all SDK generators. Applications using
+Sandbox Kit do not depend on it. Future language emitters will also be written
+in Go; current output targets Go.
 
-## Requirements
+## Run the CLI
 
-* Go 1.26.1 or newer.
-* `protoc` for generation; verification does not require it.
+Requires Go 1.26.1 or newer. Generation also requires `protoc`.
 
-## Generate and verify
-
-From the repository root:
+From this directory:
 
 ```sh
-cd tooling
 GOWORK=off go run ./cmd/sandbox-kit generate go
 GOWORK=off go run ./cmd/sandbox-kit test go
 ```
 
-Generation rebuilds annotation bindings, then generates native SDK types,
-validators, client/provider contracts, constructors, and supported mappings.
-Verification tests the public SDK, tooling, both providers, and all four standalone
-example projects, including the resources/policies projects. Their tests use local
-servers and dummy credentials; verification does not provision cloud resources.
-
-To install the reusable Cobra CLI:
+Or install the command:
 
 ```sh
 GOWORK=off go install ./cmd/sandbox-kit
@@ -33,43 +23,49 @@ sandbox-kit generate go
 sandbox-kit test go
 ```
 
-Ensure `GOBIN`, or `$(go env GOPATH)/bin` when unset, is on `PATH`.
-The installed command discovers the checkout from the current directory. Use
-`--repo /absolute/path/to/kit` from elsewhere. `--go-binary` and `--protoc` select
-executables; `sandbox-kit --help` lists commands/options. Subprocesses receive
-cancellation and run with `GOWORK=off`.
+Add `GOBIN`, or `$(go env GOPATH)/bin` when unset, to `PATH`.
+The command discovers the repository from the current directory.
+Use `--repo /absolute/path/to/kit` elsewhere.
 
-## Inputs and outputs
+| Option        | Purpose                      |
+| ------------- | ---------------------------- |
+| `--repo`      | Explicit repository root     |
+| `--go-binary` | Go executable                |
+| `--protoc`    | Protobuf compiler executable |
+| `--help`      | Commands and usage           |
 
-| Input | Purpose |
-| --- | --- |
-| `proto/kit/sandbox/v1/` | Shared client and creation types/method declarations |
-| `proto/kit/providers/` | Provider SDK bindings/declarations |
-| `specs/client.yaml` | Common config/provider selection and auth validation |
-| `specs/validation.yaml` | Shared creation validation rules |
-| `specs/providers/` | Portable field conversions and native SDK/runtime bindings |
+## What commands do
 
-```text
-cmd/sandbox-kit/             Developer CLI
-cmd/protoc-gen-kit-go/       Go output plugin
-internal/spec/              Strict YAML loader and portable rule model
-internal/go/types_gen/       Native structs and validation tags
-internal/go/validation_gen/  Field and cross-field validators
-internal/go/mapping_gen/     Typed mappings and conversions
-internal/go/client_gen/      Client/provider/backend contracts and delegation
-internal/go/provider_gen/    Provider constructors and private SDK backends
-internal/go/naming/          Go initialisms and enum naming
-internal/gen/               Generated annotation bindings used by tooling
-```
+`generate go` rebuilds annotation bindings and emits shared native types,
+validation, client/provider contracts, SDK constructors, state capture,
+configuration assembly, and field mappings.
 
-Generated SDK source lives under `sdks/go/` and ends in `.gen.go`. Edit the
-schema/spec/emitter, then regenerate; do not hand-edit generated files. Generator
-binaries use a temporary directory outside the checkout and are cleaned up on
-exit. The normal external Go cache is used; no repository `work/` folder is needed.
+`test go` tests the public SDK, tooling, both providers, and four independent
+example modules. Example tests use dummy credentials and local servers; they
+create no cloud resources. The original minimal examples are compiled.
 
-Protobuf supplies build-time descriptors, not public runtime message objects or
-gRPC transport. Go runtime validation uses `go-playground/validator/v10`.
-Mappings are generated where the vocabulary supports them; SDK construction/call
-sequences and remaining provider semantics stay in typed implementation helpers.
-See [the spec format and extension workflow](../docs/code-generation.md) and
-[naming conventions](../docs/naming.md).
+Commands forward cancellation to subprocesses and run Go module commands with
+`GOWORK=off`. Generation uses an external temporary directory and cleans up
+its binaries. Caches stay outside the checkout.
+
+## Layout
+
+| Directory                     | Responsibility                                                    |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `cmd/sandbox-kit/`            | Developer CLI                                                     |
+| `cmd/protoc-gen-kit-go/`      | Protobuf output plugin                                            |
+| `internal/spec/`              | Strict YAML loader and portable rule types                        |
+| `internal/go/types_gen/`      | Native shared types and validation tags                           |
+| `internal/go/validation_gen/` | Shared validation and enum checks                                 |
+| `internal/go/mapping_gen/`    | Field conversions and policy mappings                             |
+| `internal/go/client_gen/`     | Client contracts, deadlines, and delegation                       |
+| `internal/go/provider_gen/`   | SDK construction, client assembly, state capture, provider checks |
+| `internal/go/naming/`         | Go field and enum naming                                          |
+| `internal/gen/`               | Generated annotation bindings                                     |
+
+Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
+and ends in `.gen.go`. Protobuf provides descriptors for generation; it does
+not add a Kit network service or public runtime message dependency.
+
+See [generation specifications](../docs/code-generation.md) for the vocabulary,
+validation semantics, and extension workflow.

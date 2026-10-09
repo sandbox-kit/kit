@@ -1,31 +1,56 @@
 # Providers and backends
 
-Install the public `sandbox` SDK and the desired optional provider package.
-Construct a client with `sandbox.NewClient(sandbox.Config{Provider: modal.New(), ...})`.
-The selected provider maps common configuration to its official SDK constructor,
-then returns a private backend implementing the SDK's operation contract.
+Sandbox Kit calls existing provider SDKs directly. Applications install the public
+`sandbox` module and only the optional provider modules they need.
 
-* `sandbox.Provider` identifies an integration and constructs a backend.
-* `sandbox.Backend` performs creation and SDK cleanup.
-* `sandbox.Client` owns the initialized backend and exposes the public API.
+## Client construction
 
-Both contracts are defined where they are consumed, in package `sandbox`.
-Configuration is validated before SDK construction. Unsupported intent fails
-before the corresponding SDK operation. SDK clients remain private; users supply
-no mapping callbacks or raw SDK objects. Provider errors pass through unchanged.
-No middle service or generated gRPC transport is added.
+```go
+client, err := sandbox.NewClient(sandbox.Config{
+    Provider: modal.New(),
+    Auth: &sandbox.AuthConfig{
+        TokenPair: &sandbox.TokenPairCredentials{ID: tokenID, Secret: tokenSecret},
+    },
+    Scope: &sandbox.Scope{AppName: sandbox.Value("existing-app")},
+})
+```
 
-The provider abstraction implements the factory pattern while keeping provider
-selection as the public concept. Runtime implementations are private. See
-[naming decisions](naming.md) for the complete vocabulary and migration table.
+The selected provider validates and maps configuration, constructs its official
+SDK, and returns a private backend. The public client owns that backend and its
+SDK cleanup.
 
-Shared contracts live in `proto/`; portable rules live in `specs/`. All emitters
-are written in Go in `tooling/internal/<language>/`. Other language SDKs will use
-native packages while reusing the same semantic contracts.
+| Contract           | Responsibility                                          |
+| ------------------ | ------------------------------------------------------- |
+| `sandbox.Provider` | Identify the integration and initialize its backend     |
+| `sandbox.Backend`  | Create sandboxes and release SDK resources              |
+| `sandbox.Client`   | Validate shared requests, apply deadlines, and delegate |
 
-Provider modules are optional and bring their own official SDK dependency.
-Future harness integrations remain separately installable. Sandbox lifecycle,
-GPU, storage, browsers, computer use and macOS/Windows support remain later work.
+These contracts live in the consuming `sandbox` package. SDK clients stay
+private; standard operations require no application mapping callbacks.
 
-See [configuration](configuration.md), [sandbox creation](sandbox-creation.md),
-[code generation](code-generation.md), and [the Go examples](../examples/go/README.md).
+## Generation boundary
+
+Protobuf declares shared types and local methods. YAML declares validation,
+configuration assembly, field conversions, provider checks, and native bindings.
+The Go emitters generate those mechanical parts.
+
+Provider `sandbox.go` files retain orchestration that the current vocabulary
+cannot express: app/image/secret lookup, source selection, readiness, and remaining
+network or policy semantics. Adding another language requires an emitter and
+typed integration code for those operations.
+
+Optional providers depend on their official SDKs. The public SDK depends on
+neither provider SDK. Future harness integrations will remain separate modules.
+
+## Current behavior
+
+Creation returns a shared sandbox handle. Provider SDK errors pass through;
+local validation produces ordinary Go errors. Metadata is copied before exposure.
+Closing a client releases SDK resources and leaves cloud sandboxes running.
+
+Sandbox Kit introduces no middle service or generated gRPC transport. Native
+provider SDKs use their own transports, including gRPC where applicable.
+
+Lifecycle methods, execution, GPU requests, storage, and harness integrations
+remain future work. See [creation coverage](sandbox-creation.md),
+[configuration](configuration.md), and [generation](code-generation.md).

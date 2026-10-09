@@ -1,59 +1,70 @@
 # Repository instructions
 
-Keep shared contracts under `proto/`. Runtime SDK code belongs in
-`sdks/<language>/` and usage examples in `examples/<language>/`.
-All generators are implemented in the single Go module under `tooling/`;
-target-language emitters belong in `tooling/internal/<language>/`.
-Do not put language runtime dependencies in shared contracts.
-Keep contract declarations language-neutral; implement constructor conventions
-and language-specific APIs in each generator.
+## Contracts and modules
 
-For every implemented public feature, update that language's runnable example
-and guide. Maintain small provider-specific example projects under each language directory.
-Each example should demonstrate one operation without provider selection or CLI flags. Update `examples/README.md` when adding a new language.
-Keep examples synchronized with the actual implemented API. Clearly label
-planned APIs and demonstration providers; do not present them as working
-production integrations. Verify changed examples before handing off the feature.
-Update relevant project Markdown whenever the API, architecture, dependencies,
-or file layout changes. Check links and commands, and distinguish implemented
-behavior from planned contracts and integrations.
-Keep temporary generator binaries, verification caches, and scratch files outside
-the checkout, in the operating system's temporary/cache directories. Do not
-create a repository-local `work/` folder. Generated SDK source remains in its
-declared output directories. Generation must clean up its temporary binaries.
-Use reusable Cobra commands as developer tooling entry points rather than
-duplicating workflows in task-runner files. Command constructors must avoid
-global flag state and side effects, and subprocesses must receive the command's
-context.
+* Keep shared contracts in `proto/`, portable rules in versioned YAML under
+  `specs/`, and runtime SDKs in `sdks/<language>/`.
+* Implement all generators in the single Go module under `tooling/`.
+  Put language emitters in `tooling/internal/<language>/`.
+* Keep contracts independent of language runtime dependencies. Each emitter owns
+  native constructor conventions and names.
+* Keep the public SDK, optional providers, and future harness integrations in
+  separate modules. Each provider depends on its official SDK.
 
-Sandbox Kit is a unified interface over existing provider SDKs. Core operations
-must expose shared request and response contracts; adapters map those contracts
-to their SDKs. Keep initialized SDK clients private, and do not expose a generic
-provider-specific client type or raw SDK accessor as the shared public API.
-Sandbox, sandbox adapters, and harness adapters remain separate modules. Applications configure sandbox.NewClient through the generated Config.
-Optional provider factories initialize/authenticate SDKs from that common contract;
-the sandbox client owns SDK cleanup through Close.
-Optional provider integrations import and depend on their own official provider SDK.
-Providers own typed SDK method/configuration/response mapping. Applications install
-only the adapters they need and select their provider in Config.Provider. Do not use
-runtime SDK reflection or require application callbacks for standard operations.
-Public SDK configuration and responses use generated native language types;
-protobuf remains a schema/generation input and is not required in caller code.
-Creation uses the common protobuf request/response and returns a sandbox handle;
-lifecycle operations belong to that handle and are implemented separately.
-Preserve absent versus explicit configuration values, units, and source kinds.
-Bindings must reject unsupported intent before making provider calls.
+## Public API and provider ownership
 
-Validation and portable field mappings belong in versioned YAML under `specs/`.
-Keep semantic rules independent of target-language code; SDK member/type bindings
-belong under the language's binding section. Go validator tag translation belongs
-in the Go emitter. Generate shared validation and expressible mappings rather
-than maintaining duplicate handwritten rules. Add vocabulary operations with
-semantic tests; do not embed raw language code in YAML. Keep remaining SDK
-orchestration explicitly documented until a portable model is implemented.
+Applications construct `sandbox.NewClient` with the generated `sandbox.Config`
+and select a provider through `Config.Provider`. The provider initializes its
+native SDK; the public client owns cleanup through `Close`.
 
-Use the naming conventions in docs/naming.md. Public Go SDK types belong in
-package sandbox; optional provider packages expose New and Provider, with private
-backend implementations. Keep initialisms and enum naming in the Go naming emitter.
-Generated Go filenames end in .gen.go. Preserve numeric enum values and explicit
-serialized field names when changing target-language identifiers.
+* Keep initialized native SDK clients private.
+* Implement a unified interface over existing SDKs; do not expose a generic raw
+  SDK accessor or require application callbacks for standard mappings.
+* Use typed integration code. Do not invoke SDK methods through reflection.
+* Expose shared request/response types as generated native language types.
+  Protobuf remains a schema input.
+* Creation returns a sandbox handle. Implement lifecycle methods on that handle
+  separately from creation configuration.
+* Preserve field presence, units, source kinds, and provider defaults.
+* Reject unsupported intent before provider calls. Account quotas, permissions,
+  and capacity remain provider-enforced.
+* Closing an SDK client must not imply stopping or deleting cloud sandboxes.
+
+## Generation and validation
+
+Shared validation, provider checks, configuration assembly, and expressible
+conversions belong in specs and generators. Native symbols and SDK type/member
+bindings belong in the target language's binding section.
+
+* Keep semantic rules independent of target-language code.
+* Translate validator tags in the Go emitter.
+* Add vocabulary operations with semantic tests; do not embed raw code in YAML.
+* Document SDK orchestration that remains handwritten.
+* Compare references with the pinned SDK version. Resolve conflicting docs
+  explicitly rather than guessing semantics.
+* Edit schemas/specs/emitters and regenerate; never hand-edit `.gen.go` files.
+* Follow [naming conventions](docs/naming.md), preserve numeric enum values,
+  and preserve explicit serialized names.
+
+## Examples and documentation
+
+For every public feature, update its language's runnable example and guide.
+Use small, independent provider-specific projects under `examples/<language>/`.
+Each example demonstrates one operation with its own configuration and no provider
+selector or CLI flags.
+
+Keep examples aligned with the implemented API. Label test doubles, planned
+features, and local verification limits clearly. Verify changed examples before
+handoff and update `examples/README.md` when adding a language.
+
+Update project Markdown whenever APIs, layout, architecture, or dependencies
+change. Verify links and commands and distinguish current behavior from plans.
+
+## Development tooling
+
+Use reusable Cobra commands for workflows. Constructors must avoid global flag
+state and side effects; subprocesses must receive the command context.
+
+Keep temporary binaries, caches, and scratch files outside the checkout.
+Never create a repository-local `work/` directory. Generation must clean up
+temporary binaries and write SDK output only to its declared directories.

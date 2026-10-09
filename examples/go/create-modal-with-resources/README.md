@@ -1,28 +1,31 @@
 # Create a Modal sandbox with resources
 
-This standalone project creates one sandbox using 0.5 CPU cores, 512 MiB
-memory, and a five-minute lifetime. It uses the common Sandbox Kit configuration
-and creation types and installs only the Modal provider. Requires Go 1.26.1+.
+Create one sandbox with 0.5 physical CPU cores, 512 MiB memory, and a five-minute
+lifetime. This standalone module uses Sandbox Kit and only the Modal provider.
 
 ## Run with your account
 
-From the repository root:
+Requires Go 1.26.1 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/create-modal-with-resources
 cp .env.example .env
-# Fill in MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, MODAL_APP_NAME.
+# Fill in Modal credentials and the existing app name.
 go run .
 ```
 
-`MODAL_ENVIRONMENT` defaults to `main`. The app must already exist in that
-environment. See [token and app setup](../create-modal-sandbox/README.md).
-Shell environment variables take precedence over `.env`.
+Skip copying if `.env` already exists. Set `MODAL_TOKEN_ID`,
+`MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`.
+`MODAL_ENVIRONMENT` defaults to `main`. The app must exist in that environment;
+see [token and app setup](../create-modal-sandbox/README.md).
 
-The program creates one real sandbox and prints its ID and requested settings.
-Those settings describe the request, not a claim about observed allocation.
-Closing the client releases SDK resources; it does not terminate the sandbox.
-The requested lifetime bounds its execution. `.env` is ignored by Git.
+The program prints the sandbox ID and requested settings. It does not report
+observed resource allocation. Shell variables take precedence over `.env`,
+and credentials stay Git-ignored.
+
+Running creates a real sandbox. Closing the client releases SDK resources;
+the requested maximum lifetime bounds execution. Use Modal's tools for any
+additional sandbox cleanup.
 
 ## Verify without credentials
 
@@ -30,19 +33,19 @@ The requested lifetime bounds its execution. `.env` is ignored by Git.
 GOWORK=off go test -v ./...
 ```
 
-Tests initialize the actual public client with dummy credentials and direct the
-SDK to a local test server. No dashboard keys or `.env` are read by these tests.
-They verify that:
+Tests use the public client, dummy credentials, and a local endpoint. They verify:
 
-- Below-minimum CPU and CPU overflow are rejected before remote requests.
-- Fractional-second and overflowing lifetimes are rejected before remote requests.
-- Changing the supplied app name after client initialization does not change
-  captured scope: the numeric validation errors still occur, not missing-app errors.
-- Unsupported Modal endpoint configuration is rejected.
-- The positive example options pass common validation.
+| Case                                        | Expected behavior                  |
+| ------------------------------------------- | ---------------------------------- |
+| CPU below minimum or beyond native range    | Rejected before remote requests    |
+| Fractional-second or overflowing lifetime   | Rejected before remote requests    |
+| App-name mutation after client construction | Captured scope remains independent |
+| Explicit endpoint override                  | Rejected by the Modal integration  |
+| Example options                             | Pass common validation             |
 
-These tests require permission to bind a local port. Positive Modal provisioning
-is verified only when you run `go run .` with real credentials; it is not simulated
-as a successful cloud operation. The provider module also tests generated numeric
-mapping boundaries directly. See [main.go](main.go), [tests](main_test.go), and
+Tests do not read your `.env` and require permission to bind a local port.
+Positive Modal provisioning requires running `go run .` with real credentials;
+local tests do not simulate it as a successful cloud operation.
+
+See [main.go](main.go), [tests](main_test.go), and
 [creation semantics](../../../docs/sandbox-creation.md).

@@ -1,28 +1,30 @@
 # Create a Daytona sandbox
 
-This standalone Go project authenticates with Daytona through Sandbox Kit,
-creates one sandbox from the default snapshot, and prints its ID.
-It imports only the public SDK and the Daytona provider. Requires Go 1.26.1+.
+Authenticate with Daytona, create one sandbox from its default snapshot, and
+print its ID. This standalone Go module imports Sandbox Kit and only the
+Daytona provider.
 
-## 1. Configure credentials
+## Configure credentials
 
-From the repository root:
+Requires Go 1.26.1 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/create-daytona-sandbox
-cp .env.example .env   # Skip if .env already exists.
+cp .env.example .env
 ```
 
-Edit `.env` with an API key from your Daytona dashboard:
+Skip copying if you already have `.env`. Set an API key from your dashboard:
 
 ```dotenv
 DAYTONA_API_KEY=your_api_key
 ```
 
-No provider selector, app name, or command-line flags are required.
-See [.env.example](.env.example) for the blank template.
+Optional `DAYTONA_API_URL` and `DAYTONA_TARGET` values map to
+`Config.Endpoint` and `Config.Region`. When omitted, the SDK uses its normal
+defaults. See [.env.example](.env.example) and
+[provider configuration](../../../sdks/go/providers/daytona/README.md).
 
-## 2. Run
+## Run
 
 ```sh
 go run .
@@ -34,42 +36,24 @@ Expected output:
 Daytona sandbox created: <sandbox-id>
 ```
 
-The program loads `.env`, passes the API key through `sandbox.Config.Auth`, and
-calls `client.Create(ctx, nil)` for the provider's default snapshot, following
-[Daytona's Go quickstart](https://www.daytona.io/docs/en/go-sdk/).
-See [main.go](main.go) for the complete error-handled code.
-Existing shell environment variables take precedence over `.env`; the SDK itself
-does not load `.env` files.
+[main.go](main.go) loads `.env`, constructs the common client, and calls
+`client.Create(ctx, nil)`. It propagates creation and SDK cleanup errors.
+Shell variables take precedence over file values. The SDK itself does not load
+`.env`.
 
-The example uses Daytona's normal endpoint/target defaults. If necessary, add
-`DAYTONA_API_URL` and `DAYTONA_TARGET` to `.env`; the underlying SDK reads those
-settings when the corresponding `sandbox.Config` values are omitted.
-For explicit configuration, see [the provider guide](../../../sdks/go/providers/daytona/README.md).
+The program provisions one real sandbox. Client cleanup does not stop/delete it;
+use Daytona's tools for sandbox cleanup. Credentials stay in ignored `.env`.
 
-## Scope and cleanup
-
-The example leaves lifetime policies at Daytona defaults. To explicitly disable
-auto-pause, replace its `client.Create(context.Background(), nil)` call with:
-
-```go
-instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-    Lifetime: &sandbox.LifetimePolicy{
-        IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
-    },
-})
-```
-
-Auto-stop and auto-pause support disabling with native zero. Explicit archive/delete
-disabling is rejected; immediate deletion uses zero. See [policy semantics](../../../docs/sandbox-creation.md).
-
-This example only authenticates and creates a sandbox. It does not execute
-commands or run sandbox lifecycle operations. Running it provisions a real sandbox.
-Deferred `client.Close` releases SDK resources but does not delete the sandbox;
-manage cleanup through Daytona's dashboard/tools.
-
-`.env` is Git-ignored; only the blank `.env.example` belongs in Git.
-Compile without provisioning:
+## Verify locally
 
 ```sh
 GOWORK=off go test ./...
 ```
+
+This compiles the example without running creation.
+For creation policies and SDK request tests, see
+[create-daytona-with-policies](../create-daytona-with-policies/README.md).
+
+The example leaves policies at provider defaults. Explicit zero semantics differ
+by action; see [creation policies](../../../docs/sandbox-creation.md#policy-semantics).
+Execution and lifecycle operations are outside this example.

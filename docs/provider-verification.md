@@ -1,75 +1,78 @@
 # Provider reference verification
 
-The Go integrations are pinned to Modal v0.11.0 and Daytona v0.222.0. Latest
-documentation is used to discover APIs; pinned source and compilation determine
-the signatures and serialization used by this checkout. Verification covers
-initialization and sandbox creation, not all features or live provisioning.
+Bindings target Modal Go v0.11.0 and Daytona Go v0.222.0. Latest documentation
+helps discover APIs; pinned SDK source and compilation determine the signatures
+and serialization used by this checkout.
 
-## References checked
+This review covers authentication and mapped creation settings. Local tests
+verify conversions, validation, SDK request serialization, and ownership.
+They do not prove live scheduling, account capacity, or lifecycle behavior.
 
-- Modal: [Client](https://modal.com/docs/sdk/go/latest/Client),
-  [App](https://modal.com/docs/sdk/go/latest/App),
-  [Image](https://modal.com/docs/sdk/go/latest/Image),
-  [Sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), and
-  [Errors](https://modal.com/docs/sdk/go/latest/Errors).
-  Creation dependencies were also checked through
-  [Secret](https://modal.com/docs/sdk/go/latest/Secret),
-  [Probe](https://modal.com/docs/sdk/go/latest/Probe),
-  [Allowlist](https://modal.com/docs/sdk/go/latest/Allowlist), and
-  [SandboxRuntime](https://modal.com/docs/sdk/go/latest/SandboxRuntime).
-- Daytona: [client and sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/),
-  [types](https://www.daytona.io/docs/en/go-sdk/types/),
-  [options](https://www.daytona.io/docs/en/go-sdk/options/), and
-  [errors](https://www.daytona.io/docs/en/go-sdk/errors/).
+## Reference sources
+
+| Provider | API references                                                                                                                                                                                                                                                              | Service guides                                                                                                                                                                                                                          |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modal    | [Client](https://modal.com/docs/sdk/go/latest/Client), [App](https://modal.com/docs/sdk/go/latest/App), [Image](https://modal.com/docs/sdk/go/latest/Image), [Sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), [Errors](https://modal.com/docs/sdk/go/latest/Errors) | [Resources](https://modal.com/docs/guide/resources), [Sandbox resources](https://modal.com/docs/guide/sandbox-resources), [Sandboxes](https://modal.com/docs/guide/sandboxes), [Regions](https://modal.com/docs/guide/region-selection) |
+| Daytona  | [Client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Types](https://www.daytona.io/docs/en/go-sdk/types/), [Options](https://www.daytona.io/docs/en/go-sdk/options/), [Errors](https://www.daytona.io/docs/en/go-sdk/errors/)                                 | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits)                                                                                                                                    |
+
+Modal creation dependencies also use the [Secret](https://modal.com/docs/sdk/go/latest/Secret),
+[Probe](https://modal.com/docs/sdk/go/latest/Probe),
+[Allowlist](https://modal.com/docs/sdk/go/latest/Allowlist), and
+[SandboxRuntime](https://modal.com/docs/sdk/go/latest/SandboxRuntime) references.
+
+## Binding decisions
 
 Modal uses `NewClientWithOptions(*ClientParams)`. Creation looks up an existing
-app and registry image before `Sandboxes.Create`. Credentials, environment,
-creation fields, and readiness signatures were compared with the reference and
-pinned source. The pinned SDK serializes CPU as uint32 mill CPUs and lifetime/idle
-delays as uint32 seconds; generated mappings reject precision loss and overflow.
+app and a registry image before `Sandboxes.Create`. The pinned SDK serializes
+CPU as uint32 mill CPUs and lifetime/idle delays as uint32 seconds. Generated
+mappings prevent precision loss and overflow; provider checks enforce documented
+minimum requests and the 24-hour lifetime limit.
 
-Daytona uses `NewClientWithConfig(*types.DaytonaConfig)`. Its `Client.Create`
-accepts snapshot/image params and variadic creation options. `WithTimeout` and
-`WithWaitForStart` retain SDK behavior. SDK errors pass through, preserving native
-classification and fields; common error classification remains future work.
+Daytona uses `NewClientWithConfig(*types.DaytonaConfig)`. Its `Create` method
+accepts snapshot/image parameters plus creation options. Timeout and wait options
+retain native behavior. Errors pass through, preserving native classification.
 
-## Policy correction
+## Conflicting Daytona policy documentation
 
-The Go parameter comments conflict with the
-[sandbox guide](https://www.daytona.io/docs/en/sandboxes/). The guide and sandbox
-object documentation say zero disables stop/pause; the guide says archive zero
-means 30 days, not immediate archive. Generated mappings follow these rules:
-disabled stop/pause maps to zero; immediate deletion maps to zero. Immediate
-stop/pause/archive and explicit disabling of archive/delete are rejected.
-Auto-delete disabling uses -1 in the service guide, but the pinned creation SDK
-rejects negative intervals, so it cannot be exposed faithfully at creation.
-Archive delays are bounded to 30 days. Omitted/default policies stay omitted.
+The `SandboxBaseParams` comments label zero as immediate stop/archive/delete.
+The service guide and sandbox-object documentation disagree for stop/archive:
 
-## Static validation and provider defaults
+* Zero disables auto-stop and auto-pause.
+* Archive zero selects 30 days; it does not request immediate archival.
+* Delete zero requests deletion immediately after stopping.
+* Delete disabling uses -1 in the service API, which the pinned creation SDK rejects.
 
-Provider `checks` are generated from documented creation rules. Modal enforces
-its minimum 0.125-core/128-MiB request and 24-hour maximum lifetime, supported
-cloud names, absolute workdirs, and environment/network syntax. Daytona checks
-its three supported toolbox languages, network syntax, mutually exclusive idle
-actions, and ephemeral policy conflicts. Common enum values are validated against
-schema descriptors, and positive resource limits require a corresponding request.
+The generated policies follow these verified service semantics. Explicit
+archive/delete disabling and immediate stop/pause/archive are rejected.
+See the [policy matrix](sandbox-creation.md#policy-semantics).
 
-Modal defaults are 0.125 physical cores, 128 MiB, and a five-minute lifetime.
-Daytona image creation has documented defaults of 1 vCPU, 1 GiB, and 3 GiB disk;
-snapshot creation inherits snapshot resources. These defaults are not injected
-by Kit. See [Modal resources](https://modal.com/docs/guide/resources),
-[Modal sandboxes](https://modal.com/docs/guide/sandboxes), and
-[Daytona resources](https://www.daytona.io/docs/en/sandboxes/).
+## Defaults and dynamic limits
 
-Per-account quotas, custom regions, available hardware, image/snapshot existence,
-permissions, and class-specific features need provider-side validation. Standard
-Daytona limits (4 vCPUs, 8 GiB, 10 GiB) are organization limits that can increase,
-not global SDK type limits. They are not hardcoded. Local acceptance is not a
-promise that a provider can allocate a request for a particular account.
+| Provider                  | Documented resource defaults         | Lifetime behavior            |
+| ------------------------- | ------------------------------------ | ---------------------------- |
+| Modal                     | 0.125 physical CPU cores and 128 MiB | Five-minute maximum lifetime |
+| Daytona image creation    | 1 vCPU, 1 GiB memory, 3 GiB disk     | Provider/class defaults      |
+| Daytona snapshot creation | Snapshot resource allocation         | Provider/class defaults      |
 
-## Documentation ambiguity
+Kit leaves omitted fields to the provider. It does not inject these documented
+defaults into requests.
 
-The Daytona client reference includes an image example using `Memory: 4096`
-without stating units there. Sandbox field documentation explicitly states GiB.
-That example alone is insufficient to change the existing memory conversion.
-Request units should be checked against the API contract when revisiting it.
+Standard Daytona organization limits can increase. Account quotas, custom
+regions, available hardware, image/snapshot existence, permissions, and
+class-specific features require provider-side validation. Local acceptance
+does not guarantee allocation.
+
+The Daytona client reference contains an image example with `Memory: 4096`
+without specifying units. The sandbox reference states GiB. The integration
+uses the documented API units; that example alone is insufficient evidence to
+change the conversion.
+
+## Updating a binding
+
+1. Check the detailed method/type references and service guides.
+2. Compare them with the exact SDK version in the provider's `go.mod`.
+3. Record conflicting or account-dependent behavior.
+4. Update specs, generate output, and add boundary/serialization tests.
+5. Verify the relevant examples and document what local tests cannot establish.
+
+See [generation](code-generation.md) and [example verification](../examples/go/README.md).

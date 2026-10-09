@@ -1,27 +1,35 @@
 # Examples
 
-## Go
+Run Sandbox Kit through independent Go projects. Each selects one provider,
+loads its own `.env`, and creates one sandbox.
 
-| Project | What it demonstrates | Configuration |
-| --- | --- | --- |
-| [Create a Modal sandbox](go/create-modal-sandbox/README.md) | Token-pair auth, app/environment scope, registry image creation | Its own `.env` |
-| [Create a Daytona sandbox](go/create-daytona-sandbox/README.md) | API-key auth, default-snapshot creation | Its own `.env` |
-| [Modal resources](go/create-modal-with-resources/README.md) | Fractional CPU, memory, lifetime, and validation tests | Its own `.env` |
-| [Daytona policies](go/create-daytona-with-policies/README.md) | Disabled pause, delayed delete, SDK request and rejection tests | Its own `.env` |
+## Choose an example
 
-These are independent Go projects. Choose one, copy its blank `.env.example` to
-`.env`, fill in the required values, and run `go run .` from that directory.
-The programs use Sandbox Kit's common client API and only their selected provider.
+| Project                                                       | Demonstrates                                            |
+| ------------------------------------------------------------- | ------------------------------------------------------- |
+| [Modal creation](go/create-modal-sandbox/README.md)           | Token-pair auth, app/environment scope, registry image  |
+| [Daytona creation](go/create-daytona-sandbox/README.md)       | API-key auth and the default snapshot                   |
+| [Modal resources](go/create-modal-with-resources/README.md)   | CPU, memory, lifetime, and validation tests             |
+| [Daytona policies](go/create-daytona-with-policies/README.md) | Disabled pause, delayed deletion, and SDK request tests |
 
-They create real sandboxes. They do not execute commands or stop/delete sandboxes;
-SDK cleanup is distinct from sandbox cleanup. Read the project's guide first.
+Requires Go 1.26.1 or newer and this checkout. In the selected project, copy
+`.env.example` to `.env`, fill in credentials, and run `go run .`.
+See [Go setup and verification](go/README.md).
 
-Repository verification compiles all four projects and runs the resources/policies
-tests against local test servers. It does not run live cloud creation:
+Live examples provision real resources. Client cleanup releases SDK resources;
+sandbox cleanup uses provider tools or configured lifetime policies.
+
+## Verify locally
+
+From the repository root:
 
 ```sh
 cd tooling
 GOWORK=off go run ./cmd/sandbox-kit test go
 ```
+
+Verification compiles all four example modules. Resource/policy tests use dummy
+credentials and local servers, exercising validation and SDK request mapping
+without cloud creation.
 
 Only Go examples are implemented today.

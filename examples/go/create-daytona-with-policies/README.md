@@ -1,28 +1,27 @@
 # Create a Daytona sandbox with policies
 
-This standalone project creates one sandbox from Daytona's default snapshot,
-explicitly disables auto-pause, and requests deletion ten minutes after stopping.
-It uses the common Sandbox Kit API and installs only the Daytona provider.
-Requires Go 1.26.1+.
+Create one sandbox from the default snapshot, disable auto-pause, and request
+deletion ten minutes after stopping. This standalone module uses Sandbox Kit
+and only the Daytona provider.
 
 ## Run with your account
 
-From the repository root:
+Requires Go 1.26.1 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/create-daytona-with-policies
 cp .env.example .env
-# Fill in DAYTONA_API_KEY from your dashboard.
+# Fill in DAYTONA_API_KEY.
 go run .
 ```
 
-Optional `DAYTONA_API_URL` and `DAYTONA_TARGET` override the endpoint/target.
-Shell environment variables take precedence over `.env`.
+Skip copying if `.env` already exists. Optional `DAYTONA_API_URL` and
+`DAYTONA_TARGET` override endpoint/target. Shell variables take precedence
+over `.env`, and credentials stay Git-ignored.
 
-Running provisions one real sandbox and prints its ID. The example requests
-policies at creation; it does not itself stop or delete the sandbox. The delete
-delay starts after the sandbox stops. Closing the client only releases SDK
-resources. `.env` is ignored by Git.
+The program creates a real sandbox and prints its ID. It supplies policies at
+creation; it does not call stop or delete. The deletion delay starts when the
+sandbox stops. Closing the client only releases SDK resources.
 
 ## Verify without credentials
 
@@ -30,17 +29,20 @@ resources. `.env` is ignored by Git.
 GOWORK=off go test -v ./...
 ```
 
-Tests use dummy credentials and a local fake Daytona API. They run the example's
-actual `run` function through the public client and official SDK, inspecting the
-serialized creation request for `autoPauseInterval: 0` and
-`autoDeleteInterval: 10`. They also assert that unspecified auto-stop stays absent.
+Tests use dummy credentials and a local fake Daytona API. They run the actual
+example through the public client and official SDK:
 
-Invalid disabled archive/delete and immediate stop/pause requests are exercised
-through `client.Create` and must fail before a creation request is sent.
-Immediate deletion is also tested for explicit zero serialization.
-No real credentials or cloud sandboxes are used. Tests require permission to bind a local
-port. Successful local transport verifies SDK request mapping, not provider-side
-scheduling or lifecycle behavior.
+| Case                    | Expected behavior                                         |
+| ----------------------- | --------------------------------------------------------- |
+| Example creation        | Sends `autoPauseInterval: 0` and `autoDeleteInterval: 10` |
+| Unspecified auto-stop   | Remains absent from the request                           |
+| Disabled archive/delete | Rejected before a creation call                           |
+| Immediate stop/pause    | Rejected before a creation call                           |
+| Immediate delete        | Sends an explicit zero, rather than omitting it           |
+
+Tests use a temporary configuration file, not your `.env`, and require
+permission to bind a local port. They verify request mapping and rejection;
+provider scheduling and real lifecycle behavior require live verification.
 
 See [main.go](main.go), [tests](main_test.go), and
-[policy semantics](../../../docs/sandbox-creation.md).
+[creation policies](../../../docs/sandbox-creation.md#policy-semantics).

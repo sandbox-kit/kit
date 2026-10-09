@@ -1,73 +1,74 @@
-# Common client initialization
+# Client configuration
 
-`sandbox.NewClient(sandbox.Config{...})` initializes a provider SDK through the
-selected optional provider. `modal.New()` and `daytona.New()` return
-provider selections; SDK backends are private. Sandbox imports neither official provider SDK.
+Construct a client with `sandbox.NewClient(sandbox.Config{...})`.
+The optional provider initializes its official SDK from this shared configuration.
+Applications use generated native Go types.
 
-`Config` and authentication/context types are native Go output from
-`proto/kit/sandbox/v1/client.proto`. `specs/client.yaml` attaches the native provider
-contract and defines portable validation. Provider YAML generates the supported
-credential/client field mappings, configuration assembly, and typed SDK construction.
+## Configuration fields
 
-## Common configuration
+| Field      | Purpose                                                                |
+| ---------- | ---------------------------------------------------------------------- |
+| `Provider` | Integration selected with `modal.New()` or `daytona.New()`             |
+| `Auth`     | One explicit credential variant; omit to use SDK credential resolution |
+| `Scope`    | App, environment, organization, or project scope                       |
+| `Endpoint` | Provider API URL, where supported                                      |
+| `Region`   | Provider target or default placement preference                        |
+| `Timeout`  | Default Kit operation deadline                                         |
 
-| Field | Meaning |
-| --- | --- |
-| `Provider` | Native `Provider`; initializes and returns a full operation backend |
-| `Auth` | Exactly one explicit credential variant, or absent for SDK defaults |
-| `Endpoint` | Optional provider API endpoint, HTTP/HTTPS URL |
-| `Region` | Provider target or default sandbox placement |
-| `Scope` | Application/environment/organization/project scope |
-| `Timeout` | Default Kit operation deadline; not a replacement for SDK transport timeouts |
+A provider must implement `sandbox.Provider` and return a complete
+`sandbox.Backend`. Bare SDK clients and arbitrary interfaces do not satisfy
+that contract. The backend's identity must match the selected provider;
+Kit closes and rejects mismatched backends.
 
-Sandbox validates common settings before calling the provider. A bare SDK pointer,
-name-only provider, or arbitrary interface cannot be supplied to `NewClient`.
-Custom providers must implement the same initialization contract and return a
-backend supporting provider identity, creation, and SDK cleanup. The initialized
-backend identity must match the selected provider; mismatches are closed and rejected.
+## Provider support
 
-## Pinned SDK mappings
+Bindings target Modal Go v0.11.0 and Daytona Go v0.222.0.
 
-| Setting | Modal Go v0.11.0 | Daytona Go v0.222.0 |
-| --- | --- | --- |
-| API key | Rejected | SDK APIKey |
-| Token pair | SDK TokenID/TokenSecret | Rejected |
-| Bearer token | Rejected | SDK JWTToken; organization required by SDK |
-| OAuth refresh | SDK refresh token/client ID plus one client secret or JWT key | Rejected |
-| Endpoint | Rejected: no public per-client override | SDK APIUrl |
-| Region | Default creation Regions preference | SDK Target |
-| App name | Stored for sandbox app lookup | Rejected |
-| Environment | SDK Environment and app/secret lookup environment | Rejected |
-| Organization ID | Rejected | SDK OrganizationID |
-| Project ID | Rejected | Rejected |
+| Setting          | Modal                                                      | Daytona                           |
+| ---------------- | ---------------------------------------------------------- | --------------------------------- |
+| API key          | Unsupported                                                | `APIKey`                          |
+| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       |
+| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required |
+| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       |
+| Endpoint         | Unsupported through the pinned public constructor          | `APIUrl`                          |
+| Region           | Default sandbox `Regions` preference                       | `Target`                          |
+| App name         | Retained for app lookup                                    | Unsupported                       |
+| Environment      | Client, app, and secret lookup environment                 | Unsupported                       |
+| Organization ID  | Unsupported                                                | `OrganizationID`                  |
+| Project ID       | Unsupported                                                | Unsupported                       |
 
-Unsupported settings fail before SDK construction. Omitted auth invokes the
-SDK's normal environment/profile resolution. Account permissions and roles are
-still enforced by the provider; this contract does not create or modify them.
-An initialized client is not proof that credentials have been accepted remotely.
+Unsupported supplied settings fail before SDK construction. Omitted auth uses
+the native SDK's environment/profile resolution. Daytona may resolve organization
+scope from its environment when using bearer auth.
 
-Modal's pinned constructor exposes environment and credentials but no public
-endpoint field. The adapter does not mutate process environment to emulate one.
-Existing SDK environment defaults still apply. Adding another auth mode requires
-provider support, mapping rules, and validation coverage.
+Initialization does not prove remote credentials are valid. The provider enforces
+account permissions and resource availability when it processes requests.
 
-## Ownership, deadlines, and sensitive values
+## Ownership and deadlines
 
-The client owns its initialized SDK. Call `client.Close(ctx)` to release its
-resources. Close does not stop/delete sandboxes. Native initialization, operation,
-and cleanup errors pass through; local validation errors remain ordinary Go errors.
+The client owns its initialized SDK. Call `client.Close(ctx)` when finished;
+this releases SDK resources without stopping or deleting sandboxes.
 
-`Config.Timeout` applies when an operation does not supply its own timeout.
-Explicit zero means no additional Kit deadline. Neither zero nor a longer timeout
-removes an earlier caller-context deadline or changes native SDK transport limits.
-The default timeout is snapshotted during construction, and creation requests are
-copied before defaults are applied. App/environment/region values are captured by
-the adapter, so later caller mutations do not change its scope.
+Generated state capture copies supplied scope and region values, preserving
+`nil` and explicit values. Later mutations of the original configuration do not
+change captured state. Kit also copies creation requests and returned metadata.
 
-Credential fields marked `sensitive` are excluded from generated Go JSON output.
-Provider objects are also excluded. This is not a persisted credential/config-file
-format; YAML specs contain rules and bindings, never application credential values.
-Avoid printing credentials through other formatting mechanisms.
+`Config.Timeout` applies when a creation request omits
+`CreateOptions.Provisioning.Timeout`. Explicit zero adds no Kit deadline.
+An earlier caller-context deadline still applies, and native SDK transport or
+operation timeouts remain in force.
 
-See [the runnable example](../examples/go/README.md) and
-[generator specification](code-generation.md).
+## Credentials and errors
+
+Credential fields marked `sensitive` and the provider object are excluded from
+generated JSON output. This does not protect arbitrary logging or formatting;
+keep credentials out of logs and source control.
+
+Native construction, operation, and cleanup errors pass through unchanged.
+Shared validation errors retain validator details through wrapping. A common
+provider-error classification contract is planned.
+
+Configuration types and contracts come from
+[`client.proto`](../proto/kit/sandbox/v1/client.proto),
+[client rules](../specs/client.yaml), and provider YAML.
+See [examples](../examples/go/README.md) and [generation](code-generation.md).
