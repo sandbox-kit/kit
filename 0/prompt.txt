@@ -1,0 +1,3 @@
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_ffc64a8f2b9547a6b1d19760ec111c73\",0]","question":"For adapters that own the Modal/Daytona method mappings, which approach should we use? Optional adapters importing their respective SDK give compile-time checks and reuse the SDK dependency already installed by the application; SDK-free reflection checks method signatures at runtime and is more fragile.","answer":"Typed optional adapters with SDK dependencies (recommended)"}]
+</send_user_message_question_reply>
