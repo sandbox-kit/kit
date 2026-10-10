@@ -2,7 +2,6 @@
 package daytona
 
 import (
-	fmt "fmt"
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
@@ -54,7 +53,7 @@ func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
 			}
 			params.JWTToken = mapped.JWTToken
 		default:
-			return params, fmt.Errorf("sandbox-kit daytona: unsupported authentication mode")
+			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
 		}
 	}
 	if err := sandbox.RejectUnmapped("daytona client", &remaining); err != nil {

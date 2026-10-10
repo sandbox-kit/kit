@@ -94,7 +94,9 @@ development placeholders, not published release versions.
 Omitted values defer to provider defaults. Explicit values are validated for
 supported syntax, units, precision, and combinations. Unsupported settings fail
 before provider calls; account quotas and current capacity remain provider-enforced.
-Native SDK errors pass through unchanged. Shared error classification is planned.
+Errors expose shared categories and field paths while preserving native causes.
+Response origins distinguish provider-reported metadata from requested settings.
+See [responses and errors](docs/responses-and-errors.md).
 
 Memory and disk use MiB. Modal accepts fractional physical CPU requests in
 0.001-core increments from 0.125 cores; Daytona requires whole CPU cores and
@@ -107,6 +109,7 @@ whole GiB allocations expressed as MiB.
 | [Client configuration](docs/configuration.md)           | Auth, scope, defaults, deadlines, and ownership           |
 | [Sandbox creation](docs/sandbox-creation.md)            | Supported fields, units, and policy semantics             |
 | [Provider architecture](docs/providers.md)              | Optional modules, contracts, and SDK boundaries           |
+| [Responses and errors](docs/responses-and-errors.md) | Presence, origins, error details, and native causes |
 | [Code generation](docs/code-generation.md)              | Protobuf, YAML rules, bindings, and extension workflow    |
 | [Reference verification](docs/provider-verification.md) | Sources, conflicting documentation, and validation limits |
 | [Naming](docs/naming.md)                                | Public names, package layout, and generated files         |
@@ -121,7 +124,7 @@ GOWORK=off go run ./cmd/sandbox-kit generate go
 ```
 
 Generation also requires `protoc`. Verification tests the SDK, tooling, providers,
-and all four example modules. Example tests use dummy credentials and local
+and all six example modules. Example tests use dummy credentials and local
 servers; they create no cloud resources.
 
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the

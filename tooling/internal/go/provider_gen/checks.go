@@ -6,7 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -17,8 +19,21 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".validation.gen.go", file.GoImportPath)
 	g.P("// Code generated from provider validation specs. DO NOT EDIT.")
 	g.P("package ", file.GoPackageName)
+	paths := map[string]string{}
+	localError := func(kind, path, message string) string {
+		return errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: strconv.Quote(s.Provider), Operation: strconv.Quote("create"), Field: paths[path], Message: strconv.Quote(message)})
+	}
 	formats := map[string]bool{}
 	for _, check := range s.Checks {
+		path := check.Path
+		if len(check.ExclusivePolicies) > 0 || check.ForbidPolicyWith != "" {
+			path = "lifetime"
+		}
+		expression, err := schema.Literal(g, p, "CreateOptions", path)
+		if err != nil {
+			return err
+		}
+		paths[path] = expression
 		formats[check.Format] = true
 	}
 	if formats["env_name"] {
@@ -72,7 +87,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 				}
 				invalid = "(" + a + ") && (" + b + ")"
 			}
-			g.P("if ", invalid, "{return ", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(\"sandbox-kit: incompatible lifetime policies\")}}")
+			g.P("if ", invalid, "{return ", localError("ErrorKindInvalidArgument", "lifetime", "sandbox-kit: incompatible lifetime policies"), "}}")
 			continue
 		}
 		message := "CreateOptions"
@@ -95,7 +110,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 					return fmt.Errorf("invalid check path %s", check.Path)
 				}
 				if fld.Desc.IsList() {
-					g.P("for _,item:=range ", path, "{if item==nil{return ", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(\"sandbox-kit: nil configuration entry\")}")
+					g.P("for _,item:=range ", path, "{if item==nil{return ", localError("ErrorKindInvalidArgument", check.Path, "sandbox-kit: nil configuration entry"), "}")
 					path = "item"
 				} else {
 					g.P("if ", path, "!=nil{")
@@ -192,7 +207,11 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 			}
 			join = " && "
 		}
-		g.P("if ", strings.Join(invalid, join), "{return ", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(", strconv.Quote("sandbox-kit "+s.Provider+": "+check.Path+" is outside supported values"), ")}")
+		kind := "ErrorKindInvalidArgument"
+		if len(check.Allowed) > 0 {
+			kind = "ErrorKindUnsupported"
+		}
+		g.P("if ", strings.Join(invalid, join), "{return ", localError(kind, check.Path, "sandbox-kit "+s.Provider+": "+check.Path+" is outside supported values"), "}")
 		for i := 0; i < guards; i++ {
 			g.P("}")
 		}

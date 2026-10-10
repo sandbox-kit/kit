@@ -5,6 +5,8 @@ use (
 	./examples/go/create-daytona-sandbox
 	./examples/go/create-modal-with-resources
 	./examples/go/create-daytona-with-policies
+	./examples/go/handle-modal-errors
+	./examples/go/handle-daytona-errors
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
 	./sdks/go/sandbox

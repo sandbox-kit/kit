@@ -28,13 +28,65 @@ protobuf messages.
 | `proto/kit/providers/`            | Provider and native SDK declarations                                |
 | `specs/client.yaml`               | Provider selection and client/auth validation                       |
 | `specs/validation.yaml`           | Shared creation validation                                          |
+| `specs/contracts.yaml`            | Metadata/error declarations and copy depth                          |
+| `specs/errors.yaml`               | Shared cause classification and error-context policy                 |
 | `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
 inside the language's bindings.
 
-## Shared validation
+## Response and error contracts
+
+All Go emitters build error expressions through `internal/go/error_gen`.
+`internal/go/schema` resolves field paths against full protobuf identities.
+Generated `CreateField*`, `ConfigField*`, and `InfoField*` constants replace
+handwritten path strings. Nested mapping sources can declare `error_path`;
+unknown paths fail generation.
+
+Response origin validation is generated from schema presence rules. It rejects
+unknown keys and absent values, while accepting explicit zero/false and empty
+collections. Context enrichment avoids an extra wrapper when details already match.
+
+`specs/contracts.yaml` identifies the shared metadata/error/origin declarations
+and the maximum copy depth. Go runtime helpers are emitted with `g.P(...)` in `types_gen/runtime.go`;
+generated methods copy schema fields directly, preserving numeric types and
+owned collections. Metadata has explicit signed/unsigned alternatives instead
+of protobuf Struct's double-only numeric representation.
+
+`specs/errors.yaml` declares ordered cause rules, fallback classification, context
+reuse, detail preservation, and provider classification precedence. Version 1
+supports `canceled` and `deadline_exceeded` cause matches. Go emitters translate
+these into `errors.Is` checks; the first matching cause overrides the supplied
+kind. An invalid kind falls back to `unknown`.
+
+Provider classification follows existing shared error, native type, HTTP status,
+gRPC code, then fallback. Version 1 requires this order and detail preservation;
+unsupported policies fail generation. `reuse_matching_context` controls whether
+an error with matching context is returned unchanged.
+
+Provider `error_statuses` and `error_grpc` map protocol numbers to semantic kinds.
+Modal `error_rules` separates portable classifications from native bindings:
+
+```yaml
+error_rules:
+  timeout_error: timeout
+errors:
+  go:
+    types:
+      - {import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error}
+```
+
+Another language binds the same rule to its native SDK type. Native type names,
+imports, pointer matching, and field members belong in `errors.<language>`.
+Generation rejects unknown kinds, missing rules, invalid protocol codes, and
+missing member bindings. Response groups declare `origin: provider|request` for mapped
+metadata; unavailable fields receive no fabricated values.
+
+See [responses and errors](responses-and-errors.md) for the public contract,
+native cause preservation, and copy restrictions.
+
+## Shared validation rules
 
 ```yaml
 version: 1

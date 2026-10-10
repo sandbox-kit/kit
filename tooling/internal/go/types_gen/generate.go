@@ -30,6 +30,28 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 			g.P(naming.EnumValueName(value), " ", name, " = ", int32(value.Desc.Number()))
 		}
 		g.P(")")
+		g.P("// Valid reports whether the value is declared in the shared schema.")
+		g.P("func(x ", name, ")Valid()bool{switch x{")
+		seen := map[int32]bool{}
+		for _, value := range enum.Values {
+			n := int32(value.Desc.Number())
+			if !seen[n] {
+				g.P("case ", n, ":return true")
+				seen[n] = true
+			}
+		}
+		g.P("default:return false}}")
+		g.P("// String returns the stable schema identifier for diagnostics.")
+		g.P("func(x ", name, ")String()string{switch x{")
+		seen = map[int32]bool{}
+		for _, value := range enum.Values {
+			n := int32(value.Desc.Number())
+			if !seen[n] {
+				g.P("case ", n, ":return ", fmt.Sprintf("%q", string(value.Desc.Name())))
+				seen[n] = true
+			}
+		}
+		g.P("default:return \"UNKNOWN\"}}")
 	}
 	for _, message := range file.Messages {
 		if message.Desc.IsMapEntry() {
@@ -90,6 +112,69 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 	return nil
 }
 
+// GenerateCopies emits owned copies of native shared messages from descriptors.
+func GenerateCopies(plugin *protogen.Plugin, file *protogen.File, maxDepth int) error {
+	g := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".copy.gen.go", file.GoImportPath)
+	g.P("// Code generated from shared schema. DO NOT EDIT.")
+	g.P("package ", file.GoPackageName)
+	for _, m := range file.Messages {
+		if m.Desc.IsMapEntry() {
+			continue
+		}
+		g.P("// Clone returns an owned copy, preserving field presence and numeric types.")
+		g.P("// It rejects unsupported metadata and excessive depth or cycles.")
+		g.P("func(x *", m.GoIdent.GoName, ")Clone()(*", m.GoIdent.GoName, ",error){return x.clone(0)}")
+		g.P("func(x *", m.GoIdent.GoName, ")clone(depth int)(*", m.GoIdent.GoName, ",error){if x==nil{return nil,nil};if depth>", maxDepth, "{return nil,", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(\"sandbox-kit: data exceeds maximum copy depth or contains a cycle\")};out:=*x")
+		for _, f := range m.Fields {
+			name := naming.FieldName(f)
+			source := "x." + name
+			dest := "out." + name
+			switch {
+			case f.Message != nil && (f.Message.Desc.FullName() == "google.protobuf.Struct" || f.Message.Desc.FullName() == "kit.sandbox.v1.MetadataObject"):
+				g.P("if ", source, "!=nil{value,err:=cloneMetadata(", source, ");if err!=nil{return nil,err};", dest, "=value}")
+			case f.Desc.IsMap():
+				kind, err := fieldType(g, f)
+				if err != nil {
+					return err
+				}
+				g.P("if ", source, "!=nil{", dest, "=make(", kind, ",len(", source, "));for key,value:=range ", source, "{")
+				if f.Message.Fields[1].Message != nil {
+					g.P("copied,err:=value.clone(depth+1);if err!=nil{return nil,err};", dest, "[key]=copied")
+				} else {
+					g.P(dest, "[key]=value")
+				}
+				g.P("}}")
+			case f.Desc.Kind() == protoreflect.BytesKind:
+				if scalarPointer(f) {
+					g.P("if ", source, "!=nil{var value []byte;if *", source, "!=nil{value=append([]byte{},(*", source, ")...)};", dest, "=&value}")
+				} else {
+					g.P("if ", source, "!=nil{", dest, "=append([]byte{},", source, "...)}")
+				}
+			case f.Desc.IsList():
+				kind, err := fieldType(g, f)
+				if err != nil {
+					return err
+				}
+				g.P("if ", source, "!=nil{", dest, "=make(", kind, ",len(", source, "));for i,value:=range ", source, "{")
+				if f.Message != nil {
+					g.P("copied,err:=value.clone(depth+1);if err!=nil{return nil,err};", dest, "[i]=copied")
+				} else {
+					g.P(dest, "[i]=value")
+				}
+				g.P("}}")
+			case f.Message != nil && (f.Message.Desc.FullName() == "google.protobuf.Duration" || f.Message.Desc.FullName() == "google.protobuf.Timestamp"):
+				g.P("if ", source, "!=nil{value:=*", source, ";", dest, "=&value}")
+			case f.Message != nil:
+				g.P("{value,err:=", source, ".clone(depth+1);if err!=nil{return nil,err};", dest, "=value}")
+			case scalarPointer(f):
+				g.P("if ", source, "!=nil{value:=*", source, ";", dest, "=&value}")
+			}
+		}
+		g.P("return &out,nil}")
+	}
+	return nil
+}
+
 func scalarPointer(field *protogen.Field) bool {
 	return field.Desc.HasPresence() && field.Desc.Kind() != protoreflect.MessageKind && !field.Desc.IsList() && !field.Desc.IsMap()
 }
@@ -114,6 +199,10 @@ func fieldType(g *protogen.GeneratedFile, field *protogen.Field) (string, error)
 		kind = "uint32"
 	case protoreflect.Uint64Kind:
 		kind = "uint64"
+	case protoreflect.Int64Kind:
+		kind = "int64"
+	case protoreflect.BytesKind:
+		kind = "[]byte"
 	case protoreflect.EnumKind:
 		kind = g.QualifiedGoIdent(field.Enum.GoIdent)
 	case protoreflect.MessageKind:
@@ -123,6 +212,8 @@ func fieldType(g *protogen.GeneratedFile, field *protogen.Field) (string, error)
 		case "google.protobuf.Timestamp":
 			kind = "*" + g.QualifiedGoIdent(protogen.GoIdent{GoName: "Time", GoImportPath: "time"})
 		case "google.protobuf.Struct":
+			kind = "map[string]any"
+		case "kit.sandbox.v1.MetadataObject":
 			kind = "map[string]any"
 		default:
 			kind = "*" + g.QualifiedGoIdent(field.Message.GoIdent)

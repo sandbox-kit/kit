@@ -64,9 +64,9 @@ Credential fields marked `sensitive` and the provider object are excluded from
 generated JSON output. This does not protect arbitrary logging or formatting;
 keep credentials out of logs and source control.
 
-Native construction, operation, and cleanup errors pass through unchanged.
-Shared validation errors retain validator details through wrapping. A common
-provider-error classification contract is planned.
+Construction, operation, and cleanup failures expose shared error details.
+Native SDK and validator errors remain accessible through the cause chain.
+See [responses and errors](responses-and-errors.md).
 
 Configuration types and contracts come from
 [`client.proto`](../proto/kit/sandbox/v1/client.proto),

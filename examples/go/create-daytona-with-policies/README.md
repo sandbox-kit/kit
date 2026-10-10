@@ -25,6 +25,10 @@ sandbox stops. Closing the client only releases SDK resources.
 
 ## Verify without credentials
 
+The example prints identity/resource origins and demonstrates structured common
+errors with `errors.As`. Rejected policies expose stable kinds and field paths
+before a creation request is sent. See [contracts](../../../docs/responses-and-errors.md).
+
 ```sh
 GOWORK=off go test -v ./...
 ```
@@ -46,3 +50,12 @@ provider scheduling and real lifecycle behavior require live verification.
 
 See [main.go](main.go), [tests](main_test.go), and
 [creation policies](../../../docs/sandbox-creation.md#policy-semantics).
+
+## Error handling
+
+`main.go` configures the provider and creates the sandbox. `errors.go` handles
+application errors by extracting `*sandbox.Error` and switching on its `Kind`.
+Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
+and do not replace a creation failure.
+
+See the [provider error example](../handle-daytona-errors/README.md).

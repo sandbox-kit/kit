@@ -15,7 +15,8 @@ type Provider struct{}
 func New() *Provider           { return &Provider{} }
 func (*Provider) Name() string { return "modal" }
 func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
-	return newBackend(config)
+	backend, err := newBackend(config)
+	return backend, mapProviderError(err, "initialize")
 }
 
 // backend owns its initialized SDK; it is returned by the factory.
@@ -71,7 +72,8 @@ func captureBackendState(result *backend, config *sandbox.Config) {
 }
 func (*backend) Name() string { return "modal" }
 func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-	return a.create(ctx, request)
+	response, err := a.create(ctx, request)
+	return response, mapProviderError(err, "create")
 }
 func (a *backend) Close(ctx context.Context) error {
 	a.client.Close()

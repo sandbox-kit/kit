@@ -5,7 +5,9 @@ import (
 	"sort"
 	"strconv"
 
+	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 )
@@ -61,7 +63,11 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 		if err != nil {
 			return err
 		}
-		g.P("if config.", field, "!=nil{return params,", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(", strconv.Quote("sandbox-kit "+provider.Provider+": "+c.Rejected[key]), ")}")
+		path, err := schema.Literal(g, plugin, "Config", key)
+		if err != nil {
+			return err
+		}
+		g.P("if config.", field, "!=nil{return params,", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindUnsupported"), Provider: strconv.Quote(provider.Provider), Operation: strconv.Quote("initialize"), Field: path, Message: strconv.Quote("sandbox-kit " + provider.Provider + ": " + c.Rejected[key])}), "}")
 	}
 	if c.Settings != "" {
 		grp, err := group(c.Settings)
@@ -155,7 +161,11 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 			return err
 		}
 	}
-	g.P("default:return params,", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(", strconv.Quote("sandbox-kit "+provider.Provider+": unsupported authentication mode"), ")}}")
+	authPath, err := schema.Literal(g, plugin, "Config", "auth")
+	if err != nil {
+		return err
+	}
+	g.P("default:return params,", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindUnsupported"), Provider: strconv.Quote(provider.Provider), Operation: strconv.Quote("initialize"), Field: authPath, Message: strconv.Quote("sandbox-kit " + provider.Provider + ": unsupported authentication mode")}), "}}")
 	g.P("if err:=", ident("RejectUnmapped"), "(", strconv.Quote(provider.Provider+" client"), ",&remaining);err!=nil{return params,err};return params,nil}")
 	return nil
 }

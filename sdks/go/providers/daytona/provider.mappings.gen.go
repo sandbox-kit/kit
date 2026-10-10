@@ -2,7 +2,6 @@
 package daytona
 
 import (
-	fmt "fmt"
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
@@ -26,16 +25,19 @@ func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParam
 			target.AutoStopInterval = sandbox.Value(0)
 		case sandbox.PolicyModeAfter:
 			if policy.After == nil {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: duration is required")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleStop, Message: "sandbox-kit daytona: idle_stop: duration is required"}, nil)
+			}
+			if *policy.After == 0 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleStop, Message: "sandbox-kit daytona: idle_stop: immediate action is not representable"}, nil)
 			}
 			duration := *policy.After
-			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: delay cannot be represented in whole minutes (zero may disable this action)")
+			if duration < 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleStop, Message: "sandbox-kit daytona: idle_stop: delay cannot be represented in whole minutes"}, nil)
 			}
 			value := int(duration / time.Minute)
 			target.AutoStopInterval = &value
 		default:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_stop: unknown policy mode")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleStop, Message: "sandbox-kit daytona: idle_stop: unknown policy mode"}, nil)
 		}
 	}
 	remaining.IdleStop = nil
@@ -46,16 +48,19 @@ func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParam
 			target.AutoPauseInterval = sandbox.Value(0)
 		case sandbox.PolicyModeAfter:
 			if policy.After == nil {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: duration is required")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdlePause, Message: "sandbox-kit daytona: idle_pause: duration is required"}, nil)
+			}
+			if *policy.After == 0 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdlePause, Message: "sandbox-kit daytona: idle_pause: immediate action is not representable"}, nil)
 			}
 			duration := *policy.After
-			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: delay cannot be represented in whole minutes (zero may disable this action)")
+			if duration < 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdlePause, Message: "sandbox-kit daytona: idle_pause: delay cannot be represented in whole minutes"}, nil)
 			}
 			value := int(duration / time.Minute)
 			target.AutoPauseInterval = &value
 		default:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: idle_pause: unknown policy mode")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeIdlePause, Message: "sandbox-kit daytona: idle_pause: unknown policy mode"}, nil)
 		}
 	}
 	remaining.IdlePause = nil
@@ -63,22 +68,25 @@ func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParam
 		switch policy.Mode {
 		case sandbox.PolicyModeDefault:
 		case sandbox.PolicyModeDisabled:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: explicit disabling is not representable; zero would trigger immediately")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: explicit disabling is not representable; native zero has a different meaning"}, nil)
 		case sandbox.PolicyModeAfter:
 			if policy.After == nil {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: duration is required")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: duration is required"}, nil)
+			}
+			if *policy.After == 0 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: immediate action is not representable"}, nil)
 			}
 			duration := *policy.After
-			if duration <= 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: delay cannot be represented in whole minutes (zero may disable this action)")
+			if duration < 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: delay cannot be represented in whole minutes"}, nil)
 			}
 			if duration/time.Minute > 43200 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: delay exceeds documented maximum")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: delay exceeds documented maximum"}, nil)
 			}
 			value := int(duration / time.Minute)
 			target.AutoArchiveInterval = &value
 		default:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_archive: unknown policy mode")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedArchive, Message: "sandbox-kit daytona: stopped_archive: unknown policy mode"}, nil)
 		}
 	}
 	remaining.StoppedArchive = nil
@@ -86,19 +94,19 @@ func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParam
 		switch policy.Mode {
 		case sandbox.PolicyModeDefault:
 		case sandbox.PolicyModeDisabled:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: explicit disabling is not representable; zero would trigger immediately")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedDelete, Message: "sandbox-kit daytona: stopped_delete: explicit disabling is not representable; native zero has a different meaning"}, nil)
 		case sandbox.PolicyModeAfter:
 			if policy.After == nil {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: duration is required")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedDelete, Message: "sandbox-kit daytona: stopped_delete: duration is required"}, nil)
 			}
 			duration := *policy.After
 			if duration < 0 || duration%time.Minute != 0 || duration/time.Minute > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: delay cannot be represented in whole minutes (zero may disable this action)")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedDelete, Message: "sandbox-kit daytona: stopped_delete: delay cannot be represented in whole minutes"}, nil)
 			}
 			value := int(duration / time.Minute)
 			target.AutoDeleteInterval = &value
 		default:
-			return target, remaining, fmt.Errorf("sandbox-kit daytona: stopped_delete: unknown policy mode")
+			return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetimeStoppedDelete, Message: "sandbox-kit daytona: stopped_delete: unknown policy mode"}, nil)
 		}
 	}
 	remaining.StoppedDelete = nil
@@ -145,7 +153,7 @@ func mapResources(source *sandbox.Resources) (types.Resources, sandbox.Resources
 		{
 			value := source.GetCPUCores()
 			if float64(value) != math.Trunc(float64(value)) || value > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: cpu_cores cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesCPUCores, Message: "sandbox-kit daytona: cpu_cores cannot be represented"}, nil)
 			}
 			target.CPU = int(value)
 		}
@@ -155,7 +163,7 @@ func mapResources(source *sandbox.Resources) (types.Resources, sandbox.Resources
 		{
 			value := source.GetMemoryMiB()
 			if value%1024 != 0 || value/1024 > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: memory_mib cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMiB, Message: "sandbox-kit daytona: memory_mib cannot be represented"}, nil)
 			}
 			target.Memory = int(value / 1024)
 		}
@@ -165,7 +173,7 @@ func mapResources(source *sandbox.Resources) (types.Resources, sandbox.Resources
 		{
 			value := source.GetDiskMiB()
 			if value%1024 != 0 || value/1024 > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit daytona: disk_mib cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesDiskMiB, Message: "sandbox-kit daytona: disk_mib cannot be represented"}, nil)
 			}
 			target.Disk = int(value / 1024)
 		}
@@ -178,25 +186,39 @@ func mapSandboxInfo(source *daytona.Sandbox) (sandbox.SandboxInfo, error) {
 	if source == nil {
 		return target, nil
 	}
+	target.Origins = map[string]sandbox.ValueOrigin{}
 	{
 		value := source.ID
 		target.ID = value
+		target.Origins["id"] = sandbox.ValueOriginProvider
 	}
 	{
 		value := source.Name
 		target.Name = sandbox.Value(value)
+		if target.Name != nil {
+			target.Origins["name"] = sandbox.ValueOriginProvider
+		}
 	}
 	{
 		value := source.State
 		target.ProviderState = sandbox.Value(string(value))
+		if target.ProviderState != nil {
+			target.Origins["provider_state"] = sandbox.ValueOriginProvider
+		}
 	}
 	{
 		value := source.Target
 		target.Region = sandbox.Value(value)
+		if target.Region != nil {
+			target.Origins["region"] = sandbox.ValueOriginProvider
+		}
 	}
 	{
 		value := source.Labels
 		target.Labels = value
+		if target.Labels != nil {
+			target.Origins["labels"] = sandbox.ValueOriginProvider
+		}
 	}
 	target.Provider = "daytona"
 	return target, nil
@@ -216,14 +238,14 @@ func mapAllocatedResources(source *daytona.Sandbox) (sandbox.Resources, error) {
 	{
 		value := source.Memory
 		if value < 0 || uint64(value) > ^uint64(0)/1024 {
-			return target, fmt.Errorf("sandbox-kit daytona: memory cannot be represented")
+			return target, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "memory", Message: "sandbox-kit daytona: memory cannot be represented"}, nil)
 		}
 		target.MemoryMiB = sandbox.Value(uint64(value) * 1024)
 	}
 	{
 		value := source.Disk
 		if value < 0 || uint64(value) > ^uint64(0)/1024 {
-			return target, fmt.Errorf("sandbox-kit daytona: disk cannot be represented")
+			return target, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "disk", Message: "sandbox-kit daytona: disk cannot be represented"}, nil)
 		}
 		target.DiskMiB = sandbox.Value(uint64(value) * 1024)
 	}

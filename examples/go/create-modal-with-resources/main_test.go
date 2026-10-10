@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"math"
 	"net/http"
 	"net/http/httptest"
@@ -60,6 +61,10 @@ func TestPublicClientRejectsLossyResourcesBeforeRemoteCalls(t *testing.T) {
 			instance, err := client.Create(ctx, options)
 			if instance != nil || err == nil || !strings.Contains(err.Error(), tc.want) {
 				t.Fatalf("expected %q, got instance=%v err=%v", tc.want, instance, err)
+			}
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Provider != "modal" || detail.Operation != "create" || detail.Field == "" {
+				t.Fatalf("missing common error details: %v", err)
 			}
 		})
 	}

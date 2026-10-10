@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -99,6 +100,10 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 			instance, err := client.Create(context.Background(), options)
 			if instance != nil || err == nil || !strings.Contains(err.Error(), tc.want) {
 				t.Fatalf("expected %s rejection, got %v", tc.want, err)
+			}
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Provider != "daytona" || detail.Field == "" {
+				t.Fatalf("missing common error details: %v", err)
 			}
 		})
 	}

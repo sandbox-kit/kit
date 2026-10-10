@@ -220,7 +220,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 	}
 	g.P("return v }")
 	g.P("// Validate", root, " applies the generated shared rules without filling defaults.")
-	g.P("func Validate", root, "(request *", root, ")error{if request==nil{return nil};if err:=new", root, "Validator().Struct(request);err!=nil{return ", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(\"sandbox-kit: invalid configuration: %w\",err)};return nil}")
+	g.P("func Validate", root, "(request *", root, ")error{if request==nil{return nil};if err:=new", root, "Validator().Struct(request);err!=nil{return validationError(err)};return nil}")
 	return nil
 }
 

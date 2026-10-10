@@ -30,7 +30,8 @@ minimum requests and the 24-hour lifetime limit.
 
 Daytona uses `NewClientWithConfig(*types.DaytonaConfig)`. Its `Create` method
 accepts snapshot/image parameters plus creation options. Timeout and wait options
-retain native behavior. Errors pass through, preserving native classification.
+retain native behavior. Generated errors expose common categories while preserving
+native classification through the original cause.
 
 ## Conflicting Daytona policy documentation
 

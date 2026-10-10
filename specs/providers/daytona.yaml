@@ -1,5 +1,12 @@
 version: 1
 provider: daytona
+error_statuses: {400: invalid_argument, 401: authentication, 403: permission_denied, 404: not_found, 408: timeout, 409: conflict, 412: failed_precondition, 422: invalid_argument, 429: rate_limited, 500: internal, 502: unavailable, 503: unavailable, 504: timeout}
+errors:
+  go:
+    target:
+      import: github.com/daytona/clients/sdk-go/pkg/errors
+      name: DaytonaError
+      fields: {status: StatusCode, code: Code, source: Source}
 checks:
   - {path: runtime.language, allowed: [python, javascript, typescript]}
   - {path: network.outbound_proxy_url, format: http_url}
@@ -71,6 +78,7 @@ groups:
       - {from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
       - {from: disk_mib, to: disk, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
   - name: mapSandboxInfo
+    origin: provider
     direction: response
     source:
       name: Sandbox

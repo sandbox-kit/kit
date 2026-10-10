@@ -5,45 +5,20 @@ import (
 	"strings"
 
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 func sharedMessage(p *protogen.Plugin, name string) (*protogen.Message, error) {
-	full := name
-	if !strings.Contains(full, ".") {
-		full = "kit.sandbox.v1." + name
-	}
-	var walk func([]*protogen.Message) *protogen.Message
-	walk = func(messages []*protogen.Message) *protogen.Message {
-		for _, m := range messages {
-			if string(m.Desc.FullName()) == full {
-				return m
-			}
-			if found := walk(m.Messages); found != nil {
-				return found
-			}
-		}
-		return nil
-	}
-	for _, f := range p.Files {
-		if m := walk(f.Messages); m != nil {
-			return m, nil
-		}
-	}
-	return nil, fmt.Errorf("unknown shared message %q", full)
+	return schema.Message(p, name)
 }
 func sharedField(p *protogen.Plugin, message, name string) (*protogen.Field, error) {
-	m, err := sharedMessage(p, message)
+	fields, err := schema.Resolve(p, message, name)
 	if err != nil {
 		return nil, err
 	}
-	for _, f := range m.Fields {
-		if string(f.Desc.Name()) == name {
-			return f, nil
-		}
-	}
-	return nil, fmt.Errorf("unknown %s field %q", message, name)
+	return fields[len(fields)-1], nil
 }
 
 // capture copies schema fields without changing absent versus explicit values.

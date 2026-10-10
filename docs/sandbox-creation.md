@@ -93,9 +93,9 @@ requires a readiness probe and a positive creation timeout.
 
 ## Results, cleanup, and future work
 
-Kit copies requests and result metadata. Provider errors pass through unchanged,
-and cancellation is forwarded to the SDK. No additional retry layer or automatic
-cloud cleanup is added.
+Kit uses generated typed copies for requests and result metadata. Errors expose
+shared details while preserving native causes. Cancellation is forwarded to the
+SDK. Kit performs no automatic retries or cloud cleanup.
 
 Closing the client releases SDK resources. Use provider tools for sandbox
 cleanup. Execution, lifecycle methods, GPU requests, resizing, storage, harnesses,

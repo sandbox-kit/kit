@@ -1,0 +1,10 @@
+version: 1
+fallback_kind: unknown
+# Ordered: the first matching cause wins, overriding the supplied classification.
+cause_rules:
+  - {match: canceled, kind: canceled}
+  - {match: deadline_exceeded, kind: timeout}
+existing_error:
+  reuse_matching_context: true
+  preserve_details: true
+classification_precedence: [existing_error, native_type, http_status, grpc_code, fallback]

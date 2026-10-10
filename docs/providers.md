@@ -31,7 +31,9 @@ private; standard operations require no application mapping callbacks.
 ## Generation boundary
 
 Protobuf declares shared types and local methods. YAML declares validation,
-configuration assembly, field conversions, provider checks, and native bindings.
+configuration assembly, field conversions, provider checks, error classification,
+and native bindings. Shared error policy lives in `specs/errors.yaml`; provider
+classifications remain separate from language-specific SDK bindings.
 The Go emitters generate those mechanical parts.
 
 Provider `sandbox.go` files retain orchestration that the current vocabulary
@@ -44,8 +46,8 @@ neither provider SDK. Future harness integrations will remain separate modules.
 
 ## Current behavior
 
-Creation returns a shared sandbox handle. Provider SDK errors pass through;
-local validation produces ordinary Go errors. Metadata is copied before exposure.
+Creation returns a shared sandbox handle with metadata origins. Errors expose
+common kinds and preserve SDK/validator causes. Metadata is copied before exposure.
 Closing a client releases SDK resources and leaves cloud sandboxes running.
 
 Sandbox Kit introduces no middle service or generated gRPC transport. Native

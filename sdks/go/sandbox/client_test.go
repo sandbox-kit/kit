@@ -69,7 +69,7 @@ func TestClientRejectsNilFactoriesAndProviders(t *testing.T) {
 func TestInitializationErrorsPassThrough(t *testing.T) {
 	expected := errors.New("SDK failure")
 	factory := &testProvider{err: expected}
-	if _, err := sandbox.NewClient(sandbox.Config{Provider: factory}); err != expected {
+	if _, err := sandbox.NewClient(sandbox.Config{Provider: factory}); !errors.Is(err, expected) {
 		t.Fatal("SDK initialization error changed")
 	}
 }
@@ -162,7 +162,7 @@ func TestClientCleanupAndInvalidBackendIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := client.Close(context.Background()); err != expected {
+	if err := client.Close(context.Background()); !errors.Is(err, expected) {
 		t.Fatal("cleanup error changed")
 	}
 	if provider.closed != 1 {

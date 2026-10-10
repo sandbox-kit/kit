@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -15,7 +14,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		handleError(os.Stderr, err)
 		os.Exit(1)
 	}
 }
@@ -39,7 +38,15 @@ func run() (result error) {
 	if err != nil {
 		return err
 	}
-	defer func() { result = errors.Join(result, client.Close(context.Background())) }()
+	defer func() {
+		if closeErr := client.Close(context.Background()); closeErr != nil {
+			if result == nil {
+				result = closeErr
+			} else {
+				handleError(os.Stderr, closeErr)
+			}
+		}
+	}()
 
 	instance, err := client.Create(context.Background(), nil)
 	if err != nil {

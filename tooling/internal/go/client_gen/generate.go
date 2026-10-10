@@ -3,10 +3,12 @@ package clientgen
 import (
 	"fmt"
 	"go/token"
+	"strconv"
 	"unicode"
 	"unicode/utf8"
 
 	codegenv1 "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
+	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 )
@@ -61,6 +63,9 @@ func Generate(plugin *protogen.Plugin, file *protogen.File) error {
 	g.P("package ", file.GoPackageName)
 	context := func(name string) protogen.GoIdent { return protogen.GoIdent{GoName: name, GoImportPath: "context"} }
 	errors := func(name string) protogen.GoIdent { return protogen.GoIdent{GoName: name, GoImportPath: "errors"} }
+	localError := func(kind, provider, operation, field, message string) string {
+		return errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: provider, Operation: strconv.Quote(operation), Field: strconv.Quote(field), Message: message})
+	}
 	g.P("// ", backend, " is the full local operation and resource-ownership contract.")
 	g.P("type ", backend, " interface {Name()string;", create.GoName, "(", context("Context"), ",*", create.Input.GoIdent, ")(*", create.Output.GoIdent, ",error);Close(", context("Context"), ")error}")
 	g.P("// Provider initializes an SDK from the shared client configuration.")
@@ -69,21 +74,23 @@ func Generate(plugin *protogen.Plugin, file *protogen.File) error {
 	g.P("type ", name, " struct{backend ", backend, ";timeout *", protogen.GoIdent{GoName: "Duration", GoImportPath: "time"}, "}")
 	g.P("func missingClientBinding(binding any)bool{value:=", protogen.GoIdent{GoName: "ValueOf", GoImportPath: "reflect"}, "(binding);if !value.IsValid(){return true};switch value.Kind(){case reflect.Chan,reflect.Func,reflect.Interface,reflect.Map,reflect.Pointer,reflect.Slice:return value.IsNil()};return false}")
 	g.P("// New", name, " validates common configuration before initializing the selected SDK.")
-	g.P("func New", name, "(config ", config, ")(*", name, ",error){")
-	g.P("if missingClientBinding(config.Provider){return nil,", errors("New"), "(\"sandbox-kit: provider factory is required\")}")
+	g.P("func New", name, "(config ", config, ")(client *", name, ",result error){provider:=\"\";defer func(){result=WithErrorContext(result,provider,\"initialize\")}()")
+	g.P("if missingClientBinding(config.Provider){return nil,", localError("ErrorKindInvalidArgument", "", "initialize", "provider", strconv.Quote("sandbox-kit: provider is required")), "}")
+	g.P("provider=config.Provider.Name()")
 	g.P("if err:=Validate", config.GoName, "(&config);err!=nil{return nil,err}")
-	g.P("expected:=config.Provider.Name();if ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(expected)==\"\"{return nil,", errors("New"), "(\"sandbox-kit: provider name is required\")}")
+	g.P("expected:=provider;if ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(expected)==\"\"{return nil,", localError("ErrorKindInvalidArgument", "", "initialize", "provider", strconv.Quote("sandbox-kit: provider name is required")), "}")
 	g.P("var timeout *time.Duration;if config.Timeout!=nil{value:=*config.Timeout;timeout=&value}")
 	g.P("backend,err:=config.Provider.NewClient(&config);if err!=nil{return nil,err}")
-	g.P("if missingClientBinding(backend){return nil,", errors("New"), "(\"sandbox-kit: provider returned no initialized backend\")}")
-	g.P("if actual:=backend.Name();actual!=expected{return nil,", errors("Join"), "(", protogen.GoIdent{GoName: "Errorf", GoImportPath: "fmt"}, "(\"sandbox-kit: initialized backend %q differs from selected provider %q\",actual,expected),backend.Close(context.Background()))}")
+	g.P("if missingClientBinding(backend){return nil,", localError("ErrorKindInvalidResponse", "expected", "initialize", "backend", strconv.Quote("sandbox-kit: provider returned no initialized backend")), "}")
+	mismatch := g.QualifiedGoIdent(protogen.GoIdent{GoName: "Sprintf", GoImportPath: "fmt"}) + "(" + strconv.Quote("sandbox-kit: initialized backend %q differs from selected provider %q") + ",actual,expected)"
+	g.P("if actual:=backend.Name();actual!=expected{return nil,", errors("Join"), "(", localError("ErrorKindInvalidResponse", "expected", "initialize", "provider", mismatch), ",backend.Close(context.Background()))}")
 	g.P("return &", name, "{backend:backend,timeout:timeout},nil}")
 	g.P("func(c *", name, ")ProviderName()string{return c.backend.Name()}")
 	g.P("// Close releases resources owned by the provider SDK; it does not delete sandboxes.")
-	g.P("func(c *", name, ")Close(ctx ", context("Context"), ")error{if ctx==nil{return ", errors("New"), "(\"sandbox-kit: context is required\")};if c==nil||c.backend==nil{return nil};return c.backend.Close(ctx)}")
-	g.P("func(c *", name, ")", create.GoName, "(ctx ", context("Context"), ",request *", create.Input.GoIdent, ")(*Sandbox,error){")
-	g.P("if ctx==nil{return nil,", errors("New"), "(\"sandbox-kit: context is required\")};if err:=ctx.Err();err!=nil{return nil,err}")
-	g.P("if c==nil||c.backend==nil{return nil,", errors("New"), "(\"sandbox-kit: client is not initialized\")}")
+	g.P("func(c *", name, ")Close(ctx ", context("Context"), ")(result error){provider:=\"\";if c!=nil&&c.backend!=nil{provider=c.backend.Name()};defer func(){result=WithErrorContext(result,provider,\"close\")}();if ctx==nil{return ", localError("ErrorKindInvalidArgument", "provider", "close", "context", strconv.Quote("sandbox-kit: context is required")), "};if c==nil||c.backend==nil{return nil};return c.backend.Close(ctx)}")
+	g.P("func(c *", name, ")", create.GoName, "(ctx ", context("Context"), ",request *", create.Input.GoIdent, ")(instance *Sandbox,result error){provider:=\"\";if c!=nil&&c.backend!=nil{provider=c.backend.Name()};defer func(){result=WithErrorContext(result,provider,\"create\")}()")
+	g.P("if ctx==nil{return nil,", localError("ErrorKindInvalidArgument", "provider", "create", "context", strconv.Quote("sandbox-kit: context is required")), "};if err:=ctx.Err();err!=nil{return nil,err}")
+	g.P("if c==nil||c.backend==nil{return nil,", localError("ErrorKindInvalidArgument", "provider", "create", "client", strconv.Quote("sandbox-kit: client is not initialized")), "}")
 	g.P("request,err:=prepareCreateRequest(request);if err!=nil{return nil,err}")
 	g.P("timeout:=request.GetProvisioning().GetTimeout();if timeout==nil{timeout=c.timeout};if timeout!=nil&&*timeout>0{var cancel context.CancelFunc;ctx,cancel=context.WithTimeout(ctx,*timeout);defer cancel()}")
 	// Materialize the resolved timeout for backend readiness mappings too.
