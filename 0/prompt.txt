@@ -1,10 +1,1 @@
-I have changed lot of things in a code arond how its implemented while its context is in codex sessoin gold-info (2) chat
-
-but my limit exceed there. can u check that context and make the commit here by creating feat branch and then push to that feat branch
-
----
-
-as u now know the changes can u update the readme and .md which is outdated. 
-
-
-remove the things which has become outdated from .md based on new implementation
+commit and push
