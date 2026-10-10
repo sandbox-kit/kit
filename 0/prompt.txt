@@ -1,0 +1,1 @@
+u have to refine lot of things, lemme know if u have any questions. cause we were going in wrong direction + use generators and build generators as much as possible cause note that we need to build for multiple providers + multiple harness (later) + multiple languages. we need ot do it once for golang then it should be able to pick up rest later with agents.
