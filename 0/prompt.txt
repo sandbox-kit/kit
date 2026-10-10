@@ -1,0 +1,2 @@
+can we convert namings to adapter_gen, client_gen
+its much better folder naming
