@@ -1,0 +1,3 @@
+now can u really verify everything. its fine if there are fields which ain't mapped rn. 
+
+but if the code itself is bad or completely wrong and not extensible for other providers.
