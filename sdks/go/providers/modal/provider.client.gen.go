@@ -2,7 +2,6 @@
 package modal
 
 import (
-	fmt "fmt"
 	_go "github.com/modal-labs/modal-client/go"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
@@ -16,7 +15,7 @@ func mapClientConfig(config *sandbox.Config) (_go.ClientParams, error) {
 		return params, err
 	}
 	if config.Endpoint != nil {
-		return params, fmt.Errorf("sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor")
+		return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldEndpoint, Message: "sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor"}, nil)
 	}
 	remaining := *config
 	remaining.Provider = nil
@@ -58,7 +57,7 @@ func mapClientConfig(config *sandbox.Config) (_go.ClientParams, error) {
 			}
 			params.OAuthCredentials = &mapped
 		default:
-			return params, fmt.Errorf("sandbox-kit modal: unsupported authentication mode")
+			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit modal: unsupported authentication mode"}, nil)
 		}
 	}
 	if err := sandbox.RejectUnmapped("modal client", &remaining); err != nil {

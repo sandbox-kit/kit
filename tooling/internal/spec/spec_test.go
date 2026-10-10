@@ -1,6 +1,7 @@
 package spec
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,6 +9,10 @@ import (
 
 func TestRepositorySpecs(t *testing.T) {
 	root := filepath.Join("..", "..", "..", "specs")
+	contracts, err := LoadContracts(root)
+	if err != nil || contracts.CopyMaxDepth != 64 {
+		t.Fatalf("invalid common contracts spec: %v", err)
+	}
 	validation, err := LoadValidation(root)
 	if err != nil {
 		t.Fatal(err)
@@ -50,6 +55,19 @@ func TestRejectsInvalidDocuments(t *testing.T) {
 		}
 		if _, err := LoadValidation(root); err == nil {
 			t.Fatalf("accepted invalid document %q", body)
+		}
+	}
+}
+
+func TestRejectsInvalidContractDepth(t *testing.T) {
+	root := t.TempDir()
+	for _, depth := range []int{0, 257} {
+		body := fmt.Sprintf("version: 1\ncopy_max_depth: %d\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n", depth)
+		if err := os.WriteFile(filepath.Join(root, "contracts.yaml"), []byte(body), 0600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadContracts(root); err == nil {
+			t.Fatal("invalid depth accepted")
 		}
 	}
 }

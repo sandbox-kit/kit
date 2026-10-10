@@ -2,7 +2,6 @@ syntax = "proto3";
 package kit.sandbox.v1;
 
 import "google/protobuf/duration.proto";
-import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 import "kit/codegen/v1/options.proto";
 
@@ -32,7 +31,7 @@ message CreateOptions {
   ObservabilityConfig observability = 15;
   // Provider-specific declarative options. Never SDK objects or auth credentials.
   // Future storage, GPU, and harness configuration can be introduced additively.
-  google.protobuf.Struct provider_options = 16;
+  MetadataObject provider_options = 16;
 }
 
 message SandboxSource {
@@ -205,5 +204,58 @@ message SandboxInfo {
   Resources resources = 7;
   map<string, string> labels = 8;
   google.protobuf.Timestamp created_at = 9;
-  google.protobuf.Struct provider_metadata = 10;
+  MetadataObject provider_metadata = 10;
+  // Provenance for fields that are present. Missing entries mean unknown.
+  map<string, ValueOrigin> origins = 11;
 }
+enum ValueOrigin {
+  VALUE_ORIGIN_UNKNOWN = 0;
+  VALUE_ORIGIN_PROVIDER = 1;
+  VALUE_ORIGIN_REQUEST = 2;
+}
+enum ErrorKind {
+  ERROR_KIND_UNKNOWN = 0;
+  ERROR_KIND_INVALID_ARGUMENT = 1;
+  ERROR_KIND_UNSUPPORTED = 2;
+  ERROR_KIND_AUTHENTICATION = 3;
+  ERROR_KIND_PERMISSION_DENIED = 4;
+  ERROR_KIND_NOT_FOUND = 5;
+  ERROR_KIND_ALREADY_EXISTS = 6;
+  ERROR_KIND_CONFLICT = 7;
+  ERROR_KIND_RATE_LIMITED = 8;
+  ERROR_KIND_RESOURCE_EXHAUSTED = 9;
+  ERROR_KIND_TIMEOUT = 10;
+  ERROR_KIND_CANCELED = 11;
+  ERROR_KIND_UNAVAILABLE = 12;
+  ERROR_KIND_INVALID_RESPONSE = 13;
+  ERROR_KIND_INTERNAL = 14;
+  ERROR_KIND_FAILED_PRECONDITION = 15;
+}
+// Portable error details. The native cause is retained by language runtime code,
+// not serialized. Unknown classifications never imply retry safety.
+message ErrorInfo {
+  ErrorKind kind = 1;
+  string provider = 2;
+  string operation = 3;
+  string field = 4;
+  string message = 5;
+  optional uint32 status_code = 6;
+  optional string provider_code = 7;
+  optional string provider_source = 8;
+}
+// Exact numeric alternatives avoid protobuf Struct's double-only representation.
+// An empty value represents null.
+message MetadataValue {
+  oneof value {
+    bool boolean = 1;
+    string text = 2;
+    int64 signed_integer = 3;
+    uint64 unsigned_integer = 4;
+    double number = 5;
+    bytes binary = 6;
+    MetadataList list = 7;
+    MetadataObject object = 8;
+  }
+}
+message MetadataList { repeated MetadataValue values = 1; }
+message MetadataObject { map<string, MetadataValue> values = 1; }

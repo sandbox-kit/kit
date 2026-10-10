@@ -2,7 +2,6 @@
 package sandbox
 
 import (
-	fmt "fmt"
 	v10 "github.com/go-playground/validator/v10"
 	math "math"
 	strings "strings"
@@ -58,7 +57,7 @@ func ValidateConfig(request *Config) error {
 		return nil
 	}
 	if err := newConfigValidator().Struct(request); err != nil {
-		return fmt.Errorf("sandbox-kit: invalid configuration: %w", err)
+		return validationError(err)
 	}
 	return nil
 }

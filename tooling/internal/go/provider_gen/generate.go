@@ -47,7 +47,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 	g.P("// New selects this provider; SDK initialization happens in sandbox.NewClient.")
 	g.P("func New()*Provider{return &Provider{}}")
 	g.P("func(*Provider)Name()string{return ", strconv.Quote(spec.GetProviderName()), "}")
-	g.P("func(*Provider)NewClient(config *", protogen.GoIdent{GoName: "Config", GoImportPath: sandboxPath}, ")(", protogen.GoIdent{GoName: "Backend", GoImportPath: sandboxPath}, ",error){return newBackend(config)}")
+	g.P("func(*Provider)NewClient(config *", protogen.GoIdent{GoName: "Config", GoImportPath: sandboxPath}, ")(", protogen.GoIdent{GoName: "Backend", GoImportPath: sandboxPath}, ",error){backend,err:=newBackend(config);return backend,mapProviderError(err,\"initialize\")}")
 	g.P("// ", name, " owns its initialized SDK; it is returned by the factory.")
 	g.P("type ", name, " struct{client *", client)
 	seen := map[string]bool{"client": true}
@@ -92,7 +92,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 		g.P("}")
 	}
 	g.P("func(*", name, ")Name()string{return ", strconv.Quote(spec.GetProviderName()), "}")
-	g.P("func(a *", name, ")Create(ctx ", protogen.GoIdent{GoName: "Context", GoImportPath: "context"}, ",request *", request, ")(*", response, ",error){return a.create(ctx,request)}")
+	g.P("func(a *", name, ")Create(ctx ", protogen.GoIdent{GoName: "Context", GoImportPath: "context"}, ",request *", request, ")(*", response, ",error){response,err:=a.create(ctx,request);return response,mapProviderError(err,\"create\")}")
 	if !token.IsIdentifier(runtime.Cleanup.Method) {
 		return fmt.Errorf("%s: SDK cleanup binding is required", file.Desc.Path())
 	}
@@ -102,7 +102,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 		args = "ctx"
 	}
 	if runtime.Cleanup.ReturnsError {
-		g.P("return a.client.", runtime.Cleanup.Method, "(", args, ")")
+		g.P("return mapProviderError(a.client.", runtime.Cleanup.Method, "(", args, "),\"close\")")
 	} else {
 		g.P("a.client.", runtime.Cleanup.Method, "(", args, ");return nil")
 	}

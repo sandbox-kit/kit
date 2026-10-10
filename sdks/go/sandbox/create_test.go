@@ -54,7 +54,7 @@ func TestDefaultRequestAndNativeErrors(t *testing.T) {
 		}
 		return nil, expected
 	}})
-	if _, err := client.Create(context.Background(), nil); err != expected {
+	if _, err := client.Create(context.Background(), nil); !errors.Is(err, expected) {
 		t.Fatal("native error replaced")
 	}
 }

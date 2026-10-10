@@ -82,7 +82,7 @@ func TestSDKErrorPassThrough(t *testing.T) {
 	expected := errors.New("SDK failure")
 	adapter := &backend{client: &sdk.Client{Apps: appsStub{calls: &calls}, Images: imagesStub{}, Sandboxes: sandboxesStub{got: &got, err: expected}}, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
 	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
-	if _, err := client.Create(context.Background(), modalConfig()); err != expected {
+	if _, err := client.Create(context.Background(), modalConfig()); !errors.Is(err, expected) {
 		t.Fatal("SDK error replaced")
 	}
 }

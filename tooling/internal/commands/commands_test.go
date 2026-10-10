@@ -88,10 +88,10 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if len(runner.steps) != 8 {
+	if len(runner.steps) != 10 {
 		t.Fatalf("expected eight module tests, got %d", len(runner.steps))
 	}
-	for i, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go/create-modal-sandbox", "examples/go/create-daytona-sandbox", "examples/go/create-modal-with-resources", "examples/go/create-daytona-with-policies"} {
+	for i, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go/create-modal-sandbox", "examples/go/create-daytona-sandbox", "examples/go/create-modal-with-resources", "examples/go/create-daytona-with-policies", "examples/go/handle-modal-errors", "examples/go/handle-daytona-errors"} {
 		if runner.steps[i].dir != filepath.Join(repo, filepath.FromSlash(module)) || runner.steps[i].args[0] != "test" {
 			t.Fatalf("incorrect verification step for %s", module)
 		}

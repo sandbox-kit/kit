@@ -57,3 +57,12 @@ For creation policies and SDK request tests, see
 The example leaves policies at provider defaults. Explicit zero semantics differ
 by action; see [creation policies](../../../docs/sandbox-creation.md#policy-semantics).
 Execution and lifecycle operations are outside this example.
+
+## Error handling
+
+`main.go` configures the provider and creates the sandbox. `errors.go` handles
+application errors by extracting `*sandbox.Error` and switching on its `Kind`.
+Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
+and do not replace a creation failure.
+
+See the [provider error example](../handle-daytona-errors/README.md).

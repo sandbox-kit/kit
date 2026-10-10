@@ -17,7 +17,11 @@ func RejectUnmapped(provider string, remaining any) error {
 		value = value.Elem()
 	}
 	if value.Kind() != reflect.Struct {
-		return fmt.Errorf("sandbox-kit: invalid configuration support check")
+		return NewError(ErrorInfo{
+			Kind:     ErrorKindInternal,
+			Provider: provider,
+			Message:  "sandbox-kit: invalid configuration support check",
+		}, nil)
 	}
 	var fields []string
 	for i := 0; i < value.NumField(); i++ {
@@ -26,7 +30,12 @@ func RejectUnmapped(provider string, remaining any) error {
 		}
 	}
 	if len(fields) > 0 {
-		return fmt.Errorf("sandbox-kit %s: unsupported creation fields: %s", provider, strings.Join(fields, ", "))
+		return NewError(ErrorInfo{
+			Kind:     ErrorKindUnsupported,
+			Provider: provider,
+			Field:    validationPath("Root." + fields[0]),
+			Message:  fmt.Sprintf("sandbox-kit %s: unsupported fields: %s", provider, strings.Join(fields, ", ")),
+		}, nil)
 	}
 	return nil
 }

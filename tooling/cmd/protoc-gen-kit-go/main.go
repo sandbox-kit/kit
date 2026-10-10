@@ -27,6 +27,22 @@ func main() {
 					if err = typesgen.Generate(plugin, file, rules, spec.Client{}); err != nil {
 						return err
 					}
+					contracts, err := spec.LoadContracts("specs")
+					if err != nil {
+						return err
+					}
+					if err = typesgen.GenerateRuntime(plugin, file, contracts); err != nil {
+						return err
+					}
+					if err = typesgen.GenerateCopies(plugin, file, contracts.CopyMaxDepth); err != nil {
+						return err
+					}
+					if err = typesgen.GenerateErrorPaths(plugin, file); err != nil {
+						return err
+					}
+					if err = typesgen.GeneratePaths(plugin, file); err != nil {
+						return err
+					}
 					if err = validationgen.Generate(plugin, file, rules, "CreateOptions"); err != nil {
 						return err
 					}
@@ -36,6 +52,12 @@ func main() {
 						return err
 					}
 					if err = typesgen.Generate(plugin, file, client.Validation, client); err != nil {
+						return err
+					}
+					if err = typesgen.GenerateErrorPaths(plugin, file); err != nil {
+						return err
+					}
+					if err = typesgen.GeneratePaths(plugin, file); err != nil {
 						return err
 					}
 					if err = validationgen.Generate(plugin, file, client.Validation, client.ConfigMessage); err != nil {
@@ -60,6 +82,12 @@ func main() {
 						return err
 					}
 					if err = providergen.GenerateChecks(plugin, file, mappings); err != nil {
+						return err
+					}
+					if _, err = spec.LoadErrorPolicy("specs"); err != nil {
+						return err
+					}
+					if err = providergen.GenerateErrors(plugin, file, mappings); err != nil {
 						return err
 					}
 					if err = mappinggen.Generate(plugin, file, mappings); err != nil {

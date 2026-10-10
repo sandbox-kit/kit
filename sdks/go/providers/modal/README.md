@@ -80,7 +80,7 @@ and unsupported fields are rejected. See [creation coverage](../../../../docs/sa
 
 ## Ownership and verification
 
-Native SDK errors pass through unchanged. Account permissions, resource quotas,
+Errors expose shared kinds and preserve native SDK causes. Account permissions, resource quotas,
 and placement availability remain provider-enforced. Closing the client releases
 SDK resources without terminating the sandbox.
 
@@ -94,6 +94,10 @@ Tests use native SDK doubles and generated mapping checks without cloud
 provisioning. [Provider YAML](../../../../specs/providers/modal.yaml) generates
 configuration assembly, SDK construction, state capture, validation, and field
 conversions. `sandbox.go` contains remaining creation orchestration.
+
+Common error behavior comes from [shared error policy](../../../../specs/errors.yaml).
+Provider YAML declares classifications and native bindings; generated errors
+preserve the original SDK cause. See [responses and errors](../../../../docs/responses-and-errors.md).
 
 See [generation](../../../../docs/code-generation.md) and
 [reference verification](../../../../docs/provider-verification.md).

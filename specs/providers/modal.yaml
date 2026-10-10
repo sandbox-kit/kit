@@ -1,5 +1,26 @@
 version: 1
 provider: modal
+error_grpc: {16: authentication, 7: permission_denied, 5: not_found, 6: already_exists, 3: invalid_argument, 8: resource_exhausted, 4: timeout, 1: canceled, 14: unavailable, 13: internal, 9: failed_precondition, 10: conflict, 11: invalid_argument, 12: unsupported}
+error_rules:
+  invalid_error: invalid_argument
+  not_found_error: not_found
+  already_exists_error: already_exists
+  conflict_error: conflict
+  resource_exhausted_error: resource_exhausted
+  timeout_error: timeout
+  sandbox_timeout_error: timeout
+  client_closed_error: failed_precondition
+errors:
+  go:
+    types:
+      - {import: github.com/modal-labs/modal-client/go, name: InvalidError, rule: invalid_error}
+      - {import: github.com/modal-labs/modal-client/go, name: NotFoundError, rule: not_found_error}
+      - {import: github.com/modal-labs/modal-client/go, name: AlreadyExistsError, rule: already_exists_error}
+      - {import: github.com/modal-labs/modal-client/go, name: ConflictError, rule: conflict_error}
+      - {import: github.com/modal-labs/modal-client/go, name: ResourceExhaustedError, rule: resource_exhausted_error}
+      - {import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error}
+      - {import: github.com/modal-labs/modal-client/go, name: SandboxTimeoutError, rule: sandbox_timeout_error}
+      - {import: github.com/modal-labs/modal-client/go, name: ClientClosedError, rule: client_closed_error}
 checks:
   - {path: resources.cpu_cores, minimum: 0.125}
   - {path: resources.memory_mib, minimum: 128}
@@ -34,6 +55,19 @@ runtime:
       - {name: region, type: string, optional: true, capture: region}
     cleanup: {method: Close, accepts_context: false, returns_error: false}
 groups:
+  - name: mapSandboxIdentity
+    direction: response
+    origin: provider
+    source:
+      name: Sandbox
+      bindings:
+        go:
+          import: github.com/modal-labs/modal-client/go
+          name: Sandbox
+          fields: {id: SandboxID}
+    target: {name: SandboxInfo}
+    fields:
+      - {from: id, to: id}
   - name: mapClientScope
     direction: request
     source: {name: Scope}
@@ -88,6 +122,7 @@ groups:
     fields:
       - {from: maximum_lifetime, to: timeout, transform: duration_seconds, maximum: 86400}
   - name: mapIdleDuration
+    error_path: lifetime.idle_terminate
     direction: request
     source: {name: AutomaticAction}
     target:

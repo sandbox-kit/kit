@@ -70,6 +70,8 @@ type Comparison struct {
 	GreaterThan int    `yaml:"greater_than"`
 }
 type Group struct {
+	ErrorPath string       `yaml:"error_path"`
+	Origin    string       `yaml:"origin"`
 	When      []Comparison `yaml:"when"`
 	Name      string       `yaml:"name"`
 	Source    Type         `yaml:"source"`
@@ -100,12 +102,26 @@ type RuntimeBinding struct {
 	Cleanup     Cleanup      `yaml:"cleanup"`
 }
 type Provider struct {
-	Checks   []Check                   `yaml:"checks"`
-	Client   *ClientMapping            `yaml:"client"`
-	Runtime  map[string]RuntimeBinding `yaml:"runtime"`
-	Version  int                       `yaml:"version"`
-	Provider string                    `yaml:"provider"`
-	Groups   []Group                   `yaml:"groups"`
+	ErrorRules    map[string]string         `yaml:"error_rules"`
+	ErrorStatuses map[int]string            `yaml:"error_statuses"`
+	ErrorGRPC     map[int]string            `yaml:"error_grpc"`
+	Errors        map[string]ErrorBinding   `yaml:"errors"`
+	Checks        []Check                   `yaml:"checks"`
+	Client        *ClientMapping            `yaml:"client"`
+	Runtime       map[string]RuntimeBinding `yaml:"runtime"`
+	Version       int                       `yaml:"version"`
+	Provider      string                    `yaml:"provider"`
+	Groups        []Group                   `yaml:"groups"`
+}
+type ErrorBinding struct {
+	Types  []ErrorType `yaml:"types"`
+	Target Binding     `yaml:"target"`
+}
+type ErrorType struct {
+	Import  string `yaml:"import"`
+	Name    string `yaml:"name"`
+	Pointer bool   `yaml:"pointer"`
+	Rule    string `yaml:"rule"`
 }
 type Check struct {
 	AllowEmpty        bool     `yaml:"allow_empty"`
@@ -182,6 +198,27 @@ func LoadClient(root string) (Client, error) {
 	err := decode(filepath.Join(root, "client.yaml"), &c)
 	if err == nil && (c.Version != 1 || c.ConfigMessage != "Config" || c.ProviderField != "provider" || c.ProviderContract != "Provider" || c.Validation.Version != 1 || len(c.Validation.Messages) == 0) {
 		err = fmt.Errorf("invalid client specification")
+	}
+	return c, err
+}
+
+type Contracts struct {
+	Errors          ErrorPolicy `yaml:"-"`
+	Version         int         `yaml:"version"`
+	CopyMaxDepth    int         `yaml:"copy_max_depth"`
+	MetadataMessage string      `yaml:"metadata_message"`
+	ErrorMessage    string      `yaml:"error_message"`
+	OriginEnum      string      `yaml:"origin_enum"`
+}
+
+func LoadContracts(root string) (Contracts, error) {
+	var c Contracts
+	err := decode(filepath.Join(root, "contracts.yaml"), &c)
+	if err == nil && (c.Version != 1 || c.CopyMaxDepth < 1 || c.CopyMaxDepth > 256 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo" || c.OriginEnum != "ValueOrigin") {
+		err = fmt.Errorf("invalid response/error contracts spec")
+	}
+	if err == nil {
+		c.Errors, err = LoadErrorPolicy(root)
 	}
 	return c, err
 }

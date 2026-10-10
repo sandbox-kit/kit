@@ -2,13 +2,26 @@
 package modal
 
 import (
-	fmt "fmt"
 	_go "github.com/modal-labs/modal-client/go"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	math "math"
 	time "time"
 )
 
+func mapSandboxIdentity(source *_go.Sandbox) (sandbox.SandboxInfo, error) {
+	target := sandbox.SandboxInfo{}
+	if source == nil {
+		return target, nil
+	}
+	target.Origins = map[string]sandbox.ValueOrigin{}
+	{
+		value := source.SandboxID
+		target.ID = value
+		target.Origins["id"] = sandbox.ValueOriginProvider
+	}
+	target.Provider = "modal"
+	return target, nil
+}
 func mapClientScope(source *sandbox.Scope) (_go.ClientParams, sandbox.Scope, error) {
 	target := _go.ClientParams{}
 	remaining := sandbox.Scope{}
@@ -69,7 +82,7 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 			value := source.GetCPUCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: cpu_cores cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCPUCores, Message: "sandbox-kit modal: cpu_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -83,7 +96,7 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 			value := source.GetCPULimitCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: cpu_limit_cores cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCPULimitCores, Message: "sandbox-kit modal: cpu_limit_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -96,7 +109,7 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 		{
 			value := source.GetMemoryMiB()
 			if value > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: memory_mib cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMiB, Message: "sandbox-kit modal: memory_mib cannot be represented"}, nil)
 			}
 			target.MemoryMiB = int(value)
 		}
@@ -106,7 +119,7 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 		{
 			value := source.GetMemoryLimitMiB()
 			if value > 2147483647 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: memory_limit_mib cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryLimitMiB, Message: "sandbox-kit modal: memory_limit_mib cannot be represented"}, nil)
 			}
 			target.MemoryLimitMiB = int(value)
 		}
@@ -127,7 +140,7 @@ func mapLifetimeDuration(source *sandbox.LifetimePolicy) (_go.SandboxCreateParam
 		{
 			value := *source.MaximumLifetime
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 86400 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: maximum_lifetime cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeMaximumLifetime, Message: "sandbox-kit modal: maximum_lifetime cannot be represented"}, nil)
 			}
 			target.Timeout = value
 		}
@@ -148,7 +161,7 @@ func mapIdleDuration(source *sandbox.AutomaticAction) (_go.SandboxCreateParams, 
 		{
 			value := *source.After
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 4294967295 {
-				return target, remaining, fmt.Errorf("sandbox-kit modal: after cannot be represented")
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleTerminateAfter, Message: "sandbox-kit modal: after cannot be represented"}, nil)
 			}
 			target.IdleTimeout = value
 		}

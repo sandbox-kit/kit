@@ -2,7 +2,6 @@
 package sandbox
 
 import (
-	fmt "fmt"
 	v10 "github.com/go-playground/validator/v10"
 	math "math"
 	strings "strings"
@@ -38,6 +37,15 @@ func newCreateOptionsValidator() *v10.Validate {
 			sl.ReportError(x, "after", "after", "forbids", "")
 		}
 	}, AutomaticAction{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(ErrorInfo)
+		_ = x
+		switch x.GetKind() {
+		case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15:
+		default:
+			sl.ReportError(x, "Kind", "Kind", "known_enum", "")
+		}
+	}, ErrorInfo{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(IsolationConfig)
 		_ = x
@@ -193,7 +201,7 @@ func ValidateCreateOptions(request *CreateOptions) error {
 		return nil
 	}
 	if err := newCreateOptionsValidator().Struct(request); err != nil {
-		return fmt.Errorf("sandbox-kit: invalid configuration: %w", err)
+		return validationError(err)
 	}
 	return nil
 }

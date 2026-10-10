@@ -1,0 +1,5 @@
+version: 1
+copy_max_depth: 64
+metadata_message: MetadataObject
+error_message: ErrorInfo
+origin_enum: ValueOrigin

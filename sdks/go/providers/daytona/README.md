@@ -88,7 +88,7 @@ for the full matrix and the SDK/service documentation conflict.
 
 ## Ownership and verification
 
-Provider errors pass through unchanged. Closing the client releases SDK resources
+Errors expose shared kinds and preserve native SDK causes. Closing the client releases SDK resources
 without stopping or deleting the sandbox. Lifecycle methods remain future work.
 
 From this directory:
@@ -101,6 +101,10 @@ Tests use a fake HTTP transport and generated checks without cloud provisioning.
 [Provider YAML](../../../../specs/providers/daytona.yaml) generates construction,
 configuration assembly, field/policy conversions, and validation.
 `sandbox.go` retains remaining creation orchestration.
+
+Common error behavior comes from [shared error policy](../../../../specs/errors.yaml).
+Provider YAML declares classifications and native bindings; generated errors
+preserve the original SDK cause. See [responses and errors](../../../../docs/responses-and-errors.md).
 
 See [generation](../../../../docs/code-generation.md) and
 [reference verification](../../../../docs/provider-verification.md).

@@ -29,6 +29,11 @@ additional sandbox cleanup.
 
 ## Verify without credentials
 
+The example prints the identity origin and whether allocated resources were
+reported. It also demonstrates `errors.As` with `*sandbox.Error`; local numeric
+failures expose provider, operation, kind, and field. Requested resources remain
+separate from reported allocation. See [contracts](../../../docs/responses-and-errors.md).
+
 ```sh
 GOWORK=off go test -v ./...
 ```
@@ -49,3 +54,12 @@ local tests do not simulate it as a successful cloud operation.
 
 See [main.go](main.go), [tests](main_test.go), and
 [creation semantics](../../../docs/sandbox-creation.md).
+
+## Error handling
+
+`main.go` configures the provider and creates the sandbox. `errors.go` handles
+application errors by extracting `*sandbox.Error` and switching on its `Kind`.
+Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
+and do not replace a creation failure.
+
+See the [provider error example](../handle-modal-errors/README.md).

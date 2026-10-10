@@ -2,7 +2,6 @@ package daytona
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -30,7 +29,13 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		return nil, err
 	}
 	if instance == nil {
-		return nil, fmt.Errorf("sandbox-kit daytona: SDK returned no sandbox")
+		return nil, sandbox.NewError(sandbox.ErrorInfo{
+			Kind:      sandbox.ErrorKindInvalidResponse,
+			Provider:  "daytona",
+			Operation: "create",
+			Field:     sandbox.InfoFieldID,
+			Message:   "sandbox-kit daytona: SDK returned no sandbox",
+		}, nil)
 	}
 	info, err := mapSandboxInfo(instance)
 	if err != nil {
@@ -42,6 +47,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	}
 	if resources.CPUCores != nil {
 		info.Resources = &resources
+		info.Origins["resources"] = sandbox.ValueOriginProvider
 	}
 	return &sandbox.CreateResult{Sandbox: &info}, nil
 }
@@ -86,13 +92,31 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		}
 		for _, secret := range config.Secrets {
 			if secret.GetEnvironmentVariable() == "" {
-				return plan, fmt.Errorf("sandbox-kit daytona: secret environment variable is required")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindInvalidArgument,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldSecuritySecretsEnvironmentVariable,
+					Message:   "sandbox-kit daytona: secret environment variable is required",
+				}, nil)
 			}
 			if secret.Injection != sandbox.SecretInjectionDefault && secret.Injection != sandbox.SecretInjectionEgressPlaceholder {
-				return plan, fmt.Errorf("sandbox-kit daytona: secret injection must use egress placeholders")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldSecuritySecretsInjection,
+					Message:   "sandbox-kit daytona: secret injection must use egress placeholders",
+				}, nil)
 			}
 			if _, exists := base.Secrets[secret.GetEnvironmentVariable()]; exists {
-				return plan, fmt.Errorf("sandbox-kit daytona: duplicate secret environment variable")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindInvalidArgument,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldSecuritySecretsEnvironmentVariable,
+					Message:   "sandbox-kit daytona: duplicate secret environment variable",
+				}, nil)
 			}
 			base.Secrets[secret.GetEnvironmentVariable()] = secret.Reference
 		}
@@ -110,12 +134,24 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 			base.NetworkBlockAll = true
 		case sandbox.EgressModeRestricted:
 		default:
-			return plan, fmt.Errorf("sandbox-kit daytona: unknown egress mode")
+			return plan, sandbox.NewError(sandbox.ErrorInfo{
+				Kind:      sandbox.ErrorKindInvalidArgument,
+				Provider:  "daytona",
+				Operation: "create",
+				Field:     sandbox.CreateFieldNetworkEgress,
+				Message:   "sandbox-kit daytona: unknown egress mode",
+			}, nil)
 		}
 		config.Egress = 0
 		if config.OutboundCIDRs != nil {
 			if len(config.OutboundCIDRs.Entries) == 0 {
-				return plan, fmt.Errorf("sandbox-kit daytona: empty CIDR allowlist mapping is not verified")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldNetworkOutboundCIDRs,
+					Message:   "sandbox-kit daytona: empty CIDR allowlist mapping is not verified",
+				}, nil)
 			}
 			value := strings.Join(config.OutboundCIDRs.Entries, ",")
 			base.NetworkAllowList = &value
@@ -123,7 +159,13 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		config.OutboundCIDRs = nil
 		if config.OutboundDomains != nil {
 			if len(config.OutboundDomains.Entries) == 0 {
-				return plan, fmt.Errorf("sandbox-kit daytona: empty domain allowlist mapping is not verified")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldNetworkOutboundDomains,
+					Message:   "sandbox-kit daytona: empty domain allowlist mapping is not verified",
+				}, nil)
 			}
 			value := strings.Join(config.OutboundDomains.Entries, ",")
 			base.DomainAllowList = &value
@@ -182,7 +224,13 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		case sandbox.WaitConditionStarted:
 			plan.options = append(plan.options, options.WithWaitForStart(true))
 		default:
-			return plan, fmt.Errorf("sandbox-kit daytona: requested wait condition is unsupported")
+			return plan, sandbox.NewError(sandbox.ErrorInfo{
+				Kind:      sandbox.ErrorKindUnsupported,
+				Provider:  "daytona",
+				Operation: "create",
+				Field:     sandbox.CreateFieldProvisioningWaitFor,
+				Message:   "sandbox-kit daytona: requested wait condition is unsupported",
+			}, nil)
 		}
 		config.WaitFor = 0
 		if err := sandbox.RejectUnmapped("daytona creation", &config); err != nil {
@@ -201,7 +249,13 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	}
 	source := request.GetSource()
 	if source.GetWarmPool() != nil {
-		return plan, fmt.Errorf("sandbox-kit daytona: explicit warm-pool creation mapping is unavailable")
+		return plan, sandbox.NewError(sandbox.ErrorInfo{
+			Kind:      sandbox.ErrorKindUnsupported,
+			Provider:  "daytona",
+			Operation: "create",
+			Field:     sandbox.CreateFieldSourceWarmPool,
+			Message:   "sandbox-kit daytona: explicit warm-pool creation mapping is unavailable",
+		}, nil)
 	}
 	if source.GetImage() != nil {
 		params := types.ImageParams{SandboxBaseParams: base, Image: source.Image.Reference}
@@ -221,10 +275,22 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		params := types.SnapshotParams{SandboxBaseParams: base}
 		if snapshot := source.GetSnapshot(); snapshot != nil {
 			if snapshot.Kind != sandbox.SnapshotKindDefault {
-				return plan, fmt.Errorf("sandbox-kit daytona: explicit snapshot-kind restore mapping is unavailable")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldSourceSnapshotKind,
+					Message:   "sandbox-kit daytona: explicit snapshot-kind restore mapping is unavailable",
+				}, nil)
 			}
 			if snapshot.ProviderKind != nil {
-				return plan, fmt.Errorf("sandbox-kit daytona: provider snapshot kind is unsupported")
+				return plan, sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "daytona",
+					Operation: "create",
+					Field:     sandbox.CreateFieldSourceSnapshotProviderKind,
+					Message:   "sandbox-kit daytona: provider snapshot kind is unsupported",
+				}, nil)
 			}
 			params.Snapshot = snapshot.Reference
 		}
@@ -238,7 +304,13 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 }
 func durationMinutes(value time.Duration, zeroAllowed bool) (int, error) {
 	if value < 0 || value%time.Minute != 0 || value/time.Minute > math.MaxInt32 || (!zeroAllowed && value == 0) {
-		return 0, fmt.Errorf("sandbox-kit daytona: policy/queue durations require representable whole minutes")
+		return 0, sandbox.NewError(sandbox.ErrorInfo{
+			Kind:      sandbox.ErrorKindInvalidArgument,
+			Provider:  "daytona",
+			Operation: "create",
+			Field:     sandbox.CreateFieldLifetime,
+			Message:   "sandbox-kit daytona: policy/queue durations require representable whole minutes",
+		}, nil)
 	}
 	return int(value / time.Minute), nil
 }

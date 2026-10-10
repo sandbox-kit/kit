@@ -18,6 +18,50 @@ const (
 	SnapshotKindProviderSpecific SnapshotKind = 6
 )
 
+// Valid reports whether the value is declared in the shared schema.
+func (x SnapshotKind) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
+	case 6:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x SnapshotKind) String() string {
+	switch x {
+	case 0:
+		return "SNAPSHOT_KIND_DEFAULT"
+	case 1:
+		return "SNAPSHOT_KIND_FILESYSTEM"
+	case 2:
+		return "SNAPSHOT_KIND_MEMORY"
+	case 3:
+		return "SNAPSHOT_KIND_IMAGE"
+	case 4:
+		return "SNAPSHOT_KIND_MACHINE"
+	case 5:
+		return "SNAPSHOT_KIND_CHECKPOINT"
+	case 6:
+		return "SNAPSHOT_KIND_PROVIDER_SPECIFIC"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type IsolationKind int32
 
 const (
@@ -29,6 +73,46 @@ const (
 	IsolationKindProviderSpecific IsolationKind = 5
 )
 
+// Valid reports whether the value is declared in the shared schema.
+func (x IsolationKind) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x IsolationKind) String() string {
+	switch x {
+	case 0:
+		return "ISOLATION_KIND_DEFAULT"
+	case 1:
+		return "ISOLATION_KIND_CONTAINER"
+	case 2:
+		return "ISOLATION_KIND_MICROVM"
+	case 3:
+		return "ISOLATION_KIND_LINUX_VM"
+	case 4:
+		return "ISOLATION_KIND_WORKER"
+	case 5:
+		return "ISOLATION_KIND_PROVIDER_SPECIFIC"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type EgressMode int32
 
 const (
@@ -37,6 +121,38 @@ const (
 	EgressModeBlockAll   EgressMode = 2
 	EgressModeRestricted EgressMode = 3
 )
+
+// Valid reports whether the value is declared in the shared schema.
+func (x EgressMode) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x EgressMode) String() string {
+	switch x {
+	case 0:
+		return "EGRESS_MODE_DEFAULT"
+	case 1:
+		return "EGRESS_MODE_ALLOW_ALL"
+	case 2:
+		return "EGRESS_MODE_BLOCK_ALL"
+	case 3:
+		return "EGRESS_MODE_RESTRICTED"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 type PortTransport int32
 
@@ -47,6 +163,38 @@ const (
 	PortTransportPlain    PortTransport = 3
 )
 
+// Valid reports whether the value is declared in the shared schema.
+func (x PortTransport) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x PortTransport) String() string {
+	switch x {
+	case 0:
+		return "PORT_TRANSPORT_DEFAULT"
+	case 1:
+		return "PORT_TRANSPORT_TLS"
+	case 2:
+		return "PORT_TRANSPORT_HTTP2_TLS"
+	case 3:
+		return "PORT_TRANSPORT_PLAIN"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type SecretInjection int32
 
 const (
@@ -55,6 +203,34 @@ const (
 	SecretInjectionEgressPlaceholder SecretInjection = 2
 )
 
+// Valid reports whether the value is declared in the shared schema.
+func (x SecretInjection) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x SecretInjection) String() string {
+	switch x {
+	case 0:
+		return "SECRET_INJECTION_DEFAULT"
+	case 1:
+		return "SECRET_INJECTION_ENVIRONMENT"
+	case 2:
+		return "SECRET_INJECTION_EGRESS_PLACEHOLDER"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type PolicyMode int32
 
 const (
@@ -62,6 +238,34 @@ const (
 	PolicyModeDisabled PolicyMode = 1
 	PolicyModeAfter    PolicyMode = 2
 )
+
+// Valid reports whether the value is declared in the shared schema.
+func (x PolicyMode) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x PolicyMode) String() string {
+	switch x {
+	case 0:
+		return "POLICY_MODE_DEFAULT"
+	case 1:
+		return "POLICY_MODE_DISABLED"
+	case 2:
+		return "POLICY_MODE_AFTER"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 type WaitCondition int32
 
@@ -72,6 +276,179 @@ const (
 	WaitConditionStarted   WaitCondition = 3
 	WaitConditionReady     WaitCondition = 4
 )
+
+// Valid reports whether the value is declared in the shared schema.
+func (x WaitCondition) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x WaitCondition) String() string {
+	switch x {
+	case 0:
+		return "WAIT_CONDITION_DEFAULT"
+	case 1:
+		return "WAIT_CONDITION_SUBMITTED"
+	case 2:
+		return "WAIT_CONDITION_SCHEDULED"
+	case 3:
+		return "WAIT_CONDITION_STARTED"
+	case 4:
+		return "WAIT_CONDITION_READY"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+type ValueOrigin int32
+
+const (
+	ValueOriginUnknown  ValueOrigin = 0
+	ValueOriginProvider ValueOrigin = 1
+	ValueOriginRequest  ValueOrigin = 2
+)
+
+// Valid reports whether the value is declared in the shared schema.
+func (x ValueOrigin) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x ValueOrigin) String() string {
+	switch x {
+	case 0:
+		return "VALUE_ORIGIN_UNKNOWN"
+	case 1:
+		return "VALUE_ORIGIN_PROVIDER"
+	case 2:
+		return "VALUE_ORIGIN_REQUEST"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+type ErrorKind int32
+
+const (
+	ErrorKindUnknown            ErrorKind = 0
+	ErrorKindInvalidArgument    ErrorKind = 1
+	ErrorKindUnsupported        ErrorKind = 2
+	ErrorKindAuthentication     ErrorKind = 3
+	ErrorKindPermissionDenied   ErrorKind = 4
+	ErrorKindNotFound           ErrorKind = 5
+	ErrorKindAlreadyExists      ErrorKind = 6
+	ErrorKindConflict           ErrorKind = 7
+	ErrorKindRateLimited        ErrorKind = 8
+	ErrorKindResourceExhausted  ErrorKind = 9
+	ErrorKindTimeout            ErrorKind = 10
+	ErrorKindCanceled           ErrorKind = 11
+	ErrorKindUnavailable        ErrorKind = 12
+	ErrorKindInvalidResponse    ErrorKind = 13
+	ErrorKindInternal           ErrorKind = 14
+	ErrorKindFailedPrecondition ErrorKind = 15
+)
+
+// Valid reports whether the value is declared in the shared schema.
+func (x ErrorKind) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
+	case 6:
+		return true
+	case 7:
+		return true
+	case 8:
+		return true
+	case 9:
+		return true
+	case 10:
+		return true
+	case 11:
+		return true
+	case 12:
+		return true
+	case 13:
+		return true
+	case 14:
+		return true
+	case 15:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x ErrorKind) String() string {
+	switch x {
+	case 0:
+		return "ERROR_KIND_UNKNOWN"
+	case 1:
+		return "ERROR_KIND_INVALID_ARGUMENT"
+	case 2:
+		return "ERROR_KIND_UNSUPPORTED"
+	case 3:
+		return "ERROR_KIND_AUTHENTICATION"
+	case 4:
+		return "ERROR_KIND_PERMISSION_DENIED"
+	case 5:
+		return "ERROR_KIND_NOT_FOUND"
+	case 6:
+		return "ERROR_KIND_ALREADY_EXISTS"
+	case 7:
+		return "ERROR_KIND_CONFLICT"
+	case 8:
+		return "ERROR_KIND_RATE_LIMITED"
+	case 9:
+		return "ERROR_KIND_RESOURCE_EXHAUSTED"
+	case 10:
+		return "ERROR_KIND_TIMEOUT"
+	case 11:
+		return "ERROR_KIND_CANCELED"
+	case 12:
+		return "ERROR_KIND_UNAVAILABLE"
+	case 13:
+		return "ERROR_KIND_INVALID_RESPONSE"
+	case 14:
+		return "ERROR_KIND_INTERNAL"
+	case 15:
+		return "ERROR_KIND_FAILED_PRECONDITION"
+	default:
+		return "UNKNOWN"
+	}
+}
 
 type CreateOptions struct {
 	Name            *string              `json:"name,omitempty" validate:"omitnil"`
@@ -784,16 +1161,17 @@ func (x *CreateResult) GetSandbox() *SandboxInfo {
 }
 
 type SandboxInfo struct {
-	ID               string            `json:"id,omitempty" validate:""`
-	Provider         string            `json:"provider,omitempty" validate:""`
-	Name             *string           `json:"name,omitempty" validate:"omitnil"`
-	ProviderState    *string           `json:"provider_state,omitempty" validate:"omitnil"`
-	Region           *string           `json:"region,omitempty" validate:"omitnil"`
-	Isolation        *IsolationConfig  `json:"isolation,omitempty" validate:"omitnil"`
-	Resources        *Resources        `json:"resources,omitempty" validate:"omitnil"`
-	Labels           map[string]string `json:"labels" validate:""`
-	CreatedAt        *time.Time        `json:"created_at,omitempty" validate:"omitnil"`
-	ProviderMetadata map[string]any    `json:"provider_metadata,omitempty" validate:"omitnil"`
+	ID               string                 `json:"id,omitempty" validate:""`
+	Provider         string                 `json:"provider,omitempty" validate:""`
+	Name             *string                `json:"name,omitempty" validate:"omitnil"`
+	ProviderState    *string                `json:"provider_state,omitempty" validate:"omitnil"`
+	Region           *string                `json:"region,omitempty" validate:"omitnil"`
+	Isolation        *IsolationConfig       `json:"isolation,omitempty" validate:"omitnil"`
+	Resources        *Resources             `json:"resources,omitempty" validate:"omitnil"`
+	Labels           map[string]string      `json:"labels" validate:""`
+	CreatedAt        *time.Time             `json:"created_at,omitempty" validate:"omitnil"`
+	ProviderMetadata map[string]any         `json:"provider_metadata,omitempty" validate:"omitnil"`
+	Origins          map[string]ValueOrigin `json:"origins" validate:""`
 }
 
 func (x *SandboxInfo) GetID() string {
@@ -864,6 +1242,173 @@ func (x *SandboxInfo) GetProviderMetadata() map[string]any {
 		return x.ProviderMetadata
 	}
 	var zero map[string]any
+	return zero
+}
+func (x *SandboxInfo) GetOrigins() map[string]ValueOrigin {
+	if x != nil {
+		return x.Origins
+	}
+	var zero map[string]ValueOrigin
+	return zero
+}
+
+type ErrorInfo struct {
+	Kind           ErrorKind `json:"kind,omitempty" validate:""`
+	Provider       string    `json:"provider,omitempty" validate:""`
+	Operation      string    `json:"operation,omitempty" validate:""`
+	Field          string    `json:"field,omitempty" validate:""`
+	Message        string    `json:"message,omitempty" validate:""`
+	StatusCode     *uint32   `json:"status_code,omitempty" validate:"omitnil"`
+	ProviderCode   *string   `json:"provider_code,omitempty" validate:"omitnil"`
+	ProviderSource *string   `json:"provider_source,omitempty" validate:"omitnil"`
+}
+
+func (x *ErrorInfo) GetKind() ErrorKind {
+	if x != nil {
+		return x.Kind
+	}
+	var zero ErrorKind
+	return zero
+}
+func (x *ErrorInfo) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	var zero string
+	return zero
+}
+func (x *ErrorInfo) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	var zero string
+	return zero
+}
+func (x *ErrorInfo) GetField() string {
+	if x != nil {
+		return x.Field
+	}
+	var zero string
+	return zero
+}
+func (x *ErrorInfo) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	var zero string
+	return zero
+}
+func (x *ErrorInfo) GetStatusCode() uint32 {
+	if x != nil && x.StatusCode != nil {
+		return *x.StatusCode
+	}
+	var zero uint32
+	return zero
+}
+func (x *ErrorInfo) GetProviderCode() string {
+	if x != nil && x.ProviderCode != nil {
+		return *x.ProviderCode
+	}
+	var zero string
+	return zero
+}
+func (x *ErrorInfo) GetProviderSource() string {
+	if x != nil && x.ProviderSource != nil {
+		return *x.ProviderSource
+	}
+	var zero string
+	return zero
+}
+
+type MetadataValue struct {
+	Boolean         *bool          `json:"boolean,omitempty" validate:"omitnil"`
+	Text            *string        `json:"text,omitempty" validate:"omitnil"`
+	SignedInteger   *int64         `json:"signed_integer,omitempty" validate:"omitnil"`
+	UnsignedInteger *uint64        `json:"unsigned_integer,omitempty" validate:"omitnil"`
+	Number          *float64       `json:"number,omitempty" validate:"omitnil"`
+	Binary          *[]byte        `json:"binary,omitempty" validate:"omitnil"`
+	List            *MetadataList  `json:"list,omitempty" validate:"omitnil"`
+	Object          map[string]any `json:"object,omitempty" validate:"omitnil"`
+}
+
+func (x *MetadataValue) GetBoolean() bool {
+	if x != nil && x.Boolean != nil {
+		return *x.Boolean
+	}
+	var zero bool
+	return zero
+}
+func (x *MetadataValue) GetText() string {
+	if x != nil && x.Text != nil {
+		return *x.Text
+	}
+	var zero string
+	return zero
+}
+func (x *MetadataValue) GetSignedInteger() int64 {
+	if x != nil && x.SignedInteger != nil {
+		return *x.SignedInteger
+	}
+	var zero int64
+	return zero
+}
+func (x *MetadataValue) GetUnsignedInteger() uint64 {
+	if x != nil && x.UnsignedInteger != nil {
+		return *x.UnsignedInteger
+	}
+	var zero uint64
+	return zero
+}
+func (x *MetadataValue) GetNumber() float64 {
+	if x != nil && x.Number != nil {
+		return *x.Number
+	}
+	var zero float64
+	return zero
+}
+func (x *MetadataValue) GetBinary() []byte {
+	if x != nil && x.Binary != nil {
+		return *x.Binary
+	}
+	var zero []byte
+	return zero
+}
+func (x *MetadataValue) GetList() *MetadataList {
+	if x != nil {
+		return x.List
+	}
+	var zero *MetadataList
+	return zero
+}
+func (x *MetadataValue) GetObject() map[string]any {
+	if x != nil {
+		return x.Object
+	}
+	var zero map[string]any
+	return zero
+}
+
+type MetadataList struct {
+	Values []*MetadataValue `json:"values" validate:"dive,required"`
+}
+
+func (x *MetadataList) GetValues() []*MetadataValue {
+	if x != nil {
+		return x.Values
+	}
+	var zero []*MetadataValue
+	return zero
+}
+
+type MetadataObject struct {
+	Values map[string]*MetadataValue `json:"values" validate:""`
+}
+
+func (x *MetadataObject) GetValues() map[string]*MetadataValue {
+	if x != nil {
+		return x.Values
+	}
+	var zero map[string]*MetadataValue
 	return zero
 }
 

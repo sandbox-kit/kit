@@ -49,6 +49,14 @@ Change the schema, spec, or emitter when changing generated behavior.
 
 ## Language conventions
 
+Field paths have generated names such as `CreateFieldResourcesCPUCores`,
+`ConfigFieldScopeAppName`, and `InfoFieldResources`. Their values retain
+canonical protobuf field names, including nested paths.
+
+Response/error output also includes `*.copy.gen.go`, `*.paths.gen.go` field-path constants,
+provider `*.errors.gen.go` classifiers, and `*.runtime.gen.go` helpers.
+Runtime helpers are emitted by `types_gen/runtime.go` using `specs/contracts.yaml` and `specs/errors.yaml`.
+
 Protobuf and YAML use snake\_case semantic field names. The Go emitter produces
 names such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
 Enums use typed constants such as `IsolationKindLinuxVM` and `PolicyModeDisabled`.
