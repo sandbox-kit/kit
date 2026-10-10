@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -13,8 +14,9 @@ func TestCanonicalPathResolvesAgainstSchemaIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	templates, _ := testutil.Generation(t, "../../../../specs")
 	fields, err := Resolve(p, "CreateOptions", "cpu_cores")
-	if err != nil || Constant("CreateOptions", fields) != "CreateFieldCPUCores" {
+	if err != nil || Constant("CreateOptions", fields, templates.FieldPaths) != "CreateFieldCPUCores" {
 		t.Fatal("canonical path resolution failed", err)
 	}
 	for _, path := range []string{"cpu_core", "cpu_cores.child"} {

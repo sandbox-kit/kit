@@ -1,9 +1,12 @@
 package mappinggen
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"strings"
 	"testing"
 
+	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -24,7 +27,7 @@ func mapping() spec.Provider {
 }
 func TestGeneratesPresenceAndPrecisionChecks(t *testing.T) {
 	p := fixture(t)
-	if err := Generate(p, p.Files[0], mapping()); err != nil {
+	if err := emitFixture(t, p, p.Files[0], mapping()); err != nil {
 		t.Fatal(err)
 	}
 	r := p.Response()
@@ -54,8 +57,17 @@ func TestRejectsInvalidMappings(t *testing.T) {
 		p := fixture(t)
 		s := mapping()
 		edit(&s)
-		if err := Generate(p, p.Files[0], s); err == nil {
+		if err := emitFixture(t, p, p.Files[0], s); err == nil {
 			t.Fatal("accepted invalid mapping")
 		}
 	}
+}
+
+func emitFixture(t *testing.T, p *protogen.Plugin, f *protogen.File, s spec.Provider) error {
+	compiled, err := model.CompileProvider(schema.Index(p), s)
+	if err != nil {
+		return err
+	}
+	templates, profile := testutil.Generation(t, "../../../../specs")
+	return Generate(p, f, compiled, templates, profile)
 }

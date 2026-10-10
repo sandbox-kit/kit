@@ -50,7 +50,7 @@ use Daytona's tools for sandbox cleanup. Credentials stay in ignored `.env`.
 GOWORK=off go test ./...
 ```
 
-This compiles the example without running creation.
+This compiles the example and tests its error-kind handler without running cloud creation.
 For creation policies and SDK request tests, see
 [create-daytona-with-policies](../create-daytona-with-policies/README.md).
 

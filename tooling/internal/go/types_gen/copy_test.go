@@ -1,6 +1,7 @@
 package typesgen
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -14,7 +15,8 @@ func TestCopyEmitterUsesSchemaPresenceAndDepth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := GenerateCopies(p, p.Files[0], 7); err != nil {
+	templates, profile := testutil.Generation(t, "../../../../specs")
+	if err := GenerateCopies(p, p.Files[0], 7, templates, profile); err != nil {
 		t.Fatal(err)
 	}
 	r := p.Response()

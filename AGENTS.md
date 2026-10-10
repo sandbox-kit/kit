@@ -5,7 +5,8 @@
 * Keep shared contracts in `proto/`, portable rules in versioned YAML under
   `specs/`, and runtime SDKs in `sdks/<language>/`.
 * Implement all generators in the single Go module under `tooling/`.
-  Put language emitters in `tooling/internal/<language>/`.
+  Put language emitters in `tooling/internal/<language>/` and shared semantic
+  compilation in `tooling/internal/model/`.
 * Keep contracts independent of language runtime dependencies. Each emitter owns
   native constructor conventions and names.
 * Keep the public SDK, optional providers, and future harness integrations in
@@ -31,6 +32,16 @@ native SDK; the public client owns cleanup through `Close`.
 * Closing an SDK client must not imply stopping or deleting cloud sandboxes.
 
 ## Generation and validation
+
+Compile portable specifications and descriptor references into the shared model
+before language emission. Keep generation phases and client-operation instructions
+in `specs/generation.yaml`. Put runtime API declarations in `specs/api.yaml` and
+native representation rules in `specs/languages/<language>.yaml`. Keep reusable
+descriptor-driven declarations and field-path rules in `specs/templates.yaml`.
+Check behavior compatibility against `specs/behaviors.yaml` before emission. Keep
+language capability and filename convention checks in their backends. Shared data fields
+stay in protobuf. Emitters own native syntax; reject unsupported representations
+rather than silently losing type or presence semantics.
 
 Shared validation, provider checks, configuration assembly, and expressible
 conversions belong in specs and generators. Native symbols and SDK type/member

@@ -34,24 +34,7 @@ an invalid-response error.
 Missing entries mean unknown. Modal identity is provider-reported, while its
 current name/labels are request-derived. Daytona maps SDK-reported metadata.
 
-## Error details and native causes
-
-Construct errors with the generated details object and a separate runtime cause:
-
-```go
-err := sandbox.NewError(sandbox.ErrorInfo{
-    Kind:      sandbox.ErrorKindUnsupported,
-    Provider:  "modal",
-    Operation: "create",
-    Field:     sandbox.CreateFieldResourcesDiskMiB,
-    Message:   "Disk overrides are unsupported",
-}, cause)
-```
-
-The constructor owns a copy of the details, including optional pointers.
-The native cause stays separate from the serializable contract.
-Context enrichment reuses an error when its provider/operation already match.
-It creates an owned copy only when context needs to change.
+## Handle errors in an application
 
 Initialization, creation, and cleanup expose `*sandbox.Error`.
 Its generated `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`,
@@ -69,6 +52,12 @@ if errors.As(err, &detail) {
     }
 }
 ```
+
+The same switch works for either provider. Runnable examples demonstrate
+[Modal unsupported intent](../examples/go/handle-modal-errors/README.md) and
+[Daytona invalid configuration](../examples/go/handle-daytona-errors/README.md).
+
+## Native causes
 
 Local errors are classified at their source rather than by parsing messages.
 Validator errors and original SDK errors remain accessible through `Unwrap()`:
@@ -90,6 +79,26 @@ Shared error details serialize without the runtime cause.
 Modal uses pinned native error types and gRPC codes. Daytona uses native HTTP
 status and code/source fields. Unclassified errors retain an unknown kind and
 their original cause; no speculative retry classification is added.
+
+## Constructing errors
+
+Applications normally receive errors from the client. Custom integrations can
+construct a common error with a generated details object and a runtime cause:
+
+```go
+err := sandbox.NewError(sandbox.ErrorInfo{
+    Kind:      sandbox.ErrorKindUnsupported,
+    Provider:  "modal",
+    Operation: "create",
+    Field:     sandbox.CreateFieldResourcesDiskMiB,
+    Message:   "Disk overrides are unsupported",
+}, cause)
+```
+
+The constructor owns a copy of the details, including optional pointers.
+The native cause stays separate from the serializable contract.
+Context enrichment reuses an error when its provider/operation already match.
+It creates an owned copy only when context needs to change.
 
 ## Error policy sources
 

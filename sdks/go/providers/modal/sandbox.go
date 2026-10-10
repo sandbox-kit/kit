@@ -1,3 +1,16 @@
+// This file turns a shared creation request into Modal app, image, and secret lookups,
+// then calls the official SDK. Generated mappings cover field conversion. This file
+// covers the call order those mappings cannot express.
+//
+// Example:
+//
+//	client, err := sandbox.NewClient(sandbox.Config{Provider: modal.New()})
+//	instance, err := client.Create(ctx, &sandbox.CreateOptions{
+//	    Source: &sandbox.SandboxSource{
+//	        Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+//	    },
+//	})
+
 package modal
 
 import (
@@ -8,16 +21,27 @@ import (
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
+// createPlan is the Modal call sequence for one creation request.
 type createPlan struct {
-	app          string
-	environment  string
-	image        string
-	params       sdk.SandboxCreateParams
-	ready        bool
+	// app is the existing Modal app name.
+	app string
+	// environment is the Modal environment used for app and secret lookup.
+	environment string
+	// image is the registry image reference.
+	image string
+	// params is the native creation payload after shared fields are mapped.
+	params sdk.SandboxCreateParams
+	// ready reports whether creation should wait for a readiness probe.
+	ready bool
+	// readyTimeout is the wait limit used when ready is true.
 	readyTimeout time.Duration
-	secrets      []*sandbox.SecretReference
+	// secrets are provider-managed secret names to resolve before creation.
+	secrets []*sandbox.SecretReference
 }
 
+// create looks up the app, secrets, and image, then creates the sandbox.
+// A nil request uses provider defaults. The returned metadata is shared,
+// not a Modal object.
 func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	if request == nil {
 		request = &sandbox.CreateOptions{}
@@ -75,6 +99,8 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	return &sandbox.CreateResult{Sandbox: &info}, nil
 }
 
+// planCreate checks the request and builds the Modal call sequence
+// without contacting Modal.
 func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region string) (createPlan, error) {
 	var plan createPlan
 	if err := validateProviderCreate(request); err != nil {

@@ -8,34 +8,50 @@ import "kit/codegen/v1/options.proto";
 option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
 option (kit.codegen.v1.native_types) = true;
 
-// Creation config only. No lifecycle operations or SDK credentials live here.
-// Missing optional values defer to the provider; adapters must reject requested
-// options they cannot honor rather than drop them or pretend they are supported.
+// is the creation request. It does not include lifecycle operations or credentials.
+// Omitted fields use provider defaults. A provider rejects settings it cannot honor.
+//
+// Example:
+//
+//	options := &CreateOptions{
+//	    Resources: &Resources{CPUCores: Value(0.5), MemoryMiB: Value(uint64(512))},
+//	}
 message CreateOptions {
-  // Absent defers to provider; explicit empty requests unnamed creation/restore.
+  // is an optional display name. Nil uses the provider default. An explicit empty string asks for an unnamed sandbox.
   optional string name = 1;
+  // selects an image, snapshot, warm pool, or the provider default. Nil means the provider default.
   SandboxSource source = 2;
+  // sets language, user, working directory, and entrypoint hints.
   RuntimeConfig runtime = 3;
+  // selects the isolation class, such as a container or Linux VM.
   IsolationConfig isolation = 4;
+  // sets CPU, memory, and disk. Units are physical cores and MiB.
   Resources resources = 5;
+  // sets cloud and region preferences. A preference is not a scheduling guarantee.
   Placement placement = 6;
+  // is the process environment. An empty map is explicit; nil means omitted.
   map<string, string> environment = 7;
+  // is caller-supplied labels or tags. An empty map is explicit; nil means omitted.
   map<string, string> labels = 8;
+  // sets egress, allowlists, ports, and related network options.
   NetworkConfig network = 9;
+  // sets public access, workload identity, and secret references.
   SecurityConfig security = 10;
+  // sets lifetime and idle policies requested at creation. These are not stop or delete calls.
   LifetimePolicy lifetime = 11;
+  // sets the creation deadline, queue timeout, and wait condition. JSON name is "creation".
   ProvisioningOptions provisioning = 12 [json_name = "creation"];
   reserved 13;
   reserved "provider_context";
   ReadinessProbe readiness = 14;
   ObservabilityConfig observability = 15;
-  // Provider-specific declarative options. Never SDK objects or auth credentials.
-  // Future storage, GPU, and harness configuration can be introduced additively.
+  // holds provider-specific declarative options. It is never an SDK object or an auth credential.
   MetadataObject provider_options = 16;
 }
 
+// is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.
 message SandboxSource {
-  // Absent source also means provider default. A default need not be an image.
+  // is the selected source. Leaving it unset also means the provider default, which need not be an image.
   oneof kind {
     ProviderDefaultSource provider_default = 1;
     ImageSource image = 2;
@@ -43,14 +59,28 @@ message SandboxSource {
     WarmPoolSource warm_pool = 4;
   }
 }
+// asks the provider to choose its default source.
 message ProviderDefaultSource {}
-message ImageSource { string reference = 1; }
-message SnapshotSource {
+// is a container image reference, such as "alpine:3.21".
+message ImageSource {
+  // is the registry image reference.
   string reference = 1;
+}
+// is an existing snapshot. Reference identifies it. Kind classifies it.
+message SnapshotSource {
+  // is the provider snapshot identifier.
+  string reference = 1;
+  // classifies the snapshot. Default leaves the class to the provider.
   SnapshotKind kind = 2;
+  // is a provider-specific kind name when Kind is provider-specific.
   optional string provider_kind = 3;
 }
-message WarmPoolSource { string reference = 1; }
+// is an existing warm pool. Reference identifies it.
+message WarmPoolSource {
+  // is the provider warm-pool identifier.
+  string reference = 1;
+}
+// classifies a snapshot. Preserve the numeric values.
 enum SnapshotKind {
   SNAPSHOT_KIND_DEFAULT = 0;
   SNAPSHOT_KIND_FILESYSTEM = 1;
@@ -60,8 +90,9 @@ enum SnapshotKind {
   SNAPSHOT_KIND_CHECKPOINT = 5;
   SNAPSHOT_KIND_PROVIDER_SPECIFIC = 6;
 }
+// is process setup applied when the sandbox starts. Language is a hint, not an install promise.
 message RuntimeConfig {
-  // A language/toolbox hint; this does not promise installation of a runtime.
+  // is a language or toolbox hint. It does not promise that a runtime is installed.
   optional string language = 1;
   optional string version = 2;
   optional string user = 3;
@@ -69,11 +100,13 @@ message RuntimeConfig {
   repeated string entrypoint = 5;
   optional bool pty = 6;
 }
+// selects how the sandbox is isolated. Kind default leaves the class to the provider.
 message IsolationConfig {
   IsolationKind kind = 1;
   optional string provider_kind = 2;
   optional bool nested_virtualization = 3;
 }
+// is the isolation class. Preserve the numeric values.
 enum IsolationKind {
   ISOLATION_KIND_DEFAULT = 0;
   ISOLATION_KIND_CONTAINER = 1;
@@ -82,98 +115,144 @@ enum IsolationKind {
   ISOLATION_KIND_WORKER = 4;
   ISOLATION_KIND_PROVIDER_SPECIFIC = 5;
 }
+// is the requested compute size. Omitted fields use provider defaults.
+// GPU requests and resizing are not creation settings.
 message Resources {
+  // is the requested physical CPU count. Modal allows fractions. Daytona requires whole cores.
   optional double cpu_cores = 1;
+  // is an optional CPU ceiling. A positive limit requires a request and cannot be smaller than it.
   optional double cpu_limit_cores = 2;
-  // Explicit units: adapters convert to the native API's units and precision.
+  // is requested memory in MiB. Providers convert this to the native unit.
   optional uint64 memory_mib = 3;
+  // is an optional memory ceiling in MiB. A positive limit requires a request.
   optional uint64 memory_limit_mib = 4;
+  // is requested disk in MiB. Modal rejects a creation override. Daytona requires whole GiB.
   optional uint64 disk_mib = 5;
-  // GPU requests and resizing are outside this increment. Do not infer limits
-  // from reservations or implement resizing through creation settings.
 }
+// is a placement preference. The provider may still choose another location.
 message Placement {
+  // is a cloud name such as aws, gcp, or oci. Supported names depend on the provider.
   optional string cloud = 1;
-  // Ordered preferences, not an assurance of multi-region support.
+  // lists region preferences in order. It does not promise multi-region support.
   repeated string regions = 2;
+  // is a provider target. Daytona maps the client region here. Per-request placement is unsupported.
   optional string target = 3;
 }
+// is an allowlist. A present empty list means deny all. Nil means the list was omitted.
 message StringAllowlist {
-  // Present but empty means deny all; absent means unspecified.
+  // lists allowed values. A present empty list means deny all. Nil means the list was omitted.
   repeated string entries = 1;
 }
+// is creation-time networking. Empty allowlists do not mean the same thing as omitted ones.
 message NetworkConfig {
+  // selects the outbound policy. Default leaves it to the provider.
   EgressMode egress = 1;
+  // limits outbound traffic to these CIDR ranges.
   StringAllowlist outbound_cidrs = 2;
+  // limits outbound traffic to these domains.
   StringAllowlist outbound_domains = 3;
+  // limits inbound traffic to these CIDR ranges.
   StringAllowlist inbound_cidrs = 4;
+  // asks for a private network when the provider supports one.
   optional bool private_network = 5;
+  // names another sandbox to link. The provider must already know that sandbox.
   optional string linked_sandbox = 6;
+  // names a provider-managed proxy.
   optional string proxy_reference = 7;
+  // is an outbound proxy URL.
   optional string outbound_proxy_url = 8;
+  // is a custom domain for the sandbox, when the provider supports one.
   optional string custom_domain = 9;
+  // publishes these ports.
   repeated PortBinding ports = 10;
 }
+// controls outbound traffic. Default leaves the policy to the provider.
 enum EgressMode {
   EGRESS_MODE_DEFAULT = 0;
   EGRESS_MODE_ALLOW_ALL = 1;
-  // All networking, including private connections, is blocked.
+  // blocks all networking, including private connections.
   EGRESS_MODE_BLOCK_ALL = 2;
   EGRESS_MODE_RESTRICTED = 3;
 }
+// publishes one port. Port is the container port. Transport selects the protocol.
 message PortBinding {
+  // is the port number to publish.
   uint32 port = 1;
+  // selects TLS, HTTP/2, or plain transport. Default leaves the choice to the provider.
   PortTransport transport = 2;
 }
+// is the protocol used for a published port.
 enum PortTransport {
   PORT_TRANSPORT_DEFAULT = 0;
   PORT_TRANSPORT_TLS = 1;
   PORT_TRANSPORT_HTTP2_TLS = 2;
   PORT_TRANSPORT_PLAIN = 3;
 }
+// sets access and secret references. Secrets are provider-managed names, not credential values.
 message SecurityConfig {
+  // requests public access when true. Nil leaves the provider default.
   optional bool public_access = 1;
+  // requests a workload identity when the provider supports one.
   optional bool workload_identity = 2;
+  // names provider-managed secrets. These are not credential values.
   repeated SecretReference secrets = 3;
 }
+// names a provider-managed secret and how it is injected.
 message SecretReference {
+  // is the provider secret name.
   string reference = 1;
+  // is the environment variable that receives the secret, when injection uses the environment.
   optional string environment_variable = 2;
+  // selects environment injection or an egress placeholder.
   SecretInjection injection = 3;
 }
+// selects how a secret is exposed to the sandbox.
 enum SecretInjection {
   SECRET_INJECTION_DEFAULT = 0;
   SECRET_INJECTION_ENVIRONMENT = 1;
   SECRET_INJECTION_EGRESS_PLACEHOLDER = 2;
 }
-// These are policies requested at creation, not Stop/Pause/Delete operations.
+// is requested at creation. It is not a stop, pause, or delete call.
 message LifetimePolicy {
-  // Absent = provider default; explicit zero = unlimited, if supported.
+  // is the maximum lifetime. Nil uses the provider default. Explicit zero means unlimited when the provider supports that.
   google.protobuf.Duration maximum_lifetime = 1;
+  // requests deletion when the sandbox stops, where the provider supports it.
   optional bool ephemeral = 2;
+  // ends the sandbox after it is idle.
   AutomaticAction idle_terminate = 3;
+  // stops the sandbox after it is idle. Daytona maps a disabled stop to native zero.
   AutomaticAction idle_stop = 4;
+  // pauses the sandbox after it is idle. A positive delay conflicts with a positive stop delay.
   AutomaticAction idle_pause = 5;
+  // archives a stopped sandbox after a delay. Daytona rejects disable and immediate archive.
   AutomaticAction stopped_archive = 6;
+  // deletes a stopped sandbox. Daytona maps immediate delete to native zero.
   AutomaticAction stopped_delete = 7;
 }
+// is one idle or stopped policy. Disabled, immediate, and delayed do not share one zero value.
 message AutomaticAction {
+  // is default, disabled, or after a delay. Default omits the policy.
   PolicyMode mode = 1;
-  // AFTER with a zero duration means immediate, not disabled.
+  // is the delay used when Mode is after. Zero means immediate, not disabled.
   google.protobuf.Duration after = 2;
 }
+// selects whether an automatic action is omitted, disabled, or delayed.
 enum PolicyMode {
   POLICY_MODE_DEFAULT = 0;
   POLICY_MODE_DISABLED = 1;
   POLICY_MODE_AFTER = 2;
 }
+// is creation waiting, separate from sandbox lifetime.
 message ProvisioningOptions {
-  // Client operation deadline, distinct from sandbox lifetime and queue time.
-  // Absent = no additional kit deadline; explicit zero = no kit deadline.
+  // is the client operation deadline, distinct from sandbox lifetime and queue time.
+  // Nil and explicit zero add no Kit deadline.
   google.protobuf.Duration timeout = 1;
+  // is how long creation may wait in a provider queue. It is not the sandbox lifetime.
   google.protobuf.Duration queue_timeout = 2;
+  // is the condition creation waits for before it returns.
   WaitCondition wait_for = 3;
 }
+// is how far creation waits before returning. Ready can require a probe and a positive timeout.
 enum WaitCondition {
   WAIT_CONDITION_DEFAULT = 0;
   WAIT_CONDITION_SUBMITTED = 1;
@@ -181,23 +260,39 @@ enum WaitCondition {
   WAIT_CONDITION_STARTED = 3;
   WAIT_CONDITION_READY = 4;
 }
+// is the check used when waiting until ready. Set either a TCP port or a command.
 message ReadinessProbe {
   oneof check {
     uint32 tcp_port = 1;
     CommandProbe command = 2;
   }
 }
+// is a command readiness check. Argv is the command and its arguments.
 message CommandProbe { repeated string argv = 1; }
+// sets provider logging and telemetry options.
 message ObservabilityConfig {
   optional bool verbose = 1;
   optional string telemetry_endpoint = 2;
 }
-message CreateResult { SandboxInfo sandbox = 1; }
+// is the metadata returned by a provider create call.
+message CreateResult {
+  // is the created sandbox. ID must be present before a public handle is built.
+  SandboxInfo sandbox = 1;
+}
+// is shared metadata. Optional fields stay absent when the provider did not report them.
+//
+// Example:
+//
+//	info := instance.Info()
+//	fmt.Println(info.GetID(), info.Origins[InfoFieldName])
 message SandboxInfo {
+  // is the provider sandbox identifier. Creation fails locally when it is empty.
   string id = 1;
+  // is the selected provider identifier.
   string provider = 2;
+  // is the sandbox name when one is known. Nil means it was not reported.
   optional string name = 3;
-  // Original provider state; no invented cross-provider lifecycle state machine.
+  // is the provider's own state string. It is not a shared lifecycle state machine.
   optional string provider_state = 4;
   optional string region = 5;
   IsolationConfig isolation = 6;
@@ -205,14 +300,16 @@ message SandboxInfo {
   map<string, string> labels = 8;
   google.protobuf.Timestamp created_at = 9;
   MetadataObject provider_metadata = 10;
-  // Provenance for fields that are present. Missing entries mean unknown.
+  // records where each present field came from. A missing entry means the origin is unknown.
   map<string, ValueOrigin> origins = 11;
 }
+// records whether a metadata field came from the provider or from the request.
 enum ValueOrigin {
   VALUE_ORIGIN_UNKNOWN = 0;
   VALUE_ORIGIN_PROVIDER = 1;
   VALUE_ORIGIN_REQUEST = 2;
 }
+// is the shared error category. It does not imply that a retry is safe.
 enum ErrorKind {
   ERROR_KIND_UNKNOWN = 0;
   ERROR_KIND_INVALID_ARGUMENT = 1;
@@ -231,16 +328,32 @@ enum ErrorKind {
   ERROR_KIND_INTERNAL = 14;
   ERROR_KIND_FAILED_PRECONDITION = 15;
 }
-// Portable error details. The native cause is retained by language runtime code,
-// not serialized. Unknown classifications never imply retry safety.
+// is the portable error detail. The native cause stays on the runtime error and is not serialized.
+// Unknown classifications do not imply that a retry is safe.
+//
+// Example:
+//
+//	err := NewError(ErrorInfo{
+//	    Kind:    ErrorKindUnsupported,
+//	    Field:   CreateFieldResourcesDiskMiB,
+//	    Message: "disk overrides are unsupported",
+//	}, cause)
 message ErrorInfo {
+  // is the shared category, such as invalid argument or unsupported.
   ErrorKind kind = 1;
+  // is the provider identifier, such as "modal" or "daytona". Empty when the failure is local.
   string provider = 2;
+  // is the Kit operation, such as "create", "initialize", or "close".
   string operation = 3;
+  // is the canonical field path involved, such as "resources.cpu_cores". Empty when no field applies.
   string field = 4;
+  // is the human-readable explanation.
   string message = 5;
+  // is the native HTTP or transport status when the provider reported one.
   optional uint32 status_code = 6;
+  // is the provider's own error code when one was reported.
   optional string provider_code = 7;
+  // is the provider component that reported the error, when available.
   optional string provider_source = 8;
 }
 // Exact numeric alternatives avoid protobuf Struct's double-only representation.
@@ -257,5 +370,13 @@ message MetadataValue {
     MetadataObject object = 8;
   }
 }
-message MetadataList { repeated MetadataValue values = 1; }
-message MetadataObject { map<string, MetadataValue> values = 1; }
+// is an ordered list of metadata values.
+message MetadataList {
+  // is the list contents. An empty list is explicit.
+  repeated MetadataValue values = 1;
+}
+// is a string-keyed metadata object. Go exposes this as map[string]any.
+message MetadataObject {
+  // is the object contents. An empty object is explicit.
+  map<string, MetadataValue> values = 1;
+}

@@ -1,0 +1,26 @@
+version: 1
+# Semantic generation phases; language emitters own syntax and file conventions.
+shared: [types, error_runtime, copies, diagnostic_paths, field_paths, validation]
+client: [types, diagnostic_paths, field_paths, validation, client]
+provider: [provider, configuration, checks, errors, mappings]
+operations:
+  initialize:
+    - require_provider
+    - identify_provider
+    - validate_configuration
+    - require_provider_name
+    - capture_timeout
+    - initialize_provider
+    - require_backend
+    - match_backend_identity
+    - return_client
+  create:
+    - require_context
+    - require_client
+    - prepare_request
+    - resolve_deadline
+    - invoke_creation
+    - return_handle
+  close:
+    - require_context
+    - close_backend

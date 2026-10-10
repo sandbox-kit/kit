@@ -6,18 +6,22 @@ import (
 	"strconv"
 	"strings"
 
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
 	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // GenerateChecks emits validation over schema paths; account quotas remain remote.
-func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) error {
+func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider, templates model.Templates, profile spec.LanguageProfile) error {
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".validation.gen.go", file.GoImportPath)
-	g.P("// Code generated from provider validation specs. DO NOT EDIT.")
+	declarationgen.Banner(g, "",
+		"Provider checks reject creation settings this integration cannot honor. They run before the native create call.",
+		"if err := validateProviderCreate(request); err != nil { return nil, err }")
 	g.P("package ", file.GoPackageName)
 	paths := map[string]string{}
 	localError := func(kind, path, message string) string {
@@ -29,7 +33,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 		if len(check.ExclusivePolicies) > 0 || check.ForbidPolicyWith != "" {
 			path = "lifetime"
 		}
-		expression, err := schema.Literal(g, p, "CreateOptions", path)
+		expression, err := schema.Literal(g, p, "CreateOptions", path, templates.FieldPaths)
 		if err != nil {
 			return err
 		}
@@ -42,10 +46,14 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 	if formats["domain"] {
 		g.P("var providerDomainPattern=", protogen.GoIdent{GoName: "MustCompile", GoImportPath: "regexp"}, "(", strconv.Quote(`(?i)^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.?$`), ")")
 	}
-	g.P("func validateProviderCreate(request *", protogen.GoIdent{GoName: "CreateOptions", GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}, ")error{if request==nil{return nil}")
+	d, c, err := (declarationgen.TemplateEmitter{G: g, Plugin: p, Templates: templates, Profile: profile}).Begin("provider_checks", declarationgen.TemplateBindings{Types: map[string]spec.TypeRef{"request": {Ref: "schema.CreateOptions"}}})
+	if err != nil {
+		return err
+	}
+	d.Body(c, "if ", d.Param(c, "request"), "==nil{return nil}")
 	for _, check := range s.Checks {
 		if len(check.ExclusivePolicies) > 0 || check.ForbidPolicyWith != "" {
-			g.P("if lifetime:=request.Lifetime;lifetime!=nil{")
+			d.Body(c, "if lifetime:=", d.Param(c, "request"), ".Lifetime;lifetime!=nil{")
 			policy := func(name string) (string, error) {
 				fld, err := sharedField(p, "LifetimePolicy", name)
 				if err != nil {
@@ -87,11 +95,11 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 				}
 				invalid = "(" + a + ") && (" + b + ")"
 			}
-			g.P("if ", invalid, "{return ", localError("ErrorKindInvalidArgument", "lifetime", "sandbox-kit: incompatible lifetime policies"), "}}")
+			d.Body(c, "if ", invalid, "{return ", localError("ErrorKindInvalidArgument", "lifetime", "sandbox-kit: incompatible lifetime policies"), "}}")
 			continue
 		}
 		message := "CreateOptions"
-		path := "request"
+		path := d.Param(c, "request")
 		guards := 0
 		parts := strings.Split(check.Path, ".")
 		var fld *protogen.Field
@@ -110,10 +118,10 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 					return fmt.Errorf("invalid check path %s", check.Path)
 				}
 				if fld.Desc.IsList() {
-					g.P("for _,item:=range ", path, "{if item==nil{return ", localError("ErrorKindInvalidArgument", check.Path, "sandbox-kit: nil configuration entry"), "}")
+					d.Body(c, "for _,item:=range ", path, "{if item==nil{return ", localError("ErrorKindInvalidArgument", check.Path, "sandbox-kit: nil configuration entry"), "}")
 					path = "item"
 				} else {
-					g.P("if ", path, "!=nil{")
+					d.Body(c, "if ", path, "!=nil{")
 				}
 				guards++
 				message = string(fld.Message.Desc.FullName())
@@ -124,18 +132,18 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 			if check.Format != "env_name" {
 				return fmt.Errorf("map check requires env_name keys")
 			}
-			g.P("for value:=range ", path, "{")
+			d.Body(c, "for value:=range ", path, "{")
 			guards++
 			value = "value"
 		} else if fld.Desc.IsList() {
 			if fld.Desc.Kind() != protoreflect.StringKind {
 				return fmt.Errorf("provider collection checks require strings")
 			}
-			g.P("for _,value:=range ", path, "{")
+			d.Body(c, "for _,value:=range ", path, "{")
 			guards++
 			value = "value"
 		} else if fld.Desc.HasPresence() {
-			g.P("if ", path, "!=nil{")
+			d.Body(c, "if ", path, "!=nil{")
 			guards++
 			value = "*" + path
 		}
@@ -171,18 +179,18 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 			}
 			switch check.Format {
 			case "env_name":
-				g.P("matched:=providerEnvNamePattern.MatchString(", value, ")")
+				d.Body(c, "matched:=providerEnvNamePattern.MatchString(", value, ")")
 				invalid = append(invalid, "!matched")
 			case "domain":
-				g.P("domain:=", protogen.GoIdent{GoName: "TrimPrefix", GoImportPath: "strings"}, "(", value, ",\"*.\")")
-				g.P("matched:=providerDomainPattern.MatchString(domain)")
+				d.Body(c, "domain:=", protogen.GoIdent{GoName: "TrimPrefix", GoImportPath: "strings"}, "(", value, ",\"*.\")")
+				d.Body(c, "matched:=providerDomainPattern.MatchString(domain)")
 				bad := "!matched || len(domain)>253"
 				if check.AllowEmpty {
 					bad = "(" + value + "!=\"\" && (!matched || len(domain)>253))"
 				}
 				invalid = append(invalid, bad)
 			case "cidr":
-				g.P("_,err:=", protogen.GoIdent{GoName: "ParsePrefix", GoImportPath: "net/netip"}, "(", value, ")")
+				d.Body(c, "_,err:=", protogen.GoIdent{GoName: "ParsePrefix", GoImportPath: "net/netip"}, "(", value, ")")
 				bad := "err!=nil"
 				if check.AllowEmpty {
 					bad = "(" + value + "!=\"\" && err!=nil)"
@@ -191,7 +199,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 			case "absolute_path":
 				invalid = append(invalid, "!"+g.QualifiedGoIdent(protogen.GoIdent{GoName: "HasPrefix", GoImportPath: "strings"})+"("+value+",\"/\")")
 			case "http_url":
-				g.P("parsed,err:=", protogen.GoIdent{GoName: "Parse", GoImportPath: "net/url"}, "(", value, ")")
+				d.Body(c, "parsed,err:=", protogen.GoIdent{GoName: "Parse", GoImportPath: "net/url"}, "(", value, ")")
 				invalid = append(invalid, "err!=nil || parsed.Host==\"\" || (parsed.Scheme!=\"http\" && parsed.Scheme!=\"https\")")
 			default:
 				return fmt.Errorf("unknown provider format %q", check.Format)
@@ -211,11 +219,11 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 		if len(check.Allowed) > 0 {
 			kind = "ErrorKindUnsupported"
 		}
-		g.P("if ", strings.Join(invalid, join), "{return ", localError(kind, check.Path, "sandbox-kit "+s.Provider+": "+check.Path+" is outside supported values"), "}")
+		d.Body(c, "if ", strings.Join(invalid, join), "{return ", localError(kind, check.Path, "sandbox-kit "+s.Provider+": "+check.Path+" is outside supported values"), "}")
 		for i := 0; i < guards; i++ {
-			g.P("}")
+			d.Body(c, "}")
 		}
 	}
-	g.P("return nil}")
+	d.Body(c, "return nil}")
 	return nil
 }

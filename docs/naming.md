@@ -17,6 +17,11 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Backend result          | `CreateResult`  | Shared sandbox metadata                           |
 | Public handle           | `Sandbox`       | Identity and copied `SandboxInfo`                 |
 
+Runtime declaration names come from `specs/api.yaml`. Descriptor-driven getter,
+clone, validation, mapping, and origin signatures come from `specs/templates.yaml`.
+`specs/languages/go.yaml` owns Go representation and output suffixes. Protobuf
+annotations identify source contracts and provider SDK bindings.
+
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses `sandbox.NewClient(sandbox.Config{...})`.
 
@@ -28,24 +33,32 @@ sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
 proto/kit/providers/        Provider declarations
-specs/                     Portable validation and mapping rules
-tooling/internal/go/       Go emitters
+specs/                     Portable API, behavior, and mapping rules
+tooling/internal/model/    Language-neutral compiled generation model
+tooling/internal/go/       Go phase dispatcher and emitters
 examples/go/               Independent example modules
 ```
 
 Emitter directories use the `*_gen` suffix. Generated files end in `.gen.go`:
 
-| File                       | Purpose                                           |
-| -------------------------- | ------------------------------------------------- |
-| `client.gen.go`            | Public client and provider/backend contracts      |
-| `*.types.gen.go`           | Native shared types                               |
-| `*.validation.gen.go`      | Shared or provider validation                     |
-| `provider.gen.go`          | Provider construction, state capture, and cleanup |
-| `provider.client.gen.go`   | Native SDK configuration assembly                 |
-| `provider.mappings.gen.go` | Request and metadata field conversions            |
+| File                       | Purpose                                            |
+| -------------------------- | -------------------------------------------------- |
+| `client.gen.go`            | Public client and provider/backend contracts       |
+| `*.types.gen.go`           | Native shared types                                |
+| `*.validation.gen.go`      | Shared or provider validation                      |
+| `*.errors.gen.go`          | Diagnostic field names and provider classification |
+| `*.paths.gen.go`           | Canonical field-path constants                     |
+| `*.copy.gen.go`            | Owned schema copies                                |
+| `*.errors.runtime.gen.go`  | Error object, constructor, and context helpers     |
+| `*.clone.runtime.gen.go`   | Metadata copy helpers                              |
+| `provider.gen.go`          | Provider construction, state capture, and cleanup  |
+| `provider.client.gen.go`   | Native SDK configuration assembly                  |
+| `provider.mappings.gen.go` | Request and metadata field conversions             |
 
-Handwritten `sandbox.go` files contain remaining provider creation orchestration.
-Change the schema, spec, or emitter when changing generated behavior.
+Output suffixes for client, provider, error-runtime, and metadata-copy files
+come from `specs/languages/go.yaml`. Handwritten `sandbox.go` files contain
+remaining provider creation orchestration. Change the schema, spec, or emitter
+when changing generated behavior.
 
 ## Language conventions
 
@@ -53,11 +66,7 @@ Field paths have generated names such as `CreateFieldResourcesCPUCores`,
 `ConfigFieldScopeAppName`, and `InfoFieldResources`. Their values retain
 canonical protobuf field names, including nested paths.
 
-Response/error output also includes `*.copy.gen.go`, `*.paths.gen.go` field-path constants,
-provider `*.errors.gen.go` classifiers, and `*.runtime.gen.go` helpers.
-Runtime helpers are emitted by `types_gen/runtime.go` using `specs/contracts.yaml` and `specs/errors.yaml`.
-
-Protobuf and YAML use snake\_case semantic field names. The Go emitter produces
+Protobuf and YAML use snake_case semantic field names. The Go emitter produces
 names such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
 Enums use typed constants such as `IsolationKindLinuxVM` and `PolicyModeDisabled`.
 Native SDK members use the names from their pinned bindings.

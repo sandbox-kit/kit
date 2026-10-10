@@ -1,0 +1,26 @@
+version: 1
+language: go
+object_kind: struct
+interface_kind: interface
+reference: pointer
+optional: pointer
+nullable: nil
+fallible: error_result
+multiple_results: tuple
+cancellation:
+  name: ctx
+  type: {import: context, name: Context}
+error_result_name: result
+unions: reject
+builtins: {string: string, boolean: bool, any: any, int32: int32, uint32: uint32, float32: float32, integer: int64, index: int, unsigned: uint64, number: float64, bytes: '[]byte'}
+externals:
+  runtime_cause: {name: error, kind: interface}
+  timestamp: {import: time, name: Time}
+  duration: {import: time, name: Duration}
+  sandbox_handle: {import: github.com/sandbox-kit/kit/sdks/go/sandbox, name: Sandbox}
+  provider_backend: {import: github.com/sandbox-kit/kit/sdks/go/sandbox, name: Backend, kind: interface}
+outputs:
+  client: .gen.go
+  provider: .gen.go
+  errors: .errors.runtime.gen.go
+  copies: .clone.runtime.gen.go

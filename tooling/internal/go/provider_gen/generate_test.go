@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	codegenv1 "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -16,8 +17,8 @@ import (
 
 func validSpec() *codegenv1.ProviderDeclaration {
 	return &codegenv1.ProviderDeclaration{
-		ProviderName: "custom", Name: "Bridge",
-		Sdks: map[string]*codegenv1.TargetSDK{"go": {ImportPath: "example.com/native/sdk", ClientType: "Client"}},
+		ProviderName: "custom",
+		Sdks:         map[string]*codegenv1.TargetSDK{"go": {ImportPath: "example.com/native/sdk", ClientType: "Client"}},
 	}
 }
 
@@ -39,7 +40,7 @@ func generateRuntimeForTest(t *testing.T, declaration *codegenv1.ProviderDeclara
 		ProtoFile: []*descriptorpb.FileDescriptorProto{{
 			Name: proto.String("config.proto"), Syntax: proto.String("proto2"), Package: proto.String("kit.sandbox.v1"),
 			Options:     &descriptorpb.FileOptions{GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox")},
-			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Config"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("region"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}}}},
+			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("CreateOptions")}, {Name: proto.String("CreateResult")}, {Name: proto.String("Config"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("region"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}}}},
 		}, {
 			Name: proto.String("provider.proto"), Syntax: proto.String("proto3"),
 			Dependency: []string{"config.proto"},
@@ -49,7 +50,19 @@ func generateRuntimeForTest(t *testing.T, declaration *codegenv1.ProviderDeclara
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(plugin, plugin.Files[1], runtime); err != nil {
+	raw, err := spec.LoadAPI("../../../../specs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	api, err := model.CompileAPI(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := spec.LoadLanguageProfile("../../../../specs", "go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(plugin, plugin.Files[1], runtime, api.Modules["provider"], profile); err != nil {
 		return "", err
 	}
 	response := plugin.Response()
@@ -100,7 +113,7 @@ func TestGeneratesProviderBackendAndConfiguredNames(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, expected := range []string{
-		"type bridge struct", "func New() *Provider",
+		"type backend struct", "func New() *Provider",
 		"NewClient(config *sandbox.Config)", `return "custom"`, "a.create(ctx, request)",
 		"sandbox.Provider",
 	} {
@@ -121,9 +134,6 @@ func TestRejectsInvalidDeclarations(t *testing.T) {
 		name string
 		edit func(*codegenv1.ProviderDeclaration)
 	}{
-		{"unexported name", func(s *codegenv1.ProviderDeclaration) { s.Name = "adapter" }},
-		{"invalid name", func(s *codegenv1.ProviderDeclaration) { s.Name = "backend()" }},
-		{"duplicate declaration", func(s *codegenv1.ProviderDeclaration) { s.Name = "New" }},
 		{"missing provider", func(s *codegenv1.ProviderDeclaration) { s.ProviderName = "" }},
 	} {
 		t.Run(change.name, func(t *testing.T) {

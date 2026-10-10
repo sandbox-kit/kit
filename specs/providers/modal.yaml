@@ -51,8 +51,8 @@ runtime:
   go:
     constructor: {function: NewClientWithOptions}
     state:
-      - {name: scope, type: Scope, optional: true, capture: scope}
-      - {name: region, type: string, optional: true, capture: region}
+      - {name: scope, type: Scope, optional: true, capture: scope, doc: "is the captured app and environment. Later changes to Config do not affect it."}
+      - {name: region, type: string, optional: true, capture: region, doc: "is the captured default region preference. Nil means the caller omitted it."}
     cleanup: {method: Close, accepts_context: false, returns_error: false}
 groups:
   - name: mapSandboxIdentity

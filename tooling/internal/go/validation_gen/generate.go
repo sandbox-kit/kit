@@ -8,7 +8,9 @@ import (
 	"strconv"
 	"strings"
 
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -38,7 +40,7 @@ func active(f *protogen.Field) string {
 	}
 	return path + "!=0"
 }
-func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root string) error {
+func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root string, templates model.Templates, profile spec.LanguageProfile) error {
 	if len(rules.Messages) == 0 {
 		return nil
 	}
@@ -63,15 +65,21 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 	}
 	sort.Strings(names)
 	g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+".validation.gen.go", f.GoImportPath)
-	g.P("// Code generated from YAML validation specifications. DO NOT EDIT.")
+	declarationgen.Banner(g, "source: "+string(f.Desc.Path()),
+		"Validators reject values the shared contract cannot represent. They run before a provider call.",
+		"if err := Validate"+root+"(value); err != nil { return err }")
 	g.P("package ", f.GoPackageName)
 	validator := func(name string) protogen.GoIdent {
 		return protogen.GoIdent{GoName: name, GoImportPath: "github.com/go-playground/validator/v10"}
 	}
-	g.P("func new", root, "Validator() *", validator("Validate"), " {")
-	g.P("v:=", validator("New"), "(", validator("WithRequiredStructEnabled"), "())")
-	g.P("_ = v.RegisterValidation(\"finite\",func(fl ", validator("FieldLevel"), ")bool{ value:=fl.Field().Float();return !", protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}, "(value)&&!", protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}, "(value,0) })")
-	g.P("_ = v.RegisterValidation(\"nonblank\",func(fl ", validator("FieldLevel"), ")bool{return ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(fl.Field().String())!=\"\"})")
+	emitter := declarationgen.TemplateEmitter{G: g, Plugin: p, Templates: templates, Profile: profile}
+	d, callable, err := emitter.Begin("validator_factory", declarationgen.TemplateBindings{Names: map[string]string{"subject": root}, Types: map[string]spec.TypeRef{"validator": {Ref: "native_validator"}}, Externals: map[string]spec.ExternalType{"native_validator": declarationgen.NamedBinding(validator("Validate"))}})
+	if err != nil {
+		return err
+	}
+	d.Body(callable, "v:=", validator("New"), "(", validator("WithRequiredStructEnabled"), "())")
+	d.Body(callable, "_ = v.RegisterValidation(\"finite\",func(fl ", validator("FieldLevel"), ")bool{ value:=fl.Field().Float();return !", protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}, "(value)&&!", protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}, "(value,0) })")
+	d.Body(callable, "_ = v.RegisterValidation(\"nonblank\",func(fl ", validator("FieldLevel"), ")bool{return ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(fl.Field().String())!=\"\"})")
 	for _, name := range names {
 		m := messages[name]
 		if m == nil {
@@ -125,7 +133,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 		if len(r.Constraints) == 0 && !hasEnums {
 			continue
 		}
-		g.P("v.RegisterStructValidation(func(sl ", validator("StructLevel"), "){x:=sl.Current().Interface().(", name, ");_ = x")
+		d.Body(callable, "v.RegisterStructValidation(func(sl ", validator("StructLevel"), "){x:=sl.Current().Interface().(", name, ");_ = x")
 		for _, fld := range m.Fields {
 			if fld.Desc.Kind() != protoreflect.EnumKind {
 				continue
@@ -133,7 +141,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			if fld.Desc.IsList() {
 				return fmt.Errorf("repeated enum validation not implemented")
 			}
-			g.P("switch x.Get", naming.FieldName(fld), "(){")
+			d.Body(callable, "switch x.Get", naming.FieldName(fld), "(){")
 			values := []string{}
 			seen := map[int32]bool{}
 			for _, v := range fld.Enum.Values {
@@ -143,7 +151,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 					seen[n] = true
 				}
 			}
-			g.P("case ", strings.Join(values, ","), ": default: sl.ReportError(x,", strconv.Quote(naming.FieldName(fld)), ",", strconv.Quote(naming.FieldName(fld)), ",\"known_enum\",\"\")}")
+			d.Body(callable, "case ", strings.Join(values, ","), ": default: sl.ReportError(x,", strconv.Quote(naming.FieldName(fld)), ",", strconv.Quote(naming.FieldName(fld)), ",\"known_enum\",\"\")}")
 		}
 		for i, c := range r.Constraints {
 			condition := "true"
@@ -189,13 +197,13 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 					return fmt.Errorf("%s: %s needs fields", name, c.Op)
 				}
 				count := fmt.Sprintf("count%d", i)
-				g.P(count, ":=0")
+				d.Body(callable, count, ":=0")
 				for _, n := range c.Fields {
 					fld, err := field(m, n)
 					if err != nil {
 						return err
 					}
-					g.P("if ", active(fld), "{", count, "++}")
+					d.Body(callable, "if ", active(fld), "{", count, "++}")
 				}
 				switch c.Op {
 				case "at_most_one":
@@ -214,13 +222,22 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			if label == "" {
 				label = strings.Join(c.Fields, ",")
 			}
-			g.P("if (", condition, ") && (", invalid, "){sl.ReportError(x,", strconv.Quote(label), ",", strconv.Quote(label), ",", strconv.Quote(c.Op), ",\"\")}")
+			d.Body(callable, "if (", condition, ") && (", invalid, "){sl.ReportError(x,", strconv.Quote(label), ",", strconv.Quote(label), ",", strconv.Quote(c.Op), ",\"\")}")
 		}
-		g.P("},", name, "{})")
+		d.Body(callable, "},", name, "{})")
 	}
-	g.P("return v }")
-	g.P("// Validate", root, " applies the generated shared rules without filling defaults.")
-	g.P("func Validate", root, "(request *", root, ")error{if request==nil{return nil};if err:=new", root, "Validator().Struct(request);err!=nil{return validationError(err)};return nil}")
+	d.Body(callable, "return v }")
+	d.Body(callable, "// Validate", root, " applies the generated shared rules without filling defaults.")
+	d, callable, err = emitter.Begin("validation", declarationgen.TemplateBindings{Names: map[string]string{"subject": root}, Types: map[string]spec.TypeRef{"subject": {Ref: "schema." + root}}})
+	if err != nil {
+		return err
+	}
+	factory, err := templates.Instantiate("validator_factory", map[string]string{"subject": root})
+	if err != nil {
+		return err
+	}
+	d.Body(callable, "if ", d.Param(callable, "request"), "==nil{return nil};if err:=", factory.Declaration.Name, "().Struct(", d.Param(callable, "request"), ");err!=nil{return validationError(err)};return nil")
+	g.P("}")
 	return nil
 }
 

@@ -74,7 +74,7 @@ Credentials stay in ignored `.env`; [.env.example](.env.example) contains no sec
 GOWORK=off go test ./...
 ```
 
-This compiles the example without running creation.
+This compiles the example and tests its error-kind handler without running cloud creation.
 For resources and local rejection tests, see
 [create-modal-with-resources](../create-modal-with-resources/README.md).
 Execution, lifecycle operations, and storage are outside this example.

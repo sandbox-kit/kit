@@ -23,10 +23,10 @@ func sharedField(p *protogen.Plugin, message, name string) (*protogen.Field, err
 
 // capture copies schema fields without changing absent versus explicit values.
 // Unsupported ownership shapes are rejected rather than shallow copied.
-func capture(g *protogen.GeneratedFile, p *protogen.Plugin, path, typ string, optional bool, dest string) error {
+func capture(g *protogen.GeneratedFile, p *protogen.Plugin, path, typ string, optional bool, dest, sourceRoot string) error {
 	parts := strings.Split(path, ".")
 	message := "Config"
-	source := "config"
+	source := sourceRoot
 	guards := 0
 	var field *protogen.Field
 	for i, part := range parts {

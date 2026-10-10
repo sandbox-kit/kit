@@ -1,6 +1,8 @@
 package providergen
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"go/parser"
 	"go/token"
@@ -23,7 +25,7 @@ func errorFixture(t *testing.T) *protogen.Plugin {
 func TestErrorSpecsControlNativeClassification(t *testing.T) {
 	p := errorFixture(t)
 	s := spec.Provider{Provider: "test", ErrorStatuses: map[int]string{401: "authentication"}, Errors: map[string]spec.ErrorBinding{"go": {Target: spec.Binding{Import: "example.com/native", Name: "NativeError", Fields: map[string]string{"status": "Status", "code": "Code", "source": "Source"}}}}}
-	if err := GenerateErrors(p, p.Files[0], s); err != nil {
+	if err := emitErrorFixture(p, p.Files[0], s); err != nil {
 		t.Fatal(err)
 	}
 	response := p.Response()
@@ -41,12 +43,12 @@ func TestErrorSpecsControlNativeClassification(t *testing.T) {
 	}
 	s.ErrorStatuses = map[int]string{401: "missing_kind"}
 	p = errorFixture(t)
-	if err := GenerateErrors(p, p.Files[0], s); err == nil {
+	if err := emitErrorFixture(p, p.Files[0], s); err == nil {
 		t.Fatal("unknown contract kind accepted")
 	}
 	s.ErrorStatuses = map[int]string{999: "authentication"}
 	p = errorFixture(t)
-	if err := GenerateErrors(p, p.Files[0], s); err == nil {
+	if err := emitErrorFixture(p, p.Files[0], s); err == nil {
 		t.Fatal("invalid HTTP status accepted")
 	}
 }
@@ -54,7 +56,7 @@ func TestErrorSpecsControlNativeClassification(t *testing.T) {
 func TestNativeErrorBindingUsesPortableRule(t *testing.T) {
 	s := spec.Provider{Provider: "test", ErrorRules: map[string]string{"credential_rejected": "authentication"}, Errors: map[string]spec.ErrorBinding{"go": {Types: []spec.ErrorType{{Import: "example.com/native", Name: "AuthError", Rule: "credential_rejected", Pointer: true}}}}}
 	p := errorFixture(t)
-	if err := GenerateErrors(p, p.Files[0], s); err != nil {
+	if err := emitErrorFixture(p, p.Files[0], s); err != nil {
 		t.Fatal(err)
 	}
 	src := p.Response().File[0].GetContent()
@@ -63,7 +65,15 @@ func TestNativeErrorBindingUsesPortableRule(t *testing.T) {
 	}
 	delete(s.ErrorRules, "credential_rejected")
 	p = errorFixture(t)
-	if err := GenerateErrors(p, p.Files[0], s); err == nil {
+	if err := emitErrorFixture(p, p.Files[0], s); err == nil {
 		t.Fatal("missing portable rule accepted")
 	}
+}
+
+func emitErrorFixture(p *protogen.Plugin, f *protogen.File, s spec.Provider) error {
+	compiled, err := model.CompileProvider(schema.Index(p), s)
+	if err != nil {
+		return err
+	}
+	return GenerateErrors(p, f, compiled)
 }
