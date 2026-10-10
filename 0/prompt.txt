@@ -1,0 +1,1 @@
+open ai doesn't have auto in model selection right. ?
