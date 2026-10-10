@@ -1,0 +1,3 @@
+I think we have code which is absolete and no more being used and will ever get used. 
+
+remove that -> Plz note that I'm not talking about edge cases whcih are written but whole funcation and files which are not required. it can be in any folder module package file
