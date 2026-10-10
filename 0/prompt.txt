@@ -1,0 +1,3 @@
+I didn't like Wrap method
+
+I don't ths its standard design pattern
