@@ -1,0 +1,3 @@
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_fc97c82649694ad88bd1ef88ea90c0e7\",0]","question":"What does Sandbox Kit do in one sentence? I found only a license in the repo, so this will help tie the logo to the product.","answer":"check other chats of this project I have told it"}]
+</send_user_message_question_reply>
