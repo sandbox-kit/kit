@@ -1,0 +1,5 @@
+[https://modal.com/docs/sdk/go/latest](https://modal.com/docs/sdk/go/latest) you know this right this is just link there are tabs on this in child routes whcih has all the defination ?&#x20;
+
+[https://www.daytona.io/docs/en/go-sdk/](https://www.daytona.io/docs/en/go-sdk/) similarly here&#x20;
+
+u must verify things by looking deep into it
