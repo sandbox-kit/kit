@@ -1,0 +1,3 @@
+can we have something like sandbox-kit generate go 
+
+as command
