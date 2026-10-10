@@ -1,0 +1,1 @@
+can we do somehtin like instead WithProvider(__) ? I think we don't need that kinda modalAdapter they don't care
