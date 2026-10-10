@@ -1,0 +1,1 @@
+is there anything which is currently implemented with code but be just generator so it will be useful in other languages generator
