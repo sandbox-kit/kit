@@ -1,0 +1,10 @@
+Now lets start, 
+
+we first now need to generate a client facing boiler plate, currently we have core but it should be basically for creating sandbox, we need to refine it.  note that this is different from lifecycle of sanbox like run, stop, snapshot. 
+
+it should unify all the configuration from modal, daytona in to our contract. note that we should generalise every configuration I talk about earlier. check both of modal and daytona docs for more. 
+
+specially see how daytona create sandbox from client and then it returns sandbox and whcih has lifecycle methods. 
+
+
+i think that design is much better. lets start implementatng
