@@ -1,0 +1,4 @@
+can u create it in local sandbox and give me the name -> 
+modal token set --token-id ak-K8CAMQ7RRDFxNImeVBEkjj --token-secret as-4y7PKFdJKbyG2iaLjsCzh7
+
+here's the token_id and secret
