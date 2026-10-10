@@ -76,27 +76,27 @@ generates public path constants and response provenance validation.
 Response/error generation reads `specs/contracts.yaml` and `specs/errors.yaml`.
 The latter declares cause classification, context reuse, detail preservation,
 and classification precedence. Unsupported policy alternatives fail generation.
-Native runtime
-helpers use `g.P(...)` in `internal/go/types_gen/runtime.go`; provider error
-classifiers are emitted from portable protocol rules and native SDK bindings.
+Error and metadata-copy signatures come from `specs/api.yaml`.
+`internal/go/types_gen/runtime.go` emits their behavior bodies. Provider error
+classifiers come from portable protocol rules and native SDK bindings.
 
-| Directory                     | Responsibility                                                    |
-| ----------------------------- | ----------------------------------------------------------------- |
-| `cmd/sandbox-kit/`            | Developer CLI                                                     |
-| `cmd/protoc-gen-kit-go/`      | Protobuf output plugin                                            |
-| `internal/model/` | Language-neutral descriptor and semantic compilation |
-| `internal/go/` | Go phase dispatcher and native language emitters |
-| `internal/spec/`              | Strict YAML loader and portable rule types                        |
-| `internal/go/declaration_gen/` | API signature, object, interface, alias, enum, callback, and generic emission |
-| `internal/go/types_gen/`      | Native types, copying, error runtime, paths, and origin validation |
-| `internal/go/error_gen/`      | Consistent shared error expressions                               |
-| `internal/go/schema/`         | Descriptor resolution and canonical field paths                   |
-| `internal/go/validation_gen/` | Shared validation and enum checks                                 |
-| `internal/go/mapping_gen/`    | Field conversions and policy mappings                             |
-| `internal/go/client_gen/`     | Client contracts, deadlines, and delegation                       |
-| `internal/go/provider_gen/`   | SDK construction, client assembly, state capture, provider checks, error classification |
-| `internal/go/naming/`         | Go field and enum naming                                          |
-| `internal/gen/`               | Generated annotation bindings                                     |
+| Directory                      | Responsibility                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------- |
+| `cmd/sandbox-kit/`             | Developer CLI                                                                           |
+| `cmd/protoc-gen-kit-go/`       | Protobuf output plugin                                                                  |
+| `internal/model/`              | Language-neutral descriptor and semantic compilation                                    |
+| `internal/go/`                 | Go phase dispatcher and native language emitters                                        |
+| `internal/spec/`               | Strict YAML loader and portable rule types                                              |
+| `internal/go/declaration_gen/` | API signature, object, interface, alias, enum, callback, and generic emission           |
+| `internal/go/types_gen/`       | Native types, copying, error runtime, paths, and origin validation                      |
+| `internal/go/error_gen/`       | Consistent shared error expressions                                                     |
+| `internal/go/schema/`          | Descriptor resolution and canonical field paths                                         |
+| `internal/go/validation_gen/`  | Shared validation and enum checks                                                       |
+| `internal/go/mapping_gen/`     | Field conversions and policy mappings                                                   |
+| `internal/go/client_gen/`      | Client contracts, deadlines, and delegation                                             |
+| `internal/go/provider_gen/`    | SDK construction, client assembly, state capture, provider checks, error classification |
+| `internal/go/naming/`          | Go field and enum naming                                                                |
+| `internal/gen/`                | Generated annotation bindings                                                           |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
 and ends in `.gen.go`. Protobuf provides descriptors for generation; it does

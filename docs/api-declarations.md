@@ -16,11 +16,11 @@ language emitter renders them.
   params:
     - id: request
       name: request
-      type: {ref: schema.CreateOptions, reference: true, nullable: true}
+      type: { ref: schema.CreateOptions, reference: true, nullable: true }
   results:
     - id: instance
       name: instance
-      type: {ref: sandbox_handle, reference: true}
+      type: { ref: sandbox_handle, reference: true }
   fallible: true
   named_results: true
 ```
@@ -40,18 +40,18 @@ vocabulary; YAML does not contain executable Go snippets.
 
 ## Declaration vocabulary
 
-| Declaration | Meaning | Go representation |
-| --- | --- | --- |
-| `object` | Runtime object with fields and methods | Struct |
-| `interface` | Method contract without storage | Interface |
-| `alias` | Alternate name for another type | Type alias |
-| `enum` | Named integer type and numeric members | Defined type and constants |
-| `callback` | Named function signature | Function type |
-| Constructor | Builds a declared object; may fail | Factory function |
-| Static method | Operation associated with a type | Package function named `TypeMethod` |
-| Generic function or object | Type parameters with constraints | Go generics |
-| Variadic parameter | Final sequence of arguments | `...T` |
-| Promoted field | Exposes composed object's fields | Embedded named field |
+| Declaration                | Meaning                                | Go representation                   |
+| -------------------------- | -------------------------------------- | ----------------------------------- |
+| `object`                   | Runtime object with fields and methods | Struct                              |
+| `interface`                | Method contract without storage        | Interface                           |
+| `alias`                    | Alternate name for another type        | Type alias                          |
+| `enum`                     | Named integer type and numeric members | Defined type and constants          |
+| `callback`                 | Named function signature               | Function type                       |
+| Constructor                | Builds a declared object; may fail     | Factory function                    |
+| Static method              | Operation associated with a type       | Package function named `TypeMethod` |
+| Generic function or object | Type parameters with constraints       | Go generics                         |
+| Variadic parameter         | Final sequence of arguments            | `...T`                              |
+| Promoted field             | Exposes composed object's fields       | Embedded named field                |
 
 Runtime-only `attachments` add native fields to a schema-backed object. For example,
 `Config.Provider` is declared in API YAML and excluded from serialization. Shared
@@ -112,20 +112,20 @@ These distinctions follow the official [function reference](https://www.typescri
 and [type reference](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html).
 Only Go emission is implemented and verified today.
 
-## Current migration coverage
+## Declared surface
 
-Client/provider objects, interfaces, constructors, methods, fields, parameters,
-and result signatures are declared in YAML. The common error object, its helpers,
-metadata-copy helpers, and generic `Value` helper also use this declaration model.
+Client and provider objects, interfaces, constructors, methods, fields,
+parameters, and result signatures are declared in YAML. The common error object,
+its helpers, metadata-copy helpers, and generic `Value` helper use the same
+declaration model.
 
-Protobuf annotations now identify source contracts and provider SDK bindings.
-Their retired client/backend naming fields are reserved; there is no naming
-fallback to the previous generator implementation.
+Protobuf annotations identify source contracts and provider SDK bindings.
+Runtime names come from `specs/api.yaml` and `specs/templates.yaml`.
 
 Descriptor-driven signatures for getters, clone methods, validators, provider
-mappings/checks, client configuration mappings, and response-origin helpers now
+mappings and checks, client configuration mappings, and response-origin helpers
 come from [`specs/templates.yaml`](../specs/templates.yaml). Each template binds
-names and types from a schema descriptor or compiled mapping; a YAML entry for
+names and types from a schema descriptor or compiled mapping. A YAML entry for
 every field or provider mapping is unnecessary.
 
 Field-path traversal roots, constant name patterns, native leaves, and excluded
@@ -144,16 +144,18 @@ getter:
   owner: subject
   declaration:
     id: getter
-    name: 'Get{field}'
+    name: "Get{field}"
     receiver: x
     behavior: getter
-    results: [{type: {ref: field_value}}]
+    results: [{ type: { ref: field_value } }]
 ```
 
 The shared compiler validates a pattern, then instantiates its name with
-`field: CPUCores`. The Go adapter binds `subject` to `Resources` and `field_value`
-to the descriptor's getter return type. Bound types retain portable shape references and selected native symbol identities;
-Go type strings are not parsed back into syntax. YAML contains no Go expressions. Missing bindings and invalid names fail generation.
+`field: CPUCores`. The Go emitter binds `subject` to `Resources` and `field_value`
+to the descriptor's getter return type. Bound types retain portable shape
+references and selected native symbol identities. Go type strings are not parsed
+back into syntax. YAML contains no Go expressions. Missing bindings and invalid
+names fail generation.
 
 A request-mapping template declares the source parameter, native target result,
 remaining request result, and possible failure. Go lowers these to multiple

@@ -25,14 +25,14 @@ Running a creation example creates one real sandbox. Error-handling examples
 exercise local failures without cloud creation. Closing the client releases SDK
 resources; use the provider's tools to stop or delete the sandbox.
 
-| Example                                                                | Demonstrates                                                   |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [Daytona creation](examples/go/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                |
-| [Modal creation](examples/go/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image |
-| [Daytona policies](examples/go/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                       |
-| [Modal resources](examples/go/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                            |
-| [Modal errors](examples/go/handle-modal-errors/README.md) | Handle an unsupported disk override with `ErrorKindUnsupported` |
-| [Daytona errors](examples/go/handle-daytona-errors/README.md) | Handle an invalid CPU request with `ErrorKindInvalidArgument` |
+| Example                                                                | Demonstrates                                                    |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [Daytona creation](examples/go/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
+| [Modal creation](examples/go/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image  |
+| [Daytona policies](examples/go/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
+| [Modal resources](examples/go/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                             |
+| [Modal errors](examples/go/handle-modal-errors/README.md)              | Handle an unsupported disk override with `ErrorKindUnsupported` |
+| [Daytona errors](examples/go/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
 
 Each project has its own module, `.env.example`, and selected provider. Modal
 requires an existing app; its [setup guide](examples/go/create-modal-sandbox/README.md)
@@ -138,13 +138,13 @@ See the independent [Modal](examples/go/handle-modal-errors/README.md) and
 
 ## Configuration and results
 
-* `sandbox.Config` selects the provider and configures auth, scope, endpoint,
+- `sandbox.Config` selects the provider and configures auth, scope, endpoint,
   region, and the default operation timeout.
-* `sandbox.CreateOptions` describes the source, resources, runtime, network,
+- `sandbox.CreateOptions` describes the source, resources, runtime, network,
   and supported creation policies.
-* `sandbox.Value(v)` returns a pointer that marks an optional value as supplied.
+- `sandbox.Value(v)` returns a pointer that marks an optional value as supplied.
   It performs no validation itself.
-* `Sandbox.ID()`, `ProviderName()`, and `Info()` expose shared identity and copied
+- `Sandbox.ID()`, `ProviderName()`, and `Info()` expose shared identity and copied
   metadata. Metadata availability varies by provider.
 
 Omitted values defer to provider defaults. Explicit values are validated for
@@ -165,8 +165,8 @@ whole GiB allocations expressed as MiB.
 | [Client configuration](docs/configuration.md)           | Auth, scope, defaults, deadlines, and ownership           |
 | [Sandbox creation](docs/sandbox-creation.md)            | Supported fields, units, and policy semantics             |
 | [Provider architecture](docs/providers.md)              | Optional modules, contracts, and SDK boundaries           |
-| [Responses and errors](docs/responses-and-errors.md) | Presence, origins, error details, and native causes |
-| [API declarations](docs/api-declarations.md) | Runtime declarations and language representation rules |
+| [Responses and errors](docs/responses-and-errors.md)    | Presence, origins, error details, and native causes       |
+| [API declarations](docs/api-declarations.md)            | Runtime declarations and language representation rules    |
 | [Code generation](docs/code-generation.md)              | Protobuf, YAML rules, bindings, and extension workflow    |
 | [Reference verification](docs/provider-verification.md) | Sources, conflicting documentation, and validation limits |
 | [Naming](docs/naming.md)                                | Public names, package layout, and generated files         |
@@ -186,8 +186,10 @@ servers; they create no cloud resources.
 
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
 Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves
-these inputs before language emission. `specs/generation.yaml` defines generation
-phases and client-operation sequences. Runtime modules live in `sdks/<language>/`.
+these inputs before language emission. Runtime APIs live in `specs/api.yaml`,
+behavior checks in `specs/behaviors.yaml`, and generation phases in
+`specs/generation.yaml`. The Go profile supplies representation and file
+suffixes. Runtime modules live in `sdks/<language>/`.
 Update examples and docs with public changes, regenerate affected output, and
 verify before submitting. See [tooling](tooling/README.md) and
 [repository instructions](AGENTS.md).

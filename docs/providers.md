@@ -30,9 +30,11 @@ private; standard operations require no application mapping callbacks.
 
 ## Generation boundary
 
-Protobuf declares shared types and local methods. YAML declares validation,
-configuration assembly, field conversions, provider checks, error classification,
-and native bindings. Shared error policy lives in `specs/errors.yaml`; provider
+Protobuf declares shared types and local methods. `specs/api.yaml` declares
+runtime constructors and methods, and `specs/behaviors.yaml` checks those
+declarations before emission. Other YAML declares validation, configuration
+assembly, field conversions, provider checks, error classification, and native
+bindings. Shared error policy lives in `specs/errors.yaml`; provider
 classifications remain separate from language-specific SDK bindings.
 The shared compiler resolves these inputs into a language-neutral model.
 Go emitters consume the compiled mappings, client methods, and error classifications;

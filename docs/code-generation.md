@@ -41,15 +41,15 @@ protobuf messages.
 | --------------------------------- | ------------------------------------------------------------------- |
 | `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                    |
 | `proto/kit/providers/`            | Provider and native SDK declarations                                |
-| `specs/behaviors.yaml` | Required behavior inputs, outputs, owner, and execution flags |
-| `specs/templates.yaml` | Reusable descriptor-driven signatures and field-path rules |
-| `specs/api.yaml` | Runtime types, constructors, methods, parameters, and results |
-| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions |
-| `specs/generation.yaml` | Generation phases and ordered client-operation instructions |
+| `specs/behaviors.yaml`            | Required behavior inputs, outputs, owner, and execution flags       |
+| `specs/templates.yaml`            | Reusable descriptor-driven signatures and field-path rules          |
+| `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results       |
+| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions  |
+| `specs/generation.yaml`           | Generation phases and ordered client-operation instructions         |
 | `specs/client.yaml`               | Provider selection and client/auth validation                       |
 | `specs/validation.yaml`           | Shared creation validation                                          |
 | `specs/contracts.yaml`            | Metadata/error declarations and copy depth                          |
-| `specs/errors.yaml`               | Shared cause classification and error-context policy                 |
+| `specs/errors.yaml`               | Shared cause classification and error-context policy                |
 | `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
@@ -105,10 +105,10 @@ prepares an owned request before applying deadlines and invoking the backend.
 Cleanup releases SDK resources without deleting sandboxes.
 
 These are semantic instructions, not arbitrary expressions or YAML code snippets.
-Go emits constructors, context deadlines, and error returns. Another emitter must
-implement equivalent native behavior, such as async calls and exceptions where
-appropriate. File names, folders, imports, and constructor names stay owned by
-each language emitter and its schema bindings.
+Constructor and method names come from `specs/api.yaml`. Output suffixes come
+from the language profile. The Go emitter turns these instructions into
+synchronous calls, context deadlines, and error results. Another emitter
+implements the same instructions with its own calling conventions.
 
 The model currently resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
@@ -119,19 +119,22 @@ Handwritten provider orchestration is still required where noted below.
 
 All Go emitters build error expressions through `internal/go/error_gen`.
 `internal/go/schema` resolves field paths against full protobuf identities.
-Generated `CreateField*`, `ConfigField*`, and `InfoField*` constants replace
-handwritten path strings. Nested mapping sources can declare `error_path`;
-unknown paths fail generation.
+Generated `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
+field paths used by mappings and errors. Nested mapping sources can declare
+`error_path`; unknown paths fail generation.
 
 Response origin validation is generated from schema presence rules. It rejects
 unknown keys and absent values, while accepting explicit zero/false and empty
 collections. Context enrichment avoids an extra wrapper when details already match.
 
-`specs/contracts.yaml` identifies the shared metadata/error/origin declarations
-and the maximum copy depth. Go runtime helpers are emitted with `g.P(...)` in `types_gen/runtime.go`;
-generated methods copy schema fields directly, preserving numeric types and
-owned collections. Metadata has explicit signed/unsigned alternatives instead
-of protobuf Struct's double-only numeric representation.
+`specs/contracts.yaml` identifies the shared metadata, error, and origin
+declarations and the maximum copy depth. Error and metadata-copy signatures
+come from `specs/api.yaml`. `types_gen/runtime.go` emits their behavior bodies
+into `.errors.runtime.gen.go` and `.clone.runtime.gen.go`. Schema `Clone`
+methods are separate: templates declare them, and `*.copy.gen.go` copies fields
+directly, preserving numeric types and owned collections. Metadata has explicit
+signed and unsigned alternatives instead of protobuf Struct's double-only
+numeric representation.
 
 `specs/errors.yaml` declares ordered cause rules, fallback classification, context
 reuse, detail preservation, and provider classification precedence. Version 1
@@ -153,7 +156,11 @@ error_rules:
 errors:
   go:
     types:
-      - {import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error}
+      - {
+          import: github.com/modal-labs/modal-client/go,
+          name: TimeoutError,
+          rule: timeout_error,
+        }
 ```
 
 Another language binds the same rule to its native SDK type. Native type names,
@@ -172,10 +179,10 @@ version: 1
 messages:
   Resources:
     fields:
-      cpu_cores: {finite: true, exclusive_minimum: 0}
+      cpu_cores: { finite: true, exclusive_minimum: 0 }
     constraints:
-      - {op: limit, field: cpu_limit_cores, other: cpu_cores}
-      - {op: requires_positive, field: cpu_limit_cores, other: cpu_cores}
+      - { op: limit, field: cpu_limit_cores, other: cpu_cores }
+      - { op: requires_positive, field: cpu_limit_cores, other: cpu_cores }
 ```
 
 Field rules include `minimum`, `exclusive_minimum`, `maximum`, `finite`,
@@ -206,10 +213,10 @@ Provider `checks` validate common creation fields using schema paths:
 
 ```yaml
 checks:
-  - {path: resources.cpu_cores, minimum: 0.125}
-  - {path: placement.cloud, allowed: [aws, gcp, oci, auto]}
-  - {path: runtime.working_directory, format: absolute_path}
-  - {path: network.outbound_cidrs.entries, format: cidr}
+  - { path: resources.cpu_cores, minimum: 0.125 }
+  - { path: placement.cloud, allowed: [aws, gcp, oci, auto] }
+  - { path: runtime.working_directory, format: absolute_path }
+  - { path: network.outbound_cidrs.entries, format: cidr }
 ```
 
 Supported formats are `absolute_path`, `http_url`, `cidr`, `domain`, and
@@ -231,16 +238,23 @@ remain provider-enforced.
 groups:
   - name: mapResources
     direction: request
-    source: {name: Resources}
+    source: { name: Resources }
     target:
       name: Resources
       bindings:
         go:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: Resources
-          fields: {memory: Memory}
+          fields: { memory: Memory }
     fields:
-      - {from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
+      - {
+          from: memory_mib,
+          to: memory,
+          transform: divide_exactly,
+          factor: 1024,
+          maximum: 2147483647,
+          cast: integer,
+        }
 ```
 
 Shared types resolve against descriptors. Logical native fields resolve through
@@ -270,13 +284,13 @@ This controls availability of Daytona allocated-resource metadata.
 
 A provider's `client` spec combines existing mapping groups:
 
-* `settings` maps top-level configuration.
-* `scope` maps scope fields.
-* `auth` declares supported credential alternatives.
-* `managed` permits Kit-owned provider selection and timeout fields.
-* `retained` requires a matching backend state capture.
-* `rejected` describes unsupported supplied configuration.
-* `destination` attaches a mapped object using the native field and declared
+- `settings` maps top-level configuration.
+- `scope` maps scope fields.
+- `auth` declares supported credential alternatives.
+- `managed` permits Kit-owned provider selection and timeout fields.
+- `retained` requires a matching backend state capture.
+- `rejected` describes unsupported supplied configuration.
+- `destination` attaches a mapped object using the native field and declared
   `objects` type, as with Modal OAuth credentials.
 
 Composition checks full schema/native identities, identifiers, field ownership,
