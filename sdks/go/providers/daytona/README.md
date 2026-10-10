@@ -4,8 +4,8 @@ Use Daytona through the shared Sandbox Kit client. This optional module depends
 on the official Daytona Go SDK v0.222.0. The public `sandbox` module has no
 Daytona SDK dependency.
 
-Start with the [creation example](../../../../examples/go/create-daytona-sandbox/README.md)
-or [policy example](../../../../examples/go/create-daytona-with-policies/README.md).
+Start with the [creation example](../../../../examples/go/daytona/create-daytona-sandbox/README.md)
+or [policy example](../../../../examples/go/daytona/create-daytona-with-policies/README.md).
 Modules currently use local development replacements.
 
 ## Configure the client

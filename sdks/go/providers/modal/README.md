@@ -4,8 +4,8 @@ Use Modal through the shared Sandbox Kit client. This optional module depends on
 the official Modal Go SDK v0.11.0. The public `sandbox` module has no Modal SDK
 dependency.
 
-Start with the [creation example](../../../../examples/go/create-modal-sandbox/README.md)
-or [resources example](../../../../examples/go/create-modal-with-resources/README.md).
+Start with the [creation example](../../../../examples/go/modal/create-modal-sandbox/README.md)
+or [resources example](../../../../examples/go/modal/create-modal-with-resources/README.md).
 Modules currently use local development replacements.
 
 ## Configure the client

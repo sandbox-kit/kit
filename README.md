@@ -14,28 +14,43 @@ replacements, so run the examples from this repository checkout:
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/go/create-daytona-sandbox
+cd kit/examples/go/daytona/create-daytona-sandbox
 cp .env.example .env
 # Set DAYTONA_API_KEY in .env.
 go run .
 ```
 
 Skip copying the template if you already have a configured `.env`.
-Running a creation example creates one real sandbox. Error-handling examples
+Creation examples create real sandboxes: one each, except the linked Daytona
+example, which creates a parent and a child. Error-handling examples
 exercise local failures without cloud creation. Closing the client releases SDK
 resources; use the provider's tools to stop or delete the sandbox.
 
 | Example                                                                | Demonstrates                                                    |
 | ---------------------------------------------------------------------- | --------------------------------------------------------------- |
-| [Daytona creation](examples/go/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
-| [Modal creation](examples/go/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image  |
-| [Daytona policies](examples/go/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
-| [Modal resources](examples/go/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                             |
-| [Modal errors](examples/go/handle-modal-errors/README.md)              | Handle an unsupported disk override with `ErrorKindUnsupported` |
-| [Daytona errors](examples/go/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
+| [Daytona creation](examples/go/daytona/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
+| [Daytona snapshot](examples/go/daytona/create-daytona-from-snapshot/README.md) | Stock `daytona-small` snapshot                                  |
+| [Daytona image](examples/go/daytona/create-daytona-from-image/README.md)       | Public image with CPU, memory, and disk                         |
+| [Daytona ephemeral](examples/go/daytona/create-daytona-ephemeral/README.md)    | Delete-on-stop from the default snapshot                        |
+| [Daytona linked](examples/go/daytona/create-daytona-linked/README.md)          | Parent sandbox and an ephemeral linked child                    |
+| [Daytona policies](examples/go/daytona/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
+| [Modal creation](examples/go/modal/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image  |
+| [Modal resources](examples/go/modal/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                             |
+| [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)       | Working directory, entrypoint, and PTY                          |
+| [Modal gVisor](examples/go/modal/create-modal-gvisor/README.md)              | Container isolation                                             |
+| [Modal Linux VM](examples/go/modal/create-modal-linux-vm/README.md)          | Linux VM isolation                                              |
+| [Modal placement](examples/go/modal/create-modal-with-placement/README.md)   | Cloud and optional region preference                            |
+| [Modal labels](examples/go/modal/create-modal-with-labels/README.md)         | Environment variables and tags                                  |
+| [Modal network](examples/go/modal/create-modal-with-network/README.md)       | Blocked outbound access                                         |
+| [Modal idle timeout](examples/go/modal/create-modal-idle/README.md)          | Termination after 60 idle seconds                               |
+| [Modal readiness](examples/go/modal/create-modal-ready/README.md)            | Wait until a readiness command succeeds                         |
+| [Modal verbose](examples/go/modal/create-modal-verbose/README.md)            | Verbose provider logging                                        |
+| [Modal identity](examples/go/modal/create-modal-with-identity/README.md)     | Workload identity token                                         |
+| [Modal errors](examples/go/modal/handle-modal-errors/README.md)              | Handle an unsupported disk override with `ErrorKindUnsupported` |
+| [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
 
 Each project has its own module, `.env.example`, and selected provider. Modal
-requires an existing app; its [setup guide](examples/go/create-modal-sandbox/README.md)
+requires an existing app; its [setup guide](examples/go/modal/create-modal-sandbox/README.md)
 explains token and app creation. Credentials stay in Git-ignored `.env` files.
 
 ## Use the Go SDK
@@ -132,8 +147,8 @@ func handleError(err error) {
 
 `Field` identifies the setting involved when available. Error kinds do not imply
 safe retries: creation can fail after a sandbox has already been provisioned.
-See the independent [Modal](examples/go/handle-modal-errors/README.md) and
-[Daytona](examples/go/handle-daytona-errors/README.md) error examples, or the
+See the independent [Modal](examples/go/modal/handle-modal-errors/README.md) and
+[Daytona](examples/go/daytona/handle-daytona-errors/README.md) error examples, or the
 [full contract guide](docs/responses-and-errors.md).
 
 ## Configuration and results
@@ -181,7 +196,7 @@ GOWORK=off go run ./cmd/sandbox-kit generate go
 ```
 
 Generation also requires `protoc`. Verification tests the SDK, tooling, providers,
-and all six example modules. Example tests use dummy credentials and local
+and every example module. Example tests use dummy credentials and local
 servers; they create no cloud resources.
 
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the

@@ -54,8 +54,8 @@ if errors.As(err, &detail) {
 ```
 
 The same switch works for either provider. Runnable examples demonstrate
-[Modal unsupported intent](../examples/go/handle-modal-errors/README.md) and
-[Daytona invalid configuration](../examples/go/handle-daytona-errors/README.md).
+[Modal unsupported intent](../examples/go/modal/handle-modal-errors/README.md) and
+[Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
 
 ## Native causes
 

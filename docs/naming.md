@@ -36,7 +36,7 @@ proto/kit/providers/        Provider declarations
 specs/                     Portable API, behavior, and mapping rules
 tooling/internal/model/    Language-neutral compiled generation model
 tooling/internal/go/       Go phase dispatcher and emitters
-examples/go/               Independent example modules
+examples/go/<provider>/      One folder per provider, one module per example
 ```
 
 Emitter directories use the `*_gen` suffix. Generated files end in `.gen.go`:
