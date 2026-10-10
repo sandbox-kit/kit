@@ -1,0 +1,1 @@
+cool, we can generate client side code aswell like this right ?
