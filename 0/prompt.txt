@@ -1,0 +1,1 @@
+I mean we can remove make file right as we have cobra now ? or we need it. if we need it instead use tasks.yml ? its much better ?
