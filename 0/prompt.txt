@@ -1,0 +1,5 @@
+I have removed everythin
+
+can u commit and push to main whatever there is currently 
+
+Have commit messgae such that u dn't mentoin what was removed
