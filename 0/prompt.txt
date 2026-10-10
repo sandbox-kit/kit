@@ -1,0 +1,5 @@
+do that  but yeah make common contracts use protobufs, yaml, code generators where ever u can. 
+
+also u already know the MODAL and Daytona reference for sdks for types, errors, response types and everythin u need. 
+
+use it to built common contracts
