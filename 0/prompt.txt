@@ -1,0 +1,1 @@
+yess thats what i was trying to say emit it using g.P(...) like existing generators
