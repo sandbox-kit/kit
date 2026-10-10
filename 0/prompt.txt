@@ -1,0 +1,7 @@
+i think we need to do somethin like pass it sandbox provider from client
+
+but adapter just adapters to whatever sdk is pass. same contracts
+
+use sdk provided by user client when they imnstall in their app they offcourse get types of sandbox thirdparty provider. 
+
+is there a way to do this ? tell me how ?
