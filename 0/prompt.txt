@@ -1,0 +1,7 @@
+[https://www.daytona.io/docs/en/go-sdk/](https://www.daytona.io/docs/en/go-sdk/)
+
+[https://modal.com/docs/sdk/go/latest](https://modal.com/docs/sdk/go/latest)
+
+note that this are the methods, types struct response, errros and everything in this docs, if not found u can check at pkg.go.dev in sdk defination u know that.&#x20;
+
+i also want to have our common response and error contract later. but we will first do above. taking into this account that u know this part need to eventually made. is there any plan change for above ?
