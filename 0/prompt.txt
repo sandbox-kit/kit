@@ -1,0 +1,3 @@
+just fyi, we were earlier trying to have adapters without installing sdk which is not possible
+
+we will let user install adapters seperately which will also install by default third party sandbox provider along with it
