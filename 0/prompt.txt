@@ -1,0 +1,12 @@
+so I have figure out following after rigourous implementation previously. 
+
+
+user will just provider its intialised sandbox sdk which will also contain authentication. we need our sdk initalisation which passs that initliasiltion 
+
+and internally we will implement adapters for each of them which just maps it. 
+
+
+now before that, I need to really make lot of generation of code through protobufs and contracts including struct interface, types as well as classes and methods. 
+
+
+before starting to implement how can we do this options which will get us complete this project really fast
