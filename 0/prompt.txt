@@ -1,0 +1,20 @@
+# AGENTS.md instructions for /Users/nabhag/OpenSource/kit
+
+<INSTRUCTIONS>
+# Repository instructions
+
+For every implemented public feature, add or update a runnable example under
+`examples/`, document how users run it, and update `examples/README.md`.
+Keep examples synchronized with the actual implemented API. Clearly label
+planned APIs and demonstration providers; do not present them as working
+production integrations. Verify changed examples before handing off the feature.
+
+</INSTRUCTIONS>
+
+<environment_context>
+  <cwd>/Users/nabhag/OpenSource/kit</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-10-08</current_date>
+  <timezone>Asia/Kolkata</timezone>
+  <filesystem><workspace_roots><root>/Users/nabhag/OpenSource/kit</root><root>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</root></workspace_roots><permission_profile type="managed"><file_system type="restricted"><entry access="read"><special>:root</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</path></entry><entry access="read"><special>:slash_tmp</special></entry><entry access="read"><special>:tmpdir</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.git</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.git</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.agents</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.agents</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.codex</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.codex</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.aws</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.aws</path></entry></file_system></permission_profile></filesystem>
+</environment_context>
