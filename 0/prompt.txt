@@ -1,0 +1,3 @@
+We already have generated `ErrorInfo`, so I’d use it directly.&#x20;
+
+can u make this changes
