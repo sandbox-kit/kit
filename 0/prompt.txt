@@ -1,0 +1,6 @@
+firstly what I observed is we are mapping from our contract of params passed to provider contracts in code + also validating values in code. 
+
+
+can we use validator go package for validation (as types in tags) + i would say have a yml or some spec whcih basically generates the required code. 
+
+if mapping and all is being done in code then we won't be able to generate later for other languges.
