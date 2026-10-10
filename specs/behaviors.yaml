@@ -1,0 +1,367 @@
+# Portable behavior requirements. Names may vary; IDs and type shapes bind logic.
+# Changing these requirements also requires updating the implementing emitters.
+version: 1
+signatures:
+    capture_state:
+        owner: function
+        params:
+            - id: result
+              type:
+                ref: backend
+                reference: true
+            - id: config
+              type:
+                ref: schema.Config
+                nullable: true
+                reference: true
+        fallible: false
+        cancellable: false
+    client_mapping:
+        owner: function
+        params:
+            - id: config
+              type:
+                ref: config
+                nullable: true
+                reference: true
+        results:
+            - type:
+                ref: target
+        fallible: true
+        cancellable: false
+    clone:
+        owner: method
+        results:
+            - type:
+                ref: subject
+                reference: true
+                ownership: owned
+        fallible: true
+        cancellable: false
+    clone_internal:
+        owner: method
+        params:
+            - id: depth
+              type:
+                builtin: index
+        results:
+            - type:
+                ref: subject
+                reference: true
+                ownership: owned
+        fallible: true
+        cancellable: false
+    clone_metadata:
+        owner: function
+        params:
+            - id: source
+              type:
+                nullable: true
+                map:
+                    key:
+                        builtin: string
+                    value:
+                        builtin: any
+        results:
+            - type:
+                nullable: true
+                map:
+                    key:
+                        builtin: string
+                    value:
+                        builtin: any
+        fallible: true
+        cancellable: false
+    close:
+        owner: method
+        fallible: true
+        cancellable: true
+    copy_metadata:
+        owner: function
+        params:
+            - id: value
+              type:
+                builtin: any
+                nullable: true
+            - id: depth
+              type:
+                builtin: index
+        results:
+            - type:
+                builtin: any
+                nullable: true
+        fallible: true
+        cancellable: false
+    create:
+        owner: method
+        params:
+            - id: request
+              type:
+                ref: schema.CreateOptions
+                nullable: true
+                reference: true
+        results:
+            - id: instance
+              type:
+                ref: sandbox_handle
+                reference: true
+        fallible: true
+        cancellable: true
+    error_context:
+        owner: function
+        params:
+            - id: err
+              type:
+                ref: runtime_cause
+                nullable: true
+            - id: provider
+              type:
+                builtin: string
+            - id: operation
+              type:
+                builtin: string
+        results:
+            - type:
+                ref: runtime_cause
+                nullable: true
+        fallible: false
+        cancellable: false
+    error_message:
+        owner: method
+        results:
+            - type:
+                builtin: string
+        fallible: false
+        cancellable: false
+    getter:
+        owner: method
+        results:
+            - type:
+                ref: field_value
+        fallible: false
+        cancellable: false
+    initialize:
+        owner: function
+        params:
+            - id: config
+              type:
+                ref: schema.Config
+        results:
+            - id: client
+              type:
+                ref: client
+                reference: true
+        fallible: true
+        cancellable: false
+    initialize_backend:
+        owner: function
+        params:
+            - id: config
+              type:
+                ref: schema.Config
+                nullable: true
+                reference: true
+        results:
+            - type:
+                ref: provider_backend
+        fallible: true
+        cancellable: false
+    initialize_provider:
+        owner: method
+        params:
+            - id: config
+              type:
+                ref: schema.Config
+                reference: true
+        results:
+            - type:
+                ref: provider_backend
+        fallible: true
+        cancellable: false
+    missing_binding:
+        owner: function
+        params:
+            - id: binding
+              type:
+                builtin: any
+        results:
+            - type:
+                builtin: boolean
+        fallible: false
+        cancellable: false
+    new_error:
+        owner: function
+        params:
+            - id: info
+              type:
+                ref: schema.ErrorInfo
+            - id: cause
+              type:
+                ref: runtime_cause
+                nullable: true
+        results:
+            - type:
+                ref: error
+                reference: true
+                ownership: owned
+        fallible: false
+        cancellable: false
+    provider_checks:
+        owner: function
+        params:
+            - id: request
+              type:
+                ref: request
+                nullable: true
+                reference: true
+        fallible: true
+        cancellable: false
+    provider_close:
+        owner: method
+        fallible: true
+        cancellable: true
+    provider_create:
+        owner: method
+        params:
+            - id: request
+              type:
+                ref: schema.CreateOptions
+                reference: true
+        results:
+            - type:
+                ref: schema.CreateResult
+                reference: true
+        fallible: true
+        cancellable: true
+    provider_name:
+        owner: method
+        results:
+            - type:
+                builtin: string
+        fallible: false
+        cancellable: false
+    request_mapping:
+        owner: function
+        params:
+            - id: source
+              type:
+                ref: source
+                nullable: true
+                reference: true
+        results:
+            - type:
+                ref: target
+            - type:
+                ref: source
+        fallible: true
+        cancellable: false
+    response_mapping:
+        owner: function
+        params:
+            - id: source
+              type:
+                ref: source
+                nullable: true
+                reference: true
+        results:
+            - type:
+                ref: target
+        fallible: true
+        cancellable: false
+    response_origins:
+        owner: function
+        params:
+            - id: info
+              type:
+                ref: response
+                reference: true
+        fallible: true
+        cancellable: false
+    response_presence:
+        owner: function
+        params:
+            - id: info
+              type:
+                ref: response
+                nullable: true
+                reference: true
+            - id: path
+              type:
+                builtin: string
+        results:
+            - type:
+                builtin: boolean
+        fallible: false
+        cancellable: false
+    select_provider:
+        owner: function
+        results:
+            - type:
+                ref: provider
+                reference: true
+        fallible: false
+        cancellable: false
+    unwrap:
+        owner: method
+        results:
+            - type:
+                ref: runtime_cause
+                nullable: true
+        fallible: false
+        cancellable: false
+    validation:
+        owner: function
+        params:
+            - id: request
+              type:
+                ref: subject
+                nullable: true
+                reference: true
+        fallible: true
+        cancellable: false
+    validation_error:
+        owner: function
+        params:
+            - id: err
+              type:
+                ref: runtime_cause
+        results:
+            - type:
+                ref: runtime_cause
+        fallible: false
+        cancellable: false
+    validation_path:
+        owner: function
+        params:
+            - id: namespace
+              type:
+                builtin: string
+        results:
+            - type:
+                builtin: string
+        fallible: false
+        cancellable: false
+    validator_factory:
+        owner: function
+        results:
+            - type:
+                ref: validator
+                reference: true
+        fallible: false
+        cancellable: false
+    value:
+        owner: function
+        params:
+            - id: value
+              type:
+                ref: T
+        results:
+            - type:
+                ref: T
+                reference: true
+        generics:
+            - id: T
+              type:
+                builtin: any
+        fallible: false
+        cancellable: false

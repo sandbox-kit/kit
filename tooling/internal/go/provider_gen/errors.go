@@ -4,15 +4,16 @@ import (
 	"fmt"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"go/token"
 	"google.golang.org/protobuf/compiler/protogen"
-	"sort"
 	"strconv"
-	"strings"
 )
 
-func GenerateErrors(p *protogen.Plugin, file *protogen.File, s spec.Provider) error {
+// GenerateErrors emits native matching for compiled semantic classifications.
+func GenerateErrors(p *protogen.Plugin, file *protogen.File, compiled model.Provider) error {
+	s := compiled.Rules
 	binding := s.Errors["go"]
 	if len(s.ErrorStatuses) > 0 && binding.Target.Import == "" {
 		return fmt.Errorf("HTTP error rules require a native status binding")
@@ -24,7 +25,7 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 	g.P("package ", file.GoPackageName)
 	g.P("func mapProviderError(err error,operation string)error{if err==nil{return nil};var local *", id("Error"), ";if ", protogen.GoIdent{GoName: "As", GoImportPath: "errors"}, "(err,&local){return ", id("WithErrorContext"), "(err,", strconv.Quote(s.Provider), ",operation)}")
 	g.P("kind:=", id("ErrorKindUnknown"), ";var statusCode *uint32;var providerCode,providerSource *string")
-	kind := func(name string) (protogen.GoIdent, error) {
+	kind := func(classification model.Kind) (protogen.GoIdent, error) {
 		m, err := sharedMessage(p, "ErrorInfo")
 		if err != nil {
 			return protogen.GoIdent{}, err
@@ -32,21 +33,24 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 		for _, f := range m.Fields {
 			if string(f.Desc.Name()) == "kind" {
 				for _, v := range f.Enum.Values {
-					if "ERROR_KIND_"+strings.ToUpper(name) == string(v.Desc.Name()) {
+					if classification.Name == v.Desc.FullName() {
 						return id(naming.EnumValueName(v)), nil
 					}
 				}
 			}
 		}
-		return protogen.GoIdent{}, fmt.Errorf("unknown error kind %s", name)
+		return protogen.GoIdent{}, fmt.Errorf("missing Go enum metadata for %s", classification.Name)
 	}
 	for i, t := range binding.Types {
 		if !validBinding(spec.Binding{Import: t.Import, Name: t.Name}) {
 			return fmt.Errorf("invalid error type")
 		}
-		classification, ok := s.ErrorRules[t.Rule]
-		if !ok {
-			return fmt.Errorf("missing portable error rule %s", t.Rule)
+		var classification model.Kind
+		for _, rule := range compiled.Errors.Native {
+			if rule.Rule == t.Rule {
+				classification = rule.Kind
+				break
+			}
 		}
 		k, err := kind(classification)
 		if err != nil {
@@ -71,16 +75,9 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 		g.P("{var native *", protogen.GoIdent{GoName: binding.Target.Name, GoImportPath: protogen.GoImportPath(binding.Target.Import)}, ";if errors.As(err,&native){")
 		g.P("if native.", binding.Target.Fields["status"], ">0{statusCode=", id("Value"), "(uint32(native.", binding.Target.Fields["status"], "))};if native.", binding.Target.Fields["code"], "!=\"\"{providerCode=", id("Value"), "(native.", binding.Target.Fields["code"], ")};if native.", binding.Target.Fields["source"], "!=\"\"{providerSource=", id("Value"), "(native.", binding.Target.Fields["source"], ")}")
 		g.P("if kind==", id("ErrorKindUnknown"), "{switch native.", binding.Target.Fields["status"], "{")
-		keys := []int{}
-		for code := range s.ErrorStatuses {
-			keys = append(keys, code)
-		}
-		sort.Ints(keys)
-		for _, code := range keys {
-			if code < 100 || code > 599 {
-				return fmt.Errorf("invalid HTTP error status %d", code)
-			}
-			k, err := kind(s.ErrorStatuses[code])
+		for _, rule := range compiled.Errors.HTTP {
+			code := rule.Code
+			k, err := kind(rule.Kind)
 			if err != nil {
 				return err
 			}
@@ -88,18 +85,11 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, s spec.Provider) er
 		}
 		g.P("}}}}")
 	}
-	if len(s.ErrorGRPC) > 0 {
+	if len(compiled.Errors.GRPC) > 0 {
 		g.P("if kind==", id("ErrorKindUnknown"), "{switch ", protogen.GoIdent{GoName: "Code", GoImportPath: "google.golang.org/grpc/status"}, "(err){")
-		keys := []int{}
-		for key := range s.ErrorGRPC {
-			keys = append(keys, key)
-		}
-		sort.Ints(keys)
-		for _, key := range keys {
-			if key < 1 || key > 16 {
-				return fmt.Errorf("invalid grpc code")
-			}
-			k, err := kind(s.ErrorGRPC[key])
+		for _, rule := range compiled.Errors.GRPC {
+			key := rule.Code
+			k, err := kind(rule.Kind)
 			if err != nil {
 				return err
 			}

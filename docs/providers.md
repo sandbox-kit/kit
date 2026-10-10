@@ -34,7 +34,9 @@ Protobuf declares shared types and local methods. YAML declares validation,
 configuration assembly, field conversions, provider checks, error classification,
 and native bindings. Shared error policy lives in `specs/errors.yaml`; provider
 classifications remain separate from language-specific SDK bindings.
-The Go emitters generate those mechanical parts.
+The shared compiler resolves these inputs into a language-neutral model.
+Go emitters consume the compiled mappings, client methods, and error classifications;
+`specs/generation.yaml` declares generation phases and client operation sequences.
 
 Provider `sandbox.go` files retain orchestration that the current vocabulary
 cannot express: app/image/secret lookup, source selection, readiness, and remaining

@@ -1,10 +1,12 @@
 package typesgen
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"strings"
 	"testing"
 
 	codegen "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
@@ -19,7 +21,20 @@ func TestPreservesEmptyCollectionsAndLimitsCreationHelpers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(plugin, plugin.Files[0], spec.Validation{}, spec.Client{}); err != nil {
+	raw, err := spec.LoadAPI("../../../../specs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	api, err := model.CompileAPI(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile, err := spec.LoadLanguageProfile("../../../../specs", "go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	templates, _ := testutil.Generation(t, "../../../../specs")
+	if err := Generate(plugin, plugin.Files[0], spec.Validation{}, model.APIModule{}, api.Modules["helpers"], profile, templates); err != nil {
 		t.Fatal(err)
 	}
 	response := plugin.Response()

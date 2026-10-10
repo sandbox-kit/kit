@@ -3,6 +3,21 @@
 Protobuf and YAML define the shared contracts and portable rules. All generators
 are written in Go under `tooling/`; only Go SDK output is implemented today.
 
+```text
+Protobuf + versioned YAML + native SDK bindings
+                    ↓
+      Language-neutral compiled model
+                    ↓
+             Language emitter
+                    ↓
+            Native SDK source
+```
+
+`tooling/internal/model/` compiles descriptor identities, field paths, local client
+methods, validation references, mapping plans, and error classifications before
+emission. It uses protobuf reflection descriptors, not `protogen`, Go naming, or
+runtime SDK types. `internal/go/` translates that model into Go syntax and files.
+
 ## Generate and verify
 
 From `tooling/`:
@@ -26,6 +41,11 @@ protobuf messages.
 | --------------------------------- | ------------------------------------------------------------------- |
 | `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                    |
 | `proto/kit/providers/`            | Provider and native SDK declarations                                |
+| `specs/behaviors.yaml` | Required behavior inputs, outputs, owner, and execution flags |
+| `specs/templates.yaml` | Reusable descriptor-driven signatures and field-path rules |
+| `specs/api.yaml` | Runtime types, constructors, methods, parameters, and results |
+| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions |
+| `specs/generation.yaml` | Generation phases and ordered client-operation instructions |
 | `specs/client.yaml`               | Provider selection and client/auth validation                       |
 | `specs/validation.yaml`           | Shared creation validation                                          |
 | `specs/contracts.yaml`            | Metadata/error declarations and copy depth                          |
@@ -35,6 +55,65 @@ protobuf messages.
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
 inside the language's bindings.
+
+## API declarations
+
+[`api.yaml`](../specs/api.yaml) declares runtime objects, interfaces, fields,
+constructors, methods, parameter/result shapes, and behavior attachments.
+[`languages/go.yaml`](../specs/languages/go.yaml) lowers references, presence,
+cancellation, multiple results, and failures into Go conventions.
+`internal/go/declaration_gen/` generates declarations from the compiled model.
+Template bindings retain portable type shapes and native symbol identities.
+Behavior bodies use explicit symbol references, with no textual identifier renaming.
+The shared compiler checks their declarations against `specs/behaviors.yaml`.
+Native output extensions and capability checks belong to each backend.
+
+The same vocabulary supports aliases, integer enums, callbacks, generic objects
+and functions, static methods, variadic parameters, and composed fields. Go
+rejects unsupported shapes explicitly, including first-class unions/tuples and
+independent generic method parameters. Protobuf still owns shared data fields.
+
+Client/provider signatures, the error runtime, metadata-copy helpers, and `Value`
+now use these declarations. Schema getters, clone methods, validators, mappings, provider checks, and origin
+helpers use declaration templates from `specs/templates.yaml`; their bodies retain
+specialized emitters. Read the
+[declaration guide](api-declarations.md) for syntax, coverage, and extension rules.
+
+## Generation plan and client operations
+
+`specs/generation.yaml` selects semantic output phases for shared contracts,
+clients, and providers. The Go dispatcher consumes this plan rather than loading
+specifications independently for each emitter.
+
+Client operation instructions also live in this file:
+
+```yaml
+operations:
+  create:
+    - require_context
+    - require_client
+    - prepare_request
+    - resolve_deadline
+    - invoke_creation
+    - return_handle
+```
+
+The compiler verifies the version 1 vocabulary and required ordering. It rejects
+missing/duplicate phases, unknown instructions, and unsafe operation sequences.
+Initialization validates configuration before initializing the provider; creation
+prepares an owned request before applying deadlines and invoking the backend.
+Cleanup releases SDK resources without deleting sandboxes.
+
+These are semantic instructions, not arbitrary expressions or YAML code snippets.
+Go emits constructors, context deadlines, and error returns. Another emitter must
+implement equivalent native behavior, such as async calls and exceptions where
+appropriate. File names, folders, imports, and constructor names stay owned by
+each language emitter and its schema bindings.
+
+The model currently resolves shared validation references, shared mapping fields,
+conversion vocabulary, policy relationships, and error kinds/protocol codes.
+Go-specific SDK member checks and generated validator syntax remain in Go emitters.
+Handwritten provider orchestration is still required where noted below.
 
 ## Response and error contracts
 
@@ -222,9 +301,9 @@ generation until copying support is added.
 ## Extend a provider or language
 
 1. Declare shared types and method intent in protobuf.
-2. Describe portable validation and conversions in YAML.
+2. Describe portable validation, conversions, and operation intent in YAML.
 3. Add native SDK symbols to the language's bindings.
-4. Extend an emitter when the vocabulary needs another operation.
+4. Extend the shared compiler vocabulary and each affected emitter for a new operation.
 5. Add semantic boundary tests, regenerate, and update examples/docs.
 6. Run the CLI verification command.
 

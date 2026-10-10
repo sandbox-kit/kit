@@ -184,19 +184,17 @@ func LoadProvider(root, name string) (Provider, error) {
 	return p, err
 }
 
-// Client declares native factory attachment and portable initialization validation.
+// Client selects schema-backed settings and portable initialization validation.
 type Client struct {
-	Version          int        `yaml:"version"`
-	ConfigMessage    string     `yaml:"config_message"`
-	ProviderField    string     `yaml:"provider_field"`
-	ProviderContract string     `yaml:"provider_contract"`
-	Validation       Validation `yaml:"validation"`
+	Version       int        `yaml:"version"`
+	ConfigMessage string     `yaml:"config_message"`
+	Validation    Validation `yaml:"validation"`
 }
 
 func LoadClient(root string) (Client, error) {
 	var c Client
 	err := decode(filepath.Join(root, "client.yaml"), &c)
-	if err == nil && (c.Version != 1 || c.ConfigMessage != "Config" || c.ProviderField != "provider" || c.ProviderContract != "Provider" || c.Validation.Version != 1 || len(c.Validation.Messages) == 0) {
+	if err == nil && (c.Version != 1 || c.ConfigMessage != "Config" || c.Validation.Version != 1 || len(c.Validation.Messages) == 0) {
 		err = fmt.Errorf("invalid client specification")
 	}
 	return c, err

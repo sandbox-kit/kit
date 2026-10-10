@@ -7,7 +7,9 @@ import (
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *CreateOptions) Clone() (*CreateOptions, error) { return x.clone(0) }
+func (x *CreateOptions) Clone() (*CreateOptions, error) {
+	return x.clone(0)
+}
 func (x *CreateOptions) clone(depth int) (*CreateOptions, error) {
 	if x == nil {
 		return nil, nil
@@ -121,7 +123,9 @@ func (x *CreateOptions) clone(depth int) (*CreateOptions, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *SandboxSource) Clone() (*SandboxSource, error) { return x.clone(0) }
+func (x *SandboxSource) Clone() (*SandboxSource, error) {
+	return x.clone(0)
+}
 func (x *SandboxSource) clone(depth int) (*SandboxSource, error) {
 	if x == nil {
 		return nil, nil
@@ -163,7 +167,9 @@ func (x *SandboxSource) clone(depth int) (*SandboxSource, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ProviderDefaultSource) Clone() (*ProviderDefaultSource, error) { return x.clone(0) }
+func (x *ProviderDefaultSource) Clone() (*ProviderDefaultSource, error) {
+	return x.clone(0)
+}
 func (x *ProviderDefaultSource) clone(depth int) (*ProviderDefaultSource, error) {
 	if x == nil {
 		return nil, nil
@@ -177,7 +183,9 @@ func (x *ProviderDefaultSource) clone(depth int) (*ProviderDefaultSource, error)
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ImageSource) Clone() (*ImageSource, error) { return x.clone(0) }
+func (x *ImageSource) Clone() (*ImageSource, error) {
+	return x.clone(0)
+}
 func (x *ImageSource) clone(depth int) (*ImageSource, error) {
 	if x == nil {
 		return nil, nil
@@ -191,7 +199,9 @@ func (x *ImageSource) clone(depth int) (*ImageSource, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *SnapshotSource) Clone() (*SnapshotSource, error) { return x.clone(0) }
+func (x *SnapshotSource) Clone() (*SnapshotSource, error) {
+	return x.clone(0)
+}
 func (x *SnapshotSource) clone(depth int) (*SnapshotSource, error) {
 	if x == nil {
 		return nil, nil
@@ -209,7 +219,9 @@ func (x *SnapshotSource) clone(depth int) (*SnapshotSource, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *WarmPoolSource) Clone() (*WarmPoolSource, error) { return x.clone(0) }
+func (x *WarmPoolSource) Clone() (*WarmPoolSource, error) {
+	return x.clone(0)
+}
 func (x *WarmPoolSource) clone(depth int) (*WarmPoolSource, error) {
 	if x == nil {
 		return nil, nil
@@ -223,7 +235,9 @@ func (x *WarmPoolSource) clone(depth int) (*WarmPoolSource, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *RuntimeConfig) Clone() (*RuntimeConfig, error) { return x.clone(0) }
+func (x *RuntimeConfig) Clone() (*RuntimeConfig, error) {
+	return x.clone(0)
+}
 func (x *RuntimeConfig) clone(depth int) (*RuntimeConfig, error) {
 	if x == nil {
 		return nil, nil
@@ -263,7 +277,9 @@ func (x *RuntimeConfig) clone(depth int) (*RuntimeConfig, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *IsolationConfig) Clone() (*IsolationConfig, error) { return x.clone(0) }
+func (x *IsolationConfig) Clone() (*IsolationConfig, error) {
+	return x.clone(0)
+}
 func (x *IsolationConfig) clone(depth int) (*IsolationConfig, error) {
 	if x == nil {
 		return nil, nil
@@ -285,7 +301,9 @@ func (x *IsolationConfig) clone(depth int) (*IsolationConfig, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *Resources) Clone() (*Resources, error) { return x.clone(0) }
+func (x *Resources) Clone() (*Resources, error) {
+	return x.clone(0)
+}
 func (x *Resources) clone(depth int) (*Resources, error) {
 	if x == nil {
 		return nil, nil
@@ -319,7 +337,9 @@ func (x *Resources) clone(depth int) (*Resources, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *Placement) Clone() (*Placement, error) { return x.clone(0) }
+func (x *Placement) Clone() (*Placement, error) {
+	return x.clone(0)
+}
 func (x *Placement) clone(depth int) (*Placement, error) {
 	if x == nil {
 		return nil, nil
@@ -347,7 +367,9 @@ func (x *Placement) clone(depth int) (*Placement, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *StringAllowlist) Clone() (*StringAllowlist, error) { return x.clone(0) }
+func (x *StringAllowlist) Clone() (*StringAllowlist, error) {
+	return x.clone(0)
+}
 func (x *StringAllowlist) clone(depth int) (*StringAllowlist, error) {
 	if x == nil {
 		return nil, nil
@@ -367,7 +389,9 @@ func (x *StringAllowlist) clone(depth int) (*StringAllowlist, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *NetworkConfig) Clone() (*NetworkConfig, error) { return x.clone(0) }
+func (x *NetworkConfig) Clone() (*NetworkConfig, error) {
+	return x.clone(0)
+}
 func (x *NetworkConfig) clone(depth int) (*NetworkConfig, error) {
 	if x == nil {
 		return nil, nil
@@ -432,7 +456,9 @@ func (x *NetworkConfig) clone(depth int) (*NetworkConfig, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *PortBinding) Clone() (*PortBinding, error) { return x.clone(0) }
+func (x *PortBinding) Clone() (*PortBinding, error) {
+	return x.clone(0)
+}
 func (x *PortBinding) clone(depth int) (*PortBinding, error) {
 	if x == nil {
 		return nil, nil
@@ -446,7 +472,9 @@ func (x *PortBinding) clone(depth int) (*PortBinding, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *SecurityConfig) Clone() (*SecurityConfig, error) { return x.clone(0) }
+func (x *SecurityConfig) Clone() (*SecurityConfig, error) {
+	return x.clone(0)
+}
 func (x *SecurityConfig) clone(depth int) (*SecurityConfig, error) {
 	if x == nil {
 		return nil, nil
@@ -478,7 +506,9 @@ func (x *SecurityConfig) clone(depth int) (*SecurityConfig, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *SecretReference) Clone() (*SecretReference, error) { return x.clone(0) }
+func (x *SecretReference) Clone() (*SecretReference, error) {
+	return x.clone(0)
+}
 func (x *SecretReference) clone(depth int) (*SecretReference, error) {
 	if x == nil {
 		return nil, nil
@@ -496,7 +526,9 @@ func (x *SecretReference) clone(depth int) (*SecretReference, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *LifetimePolicy) Clone() (*LifetimePolicy, error) { return x.clone(0) }
+func (x *LifetimePolicy) Clone() (*LifetimePolicy, error) {
+	return x.clone(0)
+}
 func (x *LifetimePolicy) clone(depth int) (*LifetimePolicy, error) {
 	if x == nil {
 		return nil, nil
@@ -553,7 +585,9 @@ func (x *LifetimePolicy) clone(depth int) (*LifetimePolicy, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *AutomaticAction) Clone() (*AutomaticAction, error) { return x.clone(0) }
+func (x *AutomaticAction) Clone() (*AutomaticAction, error) {
+	return x.clone(0)
+}
 func (x *AutomaticAction) clone(depth int) (*AutomaticAction, error) {
 	if x == nil {
 		return nil, nil
@@ -571,7 +605,9 @@ func (x *AutomaticAction) clone(depth int) (*AutomaticAction, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ProvisioningOptions) Clone() (*ProvisioningOptions, error) { return x.clone(0) }
+func (x *ProvisioningOptions) Clone() (*ProvisioningOptions, error) {
+	return x.clone(0)
+}
 func (x *ProvisioningOptions) clone(depth int) (*ProvisioningOptions, error) {
 	if x == nil {
 		return nil, nil
@@ -593,7 +629,9 @@ func (x *ProvisioningOptions) clone(depth int) (*ProvisioningOptions, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ReadinessProbe) Clone() (*ReadinessProbe, error) { return x.clone(0) }
+func (x *ReadinessProbe) Clone() (*ReadinessProbe, error) {
+	return x.clone(0)
+}
 func (x *ReadinessProbe) clone(depth int) (*ReadinessProbe, error) {
 	if x == nil {
 		return nil, nil
@@ -618,7 +656,9 @@ func (x *ReadinessProbe) clone(depth int) (*ReadinessProbe, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *CommandProbe) Clone() (*CommandProbe, error) { return x.clone(0) }
+func (x *CommandProbe) Clone() (*CommandProbe, error) {
+	return x.clone(0)
+}
 func (x *CommandProbe) clone(depth int) (*CommandProbe, error) {
 	if x == nil {
 		return nil, nil
@@ -638,7 +678,9 @@ func (x *CommandProbe) clone(depth int) (*CommandProbe, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ObservabilityConfig) Clone() (*ObservabilityConfig, error) { return x.clone(0) }
+func (x *ObservabilityConfig) Clone() (*ObservabilityConfig, error) {
+	return x.clone(0)
+}
 func (x *ObservabilityConfig) clone(depth int) (*ObservabilityConfig, error) {
 	if x == nil {
 		return nil, nil
@@ -660,7 +702,9 @@ func (x *ObservabilityConfig) clone(depth int) (*ObservabilityConfig, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *CreateResult) Clone() (*CreateResult, error) { return x.clone(0) }
+func (x *CreateResult) Clone() (*CreateResult, error) {
+	return x.clone(0)
+}
 func (x *CreateResult) clone(depth int) (*CreateResult, error) {
 	if x == nil {
 		return nil, nil
@@ -681,7 +725,9 @@ func (x *CreateResult) clone(depth int) (*CreateResult, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *SandboxInfo) Clone() (*SandboxInfo, error) { return x.clone(0) }
+func (x *SandboxInfo) Clone() (*SandboxInfo, error) {
+	return x.clone(0)
+}
 func (x *SandboxInfo) clone(depth int) (*SandboxInfo, error) {
 	if x == nil {
 		return nil, nil
@@ -744,7 +790,9 @@ func (x *SandboxInfo) clone(depth int) (*SandboxInfo, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *ErrorInfo) Clone() (*ErrorInfo, error) { return x.clone(0) }
+func (x *ErrorInfo) Clone() (*ErrorInfo, error) {
+	return x.clone(0)
+}
 func (x *ErrorInfo) clone(depth int) (*ErrorInfo, error) {
 	if x == nil {
 		return nil, nil
@@ -770,7 +818,9 @@ func (x *ErrorInfo) clone(depth int) (*ErrorInfo, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *MetadataValue) Clone() (*MetadataValue, error) { return x.clone(0) }
+func (x *MetadataValue) Clone() (*MetadataValue, error) {
+	return x.clone(0)
+}
 func (x *MetadataValue) clone(depth int) (*MetadataValue, error) {
 	if x == nil {
 		return nil, nil
@@ -825,7 +875,9 @@ func (x *MetadataValue) clone(depth int) (*MetadataValue, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *MetadataList) Clone() (*MetadataList, error) { return x.clone(0) }
+func (x *MetadataList) Clone() (*MetadataList, error) {
+	return x.clone(0)
+}
 func (x *MetadataList) clone(depth int) (*MetadataList, error) {
 	if x == nil {
 		return nil, nil
@@ -849,7 +901,9 @@ func (x *MetadataList) clone(depth int) (*MetadataList, error) {
 
 // Clone returns an owned copy, preserving field presence and numeric types.
 // It rejects unsupported metadata and excessive depth or cycles.
-func (x *MetadataObject) Clone() (*MetadataObject, error) { return x.clone(0) }
+func (x *MetadataObject) Clone() (*MetadataObject, error) {
+	return x.clone(0)
+}
 func (x *MetadataObject) clone(depth int) (*MetadataObject, error) {
 	if x == nil {
 		return nil, nil

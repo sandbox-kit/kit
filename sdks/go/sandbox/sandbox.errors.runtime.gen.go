@@ -9,12 +9,12 @@ import (
 )
 
 // Error exposes portable details and retains the original error for errors.Is/As.
+// Error exposes portable details and retains the native cause.
 type Error struct {
 	ErrorInfo
 	cause error
 }
 
-// Error includes a semantic field path when the error concerns a field.
 func (e *Error) Error() string {
 	if e == nil {
 		return ""
@@ -34,6 +34,7 @@ func (e *Error) Unwrap() error {
 }
 
 // NewError owns a copy of portable details and retains the original cause.
+// NewError copies portable details and retains the original cause.
 func NewError(info ErrorInfo, cause error) *Error {
 	owned, _ := info.Clone()
 	if !owned.Kind.Valid() {
@@ -48,7 +49,7 @@ func NewError(info ErrorInfo, cause error) *Error {
 }
 
 // WithErrorContext adds provider/operation details without mutating an error.
-func WithErrorContext(err error, provider, operation string) error {
+func WithErrorContext(err error, provider string, operation string) error {
 	if err == nil {
 		return nil
 	}

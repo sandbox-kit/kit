@@ -10,8 +10,6 @@ option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
 option (kit.codegen.v1.native_types) = true;
 
 option (kit.codegen.v1.client) = {
-  name: "Client"
-  backend_interface: "Backend"
   creation_service: "SandboxCreation"
   config_message: "Config"
 };

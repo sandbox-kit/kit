@@ -1,8 +1,5 @@
 version: 1
 config_message: Config
-provider_field: provider
-# The runtime factory constructs an SDK from shared settings.
-provider_contract: Provider
 validation:
   version: 1
   messages:

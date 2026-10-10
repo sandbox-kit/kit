@@ -27,10 +27,6 @@ const (
 // ordinary language objects and are never serialized into these messages.
 type ClientDeclaration struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Canonical type name; each language generator supplies its constructor style.
-	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Canonical provider contract name (interface, protocol, or trait by language).
-	BackendInterface string `protobuf:"bytes,2,opt,name=backend_interface,json=backendInterface,proto3" json:"backend_interface,omitempty"`
 	// Optional local creation surface; SDK handle generation is language-specific.
 	CreationService string `protobuf:"bytes,4,opt,name=creation_service,json=creationService,proto3" json:"creation_service,omitempty"`
 	// Native initialization settings; runtime provider factories are attached by emitters.
@@ -69,20 +65,6 @@ func (*ClientDeclaration) Descriptor() ([]byte, []int) {
 	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ClientDeclaration) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
-func (x *ClientDeclaration) GetBackendInterface() string {
-	if x != nil {
-		return x.BackendInterface
-	}
-	return ""
-}
-
 func (x *ClientDeclaration) GetCreationService() string {
 	if x != nil {
 		return x.CreationService
@@ -101,7 +83,6 @@ func (x *ClientDeclaration) GetConfigMessage() string {
 type ProviderDeclaration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderName  string                 `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Sdks          map[string]*TargetSDK  `protobuf:"bytes,7,rep,name=sdks,proto3" json:"sdks,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -140,13 +121,6 @@ func (*ProviderDeclaration) Descriptor() ([]byte, []int) {
 func (x *ProviderDeclaration) GetProviderName() string {
 	if x != nil {
 		return x.ProviderName
-	}
-	return ""
-}
-
-func (x *ProviderDeclaration) GetName() string {
-	if x != nil {
-		return x.Name
 	}
 	return ""
 }
@@ -253,19 +227,16 @@ var File_kit_codegen_v1_options_proto protoreflect.FileDescriptor
 
 const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"\n" +
-	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"\xe2\x01\n" +
-	"\x11ClientDeclaration\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12+\n" +
-	"\x11backend_interface\x18\x02 \x01(\tR\x10backendInterface\x12)\n" +
+	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"\xc6\x01\n" +
+	"\x11ClientDeclaration\x12)\n" +
 	"\x10creation_service\x18\x04 \x01(\tR\x0fcreationService\x12%\n" +
-	"\x0econfig_message\x18\x05 \x01(\tR\rconfigMessageJ\x04\b\x03\x10\x04R\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xe1\x02\n" +
+	"\x0econfig_message\x18\x05 \x01(\tR\rconfigMessageJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04nameR\x11backend_interfaceR\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xd9\x02\n" +
 	"\x13ProviderDeclaration\x12#\n" +
-	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12A\n" +
+	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12A\n" +
 	"\x04sdks\x18\a \x03(\v2-.kit.codegen.v1.ProviderDeclaration.SdksEntryR\x04sdks\x1aR\n" +
 	"\tSdksEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.kit.codegen.v1.TargetSDKR\x05value:\x028\x01J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\b\x10\tR\ago_nameR\x0ego_constructorR\rgo_sdk_importR\x12go_sdk_client_typeR\x0fgo_sdk_accessorR\x0fcreation_fields\"M\n" +
+	"\x05value\x18\x02 \x01(\v2\x19.kit.codegen.v1.TargetSDKR\x05value:\x028\x01J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\b\x10\tR\x04nameR\ago_nameR\x0ego_constructorR\rgo_sdk_importR\x12go_sdk_client_typeR\x0fgo_sdk_accessorR\x0fcreation_fields\"M\n" +
 	"\tTargetSDK\x12\x1f\n" +
 	"\vimport_path\x18\x01 \x01(\tR\n" +
 	"importPath\x12\x1f\n" +

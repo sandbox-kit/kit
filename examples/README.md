@@ -31,7 +31,8 @@ cd tooling
 GOWORK=off go run ./cmd/sandbox-kit test go
 ```
 
-Verification compiles all six example modules. Resource/policy tests use dummy
+Verification tests all six example modules, including their error-kind handlers.
+Resource/policy tests use dummy
 credentials and local servers, exercising validation and SDK request mapping
 without cloud creation.
 

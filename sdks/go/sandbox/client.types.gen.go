@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	// Provider constructs an SDK from this configuration; it is never serialized.
+	// Provider constructs an SDK from this configuration and is never serialized.
 	Provider Provider       `json:"-" validate:"-"`
 	Auth     *AuthConfig    `json:"auth,omitempty" validate:"omitnil"`
 	Endpoint *string        `json:"endpoint,omitempty" validate:"omitnil,nonblank,http_url"`

@@ -17,6 +17,11 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Backend result          | `CreateResult`  | Shared sandbox metadata                           |
 | Public handle           | `Sandbox`       | Identity and copied `SandboxInfo`                 |
 
+Runtime declaration names come from `specs/api.yaml`; descriptor-driven getter,
+clone, validation, mapping, and origin signatures come from `specs/templates.yaml`. the Go profile owns
+representation and output suffixes. Protobuf annotations retain source contracts
+and SDK bindings, while the retired declaration-name fields are reserved.
+
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses `sandbox.NewClient(sandbox.Config{...})`.
 
@@ -29,7 +34,8 @@ sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
 proto/kit/providers/        Provider declarations
 specs/                     Portable validation and mapping rules
-tooling/internal/go/       Go emitters
+tooling/internal/model/    Language-neutral compiled generation model
+tooling/internal/go/       Go phase dispatcher and emitters
 examples/go/               Independent example modules
 ```
 

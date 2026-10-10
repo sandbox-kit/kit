@@ -7,8 +7,8 @@ SDK and its selected provider. Requires Go 1.26.1 or newer and this checkout.
 
 | Project                                                                | Required configuration                               | Local verification           |
 | ---------------------------------------------------------------------- | ---------------------------------------------------- | ---------------------------- |
-| [create-modal-sandbox](create-modal-sandbox/README.md)                 | Modal token pair, existing app, optional environment | Compile                      |
-| [create-daytona-sandbox](create-daytona-sandbox/README.md)             | Daytona API key, optional endpoint/target            | Compile                      |
+| [create-modal-sandbox](create-modal-sandbox/README.md)                 | Modal token pair, existing app, optional environment | Error-kind handling tests |
+| [create-daytona-sandbox](create-daytona-sandbox/README.md)             | Daytona API key, optional endpoint/target            | Error-kind handling tests |
 | [create-modal-with-resources](create-modal-with-resources/README.md)   | Modal token pair, existing app, optional environment | Validation and scope tests   |
 | [create-daytona-with-policies](create-daytona-with-policies/README.md) | Daytona API key, optional endpoint/target            | SDK request and policy tests |
 | [handle-modal-errors](handle-modal-errors/README.md) | Modal token pair and app name | Unsupported disk override and kind-switch tests |

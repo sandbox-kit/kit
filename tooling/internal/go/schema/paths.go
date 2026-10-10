@@ -4,20 +4,32 @@ package schema
 import (
 	"fmt"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"strings"
 )
 
-// Message resolves full identities; short names use the shared schema namespace.
+// Index adapts the language-neutral descriptor index to protogen input.
+func Index(p *protogen.Plugin) *model.Schema {
+	files := make([]protoreflect.FileDescriptor, 0, len(p.Files))
+	for _, file := range p.Files {
+		files = append(files, file.Desc)
+	}
+	return model.NewSchema(files)
+}
+
+// Message adapts a resolved descriptor to its Go emission metadata.
 func Message(p *protogen.Plugin, name string) (*protogen.Message, error) {
-	full := name
-	if !strings.Contains(full, ".") {
-		full = "kit.sandbox.v1." + name
+	descriptor, err := Index(p).Message(name)
+	if err != nil {
+		return nil, err
 	}
 	var walk func([]*protogen.Message) *protogen.Message
 	walk = func(messages []*protogen.Message) *protogen.Message {
 		for _, m := range messages {
-			if string(m.Desc.FullName()) == full {
+			if m.Desc.FullName() == descriptor.FullName() {
 				return m
 			}
 			if found := walk(m.Messages); found != nil {
@@ -31,56 +43,70 @@ func Message(p *protogen.Plugin, name string) (*protogen.Message, error) {
 			return found, nil
 		}
 	}
-	return nil, fmt.Errorf("unknown shared message %s", full)
+	return nil, fmt.Errorf("missing Go metadata for %s", descriptor.FullName())
 }
 
-// Resolve rejects paths that cross scalar, map, or native data leaves.
+// Resolve uses portable path semantics and attaches Go names afterward.
 func Resolve(p *protogen.Plugin, root, path string) ([]*protogen.Field, error) {
-	message, err := Message(p, root)
+	resolved, err := Index(p).Resolve(root, path)
 	if err != nil {
 		return nil, err
 	}
-	var result []*protogen.Field
-	parts := strings.Split(path, ".")
-	for i, part := range parts {
-		var found *protogen.Field
-		for _, field := range message.Fields {
-			if string(field.Desc.Name()) == part {
-				found = field
-				break
-			}
+	result := make([]*protogen.Field, 0, len(resolved.Fields))
+	for _, descriptor := range resolved.Fields {
+		field, err := Field(p, descriptor)
+		if err != nil {
+			return nil, err
 		}
-		if found == nil {
-			return nil, fmt.Errorf("unknown path %s.%s", root, path)
-		}
-		result = append(result, found)
-		if i < len(parts)-1 {
-			if found.Message == nil || found.Desc.IsMap() {
-				return nil, fmt.Errorf("path %s traverses a scalar or map", path)
-			}
-			if strings.HasPrefix(string(found.Message.Desc.FullName()), "google.protobuf.") || found.Message.Desc.FullName() == "kit.sandbox.v1.MetadataObject" {
-				return nil, fmt.Errorf("path %s traverses a native data leaf", path)
-			}
-			message = found.Message
-		}
+		result = append(result, field)
 	}
 	return result, nil
 }
 
-// Constant derives the Go identifier for a resolved shared field path.
-func Constant(root string, fields []*protogen.Field) string {
-	prefix := map[string]string{"CreateOptions": "CreateField", "Config": "ConfigField", "SandboxInfo": "InfoField"}[root]
-	for _, field := range fields {
-		prefix += naming.FieldName(field)
+// Field attaches Go emission metadata to an already-resolved portable field.
+func Field(p *protogen.Plugin, descriptor protoreflect.FieldDescriptor) (*protogen.Field, error) {
+	var walk func([]*protogen.Message) *protogen.Field
+	walk = func(messages []*protogen.Message) *protogen.Field {
+		for _, m := range messages {
+			if m.Desc.FullName() == descriptor.ContainingMessage().FullName() {
+				for _, field := range m.Fields {
+					if field.Desc.Number() == descriptor.Number() {
+						return field
+					}
+				}
+			}
+			if found := walk(m.Messages); found != nil {
+				return found
+			}
+		}
+		return nil
 	}
-	return prefix
+	if file := p.FilesByPath[descriptor.ParentFile().Path()]; file != nil {
+		if found := walk(file.Messages); found != nil {
+			return found, nil
+		}
+	}
+	return nil, fmt.Errorf("missing Go metadata for %s", descriptor.FullName())
+}
+
+// Constant derives the Go identifier for a resolved shared field path.
+func Constant(root string, fields []*protogen.Field, rules spec.FieldPathTemplates) string {
+	prefix := rules.Roots[root]
+	names := ""
+	for _, field := range fields {
+		names += naming.FieldName(field)
+	}
+	return strings.NewReplacer("{prefix}", prefix, "{fields}", names).Replace(rules.Name)
 }
 
 // Literal emits a reference to a validated, generated SDK field constant.
-func Literal(g *protogen.GeneratedFile, p *protogen.Plugin, root, path string) (string, error) {
+func Literal(g *protogen.GeneratedFile, p *protogen.Plugin, root, path string, rules spec.FieldPathTemplates) (string, error) {
+	if rules.Roots[root] == "" {
+		return "", fmt.Errorf("missing field-path root %s", root)
+	}
 	fields, err := Resolve(p, root, path)
 	if err != nil {
 		return "", err
 	}
-	return g.QualifiedGoIdent(protogen.GoIdent{GoName: Constant(root, fields), GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}), nil
+	return g.QualifiedGoIdent(protogen.GoIdent{GoName: Constant(root, fields, rules), GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}), nil
 }

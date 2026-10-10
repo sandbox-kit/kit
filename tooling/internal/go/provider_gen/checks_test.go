@@ -2,6 +2,7 @@ package providergen
 
 import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"go/parser"
 	"go/token"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -21,8 +22,9 @@ func checksFixture(t *testing.T) *protogen.Plugin {
 	return p
 }
 func TestProviderChecksPreservePresenceAndAllowedValues(t *testing.T) {
+	templates, profile := testutil.Generation(t, "../../../../specs")
 	p := checksFixture(t)
-	if err := GenerateChecks(p, p.Files[0], spec.Provider{Provider: "test", Checks: []spec.Check{{Path: "runtime.language", Allowed: []string{"python", "javascript"}}}}); err != nil {
+	if err := GenerateChecks(p, p.Files[0], spec.Provider{Provider: "test", Checks: []spec.Check{{Path: "runtime.language", Allowed: []string{"python", "javascript"}}}}, templates, profile); err != nil {
 		t.Fatal(err)
 	}
 	r := p.Response()
@@ -40,7 +42,7 @@ func TestProviderChecksPreservePresenceAndAllowedValues(t *testing.T) {
 	}
 	for _, check := range []spec.Check{{Path: "runtime.missing", Allowed: []string{"x"}}, {Path: "runtime.language", Format: "unknown"}, {Path: "runtime.language", Minimum: proto.Float64(1)}, {Path: "runtime.language"}} {
 		p := checksFixture(t)
-		if err := GenerateChecks(p, p.Files[0], spec.Provider{Checks: []spec.Check{check}}); err == nil {
+		if err := GenerateChecks(p, p.Files[0], spec.Provider{Checks: []spec.Check{check}}, templates, profile); err == nil {
 			t.Fatal("invalid check accepted")
 		}
 	}

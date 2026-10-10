@@ -11,14 +11,14 @@ import (
 	time "time"
 )
 
-// Backend is the full local operation and resource-ownership contract.
+// Backend is the local operation and SDK cleanup contract.
 type Backend interface {
 	Name() string
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
 	Close(context.Context) error
 }
 
-// Provider initializes an SDK from the shared client configuration.
+// Provider initializes the provider SDK from shared configuration.
 type Provider interface {
 	Name() string
 	NewClient(*Config) (Backend, error)
@@ -74,9 +74,9 @@ func NewClient(config Config) (client *Client, result error) {
 	}
 	return &Client{backend: backend, timeout: timeout}, nil
 }
-func (c *Client) ProviderName() string { return c.backend.Name() }
-
-// Close releases resources owned by the provider SDK; it does not delete sandboxes.
+func (c *Client) ProviderName() string {
+	return c.backend.Name()
+}
 func (c *Client) Close(ctx context.Context) (result error) {
 	provider := ""
 	if c != nil && c.backend != nil {

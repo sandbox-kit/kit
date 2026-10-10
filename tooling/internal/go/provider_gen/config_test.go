@@ -1,6 +1,7 @@
 package providergen
 
 import (
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"go/parser"
 	"go/token"
 	"strings"
@@ -101,10 +102,11 @@ func TestCompositionRejectsConflictsAndNativeTypeMismatch(t *testing.T) {
 }
 
 func TestClientSpecControlsRejectedFields(t *testing.T) {
+	templates, profile := testutil.Generation(t, "../../../../specs")
 	for _, message := range []string{"endpoint unavailable", "use default endpoint"} {
 		p := configFixture(t)
 		s := spec.Provider{Provider: "custom", Client: &spec.ClientMapping{Target: spec.Type{Name: "Params", Bindings: map[string]spec.Binding{"go": {Import: "example.com/sdk", Name: "Params"}}}, Rejected: map[string]string{"endpoint": message}}}
-		if err := GenerateConfig(p, p.Files[0], s); err != nil {
+		if err := GenerateConfig(p, p.Files[0], s, templates, profile); err != nil {
 			t.Fatal(err)
 		}
 		r := p.Response()
@@ -122,6 +124,7 @@ func TestClientSpecControlsRejectedFields(t *testing.T) {
 }
 
 func TestRejectsUnknownClientAssemblyBindings(t *testing.T) {
+	templates, profile := testutil.Generation(t, "../../../../specs")
 	for _, edit := range []func(*spec.ClientMapping){
 		func(c *spec.ClientMapping) { c.Managed = []string{"misspelled"} },
 		func(c *spec.ClientMapping) { c.Settings = "missingMapping" },
@@ -133,7 +136,7 @@ func TestRejectsUnknownClientAssemblyBindings(t *testing.T) {
 		p := configFixture(t)
 		c := &spec.ClientMapping{Target: spec.Type{Name: "Params", Bindings: map[string]spec.Binding{"go": {Import: "example.com/sdk", Name: "Params"}}}}
 		edit(c)
-		if err := GenerateConfig(p, p.Files[0], spec.Provider{Provider: "custom", Client: c}); err == nil {
+		if err := GenerateConfig(p, p.Files[0], spec.Provider{Provider: "custom", Client: c}, templates, profile); err == nil {
 			t.Fatal("invalid binding accepted")
 		}
 	}

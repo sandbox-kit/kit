@@ -1,0 +1,99 @@
+version: 1
+# Types and names in braces are descriptor/mapping bindings, not source code.
+callables:
+  getter:
+    owner: subject
+    declaration:
+      id: getter
+      name: 'Get{field}'
+      receiver: x
+      behavior: getter
+      results: [{type: {ref: field_value}}]
+  clone:
+    owner: subject
+    declaration:
+      id: clone
+      name: Clone
+      receiver: x
+      behavior: clone
+      results: [{type: {ref: subject, reference: true, ownership: owned}}]
+      fallible: true
+  clone_internal:
+    owner: subject
+    declaration:
+      id: clone_internal
+      name: clone
+      receiver: x
+      behavior: clone_internal
+      params: [{id: depth, name: depth, type: {builtin: index}}]
+      results: [{type: {ref: subject, reference: true, ownership: owned}}]
+      fallible: true
+  validator_factory:
+    declaration:
+      id: validator_factory
+      name: 'new{subject}Validator'
+      behavior: validator_factory
+      results: [{type: {ref: validator, reference: true}}]
+  validation:
+    declaration:
+      id: validation
+      name: 'Validate{subject}'
+      behavior: validation
+      params: [{id: request, name: request, type: {ref: subject, reference: true, nullable: true}}]
+      fallible: true
+  request_mapping:
+    declaration:
+      id: request_mapping
+      name: '{mapping}'
+      behavior: request_mapping
+      params: [{id: source, name: source, type: {ref: source, reference: true, nullable: true}}]
+      results: [{type: {ref: target}}, {type: {ref: source}}]
+      fallible: true
+  response_mapping:
+    declaration:
+      id: response_mapping
+      name: '{mapping}'
+      behavior: response_mapping
+      params: [{id: source, name: source, type: {ref: source, reference: true, nullable: true}}]
+      results: [{type: {ref: target}}]
+      fallible: true
+  client_mapping:
+    declaration:
+      id: client_mapping
+      name: mapClientConfig
+      behavior: client_mapping
+      params: [{id: config, name: config, type: {ref: config, reference: true, nullable: true}}]
+      results: [{type: {ref: target}}]
+      fallible: true
+  provider_checks:
+    declaration:
+      id: provider_checks
+      name: validateProviderCreate
+      behavior: provider_checks
+      params: [{id: request, name: request, type: {ref: request, reference: true, nullable: true}}]
+      fallible: true
+  response_presence:
+    declaration:
+      id: response_presence
+      name: responseFieldPresent
+      behavior: response_presence
+      params:
+        - {id: info, name: info, type: {ref: response, reference: true, nullable: true}}
+        - {id: path, name: path, type: {builtin: string}}
+      results: [{type: {builtin: boolean}}]
+  response_origins:
+    declaration:
+      id: response_origins
+      name: validateResponseOrigins
+      behavior: response_origins
+      params: [{id: info, name: info, type: {ref: response, reference: true}}]
+      fallible: true
+field_paths:
+  name: '{prefix}{fields}'
+  roots:
+    CreateOptions: CreateField
+    Config: ConfigField
+    SandboxInfo: InfoField
+  native_leaves: [kit.sandbox.v1.MetadataObject]
+  native_namespaces: [google.protobuf.]
+  excluded_origins: [origins]

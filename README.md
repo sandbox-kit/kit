@@ -4,7 +4,7 @@ Create sandboxes through one Go API. Install the public SDK and the provider you
 need; each provider initializes its official SDK from shared configuration.
 
 Go integrations for Modal and Daytona currently support authentication, sandbox
-creation, validation, and shared identity/metadata. Execution, lifecycle methods,
+creation, validation, shared metadata, and common error kinds. Execution, lifecycle methods,
 storage, GPU requests, harness integrations, and other language SDKs are planned.
 
 ## Get started
@@ -21,7 +21,8 @@ go run .
 ```
 
 Skip copying the template if you already have a configured `.env`.
-Running an example creates one real sandbox. Closing the client releases SDK
+Running a creation example creates one real sandbox. Error-handling examples
+exercise local failures without cloud creation. Closing the client releases SDK
 resources; use the provider's tools to stop or delete the sandbox.
 
 | Example                                                                | Demonstrates                                                   |
@@ -30,6 +31,8 @@ resources; use the provider's tools to stop or delete the sandbox.
 | [Modal creation](examples/go/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image |
 | [Daytona policies](examples/go/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                       |
 | [Modal resources](examples/go/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                            |
+| [Modal errors](examples/go/handle-modal-errors/README.md) | Handle an unsupported disk override with `ErrorKindUnsupported` |
+| [Daytona errors](examples/go/handle-daytona-errors/README.md) | Handle an invalid CPU request with `ErrorKindInvalidArgument` |
 
 Each project has its own module, `.env.example`, and selected provider. Modal
 requires an existing app; its [setup guide](examples/go/create-modal-sandbox/README.md)
@@ -40,7 +43,6 @@ explains token and app creation. Credentials stay in Git-ignored `.env` files.
 ```go
 import (
     "context"
-    "errors"
     "fmt"
     "os"
     "time"
@@ -61,7 +63,13 @@ func createSandbox() (result error) {
         return err
     }
     defer func() {
-        result = errors.Join(result, client.Close(context.Background()))
+        if closeErr := client.Close(context.Background()); closeErr != nil {
+            if result == nil {
+                result = closeErr
+            } else {
+                handleError(closeErr)
+            }
+        }
     }()
 
     instance, err := client.Create(context.Background(), nil)
@@ -79,6 +87,54 @@ Applications supply credentials and environment variables. The examples load
 For your own application, add local replacements for the public SDK and selected
 provider as shown in the example modules. The `v0.0.0` requirements are
 development placeholders, not published release versions.
+
+## Handle errors
+
+Use `errors.As` to extract `*sandbox.Error`, then switch on its `Kind`.
+The same categories work with Modal and Daytona. No native SDK imports are needed.
+Call this handler when `createSandbox()` returns an error; the cleanup code above
+also uses it when creation and cleanup both fail.
+
+```go
+import (
+    "errors"
+    "fmt"
+    "os"
+
+    "github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func handleError(err error) {
+    var sandboxError *sandbox.Error
+    if !errors.As(err, &sandboxError) {
+        fmt.Fprintln(os.Stderr, err) // For example, a missing .env file.
+        return
+    }
+
+    switch sandboxError.Kind {
+    case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
+        fmt.Fprintf(os.Stderr, "Check %s: %s\n", sandboxError.Field, sandboxError.Message)
+    case sandbox.ErrorKindAuthentication:
+        fmt.Fprintln(os.Stderr, "Check your provider credentials.")
+    case sandbox.ErrorKindPermissionDenied:
+        fmt.Fprintln(os.Stderr, "Your account does not have permission for this operation.")
+    case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
+        fmt.Fprintln(os.Stderr, "The provider's rate or resource limit was reached.")
+    case sandbox.ErrorKindCanceled:
+        fmt.Fprintln(os.Stderr, "The operation was canceled.")
+    case sandbox.ErrorKindTimeout:
+        fmt.Fprintln(os.Stderr, "The operation timed out.")
+    default:
+        fmt.Fprintln(os.Stderr, err)
+    }
+}
+```
+
+`Field` identifies the setting involved when available. Error kinds do not imply
+safe retries: creation can fail after a sandbox has already been provisioned.
+See the independent [Modal](examples/go/handle-modal-errors/README.md) and
+[Daytona](examples/go/handle-daytona-errors/README.md) error examples, or the
+[full contract guide](docs/responses-and-errors.md).
 
 ## Configuration and results
 
@@ -110,6 +166,7 @@ whole GiB allocations expressed as MiB.
 | [Sandbox creation](docs/sandbox-creation.md)            | Supported fields, units, and policy semantics             |
 | [Provider architecture](docs/providers.md)              | Optional modules, contracts, and SDK boundaries           |
 | [Responses and errors](docs/responses-and-errors.md) | Presence, origins, error details, and native causes |
+| [API declarations](docs/api-declarations.md) | Runtime declarations and language representation rules |
 | [Code generation](docs/code-generation.md)              | Protobuf, YAML rules, bindings, and extension workflow    |
 | [Reference verification](docs/provider-verification.md) | Sources, conflicting documentation, and validation limits |
 | [Naming](docs/naming.md)                                | Public names, package layout, and generated files         |
@@ -128,7 +185,9 @@ and all six example modules. Example tests use dummy credentials and local
 servers; they create no cloud resources.
 
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
-Go module under `tooling/`. Runtime modules live in `sdks/<language>/`.
+Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves
+these inputs before language emission. `specs/generation.yaml` defines generation
+phases and client-operation sequences. Runtime modules live in `sdks/<language>/`.
 Update examples and docs with public changes, regenerate affected output, and
 verify before submitting. See [tooling](tooling/README.md) and
 [repository instructions](AGENTS.md).

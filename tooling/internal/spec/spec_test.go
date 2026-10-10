@@ -24,7 +24,7 @@ func TestRepositorySpecs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !client.Validation.Messages["APIKeyCredentials"].Fields["key"].Sensitive || client.ProviderContract != "Provider" {
+	if !client.Validation.Messages["APIKeyCredentials"].Fields["key"].Sensitive {
 		t.Fatal("missing initialization or credential metadata")
 	}
 

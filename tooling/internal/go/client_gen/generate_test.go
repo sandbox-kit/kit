@@ -7,13 +7,15 @@ import (
 	"testing"
 
 	codegenv1 "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
-func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (string, error) {
+func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration, edit func(*spec.API)) (string, error) {
 	t.Helper()
 	options := &descriptorpb.FileOptions{
 		GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox"),
@@ -35,7 +37,32 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (st
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(plugin, plugin.Files[0]); err != nil {
+	compiled, err := model.CompileClient(plugin.Files[0].Desc)
+	if err != nil {
+		return "", err
+	}
+	generation, err := spec.LoadGeneration("../../../../specs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	compiled.Operations = generation.Operations
+	raw, err := spec.LoadAPI("../../../../specs")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edit != nil {
+		edit(&raw)
+	}
+	api, err := model.CompileAPI(raw)
+	if err != nil {
+		return "", err
+	}
+	compiled.Surface = api.Modules["client"]
+	profile, err := spec.LoadLanguageProfile("../../../../specs", "go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := Generate(plugin, plugin.Files[0], compiled, profile); err != nil {
 		return "", err
 	}
 	response := plugin.Response()
@@ -49,8 +76,21 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration) (st
 }
 
 func TestGeneratesConfiguredNamesAndValidGo(t *testing.T) {
-	source, err := generateForTest(t, &codegenv1.ClientDeclaration{
-		Name: "Session", BackendInterface: "Backend",
+	source, err := generateForTest(t, &codegenv1.ClientDeclaration{}, func(raw *spec.API) {
+		module := raw.Modules["client"]
+		for i, typ := range module.Types {
+			if typ.ID == "client" {
+				typ.Name = "Session"
+			}
+			module.Types[i] = typ
+		}
+		for i, function := range module.Functions {
+			if function.ID == "constructor" {
+				function.Name = "NewSession"
+			}
+			module.Functions[i] = function
+		}
+		raw.Modules["client"] = module
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -71,8 +111,15 @@ func TestGeneratesConfiguredNamesAndValidGo(t *testing.T) {
 func TestRejectsInvalidOrCollidingNames(t *testing.T) {
 	for _, name := range []string{"", "client", "type", "Client;panic()", "Provider"} {
 		t.Run(name, func(t *testing.T) {
-			_, err := generateForTest(t, &codegenv1.ClientDeclaration{
-				Name: name, BackendInterface: "Provider",
+			_, err := generateForTest(t, &codegenv1.ClientDeclaration{}, func(raw *spec.API) {
+				module := raw.Modules["client"]
+				for i, typ := range module.Types {
+					if typ.ID == "client" {
+						typ.Name = name
+					}
+					module.Types[i] = typ
+				}
+				raw.Modules["client"] = module
 			})
 			if err == nil {
 				t.Fatal("invalid declaration was accepted")
@@ -82,7 +129,7 @@ func TestRejectsInvalidOrCollidingNames(t *testing.T) {
 }
 
 func TestSkipsFilesWithoutClientAnnotation(t *testing.T) {
-	source, err := generateForTest(t, nil)
+	source, err := generateForTest(t, nil, nil)
 	if err != nil || source != "" {
 		t.Fatalf("unexpected generation: %q, %v", source, err)
 	}

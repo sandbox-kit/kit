@@ -12,7 +12,7 @@ import (
 func newGenerateCommand(config *settings, runner runner) *cobra.Command {
 	command := &cobra.Command{Use: "generate", Short: "Generate SDK source"}
 	command.AddCommand(&cobra.Command{
-		Use: "go", Short: "Generate Go clients and adapters from protobuf declarations",
+		Use: "go", Short: "Generate Go SDKs from protobuf and YAML declarations",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			root, err := resolveRoot(config.repoRoot)

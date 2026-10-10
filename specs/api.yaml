@@ -1,0 +1,189 @@
+version: 1
+# Shared data fields remain in protobuf. These declarations describe runtime APIs.
+modules:
+  client:
+    attachments:
+      - target: schema.Config
+        fields:
+          - id: provider
+            name: Provider
+            doc: constructs an SDK from this configuration and is never serialized.
+            type: {ref: provider}
+            runtime_only: true
+    types:
+      - id: backend
+        name: Backend
+        doc: is the local operation and SDK cleanup contract.
+        kind: interface
+        visibility: public
+        methods:
+          - {id: name, name: Name, results: [{type: {builtin: string}}]}
+          - id: create
+            name: Create
+            cancellable: true
+            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true, nullable: true}}]
+            results: [{type: {ref: schema.CreateResult, reference: true}}]
+            fallible: true
+          - {id: close, name: Close, cancellable: true, fallible: true}
+      - id: provider
+        name: Provider
+        doc: initializes the provider SDK from shared configuration.
+        kind: interface
+        visibility: public
+        methods:
+          - {id: name, name: Name, results: [{type: {builtin: string}}]}
+          - id: initialize
+            name: NewClient
+            params: [{id: config, name: config, type: {ref: schema.Config, reference: true}}]
+            results: [{type: {ref: backend}}]
+            fallible: true
+      - id: client
+        name: Client
+        doc: owns its initialized provider SDK. Close it when finished.
+        kind: object
+        visibility: public
+        fields:
+          - {id: backend, name: backend, type: {ref: backend}}
+          - {id: timeout, name: timeout, type: {ref: duration, optional: true}}
+        methods:
+          - {id: provider_name, name: ProviderName, behavior: provider_name, results: [{type: {builtin: string}}], receiver: c}
+          - {id: close, name: Close, behavior: close, cancellable: true, fallible: true, receiver: c, named_results: true}
+          - id: create
+            name: Create
+            behavior: create
+            receiver: c
+            cancellable: true
+            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true, nullable: true}}]
+            results: [{id: instance, name: instance, type: {ref: sandbox_handle, reference: true}}]
+            fallible: true
+            named_results: true
+    functions:
+      - id: constructor
+        name: NewClient
+        kind: constructor
+        constructs: client
+        effect: io
+        behavior: initialize
+        params: [{id: config, name: config, type: {ref: schema.Config}}]
+        results: [{id: client, name: client, type: {ref: client, reference: true}}]
+        fallible: true
+        named_results: true
+      - id: missing_binding
+        name: missingClientBinding
+        behavior: missing_binding
+        params: [{id: binding, name: binding, type: {builtin: any}}]
+        results: [{type: {builtin: boolean}}]
+  provider:
+    types:
+      - id: provider
+        name: Provider
+        doc: initializes the provider SDK from shared configuration.
+        kind: object
+        visibility: public
+        methods:
+          - {id: name, name: Name, behavior: provider_name, results: [{type: {builtin: string}}]}
+          - id: initialize
+            name: NewClient
+            behavior: initialize_provider
+            params: [{id: config, name: config, type: {ref: schema.Config, reference: true}}]
+            results: [{type: {ref: provider_backend}}]
+            fallible: true
+      - id: backend
+        name: backend
+        doc: owns the initialized native SDK and captured configuration.
+        kind: object
+        visibility: private
+        fields:
+          - {id: client, name: client, type: {ref: native_client, reference: true}}
+        fields_from: provider_state
+        methods:
+          - {id: name, name: Name, behavior: provider_name, results: [{type: {builtin: string}}]}
+          - id: create
+            name: Create
+            behavior: provider_create
+            receiver: a
+            cancellable: true
+            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true}}]
+            results: [{type: {ref: schema.CreateResult, reference: true}}]
+            fallible: true
+          - {id: close, name: Close, behavior: provider_close, receiver: a, cancellable: true, fallible: true}
+    functions:
+      - {id: constructor, name: New, kind: constructor, constructs: provider, effect: pure, behavior: select_provider, results: [{type: {ref: provider, reference: true}}]}
+      - id: initialize_backend
+        name: newBackend
+        behavior: initialize_backend
+        params: [{id: config, name: config, type: {ref: schema.Config, reference: true, nullable: true}}]
+        results: [{type: {ref: provider_backend}}]
+        fallible: true
+      - id: capture_state
+        name: captureBackendState
+        behavior: capture_state
+        params:
+          - {id: result, name: result, type: {ref: backend, reference: true}}
+          - {id: config, name: config, type: {ref: schema.Config, reference: true, nullable: true}}
+  errors:
+    types:
+      - id: error
+        name: Error
+        kind: object
+        visibility: public
+        doc: exposes portable details and retains the native cause.
+        fields:
+          - {id: ErrorInfo, name: ErrorInfo, promote: true, type: {ref: schema.ErrorInfo}}
+          - {id: cause, name: cause, type: {ref: runtime_cause, nullable: true}}
+        methods:
+          - {id: message, name: Error, behavior: error_message, receiver: e, results: [{type: {builtin: string}}]}
+          - {id: unwrap, name: Unwrap, behavior: unwrap, receiver: e, results: [{type: {ref: runtime_cause, nullable: true}}]}
+    functions:
+      - id: constructor
+        name: NewError
+        kind: constructor
+        constructs: error
+        effect: pure
+        behavior: new_error
+        doc: copies portable details and retains the original cause.
+        params:
+          - {id: info, name: info, type: {ref: schema.ErrorInfo}}
+          - {id: cause, name: cause, type: {ref: runtime_cause, nullable: true}}
+        results: [{type: {ref: error, reference: true, ownership: owned}}]
+      - id: context
+        name: WithErrorContext
+        behavior: error_context
+        params:
+          - {id: err, name: err, type: {ref: runtime_cause, nullable: true}}
+          - {id: provider, name: provider, type: {builtin: string}}
+          - {id: operation, name: operation, type: {builtin: string}}
+        results: [{type: {ref: runtime_cause, nullable: true}}]
+      - id: validation_error
+        name: validationError
+        behavior: validation_error
+        params: [{id: err, name: err, type: {ref: runtime_cause}}]
+        results: [{type: {ref: runtime_cause}}]
+      - id: validation_path
+        name: validationPath
+        behavior: validation_path
+        params: [{id: namespace, name: namespace, type: {builtin: string}}]
+        results: [{type: {builtin: string}}]
+      - id: clone_metadata
+        name: cloneMetadata
+        behavior: clone_metadata
+        params: [{id: source, name: source, type: {map: {key: {builtin: string}, value: {builtin: any}}, nullable: true}}]
+        results: [{type: {map: {key: {builtin: string}, value: {builtin: any}}, nullable: true}}]
+        fallible: true
+      - id: copy_metadata
+        name: copyMetadataValue
+        behavior: copy_metadata
+        params:
+          - {id: value, name: value, type: {builtin: any, nullable: true}}
+          - {id: depth, name: depth, type: {builtin: index}}
+        results: [{type: {builtin: any, nullable: true}}]
+        fallible: true
+  helpers:
+    functions:
+      - id: value
+        name: Value
+        behavior: value
+        doc: marks an optional scalar as explicitly supplied, including zero and false.
+        generics: [{id: T, name: T, type: {builtin: any}}]
+        params: [{id: value, name: value, type: {ref: T}}]
+        results: [{type: {ref: T, reference: true}}]

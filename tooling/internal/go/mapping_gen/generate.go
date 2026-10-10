@@ -7,9 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
 	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -18,14 +20,8 @@ import (
 const sandbox = "github.com/sandbox-kit/kit/sdks/go/sandbox"
 
 func message(p *protogen.Plugin, name string) *protogen.Message {
-	for _, f := range p.Files {
-		for _, m := range f.Messages {
-			if m.GoIdent.GoName == name && string(f.GoImportPath) == sandbox {
-				return m
-			}
-		}
-	}
-	return nil
+	m, _ := schema.Message(p, name)
+	return m
 }
 func member(p *protogen.Plugin, t spec.Type, name string) (string, *protogen.Field, error) {
 	if native, ok := t.Bindings["go"]; ok {
@@ -53,12 +49,16 @@ func ident(t spec.Type) protogen.GoIdent {
 	}
 	return protogen.GoIdent{GoName: name, GoImportPath: protogen.GoImportPath(path)}
 }
-func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
+
+// Generate emits a validated portable mapping plan using Go SDK bindings.
+func Generate(p *protogen.Plugin, f *protogen.File, compiled model.Provider, templates model.Templates, profile spec.LanguageProfile) error {
+	rules := compiled.Rules
 	g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+".mappings.gen.go", f.GoImportPath)
 	g.P("// Code generated from specs/providers/", rules.Provider, ".yaml. DO NOT EDIT.")
 	g.P("package ", f.GoPackageName)
 	seen := map[string]bool{}
-	for _, group := range rules.Groups {
+	for _, resolvedGroup := range compiled.Groups {
+		group := resolvedGroup.Rule
 		if !token.IsIdentifier(group.Name) || seen[group.Name] {
 			return fmt.Errorf("invalid/duplicate mapping group %q", group.Name)
 		}
@@ -67,30 +67,33 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 		if !request && group.Direction != "response" {
 			return fmt.Errorf("invalid mapping direction %q", group.Direction)
 		}
+		template := "response_mapping"
 		if request {
-			g.P("func ", group.Name, "(source *", ident(group.Source), ") (", ident(group.Target), ",", ident(group.Source), ",error){")
-		} else {
-			g.P("func ", group.Name, "(source *", ident(group.Source), ") (", ident(group.Target), ",error){")
+			template = "request_mapping"
 		}
-		g.P("target:=", ident(group.Target), "{}")
+		d, c, err := (declarationgen.TemplateEmitter{G: g, Plugin: p, Templates: templates, Profile: profile}).Begin(template, declarationgen.TemplateBindings{Names: map[string]string{"mapping": group.Name}, Types: map[string]spec.TypeRef{"source": {Ref: "native_source"}, "target": {Ref: "native_target"}}, Externals: map[string]spec.ExternalType{"native_source": declarationgen.NamedBinding(ident(group.Source)), "native_target": declarationgen.NamedBinding(ident(group.Target))}})
+		if err != nil {
+			return err
+		}
+		d.Body(c, "target:=", ident(group.Target), "{}")
 		if request {
-			g.P("remaining:=", ident(group.Source), "{};if source!=nil{remaining=*source}")
+			d.Body(c, "remaining:=", ident(group.Source), "{};if ", d.Param(c, "source"), "!=nil{remaining=*", d.Param(c, "source"), "}")
 		}
 		returns := "target,nil"
 		if request {
 			returns = "target,remaining,nil"
 		}
-		g.P("if source==nil{return ", returns, "}")
+		d.Body(c, "if ", d.Param(c, "source"), "==nil{return ", returns, "}")
 		conditions := []string{}
 		for _, condition := range group.When {
 			member, _, err := member(p, group.Source, condition.Field)
 			if err != nil {
 				return err
 			}
-			conditions = append(conditions, fmt.Sprintf("source.%s>%d", member, condition.GreaterThan))
+			conditions = append(conditions, fmt.Sprintf("%s.%s>%d", d.Param(c, "source"), member, condition.GreaterThan))
 		}
 		if len(conditions) > 0 {
-			g.P("if !(", strings.Join(conditions, " && "), "){return ", returns, "}")
+			d.Body(c, "if !(", strings.Join(conditions, " && "), "){return ", returns, "}")
 		}
 
 		destinations := map[string]bool{}
@@ -98,29 +101,28 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 			if group.Direction != "response" || group.Target.Name != "SandboxInfo" || (group.Origin != "provider" && group.Origin != "request") {
 				return fmt.Errorf("invalid response origin")
 			}
-			g.P("target.Origins=map[string]", protogen.GoIdent{GoName: "ValueOrigin", GoImportPath: sandbox}, "{}")
+			d.Body(c, "target.Origins=map[string]", protogen.GoIdent{GoName: "ValueOrigin", GoImportPath: sandbox}, "{}")
 		}
-		for _, mapping := range group.Fields {
-			errorPath := mapping.From
-			if group.ErrorPath != "" {
-				errorPath = group.ErrorPath + "." + mapping.From
-			}
-			if root := message(p, "CreateOptions"); root != nil {
-				for _, field := range root.Fields {
-					if group.ErrorPath == "" && field.Message != nil && field.Message.GoIdent.GoName == group.Source.Name {
-						errorPath = string(field.Desc.Name()) + "." + mapping.From
-					}
-				}
-			}
+		for _, resolvedMapping := range resolvedGroup.Fields {
+			mapping := resolvedMapping.Rule
+			errorPath := resolvedMapping.ErrorPath
 			if destinations[mapping.To] {
 				return fmt.Errorf("%s: duplicate destination %s", group.Name, mapping.To)
 			}
 			destinations[mapping.To] = true
-			from, sf, err := member(p, group.Source, mapping.From)
+			shared, err := schema.Field(p, resolvedMapping.Shared.Fields[len(resolvedMapping.Shared.Fields)-1])
 			if err != nil {
 				return err
 			}
-			to, tf, err := member(p, group.Target, mapping.To)
+			var from, to string
+			var sf, tf *protogen.Field
+			if request {
+				from, sf = naming.FieldName(shared), shared
+				to, tf, err = member(p, group.Target, mapping.To)
+			} else {
+				to, tf = naming.FieldName(shared), shared
+				from, sf, err = member(p, group.Source, mapping.From)
+			}
 			if err != nil {
 				return err
 			}
@@ -129,45 +131,45 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 					return fmt.Errorf("invalid policy_minutes mapping %s", mapping.From)
 				}
 				label := "sandbox-kit " + rules.Provider + ": " + mapping.From
-				fieldPath, err := schema.Literal(g, p, "CreateOptions", "lifetime."+mapping.From)
+				fieldPath, err := schema.Literal(g, p, "CreateOptions", "lifetime."+mapping.From, templates.FieldPaths)
 				if err != nil {
 					return err
 				}
 				fail := func(message, kind string) {
-					g.P("return target,remaining,", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: strconv.Quote(rules.Provider), Operation: strconv.Quote("create"), Field: fieldPath, Message: strconv.Quote(label + ": " + message)}))
+					d.Body(c, "return target,remaining,", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: strconv.Quote(rules.Provider), Operation: strconv.Quote("create"), Field: fieldPath, Message: strconv.Quote(label + ": " + message)}))
 				}
-				g.P("if policy:=source.", from, ";policy!=nil{switch policy.Mode{")
-				g.P("case ", protogen.GoIdent{GoName: "PolicyModeDefault", GoImportPath: sandbox}, ":")
-				g.P("case ", protogen.GoIdent{GoName: "PolicyModeDisabled", GoImportPath: sandbox}, ":")
+				d.Body(c, "if policy:=", d.Param(c, "source"), ".", from, ";policy!=nil{switch policy.Mode{")
+				d.Body(c, "case ", protogen.GoIdent{GoName: "PolicyModeDefault", GoImportPath: sandbox}, ":")
+				d.Body(c, "case ", protogen.GoIdent{GoName: "PolicyModeDisabled", GoImportPath: sandbox}, ":")
 				if mapping.Policy.Disabled == "zero" {
-					g.P("target.", to, "=", protogen.GoIdent{GoName: "Value", GoImportPath: sandbox}, "(0)")
+					d.Body(c, "target.", to, "=", protogen.GoIdent{GoName: "Value", GoImportPath: sandbox}, "(0)")
 				} else {
 					fail("explicit disabling is not representable; native zero has a different meaning", "ErrorKindUnsupported")
 				}
-				g.P("case ", protogen.GoIdent{GoName: "PolicyModeAfter", GoImportPath: sandbox}, ":")
-				g.P("if policy.After==nil{")
+				d.Body(c, "case ", protogen.GoIdent{GoName: "PolicyModeAfter", GoImportPath: sandbox}, ":")
+				d.Body(c, "if policy.After==nil{")
 				fail("duration is required", "ErrorKindInvalidArgument")
-				g.P("}")
+				d.Body(c, "}")
 				minute := protogen.GoIdent{GoName: "Minute", GoImportPath: "time"}
 				comparison := "<0"
 				if !mapping.Policy.Immediate {
-					g.P("if *policy.After==0{")
+					d.Body(c, "if *policy.After==0{")
 					fail("immediate action is not representable", "ErrorKindUnsupported")
-					g.P("}")
+					d.Body(c, "}")
 				}
-				g.P("duration:=*policy.After;if duration", comparison, " || duration%", minute, "!=0 || duration/", minute, ">2147483647{")
+				d.Body(c, "duration:=*policy.After;if duration", comparison, " || duration%", minute, "!=0 || duration/", minute, ">2147483647{")
 				fail("delay cannot be represented in whole minutes", "ErrorKindInvalidArgument")
-				g.P("}")
+				d.Body(c, "}")
 				if mapping.Maximum != nil {
-					g.P("if duration/", minute, ">", *mapping.Maximum, "{")
+					d.Body(c, "if duration/", minute, ">", *mapping.Maximum, "{")
 					fail("delay exceeds documented maximum", "ErrorKindInvalidArgument")
-					g.P("}")
+					d.Body(c, "}")
 				}
-				g.P("value:=int(duration/", minute, ");target.", to, "=&value")
-				g.P("default:")
+				d.Body(c, "value:=int(duration/", minute, ");target.", to, "=&value")
+				d.Body(c, "default:")
 				fail("unknown policy mode", "ErrorKindInvalidArgument")
-				g.P("}}")
-				g.P("remaining.", from, "=nil")
+				d.Body(c, "}}")
+				d.Body(c, "remaining.", from, "=nil")
 				continue
 			}
 			if mapping.Policy != nil {
@@ -176,17 +178,17 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 			duration := sf != nil && sf.Message != nil && sf.Message.Desc.FullName() == "google.protobuf.Duration"
 			optional := sf != nil && sf.Desc.HasPresence() && (sf.Desc.Kind() != protoreflect.MessageKind || duration)
 			if optional {
-				g.P("if source.", from, "!=nil{")
+				d.Body(c, "if ", d.Param(c, "source"), ".", from, "!=nil{")
 			}
-			value := "source." + from
+			value := d.Param(c, "source") + "." + from
 			if optional {
-				value = "source.Get" + from + "()"
+				value = d.Param(c, "source") + ".Get" + from + "()"
 				if duration {
-					value = "*source." + from
+					value = "*" + d.Param(c, "source") + "." + from
 				}
 			}
-			g.P("{")
-			g.P("value:=", value)
+			d.Body(c, "{")
+			d.Body(c, "value:=", value)
 			invalid := ""
 			comparisonValue := ""
 			switch mapping.Transform {
@@ -197,7 +199,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 				if mapping.Factor == 0 || sf == nil || sf.Desc.Kind() != protoreflect.DoubleKind || mapping.Cast != "" {
 					return fmt.Errorf("scaled_integer requires a shared double, positive factor, and no cast")
 				}
-				g.P("scaled:=", protogen.GoIdent{GoName: "Round", GoImportPath: "math"}, "(value*", mapping.Factor, ")")
+				d.Body(c, "scaled:=", protogen.GoIdent{GoName: "Round", GoImportPath: "math"}, "(value*", mapping.Factor, ")")
 				invalid = fmt.Sprintf("%s(value) || %s(value,0) || value<0 || value!=scaled/%d", g.QualifiedGoIdent(protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}), g.QualifiedGoIdent(protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}), mapping.Factor)
 				comparisonValue = "scaled"
 			case "duration_seconds":
@@ -255,17 +257,17 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 					if sf != nil && resolvedFields[len(resolvedFields)-1].Desc.FullName() != sf.Desc.FullName() {
 						return fmt.Errorf("error path does not match mapping source %s", mapping.From)
 					}
-					resolved, err := schema.Literal(g, p, "CreateOptions", errorPath)
+					resolved, err := schema.Literal(g, p, "CreateOptions", errorPath, templates.FieldPaths)
 					if err != nil {
 						return err
 					}
 					field = resolved
 				}
-				g.P("if ", invalid, "{return ", errreturn, errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: strconv.Quote(rules.Provider), Operation: strconv.Quote("create"), Field: field, Message: strconv.Quote("sandbox-kit " + rules.Provider + ": " + mapping.From + " cannot be represented")}), "}")
+				d.Body(c, "if ", invalid, "{return ", errreturn, errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, kind), Provider: strconv.Quote(rules.Provider), Operation: strconv.Quote("create"), Field: field, Message: strconv.Quote("sandbox-kit " + rules.Provider + ": " + mapping.From + " cannot be represented")}), "}")
 			}
 			if mapping.Transform == "scaled_integer" {
 				// Compensate for binary rounding before SDKs truncate scaled values.
-				g.P("if value*", mapping.Factor, "<scaled{value=", protogen.GoIdent{GoName: "Nextafter", GoImportPath: "math"}, "(value,", protogen.GoIdent{GoName: "Inf", GoImportPath: "math"}, "(1))}")
+				d.Body(c, "if value*", mapping.Factor, "<scaled{value=", protogen.GoIdent{GoName: "Nextafter", GoImportPath: "math"}, "(value,", protogen.GoIdent{GoName: "Inf", GoImportPath: "math"}, "(1))}")
 			}
 			switch mapping.Cast {
 			case "":
@@ -284,7 +286,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 				value = g.QualifiedGoIdent(protogen.GoIdent{GoName: "Value", GoImportPath: sandbox}) + "(" + value + ")"
 			}
 			// Each field has its own scope, so local names cannot collide.
-			g.P("target.", to, "=", value)
+			d.Body(c, "target.", to, "=", value)
 			if group.Origin != "" {
 				origin := "ValueOriginProvider"
 				if group.Origin == "request" {
@@ -292,16 +294,16 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 				}
 				guard := tf != nil && (tf.Desc.IsMap() || tf.Desc.IsList() || tf.Desc.HasPresence())
 				if guard {
-					g.P("if target.", to, "!=nil{")
+					d.Body(c, "if target.", to, "!=nil{")
 				}
-				g.P("target.Origins[", strconv.Quote(mapping.To), "]=", protogen.GoIdent{GoName: origin, GoImportPath: sandbox})
+				d.Body(c, "target.Origins[", strconv.Quote(mapping.To), "]=", protogen.GoIdent{GoName: origin, GoImportPath: sandbox})
 				if guard {
-					g.P("}")
+					d.Body(c, "}")
 				}
 			}
-			g.P("}")
+			d.Body(c, "}")
 			if optional {
-				g.P("}")
+				d.Body(c, "}")
 			}
 			if request {
 				zero := "nil"
@@ -314,13 +316,13 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Provider) error {
 						zero = "false"
 					}
 				}
-				g.P("remaining.", from, "=", zero)
+				d.Body(c, "remaining.", from, "=", zero)
 			}
 		}
 		if !request && group.Target.Name == "SandboxInfo" {
-			g.P("target.Provider=", strconv.Quote(rules.Provider))
+			d.Body(c, "target.Provider=", strconv.Quote(rules.Provider))
 		}
-		g.P("return ", returns, "}")
+		d.Body(c, "return ", returns, "}")
 	}
 	return nil
 }
