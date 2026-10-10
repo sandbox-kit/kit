@@ -1,0 +1,3 @@
+whole point of protofubs was to generate internal structs and methods. 
+
+will this is how u implemented adapters else its of no use cause later we need to make software factor
