@@ -1,0 +1,1 @@
+okay now lets do this for adapters for modal and daytona. note that this will be able to pass from user-faced sdk
