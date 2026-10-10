@@ -1,0 +1,8 @@
+before implementing check the entire docs of modal & daytona. u must know it entirely. 
+
+I have also installed it in examples folder thier sdk. 
+
+
+take inspiration around namings and everythin, when same thin exist in multiple sdks with different naming have your own naming whcih makes sense or have names whcih is understood by everyone. 
+
+your job should be to implement those adapters which works with both sdk
