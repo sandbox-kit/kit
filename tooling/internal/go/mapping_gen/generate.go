@@ -54,7 +54,9 @@ func ident(t spec.Type) protogen.GoIdent {
 func Generate(p *protogen.Plugin, f *protogen.File, compiled model.Provider, templates model.Templates, profile spec.LanguageProfile) error {
 	rules := compiled.Rules
 	g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+".mappings.gen.go", f.GoImportPath)
-	g.P("// Code generated from specs/providers/", rules.Provider, ".yaml. DO NOT EDIT.")
+	declarationgen.Banner(g, "specs/providers/"+rules.Provider+".yaml",
+		"Request helpers map shared fields into the native SDK and return anything left unmapped. Response helpers copy reported metadata without inventing omitted values.",
+		"native, remaining, err := mapResources(request.Resources)")
 	g.P("package ", f.GoPackageName)
 	seen := map[string]bool{}
 	for _, resolvedGroup := range compiled.Groups {

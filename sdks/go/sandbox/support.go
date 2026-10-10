@@ -6,8 +6,19 @@ import (
 	"strings"
 )
 
-// RejectUnmapped checks a copy of configuration after an adapter consumes the
-// fields it maps. Reflection examines configuration presence, never SDK methods.
+// RejectUnmapped reports fields that remain after a provider maps the ones it supports.
+// Pass the remainder returned by a generated mapping helper. Reflection checks presence
+// only; it does not call SDK methods.
+//
+// Example:
+//
+//	native, remaining, err := mapResources(request.Resources)
+//	if err != nil {
+//	    return err
+//	}
+//	if err := sandbox.RejectUnmapped("daytona", remaining); err != nil {
+//	    return err
+//	}
 func RejectUnmapped(provider string, remaining any) error {
 	value := reflect.ValueOf(remaining)
 	if value.Kind() == reflect.Pointer {

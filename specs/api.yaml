@@ -7,8 +7,13 @@ modules:
         fields:
           - id: provider
             name: Provider
-            doc: constructs an SDK from this configuration and is never serialized.
-            type: {ref: provider}
+            doc: |
+              constructs the SDK from this configuration. It is never serialized.
+
+              Example:
+
+              	client, err := NewClient(Config{Provider: provider})
+            type: { ref: provider }
             runtime_only: true
     types:
       - id: backend
@@ -17,25 +22,73 @@ modules:
         kind: interface
         visibility: public
         methods:
-          - {id: name, name: Name, results: [{type: {builtin: string}}]}
+          - id: name
+            name: Name
+            doc: 'returns the provider identifier, such as "daytona" or "modal".'
+            results: [{ type: { builtin: string } }]
           - id: create
             name: Create
+            doc: |
+              creates one sandbox from request. A nil request uses provider defaults.
+              The result carries shared metadata. The public client turns that into a Sandbox handle.
+
+              Example:
+
+              	result, err := backend.Create(ctx, nil)
             cancellable: true
-            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true, nullable: true}}]
-            results: [{type: {ref: schema.CreateResult, reference: true}}]
+            params:
+              [
+                {
+                  id: request,
+                  name: request,
+                  type:
+                    {
+                      ref: schema.CreateOptions,
+                      reference: true,
+                      nullable: true,
+                    },
+                },
+              ]
+            results: [{ type: { ref: schema.CreateResult, reference: true } }]
             fallible: true
-          - {id: close, name: Close, cancellable: true, fallible: true}
+          - id: close
+            name: Close
+            doc: |
+              releases the native SDK. It does not stop or delete the cloud sandbox.
+
+              Example:
+
+              	err := backend.Close(ctx)
+            cancellable: true
+            fallible: true
       - id: provider
         name: Provider
         doc: initializes the provider SDK from shared configuration.
         kind: interface
         visibility: public
         methods:
-          - {id: name, name: Name, results: [{type: {builtin: string}}]}
+          - id: name
+            name: Name
+            doc: "returns the provider identifier selected by this factory."
+            results: [{ type: { builtin: string } }]
           - id: initialize
             name: NewClient
-            params: [{id: config, name: config, type: {ref: schema.Config, reference: true}}]
-            results: [{type: {ref: backend}}]
+            doc: |
+              builds a backend from shared configuration. Call it through sandbox.NewClient,
+              which validates the configuration and owns cleanup.
+
+              Example:
+
+              	backend, err := provider.NewClient(&config)
+            params:
+              [
+                {
+                  id: config,
+                  name: config,
+                  type: { ref: schema.Config, reference: true },
+                },
+              ]
+            results: [{ type: { ref: backend } }]
             fallible: true
       - id: client
         name: Client
@@ -43,18 +96,69 @@ modules:
         kind: object
         visibility: public
         fields:
-          - {id: backend, name: backend, type: {ref: backend}}
-          - {id: timeout, name: timeout, type: {ref: duration, optional: true}}
+          - id: backend
+            name: backend
+            doc: is the initialized provider SDK. Applications use Client methods instead of this field.
+            type: { ref: backend }
+          - id: timeout
+            name: timeout
+            doc: is a copy of Config.Timeout. Nil adds no Kit deadline. An explicit zero also adds none.
+            type: { ref: duration, optional: true }
         methods:
-          - {id: provider_name, name: ProviderName, behavior: provider_name, results: [{type: {builtin: string}}], receiver: c}
-          - {id: close, name: Close, behavior: close, cancellable: true, fallible: true, receiver: c, named_results: true}
+          - id: provider_name
+            name: ProviderName
+            doc: 'returns the selected provider identifier, such as "daytona" or "modal".'
+            behavior: provider_name
+            results: [{ type: { builtin: string } }]
+            receiver: c
+          - id: close
+            name: Close
+            doc: |
+              releases the native SDK. It does not stop or delete the cloud sandbox.
+              A nil client is a no-op. A nil context returns an invalid-argument error.
+
+              Example:
+
+              	err := client.Close(ctx)
+            behavior: close
+            cancellable: true
+            fallible: true
+            receiver: c
+            named_results: true
           - id: create
             name: Create
+            doc: |
+              creates one sandbox and returns a handle. A nil request uses provider defaults.
+              Close the client when finished; that does not delete the sandbox.
+
+              Example:
+
+              	instance, err := client.Create(ctx, nil)
+              	fmt.Println(instance.ID(), instance.ProviderName())
             behavior: create
             receiver: c
             cancellable: true
-            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true, nullable: true}}]
-            results: [{id: instance, name: instance, type: {ref: sandbox_handle, reference: true}}]
+            params:
+              [
+                {
+                  id: request,
+                  name: request,
+                  type:
+                    {
+                      ref: schema.CreateOptions,
+                      reference: true,
+                      nullable: true,
+                    },
+                },
+              ]
+            results:
+              [
+                {
+                  id: instance,
+                  name: instance,
+                  type: { ref: sandbox_handle, reference: true },
+                },
+              ]
             fallible: true
             named_results: true
     functions:
@@ -64,15 +168,27 @@ modules:
         constructs: client
         effect: io
         behavior: initialize
-        params: [{id: config, name: config, type: {ref: schema.Config}}]
-        results: [{id: client, name: client, type: {ref: client, reference: true}}]
+        doc: |
+          validates shared configuration and initializes the selected provider SDK.
+          The returned client owns cleanup. Closing it does not stop the sandbox.
+
+          Example:
+
+          	client, err := NewClient(Config{
+          	    Provider: provider,
+          	    Timeout:  Value(2 * time.Minute),
+          	})
+        params: [{ id: config, name: config, type: { ref: schema.Config } }]
+        results:
+          [{ id: client, name: client, type: { ref: client, reference: true } }]
         fallible: true
         named_results: true
       - id: missing_binding
         name: missingClientBinding
         behavior: missing_binding
-        params: [{id: binding, name: binding, type: {builtin: any}}]
-        results: [{type: {builtin: boolean}}]
+        doc: reports whether a provider or backend value is missing. Nil interfaces, pointers, slices, and maps count as missing.
+        params: [{ id: binding, name: binding, type: { builtin: any } }]
+        results: [{ type: { builtin: boolean } }]
   provider:
     types:
       - id: provider
@@ -81,12 +197,30 @@ modules:
         kind: object
         visibility: public
         methods:
-          - {id: name, name: Name, behavior: provider_name, results: [{type: {builtin: string}}]}
+          - id: name
+            name: Name
+            behavior: provider_name
+            doc: "returns this integration's provider identifier."
+            results: [{ type: { builtin: string } }]
           - id: initialize
             name: NewClient
             behavior: initialize_provider
-            params: [{id: config, name: config, type: {ref: schema.Config, reference: true}}]
-            results: [{type: {ref: provider_backend}}]
+            doc: |
+              maps config into the official SDK and returns a private backend.
+              Pass the factory from New to sandbox.NewClient instead of calling this directly.
+
+              Example:
+
+              	backend, err := New().NewClient(config)
+            params:
+              [
+                {
+                  id: config,
+                  name: config,
+                  type: { ref: schema.Config, reference: true },
+                },
+              ]
+            results: [{ type: { ref: provider_backend } }]
             fallible: true
       - id: backend
         name: backend
@@ -94,46 +228,121 @@ modules:
         kind: object
         visibility: private
         fields:
-          - {id: client, name: client, type: {ref: native_client, reference: true}}
+          - id: client
+            name: client
+            doc: is the initialized native SDK client. It is not part of the public sandbox API.
+            type: { ref: native_client, reference: true }
         fields_from: provider_state
         methods:
-          - {id: name, name: Name, behavior: provider_name, results: [{type: {builtin: string}}]}
+          - id: name
+            name: Name
+            behavior: provider_name
+            doc: "returns this integration's provider identifier."
+            results: [{ type: { builtin: string } }]
           - id: create
             name: Create
             behavior: provider_create
+            doc: "creates one sandbox through the native SDK and returns shared metadata."
             receiver: a
             cancellable: true
-            params: [{id: request, name: request, type: {ref: schema.CreateOptions, reference: true}}]
-            results: [{type: {ref: schema.CreateResult, reference: true}}]
+            params:
+              [
+                {
+                  id: request,
+                  name: request,
+                  type: { ref: schema.CreateOptions, reference: true },
+                },
+              ]
+            results: [{ type: { ref: schema.CreateResult, reference: true } }]
             fallible: true
-          - {id: close, name: Close, behavior: provider_close, receiver: a, cancellable: true, fallible: true}
+          - id: close
+            name: Close
+            behavior: provider_close
+            doc: "releases the native SDK client. It does not stop or delete the cloud sandbox."
+            receiver: a
+            cancellable: true
+            fallible: true
     functions:
-      - {id: constructor, name: New, kind: constructor, constructs: provider, effect: pure, behavior: select_provider, results: [{type: {ref: provider, reference: true}}]}
+      - id: constructor
+        name: New
+        kind: constructor
+        constructs: provider
+        effect: pure
+        behavior: select_provider
+        doc: |
+          returns a provider factory. Pass it to sandbox.NewClient.
+
+          Example:
+
+          	client, err := sandbox.NewClient(sandbox.Config{Provider: New()})
+        results: [{ type: { ref: provider, reference: true } }]
       - id: initialize_backend
         name: newBackend
         behavior: initialize_backend
-        params: [{id: config, name: config, type: {ref: schema.Config, reference: true, nullable: true}}]
-        results: [{type: {ref: provider_backend}}]
+        doc: maps config, constructs the native SDK, and captures provider state before returning the backend.
+        params:
+          [
+            {
+              id: config,
+              name: config,
+              type: { ref: schema.Config, reference: true, nullable: true },
+            },
+          ]
+        results: [{ type: { ref: provider_backend } }]
         fallible: true
       - id: capture_state
         name: captureBackendState
         behavior: capture_state
+        doc: copies retained configuration onto the backend. Later changes to the caller config do not affect the copy.
         params:
-          - {id: result, name: result, type: {ref: backend, reference: true}}
-          - {id: config, name: config, type: {ref: schema.Config, reference: true, nullable: true}}
+          - {
+              id: result,
+              name: result,
+              type: { ref: backend, reference: true },
+            }
+          - {
+              id: config,
+              name: config,
+              type: { ref: schema.Config, reference: true, nullable: true },
+            }
   errors:
     types:
       - id: error
         name: Error
         kind: object
         visibility: public
-        doc: exposes portable details and retains the native cause.
+        doc: |
+          exposes portable details and retains the native cause for errors.Is and errors.As.
+
+          Example:
+
+          	var sandboxErr *Error
+          	if errors.As(err, &sandboxErr) {
+          	    fmt.Println(sandboxErr.Kind, sandboxErr.Field)
+          	}
         fields:
-          - {id: ErrorInfo, name: ErrorInfo, promote: true, type: {ref: schema.ErrorInfo}}
-          - {id: cause, name: cause, type: {ref: runtime_cause, nullable: true}}
+          - id: ErrorInfo
+            name: ErrorInfo
+            doc: holds Kind, Provider, Operation, Field, and Message. Switch on Kind.
+            promote: true
+            type: { ref: schema.ErrorInfo }
+          - id: cause
+            name: cause
+            doc: is the original SDK or validator error. Unwrap returns it. It is not serialized.
+            type: { ref: runtime_cause, nullable: true }
         methods:
-          - {id: message, name: Error, behavior: error_message, receiver: e, results: [{type: {builtin: string}}]}
-          - {id: unwrap, name: Unwrap, behavior: unwrap, receiver: e, results: [{type: {ref: runtime_cause, nullable: true}}]}
+          - id: message
+            name: Error
+            behavior: error_message
+            doc: "returns the portable message. A field path is appended when Field is set. A nil error returns an empty string."
+            receiver: e
+            results: [{ type: { builtin: string } }]
+          - id: unwrap
+            name: Unwrap
+            behavior: unwrap
+            doc: "returns the native cause so errors.Is and errors.As can match it. A nil error returns nil."
+            receiver: e
+            results: [{ type: { ref: runtime_cause, nullable: true } }]
     functions:
       - id: constructor
         name: NewError
@@ -141,49 +350,97 @@ modules:
         constructs: error
         effect: pure
         behavior: new_error
-        doc: copies portable details and retains the original cause.
+        doc: |
+          copies portable details and retains the original cause. An unknown kind becomes ErrorKindUnknown.
+          Cancellation and deadline causes override the supplied kind.
+
+          Example:
+
+          	err := NewError(ErrorInfo{
+          	    Kind:    ErrorKindUnsupported,
+          	    Field:   CreateFieldResourcesDiskMiB,
+          	    Message: "disk overrides are unsupported",
+          	}, cause)
         params:
-          - {id: info, name: info, type: {ref: schema.ErrorInfo}}
-          - {id: cause, name: cause, type: {ref: runtime_cause, nullable: true}}
-        results: [{type: {ref: error, reference: true, ownership: owned}}]
+          - { id: info, name: info, type: { ref: schema.ErrorInfo } }
+          - {
+              id: cause,
+              name: cause,
+              type: { ref: runtime_cause, nullable: true },
+            }
+        results: [{ type: { ref: error, reference: true, ownership: owned } }]
       - id: context
         name: WithErrorContext
         behavior: error_context
+        doc: |
+          adds provider and operation details without changing an error that already has them.
+          A nil error returns nil.
         params:
-          - {id: err, name: err, type: {ref: runtime_cause, nullable: true}}
-          - {id: provider, name: provider, type: {builtin: string}}
-          - {id: operation, name: operation, type: {builtin: string}}
-        results: [{type: {ref: runtime_cause, nullable: true}}]
+          - { id: err, name: err, type: { ref: runtime_cause, nullable: true } }
+          - { id: provider, name: provider, type: { builtin: string } }
+          - { id: operation, name: operation, type: { builtin: string } }
+        results: [{ type: { ref: runtime_cause, nullable: true } }]
       - id: validation_error
         name: validationError
         behavior: validation_error
-        params: [{id: err, name: err, type: {ref: runtime_cause}}]
-        results: [{type: {ref: runtime_cause}}]
+        doc: wraps a validator failure as ErrorKindInvalidArgument and records the first invalid field path.
+        params: [{ id: err, name: err, type: { ref: runtime_cause } }]
+        results: [{ type: { ref: runtime_cause } }]
       - id: validation_path
         name: validationPath
         behavior: validation_path
-        params: [{id: namespace, name: namespace, type: {builtin: string}}]
-        results: [{type: {builtin: string}}]
+        doc: converts a validator namespace such as Config.Auth.APIKey into the canonical path auth.api_key.
+        params: [{ id: namespace, name: namespace, type: { builtin: string } }]
+        results: [{ type: { builtin: string } }]
       - id: clone_metadata
         name: cloneMetadata
         behavior: clone_metadata
-        params: [{id: source, name: source, type: {map: {key: {builtin: string}, value: {builtin: any}}, nullable: true}}]
-        results: [{type: {map: {key: {builtin: string}, value: {builtin: any}}, nullable: true}}]
+        doc: returns an owned copy of declarative metadata. A nil map stays nil. SDK objects are rejected.
+        params:
+          [
+            {
+              id: source,
+              name: source,
+              type:
+                {
+                  map: { key: { builtin: string }, value: { builtin: any } },
+                  nullable: true,
+                },
+            },
+          ]
+        results:
+          [
+            {
+              type:
+                {
+                  map: { key: { builtin: string }, value: { builtin: any } },
+                  nullable: true,
+                },
+            },
+          ]
         fallible: true
       - id: copy_metadata
         name: copyMetadataValue
         behavior: copy_metadata
+        doc: copies one metadata value at depth. Depth above the contract limit fails so cycles cannot loop forever.
         params:
-          - {id: value, name: value, type: {builtin: any, nullable: true}}
-          - {id: depth, name: depth, type: {builtin: index}}
-        results: [{type: {builtin: any, nullable: true}}]
+          - { id: value, name: value, type: { builtin: any, nullable: true } }
+          - { id: depth, name: depth, type: { builtin: index } }
+        results: [{ type: { builtin: any, nullable: true } }]
         fallible: true
   helpers:
     functions:
       - id: value
         name: Value
         behavior: value
-        doc: marks an optional scalar as explicitly supplied, including zero and false.
-        generics: [{id: T, name: T, type: {builtin: any}}]
-        params: [{id: value, name: value, type: {ref: T}}]
-        results: [{type: {ref: T, reference: true}}]
+        doc: |
+          marks an optional scalar as explicitly supplied, including zero and false.
+          It does not validate the value.
+
+          Example:
+
+          	cores := Value(0.5)
+          	disabled := Value(false)
+        generics: [{ id: T, name: T, type: { builtin: any } }]
+        params: [{ id: value, name: value, type: { ref: T } }]
+        results: [{ type: { ref: T, reference: true } }]

@@ -25,7 +25,9 @@ func GeneratePaths(p *protogen.Plugin, file *protogen.File, templates model.Temp
 		return nil
 	}
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".paths.gen.go", file.GoImportPath)
-	g.P("// Code generated from shared schema paths. DO NOT EDIT.")
+	declarationgen.Banner(g, "",
+		"Field-path constants identify settings in errors. Their values are canonical protobuf paths.",
+		"fmt.Println(CreateFieldResourcesCPUCores) // resources.cpu_cores")
 	g.P("package ", file.GoPackageName)
 	type pathInfo struct {
 		constant string
@@ -48,6 +50,7 @@ func GeneratePaths(p *protogen.Plugin, file *protogen.File, templates model.Temp
 				}
 				path := strings.Join(names, ".")
 				constant := schema.Constant(string(root.Desc.Name()), fields, templates.FieldPaths)
+				declarationgen.WriteComment(g, constant, "is the canonical path "+strconv.Quote(path)+".")
 				g.P("const ", constant, " = ", strconv.Quote(path))
 				if string(root.Desc.Name()) == "SandboxInfo" && !contains(templates.FieldPaths.ExcludedOrigins, string(f.Desc.Name())) {
 					response = append(response, pathInfo{constant: constant, fields: fields})
@@ -59,6 +62,7 @@ func GeneratePaths(p *protogen.Plugin, file *protogen.File, templates model.Temp
 		}
 		walk(root, nil, map[protoreflect.FullName]bool{})
 		if string(root.Desc.Name()) == "Config" {
+			declarationgen.WriteComment(g, templates.FieldPaths.Roots["Config"]+"Provider", "is the canonical path \"provider\".")
 			g.P("const ", templates.FieldPaths.Roots["Config"], "Provider = \"provider\"")
 		}
 	}

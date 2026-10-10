@@ -1,6 +1,7 @@
 package typesgen
 
 import (
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
 	"google.golang.org/protobuf/compiler/protogen"
 	"sort"
@@ -21,7 +22,9 @@ func GenerateErrorPaths(p *protogen.Plugin, file *protogen.File) error {
 		}
 	}
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".errors.gen.go", file.GoImportPath)
-	g.P("// Code generated from shared field names. DO NOT EDIT.")
+	declarationgen.Banner(g, "",
+		"Validation field maps turn Go struct names back into canonical paths such as resources.cpu_cores.",
+		"path := validationPath(\"CreateOptions.Resources.CPUCores\")")
 	g.P("package ", file.GoPackageName)
 	name := "validationFieldNames"
 	if file.Desc.Path() == "kit/sandbox/v1/client.proto" {

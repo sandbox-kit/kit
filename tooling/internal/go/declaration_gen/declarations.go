@@ -2,8 +2,10 @@ package declarationgen
 
 import (
 	"fmt"
-	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"strings"
+
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	"google.golang.org/protobuf/compiler/protogen"
 )
 
 func (e *Emitter) TypeDeclaration(id string) error {
@@ -141,12 +143,55 @@ func (e *Emitter) BeginBehavior(owner, id, behavior string) (spec.Callable, erro
 }
 func (e *Emitter) MethodName(owner, id string) string { c, _ := e.Callable(owner, id); return c.Name }
 func (e *Emitter) comment(name, doc string) {
-	if doc != "" {
-		for i, line := range strings.Split(doc, "\n") {
-			if i == 0 {
-				line = name + " " + line
+	WriteComment(e.G, name, doc)
+}
+
+// commentWidth keeps a comment, including "// ", inside a normal editor window.
+const commentWidth = 76
+
+// WriteComment emits a godoc comment. The name starts the first line.
+// Prose is wrapped. Indented example lines stay intact.
+func WriteComment(g *protogen.GeneratedFile, name, doc string) {
+	if strings.TrimSpace(doc) == "" {
+		return
+	}
+	for i, line := range strings.Split(doc, "\n") {
+		if i == 0 {
+			line = strings.TrimSpace(name + " " + strings.TrimSpace(line))
+		} else {
+			line = strings.TrimRight(line, " \t")
+		}
+		for _, wrapped := range wrapComment(line) {
+			if strings.TrimSpace(wrapped) == "" {
+				g.P("//")
+				continue
 			}
-			e.G.P("// ", line)
+			g.P("// ", wrapped)
 		}
 	}
+}
+
+func wrapComment(line string) []string {
+	if line == "" || strings.HasPrefix(line, "\t") || strings.HasPrefix(line, "    ") || len(line) <= commentWidth {
+		return []string{line}
+	}
+	words := strings.Fields(line)
+	var lines []string
+	current := ""
+	for _, word := range words {
+		if current == "" {
+			current = word
+			continue
+		}
+		if len(current)+1+len(word) > commentWidth {
+			lines = append(lines, current)
+			current = word
+			continue
+		}
+		current += " " + word
+	}
+	if current != "" {
+		lines = append(lines, current)
+	}
+	return lines
 }

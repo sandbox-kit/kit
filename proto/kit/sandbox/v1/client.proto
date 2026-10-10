@@ -14,19 +14,30 @@ option (kit.codegen.v1.client) = {
   config_message: "Config"
 };
 
-// Initializes a provider SDK. Provider factories are native runtime objects,
-// attached by generators; they are not serialized protobuf fields.
+// is the shared client configuration. Provider is attached by the generator and is not serialized.
+//
+// Example:
+//
+//	client, err := NewClient(Config{
+//	    Provider: provider,
+//	    Timeout:  Value(2 * time.Minute),
+//	})
 message Config {
+  // is one credential alternative. Nil lets the native SDK resolve its own environment or profile.
   AuthConfig auth = 1;
+  // is the provider API URL where the integration supports an override.
   optional string endpoint = 2;
+  // is a region or target preference.
   optional string region = 3;
+  // is the app, environment, organization, or project scope. JSON name is "context".
   Scope scope = 4 [json_name = "context"];
-  // Default Kit operation deadline; explicit operation settings override it.
-  // Nil preserves SDK defaults; zero adds no Kit deadline.
+  // is the default Kit operation deadline. An explicit creation timeout overrides it.
+  // Nil and explicit zero add no Kit deadline.
   google.protobuf.Duration timeout = 5;
 }
+// holds exactly one credential alternative.
 message AuthConfig {
-  // Absent auth uses the provider SDK's normal environment/profile resolution.
+  // is the selected credential. Leaving it unset uses the provider SDK's environment or profile resolution.
   oneof credentials {
     APIKeyCredentials api_key = 1;
     TokenPairCredentials token_pair = 2;
@@ -34,19 +45,43 @@ message AuthConfig {
     OAuthCredentials oauth_refresh = 4;
   }
 }
-message APIKeyCredentials { string key = 1; }
-message TokenPairCredentials { string id = 1; string secret = 2; }
-message BearerTokenCredentials { string token = 1; }
+// is an API-key credential. Daytona uses Key.
+message APIKeyCredentials {
+  // is the secret API key. It is excluded from generated JSON.
+  string key = 1;
+}
+// is a token-id and token-secret pair. Modal uses both fields.
+message TokenPairCredentials {
+  // is the token identifier.
+  string id = 1;
+  // is the token secret. It is excluded from generated JSON.
+  string secret = 2;
+}
+// is a bearer or JWT credential. Daytona also requires an organization.
+message BearerTokenCredentials {
+  // is the bearer token. It is excluded from generated JSON.
+  string token = 1;
+}
+// is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
 message OAuthCredentials {
+  // is the refresh token. It is excluded from generated JSON.
   string refresh_token = 1;
+  // is the OAuth client identifier.
   string client_id = 2;
+  // is one client secret. Do not set this together with JWTKey.
   optional string client_secret = 3;
+  // is one JWT signing key. Do not set this together with ClientSecret.
   optional string jwt_key = 4;
 }
+// names the provider scope. Each provider accepts a subset of these fields.
 message Scope {
+  // is the Modal app name. The app must already exist.
   optional string app_name = 1;
+  // is the Modal environment. The example default is "main".
   optional string environment = 2;
+  // is the Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
   optional string organization_id = 3;
+  // is reserved for providers that scope work to a project. Current providers reject it when supplied.
   optional string project_id = 4;
 }
 

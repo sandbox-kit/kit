@@ -1,12 +1,13 @@
 package typesgen
 
 import (
+	"strconv"
+
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
-	"strconv"
 )
 
 // GenerateRuntime emits Go ownership and error idioms with the shared contract settings.
@@ -22,7 +23,9 @@ func GenerateRuntime(p *protogen.Plugin, file *protogen.File, rules spec.Contrac
 
 func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.ErrorPolicy, surface model.APIModule, profile spec.LanguageProfile) error {
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+profile.Outputs["errors"], file.GoImportPath)
-	g.P("// Code generated from contracts.yaml and errors.yaml by the Go emitter. DO NOT EDIT.")
+	declarationgen.Banner(g, "specs/contracts.yaml and specs/errors.yaml",
+		"Error carries portable details and the original cause. Use errors.As, then switch on Kind.",
+		"var detail *Error\nif errors.As(err, &detail) {\n    fmt.Println(detail.Kind, detail.Field)\n}")
 	g.P("package ", file.GoPackageName)
 	context := func(member string) protogen.GoIdent { return protogen.GoIdent{GoName: member, GoImportPath: "context"} }
 	errors := func(member string) protogen.GoIdent { return protogen.GoIdent{GoName: member, GoImportPath: "errors"} }
@@ -31,7 +34,6 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 		return protogen.GoIdent{GoName: member, GoImportPath: "github.com/go-playground/validator/v10"}
 	}
 	g.P()
-	g.P("// Error exposes portable details and retains the original error for ", errors("Is"), "/As.")
 	d, err := declarationgen.New(g, p, surface, profile, nil)
 	if err != nil {
 		return err
@@ -51,8 +53,6 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 	d.Body(current, "\t}")
 	d.Body(current, "\treturn ", d.Receiver(current), ".Message")
 	g.P("}")
-	d.Body(current)
-	d.Body(current, "// Unwrap preserves native SDK and context matching through ", errors("Is"), "/As.")
 	current, err = d.BeginBehavior("error", "unwrap", "unwrap")
 	if err != nil {
 		return err
@@ -62,8 +62,6 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 	d.Body(current, "\t}")
 	d.Body(current, "\treturn ", d.Receiver(current), ".", d.Field("error", "cause"))
 	g.P("}")
-	d.Body(current)
-	d.Body(current, "// NewError owns a copy of portable details and retains the original cause.")
 	current, err = d.BeginBehavior("", "constructor", "new_error")
 	if err != nil {
 		return err
@@ -93,8 +91,6 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 	}
 	d.Body(current, "\treturn &Error{", d.Field("error", "ErrorInfo"), ": *owned, ", d.Field("error", "cause"), ": ", d.Param(current, "cause"), "}")
 	g.P("}")
-	d.Body(current)
-	d.Body(current, "// WithErrorContext adds provider/operation details without mutating an error.")
 	current, err = d.BeginBehavior("", "context", "error_context")
 	if err != nil {
 		return err
@@ -158,13 +154,13 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 
 func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surface model.APIModule, profile spec.LanguageProfile) error {
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+profile.Outputs["copies"], file.GoImportPath)
-	g.P("// Code generated from contracts.yaml and errors.yaml by the Go emitter. DO NOT EDIT.")
+	declarationgen.Banner(g, "specs/contracts.yaml",
+		"Metadata helpers copy declarative values. They reject SDK objects, nonfinite numbers, and cycles.",
+		"copied, err := cloneMetadata(info.ProviderMetadata)")
 	g.P("package ", file.GoPackageName)
 	fmt := func(member string) protogen.GoIdent { return protogen.GoIdent{GoName: member, GoImportPath: "fmt"} }
 	math := func(member string) protogen.GoIdent { return protogen.GoIdent{GoName: member, GoImportPath: "math"} }
 	g.P()
-	g.P("// cloneMetadata copies declarative metadata, never SDK objects.")
-	g.P("// It preserves optional values and ownership boundaries.")
 	d, err := declarationgen.New(g, p, surface, profile, nil)
 	if err != nil {
 		return err
@@ -182,9 +178,6 @@ func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surf
 	d.Body(current, "\t}")
 	d.Body(current, "\treturn value.(map[string]any), nil")
 	g.P("}")
-	d.Body(current)
-	d.Body(current, "// Metadata is declarative: finite primitive values, bytes, lists, and string-key")
-	d.Body(current, "// objects. Depth bounds reject cycles without retaining caller-owned objects.")
 	current, err = d.BeginBehavior("", "copy_metadata", "copy_metadata")
 	if err != nil {
 		return err

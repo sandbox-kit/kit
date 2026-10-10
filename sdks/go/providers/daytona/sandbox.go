@@ -1,3 +1,12 @@
+// This file turns a shared creation request into a Daytona SDK create call.
+// Generated mappings cover field and policy conversion. This file chooses the
+// snapshot or image source and applies the mapped options.
+//
+// Example:
+//
+//	client, err := sandbox.NewClient(sandbox.Config{Provider: daytona.New()})
+//	instance, err := client.Create(ctx, nil)
+
 package daytona
 
 import (
@@ -11,11 +20,16 @@ import (
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
+// createPlan is the Daytona source and option list for one creation request.
 type createPlan struct {
-	params  any
+	// params is the snapshot or image argument accepted by the SDK create method.
+	params any
+	// options are the mapped creation settings, including policies and resources.
 	options []func(*options.CreateSandbox)
 }
 
+// create calls the Daytona SDK and returns shared metadata.
+// A nil request uses the default snapshot and provider defaults.
 func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	if request == nil {
 		request = &sandbox.CreateOptions{}
@@ -52,6 +66,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	return &sandbox.CreateResult{Sandbox: &info}, nil
 }
 
+// planCreate checks the request and builds SDK arguments without contacting Daytona.
 func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	var plan createPlan
 	if err := validateProviderCreate(request); err != nil {
@@ -302,6 +317,10 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	}
 	return plan, nil
 }
+
+// durationMinutes converts a policy delay to whole minutes.
+// zeroAllowed permits an explicit zero. Daytona uses that for
+// immediate delete, or for disabled stop and pause.
 func durationMinutes(value time.Duration, zeroAllowed bool) (int, error) {
 	if value < 0 || value%time.Minute != 0 || value/time.Minute > math.MaxInt32 || (!zeroAllowed && value == 0) {
 		return 0, sandbox.NewError(sandbox.ErrorInfo{

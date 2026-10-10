@@ -84,6 +84,7 @@ type StateField struct {
 	Type     string `yaml:"type"`
 	Optional bool   `yaml:"optional"`
 	Capture  string `yaml:"capture"`
+	Doc      string `yaml:"doc"`
 }
 
 // Constructor names the native constructor after common configuration mapping.

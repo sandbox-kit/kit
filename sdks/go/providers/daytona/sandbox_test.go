@@ -98,7 +98,8 @@ func TestGeneratedResourceMappings(t *testing.T) {
 	}
 }
 
-// Operation tests inject SDK doubles behind a private factory, not a public SDK constructor.
+// Operation tests inject SDK doubles behind a private factory,
+// not a public SDK constructor.
 type operationProvider struct{ adapter *backend }
 
 func (f *operationProvider) Name() string { return f.adapter.Name() }

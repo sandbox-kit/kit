@@ -65,7 +65,9 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 	}
 	sort.Strings(names)
 	g := p.NewGeneratedFile(f.GeneratedFilenamePrefix+".validation.gen.go", f.GoImportPath)
-	g.P("// Code generated from YAML validation specifications. DO NOT EDIT.")
+	declarationgen.Banner(g, "source: "+string(f.Desc.Path()),
+		"Validators reject values the shared contract cannot represent. They run before a provider call.",
+		"if err := Validate"+root+"(value); err != nil { return err }")
 	g.P("package ", f.GoPackageName)
 	validator := func(name string) protogen.GoIdent {
 		return protogen.GoIdent{GoName: name, GoImportPath: "github.com/go-playground/validator/v10"}

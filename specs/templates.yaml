@@ -6,6 +6,7 @@ callables:
     declaration:
       id: getter
       name: 'Get{field}'
+      doc: 'returns {field} when the receiver and field are present. A nil receiver or omitted field returns the zero value.'
       receiver: x
       behavior: getter
       results: [{type: {ref: field_value}}]
@@ -14,6 +15,7 @@ callables:
     declaration:
       id: clone
       name: Clone
+      doc: 'returns an owned copy of {subject}. The copy keeps optional presence and numeric types. It fails when metadata is unsupported or deeper than the copy limit.'
       receiver: x
       behavior: clone
       results: [{type: {ref: subject, reference: true, ownership: owned}}]
@@ -23,6 +25,7 @@ callables:
     declaration:
       id: clone_internal
       name: clone
+      doc: 'copies fields at depth. Clone is the caller-facing method; depth starts at zero there.'
       receiver: x
       behavior: clone_internal
       params: [{id: depth, name: depth, type: {builtin: index}}]
@@ -32,12 +35,14 @@ callables:
     declaration:
       id: validator_factory
       name: 'new{subject}Validator'
+      doc: 'builds the validator used by Validate{subject}.'
       behavior: validator_factory
       results: [{type: {ref: validator, reference: true}}]
   validation:
     declaration:
       id: validation
       name: 'Validate{subject}'
+      doc: 'rejects {subject} values the shared contract cannot represent. A nil request is treated as omitted configuration. Account quotas stay with the provider.'
       behavior: validation
       params: [{id: request, name: request, type: {ref: subject, reference: true, nullable: true}}]
       fallible: true
@@ -45,6 +50,7 @@ callables:
     declaration:
       id: request_mapping
       name: '{mapping}'
+      doc: 'maps supplied fields for {mapping} into the native request and returns the fields that were not mapped.'
       behavior: request_mapping
       params: [{id: source, name: source, type: {ref: source, reference: true, nullable: true}}]
       results: [{type: {ref: target}}, {type: {ref: source}}]
@@ -53,6 +59,7 @@ callables:
     declaration:
       id: response_mapping
       name: '{mapping}'
+      doc: 'maps native fields for {mapping} into shared metadata. It does not invent values the SDK omitted.'
       behavior: response_mapping
       params: [{id: source, name: source, type: {ref: source, reference: true, nullable: true}}]
       results: [{type: {ref: target}}]
@@ -61,6 +68,7 @@ callables:
     declaration:
       id: client_mapping
       name: mapClientConfig
+      doc: 'maps shared client configuration into the native SDK options. Unsupported supplied settings fail before the SDK is constructed.'
       behavior: client_mapping
       params: [{id: config, name: config, type: {ref: config, reference: true, nullable: true}}]
       results: [{type: {ref: target}}]
@@ -69,6 +77,7 @@ callables:
     declaration:
       id: provider_checks
       name: validateProviderCreate
+      doc: 'rejects creation settings this provider cannot honor. It runs before the native create call.'
       behavior: provider_checks
       params: [{id: request, name: request, type: {ref: request, reference: true, nullable: true}}]
       fallible: true
@@ -76,6 +85,7 @@ callables:
     declaration:
       id: response_presence
       name: responseFieldPresent
+      doc: 'reports whether path names a field that is present on the sandbox metadata.'
       behavior: response_presence
       params:
         - {id: info, name: info, type: {ref: response, reference: true, nullable: true}}
@@ -85,6 +95,7 @@ callables:
     declaration:
       id: response_origins
       name: validateResponseOrigins
+      doc: 'checks that every origin names a known field that is actually present. A missing origin means the source is unknown.'
       behavior: response_origins
       params: [{id: info, name: info, type: {ref: response, reference: true}}]
       fallible: true

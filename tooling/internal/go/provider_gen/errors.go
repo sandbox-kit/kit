@@ -2,6 +2,7 @@ package providergen
 
 import (
 	"fmt"
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
@@ -21,7 +22,9 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, compiled model.Prov
 	core := protogen.GoImportPath("github.com/sandbox-kit/kit/sdks/go/sandbox")
 	id := func(name string) protogen.GoIdent { return protogen.GoIdent{GoName: name, GoImportPath: core} }
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".errors.gen.go", file.GoImportPath)
-	g.P("// Code generated from provider error bindings. DO NOT EDIT.")
+	declarationgen.Banner(g, "",
+		"mapProviderError classifies a native SDK error into a shared kind and keeps the original cause.",
+		"return mapProviderError(err, \"create\")")
 	g.P("package ", file.GoPackageName)
 	g.P("func mapProviderError(err error,operation string)error{if err==nil{return nil};var local *", id("Error"), ";if ", protogen.GoIdent{GoName: "As", GoImportPath: "errors"}, "(err,&local){return ", id("WithErrorContext"), "(err,", strconv.Quote(s.Provider), ",operation)}")
 	g.P("kind:=", id("ErrorKindUnknown"), ";var statusCode *uint32;var providerCode,providerSource *string")

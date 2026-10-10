@@ -46,7 +46,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 				if field.Type == "string" {
 					ref = rules.TypeRef{Builtin: "string", Optional: field.Optional}
 				}
-				typ.Fields = append(typ.Fields, rules.APISlot{ID: field.Name, Name: field.Name, Type: ref})
+				typ.Fields = append(typ.Fields, rules.APISlot{ID: field.Name, Name: field.Name, Type: ref, Doc: field.Doc})
 			}
 		}
 		types[i] = typ
@@ -55,8 +55,9 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 	surface.Types = types
 	native := protogen.GoIdent{GoName: sdk.ClientType, GoImportPath: protogen.GoImportPath(sdk.ImportPath)}
 	g := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+profile.Outputs["provider"], file.GoImportPath)
-	g.P("// Code generated from API declarations and provider bindings. DO NOT EDIT.")
-	g.P("// source: ", file.Desc.Path())
+	declarationgen.Banner(g, "source: "+string(file.Desc.Path()),
+		"New returns a provider factory. Pass it to sandbox.NewClient. The public client owns SDK cleanup.",
+		"client, err := sandbox.NewClient(sandbox.Config{Provider: New()})")
 	g.P("package ", file.GoPackageName)
 	d, err := declarationgen.New(g, plugin, surface, profile, map[string]protogen.GoIdent{"native_client": native})
 	if err != nil {

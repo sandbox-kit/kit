@@ -54,14 +54,16 @@ func (t Templates) Instantiate(id string, names map[string]string) (spec.Declara
 		return pattern, fmt.Errorf("unknown declaration template %s", id)
 	}
 	var missing string
-	pattern.Declaration.Name = templateToken.ReplaceAllStringFunc(pattern.Declaration.Name, func(token string) string {
+	replace := func(token string) string {
 		name := strings.Trim(token, "{}")
 		value, ok := names[name]
 		if !ok {
 			missing = name
 		}
 		return value
-	})
+	}
+	pattern.Declaration.Name = templateToken.ReplaceAllStringFunc(pattern.Declaration.Name, replace)
+	pattern.Declaration.Doc = templateToken.ReplaceAllStringFunc(pattern.Declaration.Doc, replace)
 	if missing != "" {
 		return pattern, fmt.Errorf("template %s needs name binding %s", id, missing)
 	}

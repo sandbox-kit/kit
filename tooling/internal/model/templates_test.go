@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -19,7 +20,7 @@ func TestTemplateBindingAndValidation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if getter.Declaration.Name != "GetCPUCores" || getter.Declaration.Results[0].Type.Ref != "field_value" {
+	if getter.Declaration.Name != "GetCPUCores" || getter.Declaration.Results[0].Type.Ref != "field_value" || !strings.Contains(getter.Declaration.Doc, "CPUCores") {
 		t.Fatal("template did not preserve projection")
 	}
 	if _, err := templates.Instantiate("getter", nil); err == nil {

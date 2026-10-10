@@ -19,7 +19,9 @@ import (
 // GenerateChecks emits validation over schema paths; account quotas remain remote.
 func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider, templates model.Templates, profile spec.LanguageProfile) error {
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+".validation.gen.go", file.GoImportPath)
-	g.P("// Code generated from provider validation specs. DO NOT EDIT.")
+	declarationgen.Banner(g, "",
+		"Provider checks reject creation settings this integration cannot honor. They run before the native create call.",
+		"if err := validateProviderCreate(request); err != nil { return nil, err }")
 	g.P("package ", file.GoPackageName)
 	paths := map[string]string{}
 	localError := func(kind, path, message string) string {
