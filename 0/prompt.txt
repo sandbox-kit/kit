@@ -1,0 +1,1 @@
+I think u told that mapConfig needs to be generated but its still not ?
