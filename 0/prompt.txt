@@ -1,0 +1,1 @@
+my point was isn't there anything which also generates class and structs and methods
