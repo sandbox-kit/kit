@@ -1,0 +1,6 @@
+Now, 
+I feel naming is not industry standards on how naming is made , specially adapters, factory, client, core, and how each things are named in general. 
+think deep think like expert. and make the changes right from files and folder name to fields name, method names type struct everything. 
+make sure working code doesn't break u must just change how it reads. 
+
+where ever required also use really good design patterns. make sure if u feel somethin can should be in generators do it
