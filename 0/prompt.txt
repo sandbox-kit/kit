@@ -1,0 +1,3 @@
+now problem is adapter forces us to basically install sdks on our codebase how to avoid that
+
+else there is not use of our thing
