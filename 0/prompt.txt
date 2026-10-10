@@ -1,0 +1,1 @@
+continue + there is still code which lets use install library in adapters
