@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"sort"
 )
 
@@ -24,8 +25,20 @@ func (s *Schema) ValidateRules(rules spec.Validation) error {
 		}
 		sort.Strings(fields)
 		for _, field := range fields {
-			if _, err := s.Resolve(name, field); err != nil {
+			path, err := s.Resolve(name, field)
+			if err != nil {
 				return err
+			}
+			format := message.Fields[field].Format
+			if format != "" {
+				switch format {
+				case "http_url", "secure_endpoint", "image_reference":
+				default:
+					return fmt.Errorf("%s.%s: unknown format %s", name, field, format)
+				}
+				if path.Fields[len(path.Fields)-1].Kind() != protoreflect.StringKind {
+					return fmt.Errorf("%s.%s: format requires string", name, field)
+				}
 			}
 		}
 		for _, constraint := range message.Constraints {

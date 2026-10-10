@@ -15,7 +15,7 @@ func GenerateRuntime(p *protogen.Plugin, file *protogen.File, rules spec.Contrac
 	if err := emitErrorRuntime(p, file, rules.Errors, surface, profile); err != nil {
 		return err
 	}
-	if err := emitCopyRuntime(p, file, rules.CopyMaxDepth, surface, profile); err != nil {
+	if err := emitCopyRuntime(p, file, rules, surface, profile); err != nil {
 		return err
 	}
 	return nil
@@ -152,7 +152,7 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 	return nil
 }
 
-func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surface model.APIModule, profile spec.LanguageProfile) error {
+func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, limits spec.Contracts, surface model.APIModule, profile spec.LanguageProfile) error {
 	g := p.NewGeneratedFile(file.GeneratedFilenamePrefix+profile.Outputs["copies"], file.GoImportPath)
 	declarationgen.Banner(g, "specs/contracts.yaml",
 		"Metadata helpers copy declarative values. They reject SDK objects, nonfinite numbers, and cycles.",
@@ -172,7 +172,8 @@ func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surf
 	d.Body(current, "\tif ", d.Param(current, "source"), " == nil {")
 	d.Body(current, "\t\treturn nil, nil")
 	d.Body(current, "\t}")
-	d.Body(current, "\tvalue, err := copyMetadataValue(", d.Param(current, "source"), ", 0)")
+	d.Body(current, "nodes,bytes:=", limits.CopyMaxNodes, ",", limits.CopyMaxBytes)
+	d.Body(current, "\tvalue, err := copyMetadataValue(", d.Param(current, "source"), ", 0, &nodes, &bytes)")
 	d.Body(current, "\tif err != nil {")
 	d.Body(current, "\t\treturn nil, err")
 	d.Body(current, "\t}")
@@ -182,12 +183,14 @@ func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surf
 	if err != nil {
 		return err
 	}
-	d.Body(current, "\tif ", d.Param(current, "depth"), " > ", maxDepth, " {")
+	d.Body(current, "\tif ", d.Param(current, "depth"), " > ", limits.CopyMaxDepth, " {")
 	d.Body(current, "\t\treturn nil, ", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds maximum depth or contains a cycle\")")
 	d.Body(current, "\t}")
+	d.Body(current, "if *nodes<=0{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds node budget\")};*nodes--")
 	d.Body(current, "\tswitch v := ", d.Param(current, "value"), ".(type) {")
-	d.Body(current, "\tcase nil, bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:")
+	d.Body(current, "\tcase nil, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:")
 	d.Body(current, "\t\treturn v, nil")
+	d.Body(current, "case string: if len(v)>*bytes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds byte budget\")};*bytes-=len(v);return v,nil")
 	d.Body(current, "\tcase float64:")
 	d.Body(current, "\t\tif ", math("IsNaN"), "(v) || ", math("IsInf"), "(v, 0) {")
 	d.Body(current, "\t\t\treturn nil, ", fmt("Errorf"), "(\"sandbox-kit: metadata requires finite numbers\")")
@@ -202,19 +205,23 @@ func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surf
 	d.Body(current, "\t\tif v == nil {")
 	d.Body(current, "\t\t\treturn []byte(nil), nil")
 	d.Body(current, "\t\t}")
+	d.Body(current, "if len(v)>*bytes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds byte budget\")};*bytes-=len(v)")
 	d.Body(current, "\t\treturn append([]byte{}, v...), nil")
 	d.Body(current, "\tcase []string:")
 	d.Body(current, "\t\tif v == nil {")
 	d.Body(current, "\t\t\treturn []string(nil), nil")
 	d.Body(current, "\t\t}")
+	d.Body(current, "if len(v)>*nodes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds node budget\")};*nodes-=len(v)")
+	d.Body(current, "for _,item:=range v{if len(item)>*bytes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds byte budget\")};*bytes-=len(item)}")
 	d.Body(current, "\t\treturn append([]string{}, v...), nil")
 	d.Body(current, "\tcase []any:")
 	d.Body(current, "\t\tif v == nil {")
 	d.Body(current, "\t\t\treturn []any(nil), nil")
 	d.Body(current, "\t\t}")
+	d.Body(current, "if len(v)>*nodes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds node budget\")}")
 	d.Body(current, "\t\tout := make([]any, len(v))")
 	d.Body(current, "\t\tfor i, item := range v {")
-	d.Body(current, "\t\t\tcopied, err := copyMetadataValue(item, ", d.Param(current, "depth"), "+1)")
+	d.Body(current, "\t\t\tcopied, err := copyMetadataValue(item, ", d.Param(current, "depth"), "+1, nodes, bytes)")
 	d.Body(current, "\t\t\tif err != nil {")
 	d.Body(current, "\t\t\t\treturn nil, err")
 	d.Body(current, "\t\t\t}")
@@ -225,9 +232,11 @@ func emitCopyRuntime(p *protogen.Plugin, file *protogen.File, maxDepth int, surf
 	d.Body(current, "\t\tif v == nil {")
 	d.Body(current, "\t\t\treturn map[string]any(nil), nil")
 	d.Body(current, "\t\t}")
+	d.Body(current, "if len(v)>*nodes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds node budget\")}")
+	d.Body(current, "for key:=range v {if len(key)>*bytes{return nil,", fmt("Errorf"), "(\"sandbox-kit: metadata exceeds byte budget\")};*bytes-=len(key)}")
 	d.Body(current, "\t\tout := make(map[string]any, len(v))")
 	d.Body(current, "\t\tfor key, item := range v {")
-	d.Body(current, "\t\t\tcopied, err := copyMetadataValue(item, ", d.Param(current, "depth"), "+1)")
+	d.Body(current, "\t\t\tcopied, err := copyMetadataValue(item, ", d.Param(current, "depth"), "+1, nodes, bytes)")
 	d.Body(current, "\t\t\tif err != nil {")
 	d.Body(current, "\t\t\t\treturn nil, err")
 	d.Body(current, "\t\t\t}")

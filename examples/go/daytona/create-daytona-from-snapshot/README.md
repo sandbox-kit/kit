@@ -4,7 +4,7 @@ Create one sandbox from the stock `daytona-small` snapshot and print its ID.
 
 ## Run
 
-Requires Go 1.26.1 or newer and this checkout.
+Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-from-snapshot

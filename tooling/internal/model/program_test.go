@@ -95,7 +95,7 @@ func TestCompileResolvesSpecsBeforeEmission(t *testing.T) {
 		"generation.yaml": "version: 1\nshared: [types, error_runtime, copies, diagnostic_paths, field_paths, validation]\nclient: [types, diagnostic_paths, field_paths, validation, client]\nprovider: [provider, configuration, checks, errors, mappings]\n",
 		"validation.yaml": "version: 1\nmessages:\n  Resources:\n    fields:\n      cpu_cores: {finite: true}\n",
 		"client.yaml":     "version: 1\nconfig_message: Config\nvalidation:\n  version: 1\n  messages:\n    Config:\n      fields:\n        endpoint: {nonblank: true}\n",
-		"contracts.yaml":  "version: 1\ncopy_max_depth: 64\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n",
+		"contracts.yaml":  "version: 1\ncopy_max_depth: 64\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n",
 		"errors.yaml":     "version: 1\nfallback_kind: unknown\ncause_rules: []\nexisting_error: {reuse_matching_context: true, preserve_details: true}\nclassification_precedence: [existing_error, native_type, http_status, grpc_code, fallback]\n",
 	}
 	generation, readErr := os.ReadFile(filepath.Join("..", "..", "..", "specs", "generation.yaml"))

@@ -26,13 +26,14 @@ type Config struct {
 	//
 	// Example:
 	//
-	//	client, err := NewClient(Config{Provider: provider})
+	// 	client, err := NewClient(Config{Provider: provider})
+	//
 	Provider Provider `json:"-" validate:"-"`
 	// Auth is one credential alternative. Nil lets the native SDK resolve its own
 	// environment or profile.
 	Auth *AuthConfig `json:"auth,omitempty" validate:"omitnil"`
 	// Endpoint is the provider API URL where the integration supports an override.
-	Endpoint *string `json:"endpoint,omitempty" validate:"omitnil,nonblank,http_url"`
+	Endpoint *string `json:"endpoint,omitempty" validate:"omitnil,nonblank,secure_endpoint"`
 	// Region is a region or target preference.
 	Region *string `json:"region,omitempty" validate:"omitnil,nonblank"`
 	// Scope is the app, environment, organization, or project scope. JSON name is

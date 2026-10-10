@@ -5,7 +5,7 @@ lifetime. This standalone module uses Sandbox Kit and only the Modal provider.
 
 ## Run with your account
 
-Requires Go 1.26.1 or newer and this checkout. From the repository root:
+Requires Go 1.26.9 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/modal/create-modal-with-resources

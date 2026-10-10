@@ -41,6 +41,13 @@ Unsupported supplied settings fail before SDK construction. Omitted auth uses
 the native SDK's environment/profile resolution. Daytona may resolve organization
 scope from its environment when using bearer auth.
 
+Remote endpoints require HTTPS. HTTP is accepted only for `localhost` or a
+literal loopback IP, to support local development and mock-server tests. URL
+user information and fragments are rejected. Daytona resolves an omitted endpoint
+from `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then its pinned SDK default
+`https://app.daytona.io/api`; the resolved value is validated before SDK construction.
+Explicit endpoints take precedence. Remote self-hosted endpoints need HTTPS.
+
 Initialization does not prove remote credentials are valid. The provider enforces
 account permissions and resource availability when it processes requests.
 

@@ -4,7 +4,7 @@ Create one sandbox from `alpine:3.21` that terminates after 60 idle seconds.
 
 ## Run
 
-Requires Go 1.26.1 or newer, this checkout, and an existing Modal app.
+Requires Go 1.26.9 or newer, this checkout, and an existing Modal app.
 See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh

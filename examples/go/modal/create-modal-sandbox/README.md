@@ -5,7 +5,7 @@ This standalone Go module imports Sandbox Kit and only the Modal provider.
 
 ## Configure credentials and scope
 
-Requires Go 1.26.1 or newer and this checkout. From the repository root:
+Requires Go 1.26.9 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/modal/create-modal-sandbox

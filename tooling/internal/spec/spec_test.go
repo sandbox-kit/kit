@@ -62,7 +62,7 @@ func TestRejectsInvalidDocuments(t *testing.T) {
 func TestRejectsInvalidContractDepth(t *testing.T) {
 	root := t.TempDir()
 	for _, depth := range []int{0, 257} {
-		body := fmt.Sprintf("version: 1\ncopy_max_depth: %d\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n", depth)
+		body := fmt.Sprintf("version: 1\ncopy_max_depth: %d\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n", depth)
 		if err := os.WriteFile(filepath.Join(root, "contracts.yaml"), []byte(body), 0600); err != nil {
 			t.Fatal(err)
 		}

@@ -86,6 +86,10 @@ signatures:
             - id: depth
               type:
                 builtin: index
+            - id: nodes
+              type: {builtin: index, reference: true}
+            - id: bytes
+              type: {builtin: index, reference: true}
         results:
             - type:
                 builtin: any

@@ -422,10 +422,12 @@ modules:
       - id: copy_metadata
         name: copyMetadataValue
         behavior: copy_metadata
-        doc: copies one metadata value at depth. Depth above the contract limit fails so cycles cannot loop forever.
+        doc: copies metadata within the depth, node, and payload byte budgets.
         params:
           - { id: value, name: value, type: { builtin: any, nullable: true } }
           - { id: depth, name: depth, type: { builtin: index } }
+          - { id: nodes, name: nodes, type: { builtin: index, reference: true } }
+          - { id: bytes, name: bytes, type: { builtin: index, reference: true } }
         results: [{ type: { builtin: any, nullable: true } }]
         fallible: true
   helpers:

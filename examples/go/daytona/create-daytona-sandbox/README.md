@@ -6,7 +6,7 @@ Daytona provider.
 
 ## Configure credentials
 
-Requires Go 1.26.1 or newer and this checkout. From the repository root:
+Requires Go 1.26.9 or newer and this checkout. From the repository root:
 
 ```sh
 cd examples/go/daytona/create-daytona-sandbox

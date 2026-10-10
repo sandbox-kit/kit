@@ -1,26 +1,26 @@
-go 1.26.1
+go 1.26.9
 
 use (
-	./examples/go/modal/create-modal-sandbox
-	./examples/go/daytona/create-daytona-sandbox
-	./examples/go/modal/create-modal-with-resources
-	./examples/go/daytona/create-daytona-with-policies
-	./examples/go/daytona/create-daytona-from-snapshot
-	./examples/go/daytona/create-daytona-from-image
 	./examples/go/daytona/create-daytona-ephemeral
+	./examples/go/daytona/create-daytona-from-image
+	./examples/go/daytona/create-daytona-from-snapshot
 	./examples/go/daytona/create-daytona-linked
-	./examples/go/modal/create-modal-with-runtime
+	./examples/go/daytona/create-daytona-sandbox
+	./examples/go/daytona/create-daytona-with-policies
+	./examples/go/daytona/handle-daytona-errors
 	./examples/go/modal/create-modal-gvisor
-	./examples/go/modal/create-modal-linux-vm
-	./examples/go/modal/create-modal-with-placement
-	./examples/go/modal/create-modal-with-labels
-	./examples/go/modal/create-modal-with-network
 	./examples/go/modal/create-modal-idle
+	./examples/go/modal/create-modal-linux-vm
 	./examples/go/modal/create-modal-ready
+	./examples/go/modal/create-modal-sandbox
 	./examples/go/modal/create-modal-verbose
 	./examples/go/modal/create-modal-with-identity
+	./examples/go/modal/create-modal-with-labels
+	./examples/go/modal/create-modal-with-network
+	./examples/go/modal/create-modal-with-placement
+	./examples/go/modal/create-modal-with-resources
+	./examples/go/modal/create-modal-with-runtime
 	./examples/go/modal/handle-modal-errors
-	./examples/go/daytona/handle-daytona-errors
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
 	./sdks/go/sandbox

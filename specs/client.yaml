@@ -5,7 +5,7 @@ validation:
   messages:
     Config:
       fields:
-        endpoint: {nonblank: true, format: http_url}
+        endpoint: {nonblank: true, format: secure_endpoint}
         region: {nonblank: true}
         timeout: {minimum: 0}
     AuthConfig:

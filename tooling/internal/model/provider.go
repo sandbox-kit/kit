@@ -58,6 +58,24 @@ type Provider struct {
 
 func CompileProvider(schema *Schema, rules spec.Provider) (Provider, error) {
 	result := Provider{Rules: rules}
+	if rules.Client != nil {
+		seen := map[string]bool{}
+		for _, rule := range rules.Client.Environment {
+			path, err := schema.Resolve("Config", rule.Field)
+			if err != nil {
+				return result, err
+			}
+			if seen[rule.Field] || len(path.Fields) != 1 || path.Fields[0].Kind() != protoreflect.StringKind || !path.Fields[0].HasPresence() || rule.Default == "" || len(rule.Variables) == 0 {
+				return result, fmt.Errorf("invalid environment resolution for %s", rule.Field)
+			}
+			seen[rule.Field] = true
+			for _, variable := range rule.Variables {
+				if variable == "" || strings.ContainsAny(variable, "=\x00") {
+					return result, fmt.Errorf("invalid environment variable")
+				}
+			}
+		}
+	}
 	ruleNames := make([]string, 0, len(rules.ErrorRules))
 	for rule := range rules.ErrorRules {
 		ruleNames = append(ruleNames, rule)

@@ -5,7 +5,7 @@ messages:
       - {op: at_most_one, fields: [provider_default, image, snapshot, warm_pool]}
   ImageSource:
     fields:
-      reference: {nonblank: true}
+      reference: {nonblank: true, format: image_reference}
   SnapshotSource:
     fields:
       reference: {nonblank: true}
