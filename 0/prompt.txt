@@ -1,0 +1,1 @@
+take inspiration on how we have already done things. as most of the code is generators rn.
