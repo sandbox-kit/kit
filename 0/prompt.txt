@@ -1,0 +1,57 @@
+# AGENTS.md instructions for /Users/nabhag/OpenSource/kit
+
+<INSTRUCTIONS>
+# Repository instructions
+
+Keep shared contracts under `proto/`. Runtime SDK code belongs in
+`sdks/<language>/` and usage examples in `examples/<language>/`.
+All generators are implemented in the single Go module under `tooling/`;
+target-language emitters belong in `tooling/internal/<language>/`.
+Do not put language runtime dependencies in shared contracts.
+Keep contract declarations language-neutral; implement constructor conventions
+and language-specific APIs in each generator.
+
+For every implemented public feature, update that language's runnable example
+and guide. Maintain one example per implemented language instead of parallel
+tutorials. Update `examples/README.md` when adding a new language.
+Keep examples synchronized with the actual implemented API. Clearly label
+planned APIs and demonstration providers; do not present them as working
+production integrations. Verify changed examples before handing off the feature.
+Update relevant project Markdown whenever the API, architecture, dependencies,
+or file layout changes. Check links and commands, and distinguish implemented
+behavior from planned contracts and integrations.
+Keep temporary generator binaries, verification caches, and scratch files outside
+the checkout, in the operating system's temporary/cache directories. Do not
+create a repository-local `work/` folder. Generated SDK source remains in its
+declared output directories. Generation must clean up its temporary binaries.
+Use reusable Cobra commands as developer tooling entry points rather than
+duplicating workflows in task-runner files. Command constructors must avoid
+global flag state and side effects, and subprocesses must receive the command's
+context.
+
+Sandbox Kit is a unified interface over existing provider SDKs. Core operations
+must expose shared request and response contracts; adapters map those contracts
+to their SDKs. Keep borrowed SDK clients internal, and do not expose a generic
+provider-specific client type or raw SDK accessor as the shared public API.
+Core, sandbox adapters, and harness adapters remain separate modules. Applications
+initialize/authenticate their SDK clients and retain ownership of their lifetime.
+Optional provider adapters import and depend on their own official provider SDK.
+Adapters own typed SDK method/configuration/response mapping. Applications install
+only the adapters they need and inject their initialized SDK client. Do not use
+runtime SDK reflection or require application callbacks for standard operations.
+Public SDK configuration and responses use generated native language types;
+protobuf remains a schema/generation input and is not required in caller code.
+Creation uses the common protobuf request/response and returns a sandbox handle;
+lifecycle operations belong to that handle and are implemented separately.
+Preserve absent versus explicit configuration values, units, and source kinds.
+Bindings must reject unsupported intent before making provider calls.
+
+</INSTRUCTIONS>
+
+<environment_context>
+  <cwd>/Users/nabhag/OpenSource/kit</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-10-08</current_date>
+  <timezone>Asia/Kolkata</timezone>
+  <filesystem><workspace_roots><root>/Users/nabhag/OpenSource/kit</root><root>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</root></workspace_roots><permission_profile type="managed"><file_system type="restricted"><entry access="read"><special>:root</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</path></entry><entry access="read"><special>:slash_tmp</special></entry><entry access="read"><special>:tmpdir</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.git</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.git</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.agents</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.agents</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.codex</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.codex</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.aws</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.aws</path></entry></file_system></permission_profile></filesystem>
+</environment_context>
