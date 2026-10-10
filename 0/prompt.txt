@@ -1,0 +1,17 @@
+before that can u create every kind of sandbox create example for each provider seperately as separate project for each kind of sandbox create. 
+
+this wil also let u know whats currently missing
+
+---
+
+create example which is possible.
+
+---
+
+one thin we should do is under examples/go/<provider_specific_folder> 
+
+then have projects to make it more structure.
+
+---
+
+can u continue
