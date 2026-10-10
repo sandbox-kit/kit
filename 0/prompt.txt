@@ -1,0 +1,3 @@
+cool. Now what u wanna do is remove the things which are outdated form all the .md files 
+
+and write and update all the .md very well
