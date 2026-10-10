@@ -1,0 +1,5 @@
+now client side. 
+
+core.NewClient(<shouldn't be able to provide random interface which we are able to do. it hsould be able to pass client config which has common contract make this common contract ) + now we also need to unify config which we haven't done earlier as we were going in wrong direction of adapters. 
+
+build generators for this take inspirations from what all things we have done
