@@ -1,0 +1,3 @@
+I think random values won't be avliaable for any resources, policy and all + both of them would have some default configurtion
+
+plz have that into account
