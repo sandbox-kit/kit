@@ -1,0 +1,1 @@
+give me example of how u will generate adapters code. I want to know like how u will create mthods, types, struct classes boilterplates
