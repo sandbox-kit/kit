@@ -1,0 +1,7 @@
+can u make the examples instead with .env
+
+currently its really messy cobra command
+
+and get the examples from docs of modals and daytona but implement those. minimal example with our sdk
+
+I will provide whatever env u need. / set .env values the api keys I will get from dashboard
