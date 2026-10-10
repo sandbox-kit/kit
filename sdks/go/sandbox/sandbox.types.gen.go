@@ -726,7 +726,7 @@ type ProviderDefaultSource struct {
 // ImageSource is a container image reference, such as "alpine:3.21".
 type ImageSource struct {
 	// Reference is the registry image reference.
-	Reference string `json:"reference,omitempty" validate:"nonblank"`
+	Reference string `json:"reference,omitempty" validate:"nonblank,image_reference"`
 }
 
 // GetReference returns Reference when the receiver and field are present. A

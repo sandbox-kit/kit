@@ -75,6 +75,10 @@ also conflicts with immediate deletion.
 Modal idle termination supports disabled or positive whole-second delays.
 Its maximum lifetime and idle delay remain separate settings.
 
+Image references support lowercase repository paths, optional registry hostnames
+and ports, tags up to 128 characters, and SHA-256 digests, within 512 characters.
+IPv6 registry literals and other digest algorithms are unsupported.
+
 ## Networking and waiting
 
 A present empty allowlist means deny-all. Modal outbound wrappers preserve this.

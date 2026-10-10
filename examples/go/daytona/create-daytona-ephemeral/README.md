@@ -5,7 +5,7 @@ deletes an ephemeral sandbox when it stops.
 
 ## Run
 
-Requires Go 1.26.1 or newer and this checkout.
+Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-ephemeral

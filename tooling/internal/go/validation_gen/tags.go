@@ -25,8 +25,8 @@ func Tags(rule spec.Field, optional bool, repeated bool) string {
 	if rule.Nonblank {
 		tags = append(tags, "nonblank")
 	}
-	if rule.Format == "http_url" {
-		tags = append(tags, "http_url")
+	if rule.Format != "" {
+		tags = append(tags, rule.Format)
 	}
 	if rule.Minimum != nil {
 		tags = append(tags, fmt.Sprintf("gte=%g", *rule.Minimum))

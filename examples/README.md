@@ -28,7 +28,7 @@ loads its own `.env`, and demonstrates creation or error handling.
 | [Modal errors](go/modal/handle-modal-errors/README.md)              | Unsupported disk override and common error-kind handling |
 | [Daytona errors](go/daytona/handle-daytona-errors/README.md)          | Validation and common error-kind handling                |
 
-Requires Go 1.26.1 or newer and this checkout. In the selected project, copy
+Requires Go 1.26.9 or newer and this checkout. In the selected project, copy
 `.env.example` to `.env`, fill in credentials, and run `go run .`.
 See [Go setup and verification](go/README.md).
 

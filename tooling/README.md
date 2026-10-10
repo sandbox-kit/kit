@@ -6,7 +6,7 @@ in Go; current output targets Go.
 
 ## Run the CLI
 
-Requires Go 1.26.1 or newer. Generation also requires `protoc`.
+Requires Go 1.26.9 or newer. Generation also requires `protoc`.
 
 From this directory:
 
@@ -41,7 +41,7 @@ validation, client/provider contracts, SDK constructors, state capture,
 configuration assembly, field mappings, owned copies, common errors, field-path
 constants, and response-origin validation.
 
-`test go` tests the public SDK, tooling, both providers, and six independent
+`test go` tests the public SDK, tooling, both providers, and all 20 independent
 example modules. Example tests use dummy credentials and local servers; they
 create no cloud resources. The minimal creation examples compile and run reporting tests. Dedicated error
 examples also run validation and kind-switch paths without cloud creation.

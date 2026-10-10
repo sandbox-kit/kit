@@ -23,6 +23,8 @@ client:
     name: DaytonaConfig
     bindings:
       go: {import: github.com/daytona/clients/sdk-go/pkg/types, name: DaytonaConfig}
+  environment:
+    - {field: endpoint, variables: [DAYTONA_API_URL, DAYTONA_SERVER_URL], default: "https://app.daytona.io/api"}
   settings: mapClientSettings
   managed: [provider, timeout]
   scope: {field: scope, group: mapScope}

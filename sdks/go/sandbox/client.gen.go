@@ -32,13 +32,15 @@ type Backend interface {
 	//
 	// Example:
 	//
-	//	result, err := backend.Create(ctx, nil)
+	// 	result, err := backend.Create(ctx, nil)
+	//
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
 	// Close releases the native SDK. It does not stop or delete the cloud sandbox.
 	//
 	// Example:
 	//
-	//	err := backend.Close(ctx)
+	// 	err := backend.Close(ctx)
+	//
 	Close(context.Context) error
 }
 
@@ -52,7 +54,8 @@ type Provider interface {
 	//
 	// Example:
 	//
-	//	backend, err := provider.NewClient(&config)
+	// 	backend, err := provider.NewClient(&config)
+	//
 	NewClient(*Config) (Backend, error)
 }
 

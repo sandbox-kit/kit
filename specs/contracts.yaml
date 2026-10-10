@@ -1,5 +1,7 @@
 version: 1
 copy_max_depth: 64
+copy_max_nodes: 16384
+copy_max_bytes: 1048576
 metadata_message: MetadataObject
 error_message: ErrorInfo
 origin_enum: ValueOrigin

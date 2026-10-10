@@ -11,6 +11,7 @@ package daytona
 import (
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
+	os "os"
 )
 
 // mapClientConfig maps shared client configuration into the native SDK
@@ -19,6 +20,18 @@ func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
 	var params types.DaytonaConfig
 	if config == nil {
 		config = &sandbox.Config{}
+	}
+	if config.Endpoint == nil {
+		resolved := *config
+		value := "https://app.daytona.io/api"
+		if candidate := os.Getenv("DAYTONA_SERVER_URL"); candidate != "" {
+			value = candidate
+		}
+		if candidate := os.Getenv("DAYTONA_API_URL"); candidate != "" {
+			value = candidate
+		}
+		resolved.Endpoint = &value
+		config = &resolved
 	}
 	if err := sandbox.ValidateConfig(config); err != nil {
 		return params, err

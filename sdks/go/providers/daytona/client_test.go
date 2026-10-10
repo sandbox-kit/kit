@@ -50,3 +50,37 @@ func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestEndpointEnvironmentResolutionAndValidation(t *testing.T) {
+	for _, tc := range []struct {
+		name, api, server string
+		explicit          *string
+		want              string
+		valid             bool
+	}{
+		{name: "default", want: "https://app.daytona.io/api", valid: true},
+		{name: "API URL", api: "https://api.example.test", want: "https://api.example.test", valid: true},
+		{name: "server fallback", server: "https://server.example.test", want: "https://server.example.test", valid: true},
+		{name: "API precedence", api: "https://api.example.test", server: "http://bad.example.test", want: "https://api.example.test", valid: true},
+		{name: "insecure API", api: "http://bad.example.test"},
+		{name: "insecure server", server: "http://bad.example.test"},
+		{name: "explicit precedence", api: "http://bad.example.test", explicit: sandbox.Value("https://explicit.example.test"), want: "https://explicit.example.test", valid: true},
+		{name: "local testing", api: "http://127.0.0.1:1234", want: "http://127.0.0.1:1234", valid: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DAYTONA_API_URL", tc.api)
+			t.Setenv("DAYTONA_SERVER_URL", tc.server)
+			config := &sandbox.Config{Endpoint: tc.explicit}
+			params, err := mapClientConfig(config)
+			if (err == nil) != tc.valid {
+				t.Fatalf("valid=%v error=%v", tc.valid, err)
+			}
+			if tc.valid && params.APIUrl != tc.want {
+				t.Fatalf("got %q want %q", params.APIUrl, tc.want)
+			}
+			if config.Endpoint != tc.explicit {
+				t.Fatal("caller config was mutated")
+			}
+		})
+	}
+}

@@ -9,7 +9,7 @@ storage, GPU requests, harness integrations, and other language SDKs are planned
 
 ## Get started
 
-Requires Go 1.26.1 or newer. Modules use development versions and local
+Requires Go 1.26.9 or newer. Modules use development versions and local
 replacements, so run the examples from this repository checkout:
 
 ```sh

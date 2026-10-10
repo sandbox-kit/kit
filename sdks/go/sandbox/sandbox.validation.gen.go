@@ -11,6 +11,9 @@ package sandbox
 import (
 	v10 "github.com/go-playground/validator/v10"
 	math "math"
+	netip "net/netip"
+	url "net/url"
+	regexp "regexp"
 	strings "strings"
 )
 
@@ -23,6 +26,23 @@ func newCreateOptionsValidator() *v10.Validate {
 		return !math.IsNaN(value) && !math.IsInf(value, 0)
 	})
 	_ = v.RegisterValidation("nonblank", func(fl v10.FieldLevel) bool { return strings.TrimSpace(fl.Field().String()) != "" })
+	_ = v.RegisterValidation("secure_endpoint", func(fl v10.FieldLevel) bool {
+		u, err := url.Parse(fl.Field().String())
+		if err != nil || u.Hostname() == "" || u.User != nil || u.Fragment != "" {
+			return false
+		}
+		if u.Scheme == "https" {
+			return true
+		}
+		if u.Scheme != "http" {
+			return false
+		}
+		ip, err := netip.ParseAddr(u.Hostname())
+		return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
+	})
+	_ = v.RegisterValidation("image_reference", func(fl v10.FieldLevel) bool {
+		return len(fl.Field().String()) <= 512 && regexp.MustCompile("^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$").MatchString(fl.Field().String())
+	})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(AutomaticAction)
 		_ = x

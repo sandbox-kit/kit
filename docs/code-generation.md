@@ -48,7 +48,7 @@ protobuf messages.
 | `specs/generation.yaml`           | Generation phases and ordered client-operation instructions         |
 | `specs/client.yaml`               | Provider selection and client/auth validation                       |
 | `specs/validation.yaml`           | Shared creation validation                                          |
-| `specs/contracts.yaml`            | Metadata/error declarations and copy depth                          |
+| `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                        |
 | `specs/errors.yaml`               | Shared cause classification and error-context policy                |
 | `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings |
 
@@ -128,8 +128,8 @@ unknown keys and absent values, while accepting explicit zero/false and empty
 collections. Context enrichment avoids an extra wrapper when details already match.
 
 `specs/contracts.yaml` identifies the shared metadata, error, and origin
-declarations and the maximum copy depth. Error and metadata-copy signatures
-come from `specs/api.yaml`. `types_gen/runtime.go` emits their behavior bodies
+declarations and the copy depth, visited-node, and payload-byte limits.
+Error and metadata-copy signatures come from `specs/api.yaml`. `types_gen/runtime.go` emits their behavior bodies
 into `.errors.runtime.gen.go` and `.clone.runtime.gen.go`. Schema `Clone`
 methods are separate: templates declare them, and `*.copy.gen.go` copies fields
 directly, preserving numeric types and owned collections. Metadata has explicit
@@ -328,3 +328,13 @@ code for these operations; bindings alone do not produce a complete integration.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).
+
+Client mappings can declare `environment` resolution rules with a schema field,
+ordered environment-variable names, and a default. The shared compiler checks
+that the target is an optional scalar string. The Go emitter resolves omitted
+values into a private configuration copy before validation and SDK construction.
+Daytona uses this to validate both native endpoint environment fallbacks.
+
+The portable `secure_endpoint` format requires remote HTTPS and permits HTTP
+only for local loopback testing; `image_reference` declares supported registry
+reference syntax. The shared model rejects unknown format names before emission.

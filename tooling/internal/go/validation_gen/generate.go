@@ -80,6 +80,8 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 	d.Body(callable, "v:=", validator("New"), "(", validator("WithRequiredStructEnabled"), "())")
 	d.Body(callable, "_ = v.RegisterValidation(\"finite\",func(fl ", validator("FieldLevel"), ")bool{ value:=fl.Field().Float();return !", protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}, "(value)&&!", protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}, "(value,0) })")
 	d.Body(callable, "_ = v.RegisterValidation(\"nonblank\",func(fl ", validator("FieldLevel"), ")bool{return ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(fl.Field().String())!=\"\"})")
+	d.Body(callable, "_ = v.RegisterValidation(\"secure_endpoint\",func(fl ", validator("FieldLevel"), ")bool{ u,err:=", protogen.GoIdent{GoName: "Parse", GoImportPath: "net/url"}, "(fl.Field().String());if err!=nil || u.Hostname()==\"\" || u.User!=nil || u.Fragment!=\"\"{return false};if u.Scheme==\"https\"{return true};if u.Scheme!=\"http\"{return false};ip,err:=", protogen.GoIdent{GoName: "ParseAddr", GoImportPath: "net/netip"}, "(u.Hostname());return u.Hostname()==\"localhost\" || (err==nil && ip.IsLoopback()) })")
+	d.Body(callable, "_ = v.RegisterValidation(\"image_reference\",func(fl ", validator("FieldLevel"), ")bool{return len(fl.Field().String())<=512 && ", protogen.GoIdent{GoName: "MustCompile", GoImportPath: "regexp"}, "(", strconv.Quote(`^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$`), ").MatchString(fl.Field().String())})")
 	for _, name := range names {
 		m := messages[name]
 		if m == nil {
@@ -100,7 +102,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			if rule.Nonblank && fld.Desc.Kind() != protoreflect.StringKind {
 				return fmt.Errorf("%s.%s: nonblank requires string", name, n)
 			}
-			if rule.Format != "" && (rule.Format != "http_url" || fld.Desc.Kind() != protoreflect.StringKind) {
+			if rule.Format != "" && ((rule.Format != "http_url" && rule.Format != "secure_endpoint" && rule.Format != "image_reference") || fld.Desc.Kind() != protoreflect.StringKind) {
 				return fmt.Errorf("%s.%s: unsupported field format %q", name, n, rule.Format)
 			}
 			if fld.Desc.IsList() && !rule.Each && (rule.Nonblank || rule.Finite || rule.Minimum != nil || rule.Maximum != nil || rule.ExclusiveMinimum != nil) {

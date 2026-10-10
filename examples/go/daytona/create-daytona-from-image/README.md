@@ -7,7 +7,7 @@ Memory and disk must be whole GiB, expressed as MiB.
 
 ## Run
 
-Requires Go 1.26.1 or newer and this checkout.
+Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-from-image

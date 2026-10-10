@@ -127,7 +127,10 @@ finite numbers, strings, booleans, bytes, lists, and objects. An empty value
 represents null. Go exposes metadata as `map[string]any` and supports primitive
 integer/float types, `[]byte`, `[]string`, `[]any`, and nested `map[string]any`.
 Unsupported objects, nonfinite values, cycles, and excessive depth are rejected.
-`specs/contracts.yaml` sets the maximum copy depth, currently 64.
+`specs/contracts.yaml` limits each metadata map copy to depth 64, 16,384 visited
+values (including containers and string-list entries), and 1 MiB of string,
+map-key, and byte-slice payload. These are traversal and payload limits;
+container allocation overhead is separate.
 
 Ordinary JSON decoding into `map[string]any` can still change numeric types;
 the guarantee applies to native values and their owned copies. No new transport

@@ -59,6 +59,17 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 	}
 	d.Body(callable, "var params ", protogen.GoIdent{GoName: binding.Name, GoImportPath: protogen.GoImportPath(binding.Import)})
 	d.Body(callable, "if ", d.Param(callable, "config"), "==nil {", d.Param(callable, "config"), "=&", ident("Config"), "{}}")
+	for _, resolution := range c.Environment {
+		field, err := fieldName("Config", resolution.Field)
+		if err != nil {
+			return err
+		}
+		d.Body(callable, "if ", d.Param(callable, "config"), ".", field, "==nil { resolved:=*", d.Param(callable, "config"), ";value:=", strconv.Quote(resolution.Default))
+		for i := len(resolution.Variables) - 1; i >= 0; i-- {
+			d.Body(callable, "if candidate:=", protogen.GoIdent{GoName: "Getenv", GoImportPath: "os"}, "(", strconv.Quote(resolution.Variables[i]), ");candidate!=\"\"{value=candidate}")
+		}
+		d.Body(callable, "resolved.", field, "=&value;", d.Param(callable, "config"), "=&resolved}")
+	}
 	d.Body(callable, "if err:=", ident("ValidateConfig"), "(", d.Param(callable, "config"), ");err!=nil{return params,err}")
 	keys := make([]string, 0, len(c.Rejected))
 	for key := range c.Rejected {

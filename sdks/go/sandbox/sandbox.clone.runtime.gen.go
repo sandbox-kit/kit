@@ -19,21 +19,32 @@ func cloneMetadata(source map[string]any) (map[string]any, error) {
 	if source == nil {
 		return nil, nil
 	}
-	value, err := copyMetadataValue(source, 0)
+	nodes, bytes := 16384, 1048576
+	value, err := copyMetadataValue(source, 0, &nodes, &bytes)
 	if err != nil {
 		return nil, err
 	}
 	return value.(map[string]any), nil
 }
 
-// copyMetadataValue copies one metadata value at depth. Depth above the
-// contract limit fails so cycles cannot loop forever.
-func copyMetadataValue(value any, depth int) (any, error) {
+// copyMetadataValue copies metadata within the depth, node, and payload byte
+// budgets.
+func copyMetadataValue(value any, depth int, nodes *int, bytes *int) (any, error) {
 	if depth > 64 {
 		return nil, fmt.Errorf("sandbox-kit: metadata exceeds maximum depth or contains a cycle")
 	}
+	if *nodes <= 0 {
+		return nil, fmt.Errorf("sandbox-kit: metadata exceeds node budget")
+	}
+	*nodes--
 	switch v := value.(type) {
-	case nil, bool, string, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+	case nil, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return v, nil
+	case string:
+		if len(v) > *bytes {
+			return nil, fmt.Errorf("sandbox-kit: metadata exceeds byte budget")
+		}
+		*bytes -= len(v)
 		return v, nil
 	case float64:
 		if math.IsNaN(v) || math.IsInf(v, 0) {
@@ -49,19 +60,36 @@ func copyMetadataValue(value any, depth int) (any, error) {
 		if v == nil {
 			return []byte(nil), nil
 		}
+		if len(v) > *bytes {
+			return nil, fmt.Errorf("sandbox-kit: metadata exceeds byte budget")
+		}
+		*bytes -= len(v)
 		return append([]byte{}, v...), nil
 	case []string:
 		if v == nil {
 			return []string(nil), nil
+		}
+		if len(v) > *nodes {
+			return nil, fmt.Errorf("sandbox-kit: metadata exceeds node budget")
+		}
+		*nodes -= len(v)
+		for _, item := range v {
+			if len(item) > *bytes {
+				return nil, fmt.Errorf("sandbox-kit: metadata exceeds byte budget")
+			}
+			*bytes -= len(item)
 		}
 		return append([]string{}, v...), nil
 	case []any:
 		if v == nil {
 			return []any(nil), nil
 		}
+		if len(v) > *nodes {
+			return nil, fmt.Errorf("sandbox-kit: metadata exceeds node budget")
+		}
 		out := make([]any, len(v))
 		for i, item := range v {
-			copied, err := copyMetadataValue(item, depth+1)
+			copied, err := copyMetadataValue(item, depth+1, nodes, bytes)
 			if err != nil {
 				return nil, err
 			}
@@ -72,9 +100,18 @@ func copyMetadataValue(value any, depth int) (any, error) {
 		if v == nil {
 			return map[string]any(nil), nil
 		}
+		if len(v) > *nodes {
+			return nil, fmt.Errorf("sandbox-kit: metadata exceeds node budget")
+		}
+		for key := range v {
+			if len(key) > *bytes {
+				return nil, fmt.Errorf("sandbox-kit: metadata exceeds byte budget")
+			}
+			*bytes -= len(key)
+		}
 		out := make(map[string]any, len(v))
 		for key, item := range v {
-			copied, err := copyMetadataValue(item, depth+1)
+			copied, err := copyMetadataValue(item, depth+1, nodes, bytes)
 			if err != nil {
 				return nil, err
 			}

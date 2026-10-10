@@ -137,13 +137,19 @@ type Check struct {
 
 // ClientMapping composes existing field mappings into native initialization params.
 type ClientMapping struct {
-	Target   Type              `yaml:"target"`
-	Managed  []string          `yaml:"managed"`
-	Retained []string          `yaml:"retained"`
-	Rejected map[string]string `yaml:"rejected"`
-	Settings string            `yaml:"settings"`
-	Scope    *ClientComponent  `yaml:"scope"`
-	Auth     []ClientComponent `yaml:"auth"`
+	Target      Type                `yaml:"target"`
+	Managed     []string            `yaml:"managed"`
+	Retained    []string            `yaml:"retained"`
+	Rejected    map[string]string   `yaml:"rejected"`
+	Settings    string              `yaml:"settings"`
+	Environment []ClientEnvironment `yaml:"environment"`
+	Scope       *ClientComponent    `yaml:"scope"`
+	Auth        []ClientComponent   `yaml:"auth"`
+}
+type ClientEnvironment struct {
+	Field     string   `yaml:"field"`
+	Variables []string `yaml:"variables"`
+	Default   string   `yaml:"default"`
 }
 type ClientComponent struct {
 	Field       string   `yaml:"field"`
@@ -205,6 +211,8 @@ type Contracts struct {
 	Errors          ErrorPolicy `yaml:"-"`
 	Version         int         `yaml:"version"`
 	CopyMaxDepth    int         `yaml:"copy_max_depth"`
+	CopyMaxNodes    int         `yaml:"copy_max_nodes"`
+	CopyMaxBytes    int         `yaml:"copy_max_bytes"`
 	MetadataMessage string      `yaml:"metadata_message"`
 	ErrorMessage    string      `yaml:"error_message"`
 	OriginEnum      string      `yaml:"origin_enum"`
@@ -213,7 +221,7 @@ type Contracts struct {
 func LoadContracts(root string) (Contracts, error) {
 	var c Contracts
 	err := decode(filepath.Join(root, "contracts.yaml"), &c)
-	if err == nil && (c.Version != 1 || c.CopyMaxDepth < 1 || c.CopyMaxDepth > 256 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo" || c.OriginEnum != "ValueOrigin") {
+	if err == nil && (c.Version != 1 || c.CopyMaxDepth < 1 || c.CopyMaxDepth > 256 || c.CopyMaxNodes < 1 || c.CopyMaxBytes < 1 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo" || c.OriginEnum != "ValueOrigin") {
 		err = fmt.Errorf("invalid response/error contracts spec")
 	}
 	if err == nil {
