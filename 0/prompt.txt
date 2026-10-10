@@ -1,0 +1,3 @@
+currently our project doens't have unified response and errors right ?
+
+which is what we will need to do ?
