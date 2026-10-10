@@ -1,0 +1,1 @@
+I want to create modal app quickly sandbox-kit-example-resources so I can use it in examles
