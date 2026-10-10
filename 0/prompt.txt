@@ -1,0 +1,3 @@
+note that we will need to build sdks for every languages. 
+
+so can u seperate it out in a way we can do that
