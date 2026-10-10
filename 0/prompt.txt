@@ -1,0 +1,9 @@
+lemme tell u. 
+
+adapters for providers, harness internal types must be generated with protobufs. 
+
+we will right language specifics protobufs for client side ? does this makes sense ? 
+
+lets do this and go in this direction 
+
+implement minimal solution to satify this condition. before that u must remove code is not needed. implement as lean as possible but correct
