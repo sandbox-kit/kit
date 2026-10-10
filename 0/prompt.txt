@@ -1,0 +1,5 @@
+What could be improved. 
+
+I think one of the things I see is there are lot of params in NewError method I think its not always good for having lot of params in func but instead having object represing them ? 
+
+what do u think, what are other thtings
