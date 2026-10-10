@@ -1,0 +1,1 @@
+this solution forces to import proto & our goal is to run & map provided sdk client methods and implement that in adapter so that we can basically make things work.
