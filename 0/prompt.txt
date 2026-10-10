@@ -1,0 +1,1 @@
+lets do this lets start with implementing for client side on how users will use. then I will tell we should move to adapters but really look deep into how adapters will be implemented u must note that.
