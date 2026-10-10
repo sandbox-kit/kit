@@ -1,0 +1,83 @@
+# AGENTS.md instructions for /Users/nabhag/OpenSource/kit
+
+<INSTRUCTIONS>
+# Repository instructions
+
+## Contracts and modules
+
+* Keep shared contracts in `proto/`, portable rules in versioned YAML under
+  `specs/`, and runtime SDKs in `sdks/<language>/`.
+* Implement all generators in the single Go module under `tooling/`.
+  Put language emitters in `tooling/internal/<language>/`.
+* Keep contracts independent of language runtime dependencies. Each emitter owns
+  native constructor conventions and names.
+* Keep the public SDK, optional providers, and future harness integrations in
+  separate modules. Each provider depends on its official SDK.
+
+## Public API and provider ownership
+
+Applications construct `sandbox.NewClient` with the generated `sandbox.Config`
+and select a provider through `Config.Provider`. The provider initializes its
+native SDK; the public client owns cleanup through `Close`.
+
+* Keep initialized native SDK clients private.
+* Implement a unified interface over existing SDKs; do not expose a generic raw
+  SDK accessor or require application callbacks for standard mappings.
+* Use typed integration code. Do not invoke SDK methods through reflection.
+* Expose shared request/response types as generated native language types.
+  Protobuf remains a schema input.
+* Creation returns a sandbox handle. Implement lifecycle methods on that handle
+  separately from creation configuration.
+* Preserve field presence, units, source kinds, and provider defaults.
+* Reject unsupported intent before provider calls. Account quotas, permissions,
+  and capacity remain provider-enforced.
+* Closing an SDK client must not imply stopping or deleting cloud sandboxes.
+
+## Generation and validation
+
+Shared validation, provider checks, configuration assembly, and expressible
+conversions belong in specs and generators. Native symbols and SDK type/member
+bindings belong in the target language's binding section.
+
+* Keep semantic rules independent of target-language code.
+* Translate validator tags in the Go emitter.
+* Add vocabulary operations with semantic tests; do not embed raw code in YAML.
+* Document SDK orchestration that remains handwritten.
+* Compare references with the pinned SDK version. Resolve conflicting docs
+  explicitly rather than guessing semantics.
+* Edit schemas/specs/emitters and regenerate; never hand-edit `.gen.go` files.
+* Follow [naming conventions](docs/naming.md), preserve numeric enum values,
+  and preserve explicit serialized names.
+
+## Examples and documentation
+
+For every public feature, update its language's runnable example and guide.
+Use small, independent provider-specific projects under `examples/<language>/`.
+Each example demonstrates one operation with its own configuration and no provider
+selector or CLI flags.
+
+Keep examples aligned with the implemented API. Label test doubles, planned
+features, and local verification limits clearly. Verify changed examples before
+handoff and update `examples/README.md` when adding a language.
+
+Update project Markdown whenever APIs, layout, architecture, or dependencies
+change. Verify links and commands and distinguish current behavior from plans.
+
+## Development tooling
+
+Use reusable Cobra commands for workflows. Constructors must avoid global flag
+state and side effects; subprocesses must receive the command context.
+
+Keep temporary binaries, caches, and scratch files outside the checkout.
+Never create a repository-local `work/` directory. Generation must clean up
+temporary binaries and write SDK output only to its declared directories.
+
+</INSTRUCTIONS>
+
+<environment_context>
+  <cwd>/Users/nabhag/OpenSource/kit</cwd>
+  <shell>zsh</shell>
+  <current_date>2026-10-10</current_date>
+  <timezone>Asia/Kolkata</timezone>
+  <filesystem><workspace_roots><root>/Users/nabhag/OpenSource/kit</root><root>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</root></workspace_roots><permission_profile type="managed"><file_system type="restricted"><entry access="read"><special>:root</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10</path></entry><entry access="read"><special>:slash_tmp</special></entry><entry access="read"><special>:tmpdir</special></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.git</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.git</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.agents</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.agents</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.codex</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.codex</path></entry><entry access="read"><path>/Users/nabhag/OpenSource/kit/.aws</path></entry><entry access="read"><path>/Users/nabhag/.codex/visualizations/2026/10/08/01a11a63-e733-7cf0-a538-2ebaed3c9a10/.aws</path></entry></file_system></permission_profile></filesystem>
+</environment_context>
