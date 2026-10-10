@@ -1,0 +1,3 @@
+<send_user_message_question_reply>
+[{"questionItemId":"[\"request_user_input_async\",\"call_4ec0be1b45674791aa6c4ad2fc8e3ae2\",0]","question":"Which initialization API do you want? The first keeps your earlier decision that users initialize/authenticate the provider SDK; the second makes Sandbox Kit initialize it from shared configuration.","answer":"core.NewClient(core.ClientConfig{Provider: modalAdapter.New(...), Auth: ..., Endpoint: ..., Region: ...}) — adapter constructs the SDK from common configuration."}]
+</send_user_message_question_reply>
