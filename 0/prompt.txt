@@ -1,5 +1,1 @@
-can u commit hooks.json and push to main
-
----
-
 do it
