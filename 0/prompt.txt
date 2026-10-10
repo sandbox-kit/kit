@@ -1,0 +1,1 @@
+is there anything before I should go on common response contracts + errors handling I should look into and fix before ?
