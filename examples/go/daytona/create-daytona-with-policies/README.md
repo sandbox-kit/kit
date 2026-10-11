@@ -4,6 +4,9 @@ Create one sandbox from the default snapshot, disable auto-pause, and request
 deletion ten minutes after stopping. This standalone module uses Sandbox Kit
 and only the Daytona provider.
 
+Remote `DAYTONA_API_URL` overrides require HTTPS. HTTP is accepted for localhost
+or literal loopback IPs. See [provider configuration](../../../../sdks/go/providers/daytona/README.md).
+
 ## Run with your account
 
 Requires Go 1.26.9 or newer and this checkout. From the repository root:

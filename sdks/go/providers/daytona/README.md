@@ -6,7 +6,8 @@ Daytona SDK dependency.
 
 Start with the [creation example](../../../../examples/go/daytona/create-daytona-sandbox/README.md)
 or [policy example](../../../../examples/go/daytona/create-daytona-with-policies/README.md).
-Modules currently use local development replacements.
+Requires Go 1.26.9 or newer and this checkout. Modules currently use local
+development replacements.
 
 ## Configure the client
 
@@ -36,8 +37,11 @@ The runnable examples include imports and cleanup-error handling.
 | Endpoint         | `Config.Endpoint` maps to API URL |
 | Region           | `Config.Region` maps to target    |
 
-Organization, endpoint, and target may use SDK environment defaults when omitted.
-See [common configuration](../../../../docs/configuration.md).
+Organization and target may use SDK environment defaults when omitted. An omitted
+endpoint resolves from `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then
+`https://app.daytona.io/api`. Explicit `Config.Endpoint` takes precedence.
+Remote endpoints require HTTPS; HTTP is accepted for localhost or literal loopback
+IPs. See [common configuration](../../../../docs/configuration.md).
 
 ## Create a sandbox
 

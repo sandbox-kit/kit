@@ -5,27 +5,27 @@ SDK and its selected provider. Requires Go 1.26.9 or newer and this checkout.
 
 ## Projects
 
-| Project                                                                | Required configuration                               | Local verification                              |
-| ---------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| [create-modal-sandbox](modal/create-modal-sandbox/README.md)                 | Modal token pair, existing app, optional environment | Error-kind handling tests                       |
-| [create-modal-with-resources](modal/create-modal-with-resources/README.md)   | Modal token pair, existing app, optional environment | Validation and scope tests                      |
-| [create-modal-with-runtime](modal/create-modal-with-runtime/README.md)       | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-gvisor](modal/create-modal-gvisor/README.md)                   | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-linux-vm](modal/create-modal-linux-vm/README.md)               | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-with-placement](modal/create-modal-with-placement/README.md)   | Modal token pair, app, optional cloud and region     | Compiles                                        |
-| [create-modal-with-labels](modal/create-modal-with-labels/README.md)         | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-with-network](modal/create-modal-with-network/README.md)       | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-idle](modal/create-modal-idle/README.md)                       | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-ready](modal/create-modal-ready/README.md)                     | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-verbose](modal/create-modal-verbose/README.md)                 | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-with-identity](modal/create-modal-with-identity/README.md)     | Modal token pair, existing app, optional environment | Compiles                                        |
+| Project                                                                        | Required configuration                               | Local verification                              |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------- | ----------------------------------------------- |
+| [create-modal-sandbox](modal/create-modal-sandbox/README.md)                   | Modal token pair, existing app, optional environment | Error-kind handling tests                       |
+| [create-modal-with-resources](modal/create-modal-with-resources/README.md)     | Modal token pair, existing app, optional environment | Validation and scope tests                      |
+| [create-modal-with-runtime](modal/create-modal-with-runtime/README.md)         | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-gvisor](modal/create-modal-gvisor/README.md)                     | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-linux-vm](modal/create-modal-linux-vm/README.md)                 | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-with-placement](modal/create-modal-with-placement/README.md)     | Modal token pair, app, optional cloud and region     | Compiles                                        |
+| [create-modal-with-labels](modal/create-modal-with-labels/README.md)           | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-with-network](modal/create-modal-with-network/README.md)         | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-idle](modal/create-modal-idle/README.md)                         | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-ready](modal/create-modal-ready/README.md)                       | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-verbose](modal/create-modal-verbose/README.md)                   | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-with-identity](modal/create-modal-with-identity/README.md)       | Modal token pair, existing app, optional environment | Compiles                                        |
 | [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | Daytona API key, optional endpoint/target            | Error-kind handling tests                       |
 | [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-linked](daytona/create-daytona-linked/README.md)               | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | Daytona API key, optional endpoint/target            | SDK request and policy tests                    |
-| [handle-modal-errors](modal/handle-modal-errors/README.md)                   | Modal token pair and app name                        | Unsupported disk override and kind-switch tests |
+| [handle-modal-errors](modal/handle-modal-errors/README.md)                     | Modal token pair and app name                        | Unsupported disk override and kind-switch tests |
 | [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | Daytona API key                                      | Local validation and kind-switch tests          |
 
 ## Run with your account

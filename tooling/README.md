@@ -43,12 +43,23 @@ constants, and response-origin validation.
 
 `test go` tests the public SDK, tooling, both providers, and all 20 independent
 example modules. Example tests use dummy credentials and local servers; they
-create no cloud resources. The minimal creation examples compile and run reporting tests. Dedicated error
-examples also run validation and kind-switch paths without cloud creation.
+create no cloud resources. The basic creation examples test error reporting;
+the resources and policies examples also test validation and request mapping.
+The other creation examples compile without running provider calls. Dedicated
+error examples test local rejection and error-kind handling.
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Generation uses an external temporary directory and cleans up
 its binaries. Caches stay outside the checkout.
+
+`GOWORK=off` ignores the root workspace for each command so every module is
+verified with its own `go.mod` and local replacements. The root `go.work` is for
+working across modules in an editor. Run `go version` in the same terminal to
+confirm Go 1.26.9 or newer; restart the editor's Go language server after upgrading.
+
+`go work sync` can update dependency versions in individual `go.mod` files.
+After using it, run `GOWORK=off go mod tidy` inside each affected module to update
+its `go.sum`, then run `sandbox-kit test go` again.
 
 ## Compilation and emission
 

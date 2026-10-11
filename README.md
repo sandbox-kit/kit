@@ -1,5 +1,7 @@
 # Sandbox Kit
 
+![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.svg)
+
 Create sandboxes through one Go API. Install the public SDK and the provider you
 need; each provider initializes its official SDK from shared configuration.
 
@@ -26,27 +28,27 @@ example, which creates a parent and a child. Error-handling examples
 exercise local failures without cloud creation. Closing the client releases SDK
 resources; use the provider's tools to stop or delete the sandbox.
 
-| Example                                                                | Demonstrates                                                    |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Example                                                                        | Demonstrates                                                    |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
 | [Daytona creation](examples/go/daytona/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
 | [Daytona snapshot](examples/go/daytona/create-daytona-from-snapshot/README.md) | Stock `daytona-small` snapshot                                  |
 | [Daytona image](examples/go/daytona/create-daytona-from-image/README.md)       | Public image with CPU, memory, and disk                         |
 | [Daytona ephemeral](examples/go/daytona/create-daytona-ephemeral/README.md)    | Delete-on-stop from the default snapshot                        |
 | [Daytona linked](examples/go/daytona/create-daytona-linked/README.md)          | Parent sandbox and an ephemeral linked child                    |
 | [Daytona policies](examples/go/daytona/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
-| [Modal creation](examples/go/modal/create-modal-sandbox/README.md)           | Token-pair authentication, app/environment scope, and an image  |
-| [Modal resources](examples/go/modal/create-modal-with-resources/README.md)   | CPU, memory, and a bounded lifetime                             |
-| [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)       | Working directory, entrypoint, and PTY                          |
-| [Modal gVisor](examples/go/modal/create-modal-gvisor/README.md)              | Container isolation                                             |
-| [Modal Linux VM](examples/go/modal/create-modal-linux-vm/README.md)          | Linux VM isolation                                              |
-| [Modal placement](examples/go/modal/create-modal-with-placement/README.md)   | Cloud and optional region preference                            |
-| [Modal labels](examples/go/modal/create-modal-with-labels/README.md)         | Environment variables and tags                                  |
-| [Modal network](examples/go/modal/create-modal-with-network/README.md)       | Blocked outbound access                                         |
-| [Modal idle timeout](examples/go/modal/create-modal-idle/README.md)          | Termination after 60 idle seconds                               |
-| [Modal readiness](examples/go/modal/create-modal-ready/README.md)            | Wait until a readiness command succeeds                         |
-| [Modal verbose](examples/go/modal/create-modal-verbose/README.md)            | Verbose provider logging                                        |
-| [Modal identity](examples/go/modal/create-modal-with-identity/README.md)     | Workload identity token                                         |
-| [Modal errors](examples/go/modal/handle-modal-errors/README.md)              | Handle an unsupported disk override with `ErrorKindUnsupported` |
+| [Modal creation](examples/go/modal/create-modal-sandbox/README.md)             | Token-pair authentication, app/environment scope, and an image  |
+| [Modal resources](examples/go/modal/create-modal-with-resources/README.md)     | CPU, memory, and a bounded lifetime                             |
+| [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)         | Working directory, entrypoint, and PTY                          |
+| [Modal gVisor](examples/go/modal/create-modal-gvisor/README.md)                | Container isolation                                             |
+| [Modal Linux VM](examples/go/modal/create-modal-linux-vm/README.md)            | Linux VM isolation                                              |
+| [Modal placement](examples/go/modal/create-modal-with-placement/README.md)     | Cloud and optional region preference                            |
+| [Modal labels](examples/go/modal/create-modal-with-labels/README.md)           | Environment variables and tags                                  |
+| [Modal network](examples/go/modal/create-modal-with-network/README.md)         | Blocked outbound access                                         |
+| [Modal idle timeout](examples/go/modal/create-modal-idle/README.md)            | Termination after 60 idle seconds                               |
+| [Modal readiness](examples/go/modal/create-modal-ready/README.md)              | Wait until a readiness command succeeds                         |
+| [Modal verbose](examples/go/modal/create-modal-verbose/README.md)              | Verbose provider logging                                        |
+| [Modal identity](examples/go/modal/create-modal-with-identity/README.md)       | Workload identity token                                         |
+| [Modal errors](examples/go/modal/handle-modal-errors/README.md)                | Handle an unsupported disk override with `ErrorKindUnsupported` |
 | [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
 
 Each project has its own module, `.env.example`, and selected provider. Modal
@@ -175,6 +177,9 @@ whole GiB allocations expressed as MiB.
 
 ## Documentation
 
+See the [SDK generation diagram](docs/sdk-generation.svg) for a short explanation
+of the generation process.
+
 | Guide                                                   | Covers                                                    |
 | ------------------------------------------------------- | --------------------------------------------------------- |
 | [Client configuration](docs/configuration.md)           | Auth, scope, defaults, deadlines, and ownership           |
@@ -188,7 +193,7 @@ whole GiB allocations expressed as MiB.
 
 ## Develop and contribute
 
-From `tooling/`:
+Requires Go 1.26.9 or newer. From `tooling/`:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit test go
@@ -197,7 +202,9 @@ GOWORK=off go run ./cmd/sandbox-kit generate go
 
 Generation also requires `protoc`. Verification tests the SDK, tooling, providers,
 and every example module. Example tests use dummy credentials and local
-servers; they create no cloud resources.
+servers; they create no cloud resources. Each module is checked independently
+with `GOWORK=off`. See [tooling setup](tooling/README.md) for workspace synchronization
+and dependency checksum updates.
 
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
 Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves

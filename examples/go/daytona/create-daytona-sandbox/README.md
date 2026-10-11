@@ -20,8 +20,10 @@ DAYTONA_API_KEY=your_api_key
 ```
 
 Optional `DAYTONA_API_URL` and `DAYTONA_TARGET` values map to
-`Config.Endpoint` and `Config.Region`. When omitted, the SDK uses its normal
-defaults. See [.env.example](.env.example) and
+`Config.Endpoint` and `Config.Region`. Remote endpoints require HTTPS; HTTP is
+accepted for localhost or literal loopback IPs. When the URL is omitted,
+`DAYTONA_SERVER_URL` is the fallback, followed by `https://app.daytona.io/api`.
+See [.env.example](.env.example) and
 [provider configuration](../../../../sdks/go/providers/daytona/README.md).
 
 ## Run

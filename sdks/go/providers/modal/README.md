@@ -6,7 +6,8 @@ dependency.
 
 Start with the [creation example](../../../../examples/go/modal/create-modal-sandbox/README.md)
 or [resources example](../../../../examples/go/modal/create-modal-with-resources/README.md).
-Modules currently use local development replacements.
+Requires Go 1.26.9 or newer and this checkout. Modules currently use local
+development replacements.
 
 ## Configure the client
 

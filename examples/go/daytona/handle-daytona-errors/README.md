@@ -5,6 +5,8 @@ handles the error by switching on `sandboxError.Kind`. No cloud sandbox is creat
 
 ## Run
 
+Requires Go 1.26.9 or newer and this checkout.
+
 ```sh
 cd examples/go/daytona/handle-daytona-errors
 cp .env.example .env
