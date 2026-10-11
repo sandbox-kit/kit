@@ -1,6 +1,6 @@
 # Sandbox Kit
 
-![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.svg)
+![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.png)
 
 Create sandboxes through one Go API. Install the public SDK and the provider you
 need; each provider initializes its official SDK from shared configuration.
@@ -177,7 +177,7 @@ whole GiB allocations expressed as MiB.
 
 ## Documentation
 
-See the [SDK generation diagram](docs/sdk-generation.svg) for a short explanation
+See the [SDK generation diagram](docs/sdk-generation.png) for a short explanation
 of the generation process.
 
 | Guide                                                   | Covers                                                    |
