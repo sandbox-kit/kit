@@ -2,12 +2,16 @@
 
 ![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.png)
 
-Create sandboxes through one Go API. Install the public SDK and the provider you
-need; each provider initializes its official SDK from shared configuration.
+Sandbox Kit is a lightweight SDK for creating sandboxes across providers.
+Install the public SDK and the provider you need; each provider initializes its
+official SDK from shared configuration.
 
-Go integrations for Modal and Daytona currently support authentication, sandbox
-creation, validation, shared metadata, and common error kinds. Execution, lifecycle methods,
-storage, GPU requests, harness integrations, and other language SDKs are planned.
+Go is supported today, with more languages planned. Shared contracts and a
+language-neutral compiler provide the foundation for additional language SDKs.
+
+The current Go SDK supports Modal and Daytona, including authentication, sandbox
+creation, validation, shared metadata, and common error kinds. Execution,
+lifecycle methods, storage, GPU requests, and harness integrations are planned.
 
 ## Get started
 
