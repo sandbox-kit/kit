@@ -249,6 +249,8 @@ func fieldType(g *protogen.GeneratedFile, field *protogen.Field) (string, error)
 		kind = "bool"
 	case protoreflect.DoubleKind:
 		kind = "float64"
+	case protoreflect.Int32Kind:
+		kind = "int32"
 	case protoreflect.Uint32Kind:
 		kind = "uint32"
 	case protoreflect.Uint64Kind:

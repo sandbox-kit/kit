@@ -32,14 +32,17 @@ func (s *Schema) ErrorKind(name string) (Kind, error) {
 
 // ErrorCase is portable classification. Native rule IDs are bound separately.
 type ErrorCase struct {
-	Code int
-	Rule string
-	Kind Kind
+	Code     int
+	CodeText string
+	Rule     string
+	Kind     Kind
 }
 type ErrorPlan struct {
-	Native []ErrorCase
-	HTTP   []ErrorCase
-	GRPC   []ErrorCase
+	Native  []ErrorCase
+	Codes   []ErrorCase
+	HTTP    []ErrorCase
+	GRPC    []ErrorCase
+	Default *Kind
 }
 type Mapping struct {
 	Rule      spec.Mapping
@@ -108,6 +111,28 @@ func CompileProvider(schema *Schema, rules spec.Provider) (Provider, error) {
 			}
 			*input.target = append(*input.target, ErrorCase{Code: code, Kind: kind})
 		}
+	}
+	codeNames := make([]string, 0, len(rules.ErrorCodes))
+	for code := range rules.ErrorCodes {
+		codeNames = append(codeNames, code)
+	}
+	sort.Strings(codeNames)
+	for _, code := range codeNames {
+		if code == "" {
+			return result, fmt.Errorf("empty provider error code")
+		}
+		kind, err := schema.ErrorKind(rules.ErrorCodes[code])
+		if err != nil {
+			return result, err
+		}
+		result.Errors.Codes = append(result.Errors.Codes, ErrorCase{CodeText: code, Kind: kind})
+	}
+	if rules.ErrorStatusZero != "" {
+		kind, err := schema.ErrorKind(rules.ErrorStatusZero)
+		if err != nil {
+			return result, err
+		}
+		result.Errors.Default = &kind
 	}
 	for _, binding := range rules.Errors {
 		for _, native := range binding.Types {

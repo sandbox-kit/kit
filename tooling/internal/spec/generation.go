@@ -62,11 +62,20 @@ func ValidateOperations(operations map[string][]string) error {
 		"initialize": {"require_provider", "identify_provider", "validate_configuration", "require_provider_name", "capture_timeout", "initialize_provider", "require_backend", "match_backend_identity", "return_client"},
 		"create":     {"require_context", "require_client", "prepare_request", "resolve_deadline", "invoke_creation", "return_handle"},
 		"close":      {"require_context", "close_backend"},
+		"attach":     {"require_context", "require_client", "require_identity", "resolve_deadline", "require_capability", "invoke_capability", "return_handle"},
+		"get":        {"require_context", "require_client", "require_identity", "resolve_deadline", "require_capability", "invoke_capability", "return_handle"},
+		"refresh":    {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
+		"start":      {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
+		"stop":       {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
+		"pause":      {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
+		"terminate":  {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "return_result"},
+		"archive":    {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
+		"delete":     {"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"},
 	}
 	if len(operations) != len(required) {
 		return fmt.Errorf("missing or unknown client operation")
 	}
-	for _, name := range []string{"initialize", "create", "close"} {
+	for _, name := range []string{"initialize", "create", "close", "attach", "get", "refresh", "start", "stop", "pause", "terminate", "archive", "delete"} {
 		steps := operations[name]
 		expected := required[name]
 		if len(steps) != len(expected) {

@@ -15,10 +15,37 @@ import (
 	"strings"
 	"time"
 
+	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
 	"github.com/daytona/clients/sdk-go/pkg/options"
 	"github.com/daytona/clients/sdk-go/pkg/types"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
+
+var _ sandbox.SandboxRefresher = (*backend)(nil)
+var _ sandbox.SandboxStarter = (*backend)(nil)
+var _ sandbox.SandboxStopper = (*backend)(nil)
+var _ sandbox.SandboxPauser = (*backend)(nil)
+var _ sandbox.SandboxArchiver = (*backend)(nil)
+var _ sandbox.SandboxDeleter = (*backend)(nil)
+
+func (*backend) SandboxCapabilities(info *sandbox.SandboxInfo) []sandbox.LifecycleCapability {
+	capabilities := []sandbox.LifecycleCapability{sandbox.LifecycleCapabilityRefresh, sandbox.LifecycleCapabilityStart, sandbox.LifecycleCapabilityStop, sandbox.LifecycleCapabilityDelete}
+	if info == nil || info.GetTerminal() {
+		return nil
+	}
+	gpu := false
+	if count, ok := info.GetProviderMetadata()["gpu_count"].(int64); ok {
+		gpu = count > 0
+	}
+	isolation := info.GetIsolation()
+	if !gpu && isolation != nil && (isolation.Kind == sandbox.IsolationKindLinuxVM || isolation.GetProviderKind() == "windows") {
+		capabilities = append(capabilities, sandbox.LifecycleCapabilityPause)
+	}
+	if !gpu && isolation != nil && isolation.Kind == sandbox.IsolationKindContainer {
+		capabilities = append(capabilities, sandbox.LifecycleCapabilityArchive)
+	}
+	return capabilities
+}
 
 // createPlan is the Daytona source and option list for one creation request.
 type createPlan struct {
@@ -63,7 +90,211 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		info.Resources = &resources
 		info.Origins["resources"] = sandbox.ValueOriginProvider
 	}
+	applyDaytonaState(&info, instance)
 	return &sandbox.CreateResult{Sandbox: &info}, nil
+}
+
+// RefreshSandbox retrieves current metadata for an existing Daytona sandbox.
+func (a *backend) RefreshSandbox(ctx context.Context, id string) (*sandbox.SandboxInfo, error) {
+	instance, err := a.client.Get(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "refresh")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+func daytonaSandboxInfo(instance *daytona.Sandbox) (sandbox.SandboxInfo, error) {
+	info, err := mapSandboxInfo(instance)
+	if err != nil {
+		return info, err
+	}
+	resources, err := mapAllocatedResources(instance)
+	if err != nil {
+		return info, err
+	}
+	if resources.CPUCores != nil {
+		info.Resources = &resources
+		info.Origins["resources"] = sandbox.ValueOriginProvider
+	}
+	applyDaytonaState(&info, instance)
+	if instance.SandboxClass != nil {
+		isolation := &sandbox.IsolationConfig{}
+		switch *instance.SandboxClass {
+		case types.SandboxClassContainer:
+			isolation.Kind = sandbox.IsolationKindContainer
+		case types.SandboxClassLinuxVM:
+			isolation.Kind = sandbox.IsolationKindLinuxVM
+		default:
+			isolation.Kind = sandbox.IsolationKindProviderSpecific
+			isolation.ProviderKind = sandbox.Value(string(*instance.SandboxClass))
+		}
+		info.Isolation = isolation
+		info.Origins["isolation"] = sandbox.ValueOriginProvider
+	}
+	metadata := map[string]any{}
+	if instance.Gpu > 0 {
+		metadata["gpu_count"] = int64(instance.Gpu)
+	}
+	if instance.GpuType != nil {
+		metadata["gpu_type"] = string(*instance.GpuType)
+	}
+	if instance.DesiredState != nil {
+		metadata["desired_state"] = string(*instance.DesiredState)
+	}
+	if instance.ErrorReason != nil {
+		metadata["error_reason"] = *instance.ErrorReason
+	}
+	if instance.Recoverable != nil {
+		metadata["recoverable"] = *instance.Recoverable
+	}
+	if instance.Spot {
+		metadata["spot"] = true
+	}
+	if instance.SpotEvictedAt != nil {
+		metadata["spot_evicted_at"] = *instance.SpotEvictedAt
+	}
+	if instance.BackupState != nil {
+		metadata["backup_state"] = *instance.BackupState
+	}
+	if instance.BackupCreatedAt != nil {
+		metadata["backup_created_at"] = *instance.BackupCreatedAt
+	}
+	if instance.UpdatedAt != nil {
+		metadata["updated_at"] = *instance.UpdatedAt
+	}
+	if instance.LastActivityAt != nil {
+		metadata["last_activity_at"] = *instance.LastActivityAt
+	}
+	if instance.AutoDestroyAt != nil {
+		metadata["auto_destroy_at"] = *instance.AutoDestroyAt
+	}
+	if instance.QueueTimedOutAt != nil {
+		metadata["queue_timed_out_at"] = *instance.QueueTimedOutAt
+	}
+	if instance.Snapshot != nil {
+		metadata["snapshot"] = *instance.Snapshot
+	}
+	if instance.WarmPoolId != nil {
+		metadata["warm_pool_id"] = *instance.WarmPoolId
+	}
+	metadata["auto_stop_interval_minutes"] = int64(instance.AutoStopInterval)
+	metadata["auto_pause_interval_minutes"] = int64(instance.AutoPauseInterval)
+	metadata["auto_archive_interval_minutes"] = int64(instance.AutoArchiveInterval)
+	metadata["auto_delete_interval_minutes"] = int64(instance.AutoDeleteInterval)
+	if len(metadata) > 0 {
+		info.ProviderMetadata = metadata
+		info.Origins[sandbox.InfoFieldProviderMetadata] = sandbox.ValueOriginProvider
+	}
+	return info, nil
+}
+
+func applyDaytonaState(info *sandbox.SandboxInfo, instance *daytona.Sandbox) {
+	switch string(instance.State) {
+	case "creating", "restoring", "pending_build", "building_snapshot", "pulling_snapshot", "forking":
+		info.State = sandbox.SandboxStateQueued
+	case "starting", "resuming":
+		info.State = sandbox.SandboxStateStarting
+	case "started":
+		info.State = sandbox.SandboxStateRunning
+	case "stopping":
+		info.State = sandbox.SandboxStateStopping
+	case "stopped":
+		info.State = sandbox.SandboxStateStopped
+	case "pausing":
+		info.State = sandbox.SandboxStatePausing
+	case "paused":
+		info.State = sandbox.SandboxStatePaused
+	case "archiving":
+		info.State = sandbox.SandboxStateArchiving
+	case "archived":
+		info.State = sandbox.SandboxStateArchived
+	case "destroying":
+		info.State = sandbox.SandboxStateDeleting
+	case "destroyed":
+		info.State = sandbox.SandboxStateDeleted
+		info.Terminal = sandbox.Value(true)
+	case "error", "build_failed":
+		info.State = sandbox.SandboxStateError
+	}
+}
+
+func (a *backend) daytonaSandbox(ctx context.Context, id string) (*daytona.Sandbox, error) {
+	return a.client.Get(ctx, id)
+}
+
+func (a *backend) StartSandbox(ctx context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+	instance, err := a.daytonaSandbox(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "start")
+	}
+	if err := instance.StartWithTimeout(ctx, 0); err != nil {
+		return nil, mapProviderError(err, "start")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	return &info, err
+}
+
+func (a *backend) StopSandbox(ctx context.Context, id string, options *sandbox.StopOptions) (*sandbox.SandboxInfo, error) {
+	instance, err := a.daytonaSandbox(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "stop")
+	}
+	force := options != nil && options.GetForce()
+	if err := instance.StopWithTimeout(ctx, 0, force); err != nil {
+		return nil, mapProviderError(err, "stop")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	return &info, err
+}
+
+func (a *backend) PauseSandbox(ctx context.Context, id string, _ *sandbox.PauseOptions) (*sandbox.SandboxInfo, error) {
+	instance, err := a.daytonaSandbox(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "pause")
+	}
+	if instance.SandboxClass == nil || (*instance.SandboxClass != types.SandboxClassLinuxVM && string(*instance.SandboxClass) != "windows") {
+		return nil, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "pause", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: pause requires a Linux VM or Windows sandbox"}, nil)
+	}
+	if err := instance.PauseWithTimeout(ctx, 0); err != nil {
+		return nil, mapProviderError(err, "pause")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	return &info, err
+}
+
+func (a *backend) ArchiveSandbox(ctx context.Context, id string, _ *sandbox.ArchiveOptions) (*sandbox.SandboxInfo, error) {
+	instance, err := a.daytonaSandbox(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "archive")
+	}
+	if instance.SandboxClass == nil || *instance.SandboxClass != types.SandboxClassContainer {
+		return nil, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "archive", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: archive requires a container sandbox"}, nil)
+	}
+	if err := instance.Archive(ctx); err != nil {
+		return nil, mapProviderError(err, "archive")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	return &info, err
+}
+
+func (a *backend) DeleteSandbox(ctx context.Context, id string, options *sandbox.DeleteOptions) (*sandbox.SandboxInfo, error) {
+	instance, err := a.daytonaSandbox(ctx, id)
+	if err != nil {
+		return nil, mapProviderError(err, "delete")
+	}
+	if options != nil && options.GetWait() {
+		if err := instance.DeleteAndWait(ctx, 0); err != nil {
+			return nil, mapProviderError(err, "delete")
+		}
+	} else if err := instance.DeleteWithTimeout(ctx, 0); err != nil {
+		return nil, mapProviderError(err, "delete")
+	}
+	info, err := daytonaSandboxInfo(instance)
+	return &info, err
 }
 
 // planCreate checks the request and builds SDK arguments without contacting Daytona.

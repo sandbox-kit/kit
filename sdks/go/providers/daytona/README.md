@@ -92,8 +92,13 @@ for the full matrix and the SDK/service documentation conflict.
 
 ## Ownership and verification
 
-Errors expose shared kinds and preserve native SDK causes. Closing the client releases SDK resources
-without stopping or deleting the sandbox. Lifecycle methods remain future work.
+Errors expose shared kinds and preserve native SDK causes. Closing the client
+releases SDK resources without stopping or deleting the sandbox. Handles support
+`Start`, `Stop`, `Pause`, `Archive`, `Delete`, and `Refresh`; class-dependent
+operations reject known unsupported combinations before the lifecycle call.
+Call `instance.Capabilities()` or `instance.Supports(...)` to inspect support
+for the resolved container, VM, Windows, or GPU sandbox. Lifecycle responses
+update the handle's normalized state and provider metadata.
 
 From this directory:
 

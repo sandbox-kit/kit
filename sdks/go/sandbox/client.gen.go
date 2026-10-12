@@ -59,6 +59,50 @@ type Provider interface {
 	NewClient(*Config) (Backend, error)
 }
 
+// SandboxAttacher constructs a sandbox handle from an ID without claiming that
+// current metadata was retrieved or validated.
+type SandboxAttacher interface {
+	AttachSandbox(context.Context, string) (*SandboxInfo, error)
+}
+
+// SandboxRefresher retrieves current sandbox metadata from the provider.
+type SandboxRefresher interface {
+	RefreshSandbox(context.Context, string) (*SandboxInfo, error)
+}
+
+// SandboxStarter starts a provider sandbox and returns its resulting metadata.
+type SandboxStarter interface {
+	StartSandbox(context.Context, string, *StartOptions) (*SandboxInfo, error)
+}
+
+// SandboxStopper stops a provider sandbox and returns its resulting metadata.
+type SandboxStopper interface {
+	StopSandbox(context.Context, string, *StopOptions) (*SandboxInfo, error)
+}
+
+// SandboxPauser pauses a supported provider sandbox and returns its resulting
+// metadata.
+type SandboxPauser interface {
+	PauseSandbox(context.Context, string, *PauseOptions) (*SandboxInfo, error)
+}
+
+// SandboxTerminator permanently completes a provider execution.
+type SandboxTerminator interface {
+	TerminateSandbox(context.Context, string, *TerminateOptions) (*ExitResult, error)
+}
+
+// SandboxArchiver archives a supported provider sandbox and returns its
+// resulting metadata.
+type SandboxArchiver interface {
+	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
+}
+
+// SandboxDeleter irreversibly deletes a provider sandbox and returns its
+// terminal metadata.
+type SandboxDeleter interface {
+	DeleteSandbox(context.Context, string, *DeleteOptions) (*SandboxInfo, error)
+}
+
 // Client owns its initialized provider SDK. Close it when finished.
 type Client struct {
 	// backend is the initialized provider SDK. Applications use Client methods
@@ -199,5 +243,10 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if err != nil {
 		return nil, err
 	}
-	return sandboxFromResponse(c.backend, response)
+	instance, err = sandboxFromResponse(c.backend, response, "create")
+	if err != nil {
+		return nil, err
+	}
+	instance.timeout = c.timeout
+	return instance, nil
 }

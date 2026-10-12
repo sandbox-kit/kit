@@ -818,6 +818,186 @@ func (x *CreateResult) clone(depth int) (*CreateResult, error) {
 	return &out, nil
 }
 
+// Clone returns an owned copy of StartOptions. The copy keeps optional
+// presence and numeric types. It fails when metadata is unsupported or deeper
+// than the copy limit.
+func (x *StartOptions) Clone() (*StartOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *StartOptions) clone(depth int) (*StartOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of StopOptions. The copy keeps optional presence
+// and numeric types. It fails when metadata is unsupported or deeper than the
+// copy limit.
+func (x *StopOptions) Clone() (*StopOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *StopOptions) clone(depth int) (*StopOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	if x.Force != nil {
+		value := *x.Force
+		out.Force = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of PauseOptions. The copy keeps optional
+// presence and numeric types. It fails when metadata is unsupported or deeper
+// than the copy limit.
+func (x *PauseOptions) Clone() (*PauseOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *PauseOptions) clone(depth int) (*PauseOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of TerminateOptions. The copy keeps optional
+// presence and numeric types. It fails when metadata is unsupported or deeper
+// than the copy limit.
+func (x *TerminateOptions) Clone() (*TerminateOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *TerminateOptions) clone(depth int) (*TerminateOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	if x.Wait != nil {
+		value := *x.Wait
+		out.Wait = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of ArchiveOptions. The copy keeps optional
+// presence and numeric types. It fails when metadata is unsupported or deeper
+// than the copy limit.
+func (x *ArchiveOptions) Clone() (*ArchiveOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *ArchiveOptions) clone(depth int) (*ArchiveOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of DeleteOptions. The copy keeps optional
+// presence and numeric types. It fails when metadata is unsupported or deeper
+// than the copy limit.
+func (x *DeleteOptions) Clone() (*DeleteOptions, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *DeleteOptions) clone(depth int) (*DeleteOptions, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.Timeout != nil {
+		value := *x.Timeout
+		out.Timeout = &value
+	}
+	if x.Wait != nil {
+		value := *x.Wait
+		out.Wait = &value
+	}
+	return &out, nil
+}
+
+// Clone returns an owned copy of ExitResult. The copy keeps optional presence
+// and numeric types. It fails when metadata is unsupported or deeper than the
+// copy limit.
+func (x *ExitResult) Clone() (*ExitResult, error) {
+	return x.clone(0)
+}
+
+// clone copies fields at depth. Clone is the caller-facing method; depth
+// starts at zero there.
+func (x *ExitResult) clone(depth int) (*ExitResult, error) {
+	if x == nil {
+		return nil, nil
+	}
+	if depth > 64 {
+		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
+	}
+	out := *x
+	if x.ExitCode != nil {
+		value := *x.ExitCode
+		out.ExitCode = &value
+	}
+	return &out, nil
+}
+
 // Clone returns an owned copy of SandboxInfo. The copy keeps optional presence
 // and numeric types. It fails when metadata is unsupported or deeper than the
 // copy limit.
@@ -883,6 +1063,10 @@ func (x *SandboxInfo) clone(depth int) (*SandboxInfo, error) {
 		for key, value := range x.Origins {
 			out.Origins[key] = value
 		}
+	}
+	if x.Terminal != nil {
+		value := *x.Terminal
+		out.Terminal = &value
 	}
 	return &out, nil
 }

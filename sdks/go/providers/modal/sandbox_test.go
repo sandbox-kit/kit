@@ -30,6 +30,10 @@ type sandboxesStub struct {
 	err error
 }
 
+func (s sandboxesStub) FromID(_ context.Context, id string, _ *sdk.SandboxFromIDParams) (*sdk.Sandbox, error) {
+	return &sdk.Sandbox{SandboxID: id}, nil
+}
+
 func (s sandboxesStub) Create(_ context.Context, _ *sdk.App, _ *sdk.Image, p *sdk.SandboxCreateParams) (*sdk.Sandbox, error) {
 	*s.got = p
 	if s.err != nil {
@@ -38,7 +42,7 @@ func (s sandboxesStub) Create(_ context.Context, _ *sdk.App, _ *sdk.Image, p *sd
 	return &sdk.Sandbox{SandboxID: "created"}, nil
 }
 func modalConfig() *sandbox.CreateOptions {
-	return &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "python:3.11"}}, Resources: &sandbox.Resources{CPUCores: sandbox.Value(1.5), MemoryMiB: sandbox.Value(uint64(2048))}, Environment: map[string]string{"MODE": "test"}}
+	return &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "python:3.11"}}, Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, Resources: &sandbox.Resources{CPUCores: sandbox.Value(1.5), MemoryMiB: sandbox.Value(uint64(2048))}, Environment: map[string]string{"MODE": "test"}}
 }
 func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 	calls := 0
@@ -53,8 +57,27 @@ func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if handle.ID() != "created" || handle.ProviderName() != "modal" || calls != 1 || got.CPU != 1.5 || got.MemoryMiB != 2048 || got.Env["MODE"] != "test" {
+	if handle.ID() != "created" || handle.ProviderName() != "modal" || handle.Info().GetIsolation().Kind != sandbox.IsolationKindContainer || calls != 1 || got.CPU != 1.5 || got.MemoryMiB != 2048 || got.Env["MODE"] != "test" {
 		t.Fatal("SDK mapping or response normalization failed")
+	}
+}
+
+func TestAttachIsDistinctFromGet(t *testing.T) {
+	var got *sdk.SandboxCreateParams
+	adapter := &backend{client: &sdk.Client{Sandboxes: sandboxesStub{got: &got}}, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
+	client, err := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	handle, err := client.Attach(context.Background(), "sb-existing")
+	if err != nil || handle.ID() != "sb-existing" {
+		t.Fatalf("attach failed: %v", err)
+	}
+	if _, err := client.Get(context.Background(), "sb-existing"); err == nil {
+		t.Fatal("Modal Get claimed provider retrieval")
+	}
+	if err := handle.Refresh(context.Background()); err == nil {
+		t.Fatal("Modal Refresh claimed provider retrieval")
 	}
 }
 func TestUnsupportedSettingsFailBeforeSDKCalls(t *testing.T) {

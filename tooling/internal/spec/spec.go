@@ -103,16 +103,18 @@ type RuntimeBinding struct {
 	Cleanup     Cleanup      `yaml:"cleanup"`
 }
 type Provider struct {
-	ErrorRules    map[string]string         `yaml:"error_rules"`
-	ErrorStatuses map[int]string            `yaml:"error_statuses"`
-	ErrorGRPC     map[int]string            `yaml:"error_grpc"`
-	Errors        map[string]ErrorBinding   `yaml:"errors"`
-	Checks        []Check                   `yaml:"checks"`
-	Client        *ClientMapping            `yaml:"client"`
-	Runtime       map[string]RuntimeBinding `yaml:"runtime"`
-	Version       int                       `yaml:"version"`
-	Provider      string                    `yaml:"provider"`
-	Groups        []Group                   `yaml:"groups"`
+	ErrorRules      map[string]string         `yaml:"error_rules"`
+	ErrorCodes      map[string]string         `yaml:"error_codes"`
+	ErrorStatusZero string                    `yaml:"error_status_zero"`
+	ErrorStatuses   map[int]string            `yaml:"error_statuses"`
+	ErrorGRPC       map[int]string            `yaml:"error_grpc"`
+	Errors          map[string]ErrorBinding   `yaml:"errors"`
+	Checks          []Check                   `yaml:"checks"`
+	Client          *ClientMapping            `yaml:"client"`
+	Runtime         map[string]RuntimeBinding `yaml:"runtime"`
+	Version         int                       `yaml:"version"`
+	Provider        string                    `yaml:"provider"`
+	Groups          []Group                   `yaml:"groups"`
 }
 type ErrorBinding struct {
 	Types  []ErrorType `yaml:"types"`

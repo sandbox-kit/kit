@@ -6,7 +6,9 @@ and serialization used by this checkout.
 
 This review covers authentication and mapped creation settings. Local tests
 verify conversions, validation, SDK request serialization, and ownership.
-They do not prove live scheduling, account capacity, or lifecycle behavior.
+They do not prove live scheduling or account capacity. Lifecycle contract tests
+cover capability dispatch, metadata updates, class checks, attachment semantics,
+and error translation without provisioning cloud resources.
 
 ## Reference sources
 

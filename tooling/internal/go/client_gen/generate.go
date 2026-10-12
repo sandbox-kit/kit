@@ -51,7 +51,10 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 	if err != nil {
 		return err
 	}
-	for _, id := range []string{"backend", "provider", "client"} {
+	for _, id := range []string{"backend", "provider", "sandbox_attacher", "sandbox_refresher", "sandbox_starter", "sandbox_stopper", "sandbox_pauser", "sandbox_terminator", "sandbox_archiver", "sandbox_deleter", "client"} {
+		if _, ok := compiled.Surface.TypesByID[id]; !ok {
+			continue
+		}
 		if err := d.TypeDeclaration(id); err != nil {
 			return err
 		}
@@ -131,7 +134,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 		case "invoke_creation":
 			d.Body(createMethod, "response,err:=", d.Receiver(createMethod), ".", d.Field("client", "backend"), ".", d.MethodName("backend", "create"), "(", d.Context(createMethod), ",", d.Param(createMethod, "request"), ");if err!=nil{return nil,err}")
 		case "return_handle":
-			d.Body(createMethod, "return sandboxFromResponse(", d.Receiver(createMethod), ".", d.Field("client", "backend"), ",response)")
+			d.Body(createMethod, "instance,err=sandboxFromResponse(", d.Receiver(createMethod), ".", d.Field("client", "backend"), ",response,\"create\");if err!=nil{return nil,err};instance.timeout=", d.Receiver(createMethod), ".", d.Field("client", "timeout"), ";return instance,nil")
 		}
 	}
 	g.P("}")

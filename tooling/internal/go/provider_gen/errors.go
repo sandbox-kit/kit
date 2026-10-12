@@ -28,6 +28,7 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, compiled model.Prov
 	g.P("package ", file.GoPackageName)
 	g.P("func mapProviderError(err error,operation string)error{if err==nil{return nil};var local *", id("Error"), ";if ", protogen.GoIdent{GoName: "As", GoImportPath: "errors"}, "(err,&local){return ", id("WithErrorContext"), "(err,", strconv.Quote(s.Provider), ",operation)}")
 	g.P("kind:=", id("ErrorKindUnknown"), ";var statusCode *uint32;var providerCode,providerSource *string")
+	g.P("if ", protogen.GoIdent{GoName: "Is", GoImportPath: "errors"}, "(err,", protogen.GoIdent{GoName: "Canceled", GoImportPath: "context"}, "){kind=", id("ErrorKindCanceled"), "}else if errors.Is(err,", protogen.GoIdent{GoName: "DeadlineExceeded", GoImportPath: "context"}, "){kind=", id("ErrorKindTimeout"), "}")
 	kind := func(classification model.Kind) (protogen.GoIdent, error) {
 		m, err := sharedMessage(p, "ErrorInfo")
 		if err != nil {
@@ -77,6 +78,17 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, compiled model.Prov
 		}
 		g.P("{var native *", protogen.GoIdent{GoName: binding.Target.Name, GoImportPath: protogen.GoImportPath(binding.Target.Import)}, ";if errors.As(err,&native){")
 		g.P("if native.", binding.Target.Fields["status"], ">0{statusCode=", id("Value"), "(uint32(native.", binding.Target.Fields["status"], "))};if native.", binding.Target.Fields["code"], "!=\"\"{providerCode=", id("Value"), "(native.", binding.Target.Fields["code"], ")};if native.", binding.Target.Fields["source"], "!=\"\"{providerSource=", id("Value"), "(native.", binding.Target.Fields["source"], ")}")
+		if len(compiled.Errors.Codes) > 0 {
+			g.P("if kind==", id("ErrorKindUnknown"), "{switch native.", binding.Target.Fields["code"], "{")
+			for _, rule := range compiled.Errors.Codes {
+				k, err := kind(rule.Kind)
+				if err != nil {
+					return err
+				}
+				g.P("case ", strconv.Quote(rule.CodeText), ":kind=", k)
+			}
+			g.P("}}")
+		}
 		g.P("if kind==", id("ErrorKindUnknown"), "{switch native.", binding.Target.Fields["status"], "{")
 		for _, rule := range compiled.Errors.HTTP {
 			code := rule.Code
@@ -86,7 +98,15 @@ func GenerateErrors(p *protogen.Plugin, file *protogen.File, compiled model.Prov
 			}
 			g.P("case ", code, ":kind=", k)
 		}
-		g.P("}}}}")
+		g.P("}}")
+		if compiled.Errors.Default != nil {
+			k, err := kind(*compiled.Errors.Default)
+			if err != nil {
+				return err
+			}
+			g.P("if kind==", id("ErrorKindUnknown"), "&&native.", binding.Target.Fields["status"], "==0&&native.", binding.Target.Fields["code"], "==\"\"{kind=", k, "}")
+		}
+		g.P("}}")
 	}
 	if len(compiled.Errors.GRPC) > 0 {
 		g.P("if kind==", id("ErrorKindUnknown"), "{switch ", protogen.GoIdent{GoName: "Code", GoImportPath: "google.golang.org/grpc/status"}, "(err){")

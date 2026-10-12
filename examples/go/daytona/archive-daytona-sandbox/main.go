@@ -1,0 +1,44 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"os"
+	"time"
+)
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+func run() (result error) {
+	if err := godotenv.Load(".env"); err != nil {
+		return fmt.Errorf("load .env: %w", err)
+	}
+	client, err := sandbox.NewClient(sandbox.Config{Provider: daytona.New(), Auth: &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}, Timeout: sandbox.Value(2 * time.Minute)})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := client.Close(context.Background()); result == nil {
+			result = err
+		}
+	}()
+	instance, err := client.Get(context.Background(), os.Getenv("DAYTONA_SANDBOX_ID"))
+	if err != nil {
+		return err
+	}
+	if !instance.Supports(sandbox.LifecycleCapabilityArchive) {
+		return fmt.Errorf("sandbox %s is not an archive-capable container", instance.ID())
+	}
+	if err := instance.Archive(context.Background(), nil); err != nil {
+		return err
+	}
+	fmt.Printf("Daytona archive requested: %s (%s)\n", instance.ID(), instance.Info().State)
+	return nil
+}

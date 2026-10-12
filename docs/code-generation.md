@@ -326,6 +326,12 @@ SDK orchestration that the vocabulary cannot express stays in handwritten
 provider semantics. Another language needs its own emitter and typed integration
 code for these operations; bindings alone do not produce a complete integration.
 
+Lifecycle option and result types are generated from protobuf. The Go
+`Sandbox` handle's capability dispatch and provider lifecycle call sequences
+remain handwritten because support differs by resolved sandbox class. Optional
+typed capability interfaces prevent a provider from advertising operations it
+cannot implement.
+
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).
 

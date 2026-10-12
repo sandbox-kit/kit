@@ -10,8 +10,8 @@ Go is supported today, with more languages planned. Shared contracts and a
 language-neutral compiler provide the foundation for additional language SDKs.
 
 The current Go SDK supports Modal and Daytona, including authentication, sandbox
-creation, validation, shared metadata, and common error kinds. Execution,
-lifecycle methods, storage, GPU requests, and harness integrations are planned.
+creation, lifecycle operations, validation, shared metadata, and common error
+kinds. Execution, storage, GPU requests, and harness integrations are planned.
 
 ## Get started
 
@@ -188,6 +188,7 @@ of the generation process.
 | ------------------------------------------------------- | --------------------------------------------------------- |
 | [Client configuration](docs/configuration.md)           | Auth, scope, defaults, deadlines, and ownership           |
 | [Sandbox creation](docs/sandbox-creation.md)            | Supported fields, units, and policy semantics             |
+| [Sandbox lifecycle](docs/sandbox-lifecycle.md)          | Retrieval, lifecycle semantics, and provider capabilities |
 | [Provider architecture](docs/providers.md)              | Optional modules, contracts, and SDK boundaries           |
 | [Responses and errors](docs/responses-and-errors.md)    | Presence, origins, error details, and native causes       |
 | [API declarations](docs/api-declarations.md)            | Runtime declarations and language representation rules    |

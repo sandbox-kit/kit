@@ -27,6 +27,16 @@ loads its own `.env`, and demonstrates creation or error handling.
 | [Daytona policies](go/daytona/create-daytona-with-policies/README.md) | Disabled pause, delayed deletion, and SDK request tests  |
 | [Modal errors](go/modal/handle-modal-errors/README.md)                | Unsupported disk override and common error-kind handling |
 | [Daytona errors](go/daytona/handle-daytona-errors/README.md)          | Validation and common error-kind handling                |
+| [Daytona stop](go/daytona/stop-daytona-sandbox/README.md)             | Verified retrieval, capability discovery, and stop       |
+| [Modal terminate](go/modal/terminate-modal-sandbox/README.md)         | ID attachment, capability discovery, and termination     |
+| [Daytona get](go/daytona/get-daytona-sandbox/README.md)               | Current metadata, portable state, and capabilities        |
+| [Daytona refresh](go/daytona/refresh-daytona-sandbox/README.md)       | Refresh cached provider metadata                          |
+| [Daytona start](go/daytona/start-daytona-sandbox/README.md)           | Start an existing retained sandbox                        |
+| [Daytona pause](go/daytona/pause-daytona-sandbox/README.md)           | Memory-preserving VM pause                                |
+| [Daytona archive](go/daytona/archive-daytona-sandbox/README.md)       | Archive a retained container filesystem                   |
+| [Daytona delete](go/daytona/delete-daytona-sandbox/README.md)         | Wait for irreversible deletion                            |
+| [Modal attach](go/modal/attach-modal-sandbox/README.md)               | Construct an ID-only handle without remote lookup         |
+| [Modal request termination](go/modal/request-modal-termination/README.md) | Terminate without waiting for an exit code             |
 
 Requires Go 1.26.9 or newer and this checkout. In the selected project, copy
 `.env.example` to `.env`, fill in credentials, and run `go run .`.

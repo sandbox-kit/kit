@@ -83,7 +83,13 @@ and unsupported fields are rejected. See [creation coverage](../../../../docs/sa
 
 Errors expose shared kinds and preserve native SDK causes. Account permissions, resource quotas,
 and placement availability remain provider-enforced. Closing the client releases
-SDK resources without terminating the sandbox.
+SDK resources without terminating the sandbox. `Client.Attach` constructs a
+handle from a Modal ID without claiming a remote lookup; handles support
+`Terminate`. Provider-verified `Get`/`Refresh`, restartable stop, start, pause,
+archive, and resource deletion are
+not aliases for Modal termination and return `ErrorKindUnsupported`.
+Successful termination marks the handle terminal and removes all further
+lifecycle capabilities. A waited termination preserves its checked exit code.
 
 From this directory:
 

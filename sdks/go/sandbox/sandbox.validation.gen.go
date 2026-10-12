@@ -184,6 +184,15 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, Resources{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(SandboxInfo)
+		_ = x
+		switch x.GetState() {
+		case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14:
+		default:
+			sl.ReportError(x, "State", "State", "known_enum", "")
+		}
+	}, SandboxInfo{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(SandboxSource)
 		_ = x
 		count0 := 0

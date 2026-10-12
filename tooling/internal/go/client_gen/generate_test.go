@@ -50,6 +50,15 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration, edi
 	if err != nil {
 		t.Fatal(err)
 	}
+	module := raw.Modules["client"]
+	types := module.Types[:0]
+	for _, typ := range module.Types {
+		if typ.ID == "backend" || typ.ID == "provider" || typ.ID == "client" {
+			types = append(types, typ)
+		}
+	}
+	module.Types = types
+	raw.Modules["client"] = module
 	if edit != nil {
 		edit(&raw)
 	}

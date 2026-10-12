@@ -279,6 +279,73 @@ message CreateResult {
   // is the created sandbox. ID must be present before a public handle is built.
   SandboxInfo sandbox = 1;
 }
+
+// configures starting a persistent sandbox. Nil timeout inherits Config.Timeout.
+message StartOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// configures a restartable stop. Force requests an immediate provider-native stop.
+message StopOptions {
+  google.protobuf.Duration timeout = 1;
+  optional bool force = 2;
+}
+
+// configures a memory-preserving pause. Nil timeout inherits Config.Timeout.
+message PauseOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// configures permanent completion of the current execution.
+message TerminateOptions {
+  google.protobuf.Duration timeout = 1;
+  optional bool wait = 2;
+}
+
+// configures moving retained sandbox state to provider archive storage.
+message ArchiveOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// configures irreversible sandbox deletion.
+message DeleteOptions {
+  google.protobuf.Duration timeout = 1;
+  optional bool wait = 2;
+}
+
+// is the result of permanently completing an execution.
+message ExitResult {
+  optional int32 exit_code = 1;
+}
+// is a portable lifecycle state. ProviderState retains the native value.
+enum SandboxState {
+  SANDBOX_STATE_UNKNOWN = 0;
+  SANDBOX_STATE_QUEUED = 1;
+  SANDBOX_STATE_STARTING = 2;
+  SANDBOX_STATE_RUNNING = 3;
+  SANDBOX_STATE_STOPPING = 4;
+  SANDBOX_STATE_STOPPED = 5;
+  SANDBOX_STATE_PAUSING = 6;
+  SANDBOX_STATE_PAUSED = 7;
+  SANDBOX_STATE_ARCHIVING = 8;
+  SANDBOX_STATE_ARCHIVED = 9;
+  SANDBOX_STATE_TERMINATING = 10;
+  SANDBOX_STATE_TERMINATED = 11;
+  SANDBOX_STATE_DELETING = 12;
+  SANDBOX_STATE_DELETED = 13;
+  SANDBOX_STATE_ERROR = 14;
+}
+// identifies an operation supported by a particular resolved sandbox handle.
+enum LifecycleCapability {
+  LIFECYCLE_CAPABILITY_UNKNOWN = 0;
+  LIFECYCLE_CAPABILITY_REFRESH = 1;
+  LIFECYCLE_CAPABILITY_START = 2;
+  LIFECYCLE_CAPABILITY_STOP = 3;
+  LIFECYCLE_CAPABILITY_PAUSE = 4;
+  LIFECYCLE_CAPABILITY_TERMINATE = 5;
+  LIFECYCLE_CAPABILITY_ARCHIVE = 6;
+  LIFECYCLE_CAPABILITY_DELETE = 7;
+}
 // is shared metadata. Optional fields stay absent when the provider did not report them.
 //
 // Example:
@@ -302,6 +369,10 @@ message SandboxInfo {
   MetadataObject provider_metadata = 10;
   // records where each present field came from. A missing entry means the origin is unknown.
   map<string, ValueOrigin> origins = 11;
+  // is the normalized lifecycle state when Kit can map the provider state.
+  SandboxState state = 12;
+  // reports that execution/resource lifecycle is permanently complete.
+  optional bool terminal = 13;
 }
 // records whether a metadata field came from the provider or from the request.
 enum ValueOrigin {
