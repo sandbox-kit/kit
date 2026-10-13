@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "coding-standards": {
+      "source": "iurysza/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/coding-standards/SKILL.md",
+      "computedHash": "825236153444bdfc4886774b6b7800438f80d1a2e288e800eabef0c5e9303c41"
+    },
     "crafting-effective-readmes": {
       "source": "softaworks/agent-toolkit",
       "sourceType": "github",
@@ -12,6 +18,12 @@
       "sourceType": "github",
       "skillPath": "skills/golang-documentation/SKILL.md",
       "computedHash": "30eb4877c93ed2aa84c374d4ca130b6c5ffd8a62be581fe4a11c285787a01677"
+    },
+    "typescript-advanced-types": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/javascript-typescript/skills/typescript-advanced-types/SKILL.md",
+      "computedHash": "8cbf2bf600f392d7260e476e3202932a876e2281cda3b15a8b6a5a43f383252d"
     },
     "writing-clearly-and-concisely": {
       "source": "softaworks/agent-toolkit",
