@@ -328,7 +328,8 @@ generation until copying support is added.
 1. Declare shared types and method intent in protobuf.
 2. Describe portable validation, conversions, and operation intent in YAML.
 3. Add native SDK symbols to the language's bindings.
-4. Extend the shared compiler vocabulary and each affected emitter for a new operation.
+4. Register operations that use existing outcome shapes in `specs/lifecycle.yaml`;
+   extend the shared vocabulary and affected emitters only for a new shape.
 5. Add semantic boundary tests, regenerate, and update examples/docs.
 6. Run the CLI verification command.
 
@@ -337,11 +338,14 @@ SDK orchestration that the vocabulary cannot express stays in handwritten
 provider semantics. Another language needs its own emitter and typed integration
 code for these operations; bindings alone do not produce a complete integration.
 
-Lifecycle option and result types are generated from protobuf. The Go
-`Sandbox` handle's capability dispatch and provider lifecycle call sequences
-remain handwritten because support differs by resolved sandbox class. Optional
-typed capability interfaces prevent a provider from advertising operations it
-cannot implement.
+Lifecycle option and result types are generated from protobuf. The Go lifecycle
+emitter generates handle methods, typed dispatch, timeout selection, metadata
+replacement, terminal updates, and static capability discovery from
+`specs/lifecycle.yaml`. Handle storage, operation/close coordination, and
+provider-specific lifecycle call sequences remain handwritten. Optional typed
+capability interfaces prevent a provider from advertising operations it cannot
+implement; Daytona resolves additional class-dependent capabilities from current
+metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

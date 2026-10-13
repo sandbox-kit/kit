@@ -21,9 +21,20 @@ func main() {
 
 func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("load .env: %w", err)
+		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
 	}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: daytona.New(), Auth: &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}, Timeout: sandbox.Value(2 * time.Minute)})
+	config := sandbox.Config{
+		Provider: daytona.New(),
+		Auth:     &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}},
+		Timeout:  sandbox.Value(2 * time.Minute),
+	}
+	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
+		config.Endpoint = sandbox.Value(endpoint)
+	}
+	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
+		config.Region = sandbox.Value(target)
+	}
+	client, err := sandbox.NewClient(config)
 	if err != nil {
 		return err
 	}

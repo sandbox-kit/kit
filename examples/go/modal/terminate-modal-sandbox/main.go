@@ -21,9 +21,22 @@ func main() {
 
 func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("load .env: %w", err)
+		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
 	}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: modal.New(), Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET")}}, Scope: &sandbox.Scope{AppName: sandbox.Value(os.Getenv("MODAL_APP"))}, Timeout: sandbox.Value(2 * time.Minute)})
+	environment := os.Getenv("MODAL_ENVIRONMENT")
+	if environment == "" {
+		environment = "main"
+	}
+	client, err := sandbox.NewClient(sandbox.Config{
+		Provider: modal.New(),
+		Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{
+			ID: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		}},
+		Scope: &sandbox.Scope{
+			AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment),
+		},
+		Timeout: sandbox.Value(2 * time.Minute),
+	})
 	if err != nil {
 		return err
 	}

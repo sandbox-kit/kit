@@ -4,8 +4,9 @@ Use Daytona through the shared Sandbox Kit client. This optional module depends
 on the official Daytona Go SDK v0.222.0. The public `sandbox` module has no
 Daytona SDK dependency.
 
-Start with the [creation example](../../../../examples/go/daytona/create-daytona-sandbox/README.md)
-or [policy example](../../../../examples/go/daytona/create-daytona-with-policies/README.md).
+Start with the [creation example](../../../../examples/go/daytona/create-daytona-sandbox/README.md),
+[policy example](../../../../examples/go/daytona/create-daytona-with-policies/README.md),
+or [retrieval example](../../../../examples/go/daytona/get-daytona-sandbox/README.md).
 Requires Go 1.26.9 or newer and this checkout. Modules currently use local
 development replacements.
 
@@ -99,6 +100,8 @@ operations reject known unsupported combinations before the lifecycle call.
 Call `instance.Capabilities()` or `instance.Supports(...)` to inspect support
 for the resolved container, VM, Windows, or GPU sandbox. Lifecycle responses
 update the handle's normalized state and provider metadata.
+Use `Client.Get` to retrieve a provider-verified handle for an existing Daytona
+sandbox. Daytona does not support unverified `Client.Attach`.
 
 From this directory:
 

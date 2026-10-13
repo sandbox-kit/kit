@@ -8,14 +8,16 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 
 | Concept                 | Go name         | Responsibility                                    |
 | ----------------------- | --------------- | ------------------------------------------------- |
-| Public SDK              | `sandbox`       | Configuration, creation, and shared metadata      |
+| Public SDK              | `sandbox`       | Configuration, lifecycle, and shared metadata     |
 | Provider selection      | `Provider`      | `Name()` and `NewClient(*Config)`                 |
-| Initialized integration | `Backend`       | `Name()`, `Create()`, and `Close()`               |
+| Initialized integration | `Backend`       | Provider identity and local SDK cleanup           |
+| Optional creation       | `SandboxCreator` | `Create()` when the provider supports creation    |
+| Optional lifecycle      | Capability interfaces | Typed provider operations such as start or terminate |
 | Public client           | `Client`        | Owns the backend and delegates operations         |
 | Client settings         | `Config`        | Provider, auth, scope, endpoint, region, timeout  |
 | Creation request        | `CreateOptions` | Source, runtime, resources, and creation policies |
 | Backend result          | `CreateResult`  | Shared sandbox metadata                           |
-| Public handle           | `Sandbox`       | Identity and copied `SandboxInfo`                 |
+| Public handle           | `Sandbox`       | Identity, copied metadata, and lifecycle methods  |
 
 Runtime declaration names come from `specs/api.yaml`. Descriptor-driven getter,
 clone, validation, mapping, and origin signatures come from `specs/templates.yaml`.
@@ -44,6 +46,7 @@ Emitter directories use the `*_gen` suffix. Generated files end in `.gen.go`:
 | File                       | Purpose                                            |
 | -------------------------- | -------------------------------------------------- |
 | `client.gen.go`            | Public client and provider/backend contracts       |
+| `client.lifecycle.gen.go`  | Public handle lifecycle methods and typed dispatch |
 | `*.types.gen.go`           | Native shared types                                |
 | `*.validation.gen.go`      | Shared or provider validation                      |
 | `*.errors.gen.go`          | Diagnostic field names and provider classification |

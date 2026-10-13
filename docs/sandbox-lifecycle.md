@@ -7,10 +7,13 @@ they do not reuse or mutate the creation request.
 
 ```go
 instance, err := client.Create(ctx, options)
-if instance.Supports(sandbox.LifecycleCapabilityStop) {
-    err = instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Value(time.Minute)})
+if err != nil {
+    return err
 }
-err = instance.Start(ctx, nil)
+if !instance.Supports(sandbox.LifecycleCapabilityStop) {
+    return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
+}
+return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Value(time.Minute)})
 ```
 
 An operation-specific timeout overrides `Config.Timeout`. Nil inherits the

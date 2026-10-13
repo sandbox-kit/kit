@@ -36,7 +36,7 @@ current name/labels are request-derived. Daytona maps SDK-reported metadata.
 
 ## Handle errors in an application
 
-Initialization, creation, and cleanup expose `*sandbox.Error`.
+Initialization, creation, lifecycle operations, and cleanup expose `*sandbox.Error`.
 Its generated `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`,
 and `Message`. Optional `StatusCode`, `ProviderCode`, and `ProviderSource`
 retain native machine details when available.
@@ -139,8 +139,11 @@ or runtime serialization codec is introduced.
 ## Completion and retries
 
 An error does not prove that no sandbox exists: readiness or metadata handling
-can fail after creation. Partial-success identity reporting remains deferred.
-Error kinds do not imply safe retries, and Kit performs no automatic retries.
+can fail after creation. A lifecycle call can also fail after the provider has
+begun or completed a transition. Refresh the handle when the provider supports
+it before deciding whether to retry. Partial-success creation identity reporting
+remains deferred. Error kinds do not imply safe retries, and Kit performs no
+automatic retries.
 
 See [creation](sandbox-creation.md), [generation](code-generation.md), and
 [provider verification](provider-verification.md).

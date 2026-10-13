@@ -11,6 +11,7 @@ var goTestModules = []string{
 	"examples/go/modal/create-modal-sandbox", "examples/go/daytona/create-daytona-sandbox",
 	"examples/go/modal/create-modal-with-resources", "examples/go/daytona/create-daytona-with-policies",
 	"examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image",
+	"examples/go/daytona/create-daytona-with-runtime",
 	"examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked",
 	"examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor",
 	"examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement",
@@ -23,6 +24,7 @@ var goTestModules = []string{
 	"examples/go/daytona/start-daytona-sandbox", "examples/go/daytona/pause-daytona-sandbox",
 	"examples/go/daytona/archive-daytona-sandbox", "examples/go/daytona/delete-daytona-sandbox",
 	"examples/go/modal/attach-modal-sandbox", "examples/go/modal/request-modal-termination",
+	"examples/go/daytona/close-daytona-handle", "examples/go/modal/close-modal-handle",
 }
 
 func newTestCommand(config *settings, runner runner) *cobra.Command {

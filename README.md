@@ -2,7 +2,7 @@
 
 ![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.png)
 
-Sandbox Kit is a lightweight SDK for creating sandboxes across providers.
+Sandbox Kit is a lightweight SDK for creating and managing sandboxes across providers.
 Install the public SDK and the provider you need; each provider initializes its
 official SDK from shared configuration.
 
@@ -28,18 +28,29 @@ go run .
 
 Skip copying the template if you already have a configured `.env`.
 Creation examples create real sandboxes: one each, except the linked Daytona
-example, which creates a parent and a child. Error-handling examples
-exercise local failures without cloud creation. Closing the client releases SDK
-resources; use the provider's tools to stop or delete the sandbox.
+example, which creates a parent and a child. Lifecycle examples operate on the
+ID supplied in `.env`; destructive examples stop, terminate, archive, or delete
+that sandbox as their names indicate. Error-handling examples exercise local
+failures without cloud creation. Closing the client or a handle releases only
+local resources and does not change a cloud sandbox.
 
 | Example                                                                        | Demonstrates                                                    |
 | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
 | [Daytona creation](examples/go/daytona/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
 | [Daytona snapshot](examples/go/daytona/create-daytona-from-snapshot/README.md) | Stock `daytona-small` snapshot                                  |
 | [Daytona image](examples/go/daytona/create-daytona-from-image/README.md)       | Public image with CPU, memory, and disk                         |
+| [Daytona runtime](examples/go/daytona/create-daytona-with-runtime/README.md)   | Toolbox language, version, and user                             |
 | [Daytona ephemeral](examples/go/daytona/create-daytona-ephemeral/README.md)    | Delete-on-stop from the default snapshot                        |
 | [Daytona linked](examples/go/daytona/create-daytona-linked/README.md)          | Parent sandbox and an ephemeral linked child                    |
 | [Daytona policies](examples/go/daytona/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
+| [Daytona get](examples/go/daytona/get-daytona-sandbox/README.md)               | Retrieve an existing sandbox and its resolved capabilities      |
+| [Daytona refresh](examples/go/daytona/refresh-daytona-sandbox/README.md)       | Refresh metadata on an existing handle                          |
+| [Daytona start](examples/go/daytona/start-daytona-sandbox/README.md)           | Start a stopped sandbox                                         |
+| [Daytona stop](examples/go/daytona/stop-daytona-sandbox/README.md)             | Stop a restartable sandbox                                      |
+| [Daytona pause](examples/go/daytona/pause-daytona-sandbox/README.md)           | Pause a supported VM sandbox                                    |
+| [Daytona archive](examples/go/daytona/archive-daytona-sandbox/README.md)       | Archive a supported container sandbox                           |
+| [Daytona delete](examples/go/daytona/delete-daytona-sandbox/README.md)         | Delete an existing sandbox                                      |
+| [Daytona close handle](examples/go/daytona/close-daytona-handle/README.md)     | Release a local handle without changing the cloud sandbox       |
 | [Modal creation](examples/go/modal/create-modal-sandbox/README.md)             | Token-pair authentication, app/environment scope, and an image  |
 | [Modal resources](examples/go/modal/create-modal-with-resources/README.md)     | CPU, memory, and a bounded lifetime                             |
 | [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)         | Working directory, entrypoint, and PTY                          |
@@ -52,6 +63,10 @@ resources; use the provider's tools to stop or delete the sandbox.
 | [Modal readiness](examples/go/modal/create-modal-ready/README.md)              | Wait until a readiness command succeeds                         |
 | [Modal verbose](examples/go/modal/create-modal-verbose/README.md)              | Verbose provider logging                                        |
 | [Modal identity](examples/go/modal/create-modal-with-identity/README.md)       | Workload identity token                                         |
+| [Modal attach](examples/go/modal/attach-modal-sandbox/README.md)               | Construct a handle from an ID without a remote lookup           |
+| [Modal terminate](examples/go/modal/terminate-modal-sandbox/README.md)         | Terminate an attached sandbox                                   |
+| [Modal waited termination](examples/go/modal/request-modal-termination/README.md) | Wait for termination and inspect the exit result             |
+| [Modal close handle](examples/go/modal/close-modal-handle/README.md)           | Release a local handle without terminating the sandbox          |
 | [Modal errors](examples/go/modal/handle-modal-errors/README.md)                | Handle an unsupported disk override with `ErrorKindUnsupported` |
 | [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
 
@@ -152,7 +167,8 @@ func handleError(err error) {
 ```
 
 `Field` identifies the setting involved when available. Error kinds do not imply
-safe retries: creation can fail after a sandbox has already been provisioned.
+safe retries: creation can fail after a sandbox has been provisioned, and a
+lifecycle request can fail after the provider has begun or completed a transition.
 See the independent [Modal](examples/go/modal/handle-modal-errors/README.md) and
 [Daytona](examples/go/daytona/handle-daytona-errors/README.md) error examples, or the
 [full contract guide](docs/responses-and-errors.md).
@@ -167,6 +183,10 @@ See the independent [Modal](examples/go/modal/handle-modal-errors/README.md) and
   It performs no validation itself.
 - `Sandbox.ID()`, `ProviderName()`, and `Info()` expose shared identity and copied
   metadata. Metadata availability varies by provider.
+- `Client.Get` retrieves current provider metadata when supported;
+  `Client.Attach` constructs an explicitly unverified handle when supported.
+- `Sandbox.Capabilities` and `Supports` report lifecycle operations available
+  for the provider and resolved sandbox class.
 
 Omitted values defer to provider defaults. Explicit values are validated for
 supported syntax, units, precision, and combinations. Unsupported settings fail

@@ -41,11 +41,10 @@ validation, client/provider contracts, SDK constructors, state capture,
 configuration assembly, field mappings, owned copies, common errors, field-path
 constants, and response-origin validation.
 
-`test go` tests the public SDK, tooling, both providers, and all 20 independent
-example modules. Example tests use dummy credentials and local servers; they
-create no cloud resources. The basic creation examples test error reporting;
-the resources and policies examples also test validation and request mapping.
-The other creation examples compile without running provider calls. Dedicated
+`test go` tests the public SDK, tooling, both providers, and every independent
+example module registered by the command. Example tests use dummy credentials and local servers; they
+create no cloud resources. Creation examples test error reporting, validation,
+or request mapping, and lifecycle examples use local provider doubles. Dedicated
 error examples test local rejection and error-kind handling.
 
 Commands forward cancellation to subprocesses and run Go module commands with

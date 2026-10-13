@@ -4,8 +4,9 @@ Bindings target Modal Go v0.11.0 and Daytona Go v0.222.0. Latest documentation
 helps discover APIs; pinned SDK source and compilation determine the signatures
 and serialization used by this checkout.
 
-This review covers authentication and mapped creation settings. Local tests
-verify conversions, validation, SDK request serialization, and ownership.
+This review covers authentication, mapped creation settings, and lifecycle
+bindings. Local tests verify conversions, validation, SDK request serialization,
+and ownership.
 They do not prove live scheduling or account capacity. Lifecycle contract tests
 cover capability dispatch, metadata updates, class checks, attachment semantics,
 and error translation without provisioning cloud resources.

@@ -20,6 +20,8 @@ go run .
 ```
 
 The image needs a tag or digest. Daytona rejects `latest`, `lts`, and `stable`.
+Image creation produces a Daytona container; sandbox class is source-driven,
+not selected through `Isolation.Kind`.
 Closing the client does not delete the sandbox.
 
 ```sh

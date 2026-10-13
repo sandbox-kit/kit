@@ -15,7 +15,8 @@ go run .
 ```
 
 The program creates two sandboxes. The child is ephemeral. Closing the client
-does not stop either sandbox.
+does not stop either sandbox. Each sandbox inherits its runtime and isolation
+class from the default Daytona snapshot.
 
 ```sh
 GOWORK=off go test ./...

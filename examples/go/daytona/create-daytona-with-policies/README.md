@@ -24,7 +24,8 @@ over `.env`, and credentials stay Git-ignored.
 
 The program creates a real sandbox and prints its ID. It supplies policies at
 creation; it does not call stop or delete. The deletion delay starts when the
-sandbox stops. Closing the client only releases SDK resources.
+sandbox stops. The default snapshot determines runtime and isolation class.
+Closing the client only releases SDK resources.
 
 ## Verify without credentials
 

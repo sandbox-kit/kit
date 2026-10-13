@@ -15,6 +15,7 @@ go run .
 ```
 
 Closing the client does not stop the sandbox. Stopping it deletes it.
+The default snapshot determines the runtime image and isolation class.
 
 ```sh
 GOWORK=off go test ./...

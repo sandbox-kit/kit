@@ -1,7 +1,8 @@
 # Examples
 
 Run Sandbox Kit through independent Go projects. Each selects one provider,
-loads its own `.env`, and demonstrates creation or error handling.
+loads its own `.env`, and demonstrates one creation, lifecycle, cleanup, or
+error-handling operation.
 
 ## Choose an example
 
@@ -22,6 +23,7 @@ loads its own `.env`, and demonstrates creation or error handling.
 | [Daytona creation](go/daytona/create-daytona-sandbox/README.md)       | API-key auth and the default snapshot                    |
 | [Daytona snapshot](go/daytona/create-daytona-from-snapshot/README.md) | Stock `daytona-small` snapshot                           |
 | [Daytona image](go/daytona/create-daytona-from-image/README.md)       | Public image with CPU, memory, and disk                  |
+| [Daytona runtime](go/daytona/create-daytona-with-runtime/README.md)   | Toolbox language, version, user, and source-driven isolation |
 | [Daytona ephemeral](go/daytona/create-daytona-ephemeral/README.md)    | Delete-on-stop from the default snapshot                 |
 | [Daytona linked](go/daytona/create-daytona-linked/README.md)          | Parent sandbox and an ephemeral linked child             |
 | [Daytona policies](go/daytona/create-daytona-with-policies/README.md) | Disabled pause, delayed deletion, and SDK request tests  |
@@ -35,16 +37,19 @@ loads its own `.env`, and demonstrates creation or error handling.
 | [Daytona pause](go/daytona/pause-daytona-sandbox/README.md)           | Memory-preserving VM pause                                |
 | [Daytona archive](go/daytona/archive-daytona-sandbox/README.md)       | Archive a retained container filesystem                   |
 | [Daytona delete](go/daytona/delete-daytona-sandbox/README.md)         | Wait for irreversible deletion                            |
+| [Daytona close handle](go/daytona/close-daytona-handle/README.md)     | Release a local handle without changing the sandbox       |
 | [Modal attach](go/modal/attach-modal-sandbox/README.md)               | Construct an ID-only handle without remote lookup         |
 | [Modal request termination](go/modal/request-modal-termination/README.md) | Terminate without waiting for an exit code             |
+| [Modal close handle](go/modal/close-modal-handle/README.md)           | Release a local handle without terminating the sandbox    |
 
 Requires Go 1.26.9 or newer and this checkout. In the selected project, copy
 `.env.example` to `.env`, fill in credentials, and run `go run .`.
 See [Go setup and verification](go/README.md).
 
-Creation examples provision real resources. Error-handling examples fail locally
-and create no cloud resources. Client cleanup releases SDK resources;
-sandbox cleanup uses provider tools or configured lifetime policies.
+Creation examples provision real resources. Lifecycle examples operate on the
+sandbox ID in `.env`; stop, terminate, archive, and delete can change or remove
+that resource. Error-handling examples fail locally and create no cloud
+resources. `Client.Close` and `Sandbox.Close` release local resources only.
 
 ## Verify locally
 

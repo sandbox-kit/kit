@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"math"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,10 +17,16 @@ import (
 
 func TestPublicClientRejectsLossyResourcesBeforeRemoteCalls(t *testing.T) {
 	var calls atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Skipf("local loopback listener unavailable: %v", err)
+	}
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
 		http.Error(w, "unexpected remote call", 500)
 	}))
+	server.Listener = listener
+	server.Start()
 	defer server.Close()
 	t.Setenv("MODAL_SERVER_URL", server.URL)
 	t.Setenv("MODAL_TOKEN_ID", "test-only-id")
