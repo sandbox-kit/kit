@@ -97,7 +97,9 @@ callables:
       name: validateResponseOrigins
       doc: 'checks that every origin names a known field that is actually present. A missing origin means the source is unknown.'
       behavior: response_origins
-      params: [{id: info, name: info, type: {ref: response, reference: true}}]
+      params:
+        - {id: info, name: info, type: {ref: response, reference: true}}
+        - {id: operation, name: operation, type: {builtin: string}}
       fallible: true
 field_paths:
   name: '{prefix}{fields}'

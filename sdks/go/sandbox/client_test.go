@@ -168,6 +168,31 @@ func TestClientCleanupAndInvalidBackendIdentity(t *testing.T) {
 	if provider.closed != 1 {
 		t.Fatal("owned SDK cleanup not delegated")
 	}
+	if err := client.Close(context.Background()); err != nil || provider.closed != 1 {
+		t.Fatalf("close is not idempotent: %v, calls=%d", err, provider.closed)
+	}
+	_, err = client.Create(context.Background(), nil)
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
+		t.Fatalf("closed client accepted an operation: %v", err)
+	}
+}
+
+type managementBackend struct{}
+
+func (*managementBackend) Name() string                { return "test" }
+func (*managementBackend) Close(context.Context) error { return nil }
+
+func TestCreationIsAnOptionalBackendCapability(t *testing.T) {
+	client, err := sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: &managementBackend{}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = client.Create(context.Background(), nil)
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Operation != "create" {
+		t.Fatalf("management-only backend returned %v", err)
+	}
 }
 func TestCallerDeadlineSurvivesDisabledKitTimeout(t *testing.T) {
 	provider := &creationBackend{call: func(ctx context.Context, r *sandbox.CreateOptions) (*sandbox.CreateResult, error) {

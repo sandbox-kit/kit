@@ -19,6 +19,7 @@ externals:
   duration: {import: time, name: Duration}
   sandbox_handle: {import: github.com/sandbox-kit/kit/sdks/go/sandbox, name: Sandbox}
   provider_backend: {import: github.com/sandbox-kit/kit/sdks/go/sandbox, name: Backend, kind: interface}
+  client_lifecycle: {name: clientLifecycle}
 outputs:
   client: .gen.go
   provider: .gen.go

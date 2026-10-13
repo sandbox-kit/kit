@@ -31,3 +31,14 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		})
 	}
 }
+
+func TestGenerationAcceptsNewLifecycleOperationByShape(t *testing.T) {
+	plan, err := LoadGeneration(filepath.Join("..", "..", "..", "specs"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan.Operations["resume"] = []string{"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"}
+	if err := ValidateOperations(plan.Operations); err != nil {
+		t.Fatalf("new lifecycle operation required generator name changes: %v", err)
+	}
+}

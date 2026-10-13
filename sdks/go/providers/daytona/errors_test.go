@@ -13,7 +13,7 @@ func TestGeneratedNativeErrorMappingsPreserveCause(t *testing.T) {
 	for _, tc := range []struct {
 		status int
 		kind   sandbox.ErrorKind
-	}{{400, sandbox.ErrorKindInvalidArgument}, {401, sandbox.ErrorKindAuthentication}, {403, sandbox.ErrorKindPermissionDenied}, {404, sandbox.ErrorKindNotFound}, {429, sandbox.ErrorKindRateLimited}, {503, sandbox.ErrorKindUnavailable}, {504, sandbox.ErrorKindTimeout}, {418, sandbox.ErrorKindUnknown}} {
+	}{{400, sandbox.ErrorKindInvalidArgument}, {401, sandbox.ErrorKindAuthentication}, {403, sandbox.ErrorKindPermissionDenied}, {404, sandbox.ErrorKindNotFound}, {410, sandbox.ErrorKindNotFound}, {429, sandbox.ErrorKindRateLimited}, {503, sandbox.ErrorKindUnavailable}, {504, sandbox.ErrorKindTimeout}, {418, sandbox.ErrorKindUnknown}} {
 		native := &sdkerrors.DaytonaError{Message: "native failure", StatusCode: tc.status, Code: "provider-code", Source: "DAYTONA_API"}
 		err := mapProviderError(fmt.Errorf("wrapped: %w", native), "create")
 		var detail *sandbox.Error
@@ -23,6 +23,13 @@ func TestGeneratedNativeErrorMappingsPreserveCause(t *testing.T) {
 		}
 		if tc.status == 404 && !errors.Is(err, sdkerrors.ErrNotFound) {
 			t.Fatal("native sentinel matching lost")
+		}
+	}
+	for _, native := range []*sdkerrors.DaytonaError{sdkerrors.NewSpotEvictedError("evicted"), sdkerrors.NewDaytonaConnectionError("connection failed")} {
+		err := mapProviderError(native, "start")
+		var detail *sandbox.Error
+		if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnavailable {
+			t.Fatalf("unavailable error not classified: %v", err)
 		}
 	}
 	var detail *sandbox.Error

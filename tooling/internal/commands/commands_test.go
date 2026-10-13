@@ -37,6 +37,22 @@ func repositoryFixture(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
+	targets := `version: 1
+languages:
+  go:
+    targets:
+      - {source: shared.proto, output: sdks/go/sandbox, module: example.com/sandbox}
+      - {source: client.proto, output: sdks/go/sandbox, module: example.com/sandbox}
+      - {source: modal.proto, output: sdks/go/providers/modal, module: example.com/modal, provider: modal}
+      - {source: daytona.proto, output: sdks/go/providers/daytona, module: example.com/daytona, provider: daytona}
+`
+	path := filepath.Join(root, "specs", "targets.yaml")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(targets), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	return root
 }
 
@@ -63,7 +79,7 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 				t.Fatal("generation did not use the configured executable")
 			}
 			if !failure && len(runner.steps) != 7 {
-				t.Fatalf("expected bootstrap and three SDK generations, got %d steps", len(runner.steps))
+				t.Fatalf("expected bootstrap and four SDK generations, got %d steps", len(runner.steps))
 			}
 			toolsDir := filepath.Dir(runner.steps[0].args[2])
 			relative, err := filepath.Rel(repo, toolsDir)
@@ -88,10 +104,10 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if len(runner.steps) != 24 {
-		t.Fatalf("expected 24 module tests, got %d", len(runner.steps))
+	if len(runner.steps) != len(goTestModules) {
+		t.Fatalf("expected %d module tests, got %d", len(goTestModules), len(runner.steps))
 	}
-	for i, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go/modal/create-modal-sandbox", "examples/go/daytona/create-daytona-sandbox", "examples/go/modal/create-modal-with-resources", "examples/go/daytona/create-daytona-with-policies", "examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image", "examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked", "examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor", "examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement", "examples/go/modal/create-modal-with-labels", "examples/go/modal/create-modal-with-network", "examples/go/modal/create-modal-idle", "examples/go/modal/create-modal-ready", "examples/go/modal/create-modal-verbose", "examples/go/modal/create-modal-with-identity", "examples/go/modal/handle-modal-errors", "examples/go/daytona/handle-daytona-errors"} {
+	for i, module := range goTestModules {
 		if runner.steps[i].dir != filepath.Join(repo, filepath.FromSlash(module)) || runner.steps[i].args[0] != "test" {
 			t.Fatalf("incorrect verification step for %s", module)
 		}

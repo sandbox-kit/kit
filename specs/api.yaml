@@ -18,7 +18,7 @@ modules:
     types:
       - id: backend
         name: Backend
-        doc: is the local operation and SDK cleanup contract.
+        doc: is the provider identity and local SDK cleanup contract. Operations are optional capabilities.
         kind: interface
         visibility: public
         methods:
@@ -26,6 +26,22 @@ modules:
             name: Name
             doc: 'returns the provider identifier, such as "daytona" or "modal".'
             results: [{ type: { builtin: string } }]
+          - id: close
+            name: Close
+            doc: |
+              releases the native SDK. It does not stop or delete the cloud sandbox.
+
+              Example:
+
+                err := backend.Close(ctx)
+            cancellable: true
+            fallible: true
+      - id: sandbox_creator
+        name: SandboxCreator
+        doc: creates sandboxes when the selected provider supports creation.
+        kind: interface
+        visibility: public
+        methods:
           - id: create
             name: Create
             doc: |
@@ -50,16 +66,6 @@ modules:
                 },
               ]
             results: [{ type: { ref: schema.CreateResult, reference: true } }]
-            fallible: true
-          - id: close
-            name: Close
-            doc: |
-              releases the native SDK. It does not stop or delete the cloud sandbox.
-
-              Example:
-
-              	err := backend.Close(ctx)
-            cancellable: true
             fallible: true
       - id: provider
         name: Provider
@@ -90,6 +96,116 @@ modules:
               ]
             results: [{ type: { ref: backend } }]
             fallible: true
+      - id: sandbox_attacher
+        name: SandboxAttacher
+        doc: constructs a sandbox handle from an ID without claiming that current metadata was retrieved or validated.
+        kind: interface
+        visibility: public
+        methods:
+          - id: attach_sandbox
+            name: AttachSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_refresher
+        name: SandboxRefresher
+        doc: retrieves current sandbox metadata from the provider.
+        kind: interface
+        visibility: public
+        methods:
+          - id: refresh_sandbox
+            name: RefreshSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_starter
+        name: SandboxStarter
+        doc: starts a provider sandbox and returns its resulting metadata.
+        kind: interface
+        visibility: public
+        methods:
+          - id: start_sandbox
+            name: StartSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.StartOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_stopper
+        name: SandboxStopper
+        doc: stops a provider sandbox and returns its resulting metadata.
+        kind: interface
+        visibility: public
+        methods:
+          - id: stop_sandbox
+            name: StopSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.StopOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_pauser
+        name: SandboxPauser
+        doc: pauses a supported provider sandbox and returns its resulting metadata.
+        kind: interface
+        visibility: public
+        methods:
+          - id: pause_sandbox
+            name: PauseSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.PauseOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_terminator
+        name: SandboxTerminator
+        doc: permanently completes a provider execution.
+        kind: interface
+        visibility: public
+        methods:
+          - id: terminate_sandbox
+            name: TerminateSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.TerminateOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.ExitResult, reference: true}}]
+            fallible: true
+      - id: sandbox_archiver
+        name: SandboxArchiver
+        doc: archives a supported provider sandbox and returns its resulting metadata.
+        kind: interface
+        visibility: public
+        methods:
+          - id: archive_sandbox
+            name: ArchiveSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.ArchiveOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
+      - id: sandbox_deleter
+        name: SandboxDeleter
+        doc: irreversibly deletes a provider sandbox and returns its terminal metadata.
+        kind: interface
+        visibility: public
+        methods:
+          - id: delete_sandbox
+            name: DeleteSandbox
+            cancellable: true
+            params:
+              - {id: id, name: id, type: {builtin: string}}
+              - {id: options, name: options, type: {ref: schema.DeleteOptions, reference: true, nullable: true}}
+            results: [{type: {ref: schema.SandboxInfo, reference: true}}]
+            fallible: true
       - id: client
         name: Client
         doc: owns its initialized provider SDK. Close it when finished.
@@ -104,6 +220,10 @@ modules:
             name: timeout
             doc: is a copy of Config.Timeout. Nil adds no Kit deadline. An explicit zero also adds none.
             type: { ref: duration, optional: true }
+          - id: lifecycle
+            name: lifecycle
+            doc: coordinates operations with idempotent client closure.
+            type: { ref: client_lifecycle, reference: true }
         methods:
           - id: provider_name
             name: ProviderName

@@ -279,6 +279,9 @@ signatures:
               type:
                 ref: response
                 reference: true
+            - id: operation
+              type:
+                builtin: string
         fallible: true
         cancellable: false
     response_presence:

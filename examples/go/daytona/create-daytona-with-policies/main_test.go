@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -17,9 +18,21 @@ import (
 
 const createdSandbox = `{"organizationId":"org","user":"daytona","env":{},"public":false,"networkBlockAll":false,"kvm":false,"gpu":0,"id":"example-created","name":"test","state":"started","target":"test-region","cpu":2,"memory":4,"disk":8,"labels":{},"toolboxProxyUrl":"http://127.0.0.1:1"}`
 
+func newIPv4TestServer(t *testing.T, handler http.Handler) *httptest.Server {
+	t.Helper()
+	listener, err := net.Listen("tcp4", "127.0.0.1:0")
+	if err != nil {
+		t.Skipf("local loopback listener unavailable: %v", err)
+	}
+	server := httptest.NewUnstartedServer(handler)
+	server.Listener = listener
+	server.Start()
+	return server
+}
+
 func TestExampleRunUsesOfficialSDKAndMappedPolicies(t *testing.T) {
 	requests := make(chan map[string]any, 1)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newIPv4TestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" || r.URL.Path != "/sandbox" {
 			http.NotFound(w, r)
 			return
@@ -61,7 +74,7 @@ func TestExampleRunUsesOfficialSDKAndMappedPolicies(t *testing.T) {
 
 func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 	var creates atomic.Int32
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newIPv4TestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			creates.Add(1)
 		}
@@ -114,7 +127,7 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 
 func TestImmediateActionsRemainExplicitOnWire(t *testing.T) {
 	requests := make(chan map[string]any, 3)
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newIPv4TestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" || r.URL.Path != "/sandbox" {
 			http.NotFound(w, r)
 			return

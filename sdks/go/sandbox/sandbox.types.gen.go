@@ -330,6 +330,167 @@ func (x WaitCondition) String() string {
 	}
 }
 
+// SandboxState is a portable lifecycle state. ProviderState retains the native
+// value.
+type SandboxState int32
+
+const (
+	SandboxStateUnknown     SandboxState = 0
+	SandboxStateQueued      SandboxState = 1
+	SandboxStateStarting    SandboxState = 2
+	SandboxStateRunning     SandboxState = 3
+	SandboxStateStopping    SandboxState = 4
+	SandboxStateStopped     SandboxState = 5
+	SandboxStatePausing     SandboxState = 6
+	SandboxStatePaused      SandboxState = 7
+	SandboxStateArchiving   SandboxState = 8
+	SandboxStateArchived    SandboxState = 9
+	SandboxStateTerminating SandboxState = 10
+	SandboxStateTerminated  SandboxState = 11
+	SandboxStateDeleting    SandboxState = 12
+	SandboxStateDeleted     SandboxState = 13
+	SandboxStateError       SandboxState = 14
+)
+
+// Valid reports whether the value is declared in the shared schema.
+func (x SandboxState) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
+	case 6:
+		return true
+	case 7:
+		return true
+	case 8:
+		return true
+	case 9:
+		return true
+	case 10:
+		return true
+	case 11:
+		return true
+	case 12:
+		return true
+	case 13:
+		return true
+	case 14:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x SandboxState) String() string {
+	switch x {
+	case 0:
+		return "SANDBOX_STATE_UNKNOWN"
+	case 1:
+		return "SANDBOX_STATE_QUEUED"
+	case 2:
+		return "SANDBOX_STATE_STARTING"
+	case 3:
+		return "SANDBOX_STATE_RUNNING"
+	case 4:
+		return "SANDBOX_STATE_STOPPING"
+	case 5:
+		return "SANDBOX_STATE_STOPPED"
+	case 6:
+		return "SANDBOX_STATE_PAUSING"
+	case 7:
+		return "SANDBOX_STATE_PAUSED"
+	case 8:
+		return "SANDBOX_STATE_ARCHIVING"
+	case 9:
+		return "SANDBOX_STATE_ARCHIVED"
+	case 10:
+		return "SANDBOX_STATE_TERMINATING"
+	case 11:
+		return "SANDBOX_STATE_TERMINATED"
+	case 12:
+		return "SANDBOX_STATE_DELETING"
+	case 13:
+		return "SANDBOX_STATE_DELETED"
+	case 14:
+		return "SANDBOX_STATE_ERROR"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+// LifecycleCapability identifies an operation supported by a particular
+// resolved sandbox handle.
+type LifecycleCapability int32
+
+const (
+	LifecycleCapabilityUnknown   LifecycleCapability = 0
+	LifecycleCapabilityRefresh   LifecycleCapability = 1
+	LifecycleCapabilityStart     LifecycleCapability = 2
+	LifecycleCapabilityStop      LifecycleCapability = 3
+	LifecycleCapabilityPause     LifecycleCapability = 4
+	LifecycleCapabilityTerminate LifecycleCapability = 5
+	LifecycleCapabilityArchive   LifecycleCapability = 6
+	LifecycleCapabilityDelete    LifecycleCapability = 7
+)
+
+// Valid reports whether the value is declared in the shared schema.
+func (x LifecycleCapability) Valid() bool {
+	switch x {
+	case 0:
+		return true
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
+	case 6:
+		return true
+	case 7:
+		return true
+	default:
+		return false
+	}
+}
+
+// String returns the stable schema identifier for diagnostics.
+func (x LifecycleCapability) String() string {
+	switch x {
+	case 0:
+		return "LIFECYCLE_CAPABILITY_UNKNOWN"
+	case 1:
+		return "LIFECYCLE_CAPABILITY_REFRESH"
+	case 2:
+		return "LIFECYCLE_CAPABILITY_START"
+	case 3:
+		return "LIFECYCLE_CAPABILITY_STOP"
+	case 4:
+		return "LIFECYCLE_CAPABILITY_PAUSE"
+	case 5:
+		return "LIFECYCLE_CAPABILITY_TERMINATE"
+	case 6:
+		return "LIFECYCLE_CAPABILITY_ARCHIVE"
+	case 7:
+		return "LIFECYCLE_CAPABILITY_DELETE"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 // ValueOrigin records whether a metadata field came from the provider or from
 // the request.
 type ValueOrigin int32
@@ -1536,6 +1697,148 @@ func (x *CreateResult) GetSandbox() *SandboxInfo {
 	return zero
 }
 
+// StartOptions configures starting a persistent sandbox. Nil timeout inherits
+// Config.Timeout.
+type StartOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StartOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// StopOptions configures a restartable stop. Force requests an immediate
+// provider-native stop.
+type StopOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+	Force   *bool          `json:"force,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StopOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// GetForce returns Force when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StopOptions) GetForce() bool {
+	if x != nil && x.Force != nil {
+		return *x.Force
+	}
+	var zero bool
+	return zero
+}
+
+// PauseOptions configures a memory-preserving pause. Nil timeout inherits
+// Config.Timeout.
+type PauseOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *PauseOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// TerminateOptions configures permanent completion of the current execution.
+type TerminateOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+	Wait    *bool          `json:"wait,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *TerminateOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// GetWait returns Wait when the receiver and field are present. A nil receiver
+// or omitted field returns the zero value.
+func (x *TerminateOptions) GetWait() bool {
+	if x != nil && x.Wait != nil {
+		return *x.Wait
+	}
+	var zero bool
+	return zero
+}
+
+// ArchiveOptions configures moving retained sandbox state to provider archive
+// storage.
+type ArchiveOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *ArchiveOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// DeleteOptions configures irreversible sandbox deletion.
+type DeleteOptions struct {
+	Timeout *time.Duration `json:"timeout,omitempty" validate:"omitnil"`
+	Wait    *bool          `json:"wait,omitempty" validate:"omitnil"`
+}
+
+// GetTimeout returns Timeout when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *DeleteOptions) GetTimeout() *time.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	var zero *time.Duration
+	return zero
+}
+
+// GetWait returns Wait when the receiver and field are present. A nil receiver
+// or omitted field returns the zero value.
+func (x *DeleteOptions) GetWait() bool {
+	if x != nil && x.Wait != nil {
+		return *x.Wait
+	}
+	var zero bool
+	return zero
+}
+
+// ExitResult is the result of permanently completing an execution.
+type ExitResult struct {
+	ExitCode *int32 `json:"exit_code,omitempty" validate:"omitnil"`
+}
+
+// GetExitCode returns ExitCode when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *ExitResult) GetExitCode() int32 {
+	if x != nil && x.ExitCode != nil {
+		return *x.ExitCode
+	}
+	var zero int32
+	return zero
+}
+
 // SandboxInfo is shared metadata. Optional fields stay absent when the
 // provider did not report them.
 //
@@ -1563,6 +1866,10 @@ type SandboxInfo struct {
 	// Origins records where each present field came from. A missing entry means
 	// the origin is unknown.
 	Origins map[string]ValueOrigin `json:"origins" validate:""`
+	// State is the normalized lifecycle state when Kit can map the provider state.
+	State SandboxState `json:"state,omitempty" validate:""`
+	// Terminal reports that execution/resource lifecycle is permanently complete.
+	Terminal *bool `json:"terminal,omitempty" validate:"omitnil"`
 }
 
 // GetID returns ID when the receiver and field are present. A nil receiver or
@@ -1672,6 +1979,26 @@ func (x *SandboxInfo) GetOrigins() map[string]ValueOrigin {
 		return x.Origins
 	}
 	var zero map[string]ValueOrigin
+	return zero
+}
+
+// GetState returns State when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *SandboxInfo) GetState() SandboxState {
+	if x != nil {
+		return x.State
+	}
+	var zero SandboxState
+	return zero
+}
+
+// GetTerminal returns Terminal when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *SandboxInfo) GetTerminal() bool {
+	if x != nil && x.Terminal != nil {
+		return *x.Terminal
+	}
+	var zero bool
 	return zero
 }
 

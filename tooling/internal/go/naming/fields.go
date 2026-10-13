@@ -25,6 +25,9 @@ func identifier(words string) string {
 	return result.String()
 }
 func FieldName(field *protogen.Field) string { return identifier(string(field.Desc.Name())) }
+
+// Identifier formats a portable snake_case identifier using Go conventions.
+func Identifier(value string) string { return identifier(value) }
 func EnumValueName(value *protogen.EnumValue) string {
 	// Protobuf constants repeat the enum name in SCREAMING_SNAKE_CASE.
 	enum := value.Desc.Parent()

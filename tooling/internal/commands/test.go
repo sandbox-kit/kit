@@ -6,6 +6,27 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var goTestModules = []string{
+	"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona",
+	"examples/go/modal/create-modal-sandbox", "examples/go/daytona/create-daytona-sandbox",
+	"examples/go/modal/create-modal-with-resources", "examples/go/daytona/create-daytona-with-policies",
+	"examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image",
+	"examples/go/daytona/create-daytona-with-runtime",
+	"examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked",
+	"examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor",
+	"examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement",
+	"examples/go/modal/create-modal-with-labels", "examples/go/modal/create-modal-with-network",
+	"examples/go/modal/create-modal-idle", "examples/go/modal/create-modal-ready",
+	"examples/go/modal/create-modal-verbose", "examples/go/modal/create-modal-with-identity",
+	"examples/go/modal/handle-modal-errors", "examples/go/daytona/handle-daytona-errors",
+	"examples/go/daytona/stop-daytona-sandbox", "examples/go/modal/terminate-modal-sandbox",
+	"examples/go/daytona/get-daytona-sandbox", "examples/go/daytona/refresh-daytona-sandbox",
+	"examples/go/daytona/start-daytona-sandbox", "examples/go/daytona/pause-daytona-sandbox",
+	"examples/go/daytona/archive-daytona-sandbox", "examples/go/daytona/delete-daytona-sandbox",
+	"examples/go/modal/attach-modal-sandbox", "examples/go/modal/request-modal-termination",
+	"examples/go/daytona/close-daytona-handle", "examples/go/modal/close-modal-handle",
+}
+
 func newTestCommand(config *settings, runner runner) *cobra.Command {
 	command := &cobra.Command{Use: "test", Short: "Verify SDK modules and examples"}
 	command.AddCommand(&cobra.Command{
@@ -15,7 +36,7 @@ func newTestCommand(config *settings, runner runner) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			for _, module := range []string{"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "examples/go/modal/create-modal-sandbox", "examples/go/daytona/create-daytona-sandbox", "examples/go/modal/create-modal-with-resources", "examples/go/daytona/create-daytona-with-policies", "examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image", "examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked", "examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor", "examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement", "examples/go/modal/create-modal-with-labels", "examples/go/modal/create-modal-with-network", "examples/go/modal/create-modal-idle", "examples/go/modal/create-modal-ready", "examples/go/modal/create-modal-verbose", "examples/go/modal/create-modal-with-identity", "examples/go/modal/handle-modal-errors", "examples/go/daytona/handle-daytona-errors"} {
+			for _, module := range goTestModules {
 				if err := runner.run(cmd.Context(), step{
 					filepath.Join(root, filepath.FromSlash(module)), config.goBinary, []string{"test", "./..."},
 				}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {

@@ -8,6 +8,7 @@
 package modal
 
 import (
+	context "context"
 	errors "errors"
 	_go "github.com/modal-labs/modal-client/go"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
@@ -26,6 +27,11 @@ func mapProviderError(err error, operation string) error {
 	kind := sandbox.ErrorKindUnknown
 	var statusCode *uint32
 	var providerCode, providerSource *string
+	if errors.Is(err, context.Canceled) {
+		kind = sandbox.ErrorKindCanceled
+	} else if errors.Is(err, context.DeadlineExceeded) {
+		kind = sandbox.ErrorKindTimeout
+	}
 	if kind == sandbox.ErrorKindUnknown {
 		var value0 _go.InvalidError
 		var pointer0 *_go.InvalidError

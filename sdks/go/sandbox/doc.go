@@ -5,7 +5,8 @@
 // Optional typed providers own SDK mappings. Public data types are native Go;
 // protobuf and YAML specs are generation inputs.
 // NewClient accepts Config and initializes an SDK through a selected provider.
-// Client.Close releases that SDK; sandbox lifecycle operations remain separate.
+// Client.Close releases that SDK; sandbox lifecycle operations remain separate
+// and preserve provider-specific capability boundaries.
 // Errors expose shared details and unwrap native causes. Response origins
 // distinguish reported metadata from requested settings, and generated Clone
 // methods preserve numeric precision and ownership.

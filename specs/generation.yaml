@@ -1,7 +1,7 @@
 version: 1
 # Semantic generation phases; language emitters own syntax and file conventions.
 shared: [types, error_runtime, copies, diagnostic_paths, field_paths, validation]
-client: [types, diagnostic_paths, field_paths, validation, client]
+client: [types, diagnostic_paths, field_paths, validation, client, lifecycle]
 provider: [provider, configuration, checks, errors, mappings]
 operations:
   initialize:
@@ -24,3 +24,12 @@ operations:
   close:
     - require_context
     - close_backend
+  attach: [require_context, require_client, require_identity, resolve_deadline, require_capability, invoke_capability, return_handle]
+  get: [require_context, require_client, require_identity, resolve_deadline, require_capability, invoke_capability, return_handle]
+  refresh: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]
+  start: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]
+  stop: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]
+  pause: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]
+  terminate: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, return_result]
+  archive: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]
+  delete: [require_context, require_handle, resolve_deadline, require_capability, invoke_capability, update_handle]

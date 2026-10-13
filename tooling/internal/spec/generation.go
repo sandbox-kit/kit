@@ -28,7 +28,7 @@ func LoadGeneration(root string) (Generation, error) {
 		allowed []string
 	}{
 		{"shared", result.Shared, []string{"types", "error_runtime", "copies", "diagnostic_paths", "field_paths", "validation"}},
-		{"client", result.Client, []string{"types", "diagnostic_paths", "field_paths", "validation", "client"}},
+		{"client", result.Client, []string{"types", "diagnostic_paths", "field_paths", "validation", "client", "lifecycle"}},
 		{"provider", result.Provider, []string{"provider", "configuration", "checks", "errors", "mappings"}},
 	}
 	for _, role := range roles {
@@ -63,12 +63,11 @@ func ValidateOperations(operations map[string][]string) error {
 		"create":     {"require_context", "require_client", "prepare_request", "resolve_deadline", "invoke_creation", "return_handle"},
 		"close":      {"require_context", "close_backend"},
 	}
-	if len(operations) != len(required) {
-		return fmt.Errorf("missing or unknown client operation")
-	}
-	for _, name := range []string{"initialize", "create", "close"} {
-		steps := operations[name]
-		expected := required[name]
+	for name, expected := range required {
+		steps, ok := operations[name]
+		if !ok {
+			return fmt.Errorf("missing client operation %s", name)
+		}
 		if len(steps) != len(expected) {
 			return fmt.Errorf("%s: missing or duplicate instruction", name)
 		}
@@ -78,5 +77,29 @@ func ValidateOperations(operations map[string][]string) error {
 			}
 		}
 	}
+	clientCapability := []string{"require_context", "require_client", "require_identity", "resolve_deadline", "require_capability", "invoke_capability", "return_handle"}
+	handleUpdate := []string{"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"}
+	handleResult := []string{"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "return_result"}
+	for name, steps := range operations {
+		if _, base := required[name]; base {
+			continue
+		}
+		valid := sameInstructions(steps, clientCapability) || sameInstructions(steps, handleUpdate) || sameInstructions(steps, handleResult)
+		if !valid {
+			return fmt.Errorf("%s: instruction sequence violates lifecycle vocabulary", name)
+		}
+	}
 	return nil
+}
+
+func sameInstructions(actual, expected []string) bool {
+	if len(actual) != len(expected) {
+		return false
+	}
+	for i := range actual {
+		if actual[i] != expected[i] {
+			return false
+		}
+	}
+	return true
 }

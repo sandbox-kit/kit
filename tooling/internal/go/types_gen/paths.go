@@ -108,7 +108,7 @@ func GeneratePaths(p *protogen.Plugin, file *protogen.File, templates model.Temp
 		if err != nil {
 			return err
 		}
-		d.Body(c, "for path,origin:=range ", d.Param(c, "info"), ".Origins{if !origin.Valid()||!", presence.Declaration.Name, "(", d.Param(c, "info"), ",path){return ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidResponse"), Provider: d.Param(c, "info") + ".Provider", Operation: strconv.Quote("create"), Field: strconv.Quote("origins.") + "+path", Message: strconv.Quote("sandbox-kit: origin must describe a known, present response field")}), "}};return nil")
+		d.Body(c, "for path,origin:=range ", d.Param(c, "info"), ".Origins{if !origin.Valid()||!", presence.Declaration.Name, "(", d.Param(c, "info"), ",path){return ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidResponse"), Provider: d.Param(c, "info") + ".Provider", Operation: d.Param(c, "operation"), Field: strconv.Quote("origins.") + "+path", Message: strconv.Quote("sandbox-kit: origin must describe a known, present response field")}), "}};return nil")
 		g.P("}")
 	}
 	return nil

@@ -133,9 +133,10 @@ origin fields also come from this specification. Constant references in provider
 mappings use the same rules as the constant declarations.
 
 Shared data storage, validator callbacks, conversions, and copy/presence logic
-remain specialized emitter code. Provider orchestration and the sandbox handle
-remain native integration code. This vocabulary does not claim to represent every
-Go construct.
+remain specialized emitter code. Provider orchestration and the sandbox handle's
+storage and concurrency coordination remain native integration code; lifecycle
+methods and typed dispatch are generated from the lifecycle registry. This
+vocabulary does not claim to represent every Go construct.
 
 ## Descriptor-driven templates
 

@@ -2,7 +2,7 @@
 
 `Client.Create(ctx, options)` returns a `sandbox.Sandbox` with `ID()`,
 `ProviderName()`, and copied `Info()` metadata. Creation settings are distinct
-from future operations on an existing sandbox.
+from lifecycle operations on an existing sandbox.
 
 ## Supported creation settings
 
@@ -101,9 +101,11 @@ Kit uses generated typed copies for requests and result metadata. Errors expose
 shared details while preserving native causes. Cancellation is forwarded to the
 SDK. Kit performs no automatic retries or cloud cleanup.
 
-Closing the client releases SDK resources. Use provider tools for sandbox
-cleanup. Execution, lifecycle methods, GPU requests, resizing, storage, harnesses,
-browsers, computer use, and macOS/Windows support remain future work.
+Closing the client releases SDK resources without changing cloud sandboxes and
+invalidates handles owned by that client. Closing a handle is also local-only.
+Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
+Execution, GPU requests, resizing, storage, harnesses, browsers, computer use,
+and macOS/Windows creation support remain future work.
 
 See [configuration](configuration.md), [provider reference verification](provider-verification.md),
 and [generation rules](code-generation.md).

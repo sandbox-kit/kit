@@ -147,5 +147,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, runtime rules.Runtim
 	g.P("}")
 	g.P("var _ ", protogen.GoIdent{GoName: "Provider", GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}, "=(*", provider, ")(nil)")
 	g.P("var _ ", protogen.GoIdent{GoName: "Backend", GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}, "=(*", backend, ")(nil)")
+	g.P("var _ ", protogen.GoIdent{GoName: "SandboxCreator", GoImportPath: "github.com/sandbox-kit/kit/sdks/go/sandbox"}, "=(*", backend, ")(nil)")
 	return nil
 }

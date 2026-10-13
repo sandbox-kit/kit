@@ -103,17 +103,99 @@ type RuntimeBinding struct {
 	Cleanup     Cleanup      `yaml:"cleanup"`
 }
 type Provider struct {
-	ErrorRules    map[string]string         `yaml:"error_rules"`
-	ErrorStatuses map[int]string            `yaml:"error_statuses"`
-	ErrorGRPC     map[int]string            `yaml:"error_grpc"`
-	Errors        map[string]ErrorBinding   `yaml:"errors"`
-	Checks        []Check                   `yaml:"checks"`
-	Client        *ClientMapping            `yaml:"client"`
-	Runtime       map[string]RuntimeBinding `yaml:"runtime"`
-	Version       int                       `yaml:"version"`
-	Provider      string                    `yaml:"provider"`
-	Groups        []Group                   `yaml:"groups"`
+	ErrorRules      map[string]string         `yaml:"error_rules"`
+	ErrorCodes      map[string]string         `yaml:"error_codes"`
+	ErrorStatusZero string                    `yaml:"error_status_zero"`
+	ErrorStatuses   map[int]string            `yaml:"error_statuses"`
+	ErrorGRPC       map[int]string            `yaml:"error_grpc"`
+	Errors          map[string]ErrorBinding   `yaml:"errors"`
+	Checks          []Check                   `yaml:"checks"`
+	Client          *ClientMapping            `yaml:"client"`
+	Runtime         map[string]RuntimeBinding `yaml:"runtime"`
+	Version         int                       `yaml:"version"`
+	Provider        string                    `yaml:"provider"`
+	Groups          []Group                   `yaml:"groups"`
 }
+
+// Lifecycle describes portable handle operations. IDs refer to declarations in
+// api.yaml and schema types; emitters own native method and enum spelling.
+type Lifecycle struct {
+	Version    int                  `yaml:"version"`
+	Operations []LifecycleOperation `yaml:"operations"`
+}
+
+type LifecycleOperation struct {
+	ID            string `yaml:"id"`
+	Capability    string `yaml:"capability"`
+	Interface     string `yaml:"interface"`
+	Method        string `yaml:"method"`
+	Receiver      string `yaml:"receiver"`
+	Options       string `yaml:"options"`
+	Outcome       string `yaml:"outcome"`
+	Timeout       bool   `yaml:"timeout"`
+	TerminalState string `yaml:"terminal_state"`
+}
+
+func LoadLifecycle(root string) (Lifecycle, error) {
+	var lifecycle Lifecycle
+	if err := decode(filepath.Join(root, "lifecycle.yaml"), &lifecycle); err != nil {
+		return lifecycle, err
+	}
+	if lifecycle.Version != 1 || len(lifecycle.Operations) == 0 {
+		return lifecycle, fmt.Errorf("invalid lifecycle specification")
+	}
+	seen := map[string]bool{}
+	for _, operation := range lifecycle.Operations {
+		if operation.ID == "" || seen[operation.ID] || operation.Capability == "" || operation.Interface == "" || operation.Method == "" || operation.Receiver != "handle" || (operation.Outcome != "update_handle" && operation.Outcome != "exit_result") {
+			return lifecycle, fmt.Errorf("invalid lifecycle operation %q", operation.ID)
+		}
+		if operation.Outcome == "exit_result" && operation.TerminalState == "" {
+			return lifecycle, fmt.Errorf("result operation %q requires terminal state", operation.ID)
+		}
+		seen[operation.ID] = true
+	}
+	return lifecycle, nil
+}
+
+type Targets struct {
+	Version   int                        `yaml:"version"`
+	Languages map[string]LanguageTargets `yaml:"languages"`
+}
+
+type LanguageTargets struct {
+	Targets []GenerationTarget `yaml:"targets"`
+}
+
+type GenerationTarget struct {
+	Source   string `yaml:"source"`
+	Output   string `yaml:"output"`
+	Module   string `yaml:"module"`
+	Provider string `yaml:"provider"`
+}
+
+func LoadTargets(root string) (Targets, error) {
+	var targets Targets
+	if err := decode(filepath.Join(root, "targets.yaml"), &targets); err != nil {
+		return targets, err
+	}
+	if targets.Version != 1 || len(targets.Languages) == 0 {
+		return targets, fmt.Errorf("invalid generation targets")
+	}
+	for language, group := range targets.Languages {
+		if language == "" || len(group.Targets) == 0 {
+			return targets, fmt.Errorf("invalid generation targets for %q", language)
+		}
+		seen := map[string]bool{}
+		for _, target := range group.Targets {
+			if target.Source == "" || target.Output == "" || target.Module == "" || filepath.IsAbs(target.Source) || filepath.IsAbs(target.Output) || seen[target.Source] {
+				return targets, fmt.Errorf("invalid or duplicate %s target %q", language, target.Source)
+			}
+			seen[target.Source] = true
+		}
+	}
+	return targets, nil
+}
+
 type ErrorBinding struct {
 	Types  []ErrorType `yaml:"types"`
 	Target Binding     `yaml:"target"`

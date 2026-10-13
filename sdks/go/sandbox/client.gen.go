@@ -21,10 +21,23 @@ import (
 	time "time"
 )
 
-// Backend is the local operation and SDK cleanup contract.
+// Backend is the provider identity and local SDK cleanup contract. Operations
+// are optional capabilities.
 type Backend interface {
 	// Name returns the provider identifier, such as "daytona" or "modal".
 	Name() string
+	// Close releases the native SDK. It does not stop or delete the cloud sandbox.
+	//
+	// Example:
+	//
+	//   err := backend.Close(ctx)
+	//
+	Close(context.Context) error
+}
+
+// SandboxCreator creates sandboxes when the selected provider supports
+// creation.
+type SandboxCreator interface {
 	// Create creates one sandbox from request. A nil request uses provider
 	// defaults.
 	// The result carries shared metadata. The public client turns that into a
@@ -35,13 +48,6 @@ type Backend interface {
 	// 	result, err := backend.Create(ctx, nil)
 	//
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
-	// Close releases the native SDK. It does not stop or delete the cloud sandbox.
-	//
-	// Example:
-	//
-	// 	err := backend.Close(ctx)
-	//
-	Close(context.Context) error
 }
 
 // Provider initializes the provider SDK from shared configuration.
@@ -59,6 +65,50 @@ type Provider interface {
 	NewClient(*Config) (Backend, error)
 }
 
+// SandboxAttacher constructs a sandbox handle from an ID without claiming that
+// current metadata was retrieved or validated.
+type SandboxAttacher interface {
+	AttachSandbox(context.Context, string) (*SandboxInfo, error)
+}
+
+// SandboxRefresher retrieves current sandbox metadata from the provider.
+type SandboxRefresher interface {
+	RefreshSandbox(context.Context, string) (*SandboxInfo, error)
+}
+
+// SandboxStarter starts a provider sandbox and returns its resulting metadata.
+type SandboxStarter interface {
+	StartSandbox(context.Context, string, *StartOptions) (*SandboxInfo, error)
+}
+
+// SandboxStopper stops a provider sandbox and returns its resulting metadata.
+type SandboxStopper interface {
+	StopSandbox(context.Context, string, *StopOptions) (*SandboxInfo, error)
+}
+
+// SandboxPauser pauses a supported provider sandbox and returns its resulting
+// metadata.
+type SandboxPauser interface {
+	PauseSandbox(context.Context, string, *PauseOptions) (*SandboxInfo, error)
+}
+
+// SandboxTerminator permanently completes a provider execution.
+type SandboxTerminator interface {
+	TerminateSandbox(context.Context, string, *TerminateOptions) (*ExitResult, error)
+}
+
+// SandboxArchiver archives a supported provider sandbox and returns its
+// resulting metadata.
+type SandboxArchiver interface {
+	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
+}
+
+// SandboxDeleter irreversibly deletes a provider sandbox and returns its
+// terminal metadata.
+type SandboxDeleter interface {
+	DeleteSandbox(context.Context, string, *DeleteOptions) (*SandboxInfo, error)
+}
+
 // Client owns its initialized provider SDK. Close it when finished.
 type Client struct {
 	// backend is the initialized provider SDK. Applications use Client methods
@@ -67,6 +117,8 @@ type Client struct {
 	// timeout is a copy of Config.Timeout. Nil adds no Kit deadline. An explicit
 	// zero also adds none.
 	timeout *time.Duration
+	// lifecycle coordinates operations with idempotent client closure.
+	lifecycle *clientLifecycle
 }
 
 // missingClientBinding reports whether a provider or backend value is missing.
@@ -122,7 +174,7 @@ func NewClient(config Config) (client *Client, result error) {
 	if actual := backend.Name(); actual != expected {
 		return nil, errors.Join(NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
 	}
-	return &Client{backend: backend, timeout: timeout}, nil
+	return &Client{backend: backend, timeout: timeout, lifecycle: &clientLifecycle{}}, nil
 }
 
 // ProviderName returns the selected provider identifier, such as "daytona" or
@@ -146,10 +198,7 @@ func (c *Client) Close(ctx context.Context) (result error) {
 	if ctx == nil {
 		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "close", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
-	if c == nil || c.backend == nil {
-		return nil
-	}
-	return c.backend.Close(ctx)
+	return c.closeBackend(ctx)
 }
 
 // Create creates one sandbox and returns a handle. A nil request uses provider
@@ -175,7 +224,12 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if c == nil || c.backend == nil {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
-	request, err := prepareCreateRequest(request)
+	release, err := c.beginOperation("create")
+	if err != nil {
+		return nil, err
+	}
+	defer release()
+	request, err = prepareCreateRequest(request)
 	if err != nil {
 		return nil, err
 	}
@@ -195,9 +249,19 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 		value := *timeout
 		request.Provisioning.Timeout = &value
 	}
-	response, err := c.backend.Create(ctx, request)
+	creator, ok := c.backend.(SandboxCreator)
+	if !ok {
+		return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: provider, Operation: "create", Field: "", Message: "sandbox-kit: provider does not support sandbox creation"}, nil)
+	}
+	response, err := creator.Create(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	return sandboxFromResponse(c.backend, response)
+	instance, err = sandboxFromResponse(c.backend, response, "create")
+	if err != nil {
+		return nil, err
+	}
+	instance.timeout = c.timeout
+	instance.owner = c
+	return instance, nil
 }

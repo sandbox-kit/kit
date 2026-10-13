@@ -375,6 +375,12 @@ const InfoFieldProviderMetadata = "provider_metadata"
 // InfoFieldOrigins is the canonical path "origins".
 const InfoFieldOrigins = "origins"
 
+// InfoFieldState is the canonical path "state".
+const InfoFieldState = "state"
+
+// InfoFieldTerminal is the canonical path "terminal".
+const InfoFieldTerminal = "terminal"
+
 // responseFieldPresent reports whether path names a field that is present on
 // the sandbox metadata.
 func responseFieldPresent(info *SandboxInfo, path string) bool {
@@ -442,6 +448,10 @@ func responseFieldPresent(info *SandboxInfo, path string) bool {
 		return info.CreatedAt != nil
 	case InfoFieldProviderMetadata:
 		return info.ProviderMetadata != nil
+	case InfoFieldState:
+		return true
+	case InfoFieldTerminal:
+		return info.Terminal != nil
 	default:
 		return false
 	}
@@ -449,10 +459,10 @@ func responseFieldPresent(info *SandboxInfo, path string) bool {
 
 // validateResponseOrigins checks that every origin names a known field that is
 // actually present. A missing origin means the source is unknown.
-func validateResponseOrigins(info *SandboxInfo) error {
+func validateResponseOrigins(info *SandboxInfo, operation string) error {
 	for path, origin := range info.Origins {
 		if !origin.Valid() || !responseFieldPresent(info, path) {
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: "create", Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
+			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
 		}
 	}
 	return nil

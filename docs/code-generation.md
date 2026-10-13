@@ -46,6 +46,8 @@ protobuf messages.
 | `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results       |
 | `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions  |
 | `specs/generation.yaml`           | Generation phases and ordered client-operation instructions         |
+| `specs/lifecycle.yaml`            | Handle operations, capabilities, options, outcomes, and terminal states |
+| `specs/targets.yaml`              | Language/provider output modules and source descriptors              |
 | `specs/client.yaml`               | Provider selection and client/auth validation                       |
 | `specs/validation.yaml`           | Shared creation validation                                          |
 | `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                        |
@@ -102,13 +104,22 @@ The compiler verifies the version 1 vocabulary and required ordering. It rejects
 missing/duplicate phases, unknown instructions, and unsafe operation sequences.
 Initialization validates configuration before initializing the provider; creation
 prepares an owned request before applying deadlines and invoking the backend.
-Cleanup releases SDK resources without deleting sandboxes.
+Cleanup releases SDK resources without deleting sandboxes. The target manifest
+drives provider/language outputs, so adding a provider does not require editing
+the generation command's source list.
 
 These are semantic instructions, not arbitrary expressions or YAML code snippets.
 Constructor and method names come from `specs/api.yaml`. Output suffixes come
 from the language profile. The Go emitter turns these instructions into
 synchronous calls, context deadlines, and error results. Another emitter
 implements the same instructions with its own calling conventions.
+
+Handle lifecycle operations are registered once in `specs/lifecycle.yaml`.
+The shared compiler validates their capability interface, method, and option
+types. The Go lifecycle emitter derives public handle methods, typed dispatch,
+timeouts, metadata replacement, terminal updates, and capability discovery from
+that registry. A new operation using an existing outcome shape therefore does
+not require adding its name to the Go emitter.
 
 The model currently resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
@@ -317,7 +328,8 @@ generation until copying support is added.
 1. Declare shared types and method intent in protobuf.
 2. Describe portable validation, conversions, and operation intent in YAML.
 3. Add native SDK symbols to the language's bindings.
-4. Extend the shared compiler vocabulary and each affected emitter for a new operation.
+4. Register operations that use existing outcome shapes in `specs/lifecycle.yaml`;
+   extend the shared vocabulary and affected emitters only for a new shape.
 5. Add semantic boundary tests, regenerate, and update examples/docs.
 6. Run the CLI verification command.
 
@@ -325,6 +337,15 @@ SDK orchestration that the vocabulary cannot express stays in handwritten
 `sandbox.go`: lookup sequences, source selection, readiness, and remaining
 provider semantics. Another language needs its own emitter and typed integration
 code for these operations; bindings alone do not produce a complete integration.
+
+Lifecycle option and result types are generated from protobuf. The Go lifecycle
+emitter generates handle methods, typed dispatch, timeout selection, metadata
+replacement, terminal updates, and static capability discovery from
+`specs/lifecycle.yaml`. Handle storage, operation/close coordination, and
+provider-specific lifecycle call sequences remain handwritten. Optional typed
+capability interfaces prevent a provider from advertising operations it cannot
+implement; Daytona resolves additional class-dependent capabilities from current
+metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

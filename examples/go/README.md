@@ -22,11 +22,24 @@ SDK and its selected provider. Requires Go 1.26.9 or newer and this checkout.
 | [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | Daytona API key, optional endpoint/target            | Error-kind handling tests                       |
 | [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | Daytona API key, optional endpoint/target            | Compiles                                        |
+| [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-linked](daytona/create-daytona-linked/README.md)               | Daytona API key, optional endpoint/target            | Compiles                                        |
 | [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | Daytona API key, optional endpoint/target            | SDK request and policy tests                    |
 | [handle-modal-errors](modal/handle-modal-errors/README.md)                     | Modal token pair and app name                        | Unsupported disk override and kind-switch tests |
 | [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | Daytona API key                                      | Local validation and kind-switch tests          |
+| [get-daytona-sandbox](daytona/get-daytona-sandbox/README.md)                   | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [refresh-daytona-sandbox](daytona/refresh-daytona-sandbox/README.md)           | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [start-daytona-sandbox](daytona/start-daytona-sandbox/README.md)               | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [stop-daytona-sandbox](daytona/stop-daytona-sandbox/README.md)                 | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [pause-daytona-sandbox](daytona/pause-daytona-sandbox/README.md)               | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | Daytona API key, sandbox ID, optional endpoint/target | Compiles                                       |
+| [attach-modal-sandbox](modal/attach-modal-sandbox/README.md)                   | Modal token pair, app, environment, sandbox ID       | Compiles                                       |
+| [terminate-modal-sandbox](modal/terminate-modal-sandbox/README.md)             | Modal token pair, app, environment, sandbox ID       | Compiles                                       |
+| [request-modal-termination](modal/request-modal-termination/README.md)         | Modal token pair, app, environment, sandbox ID       | Compiles                                       |
+| [close-modal-handle](modal/close-modal-handle/README.md)                       | Modal token pair, app, environment, sandbox ID       | Compiles                                       |
 
 ## Run with your account
 
@@ -47,9 +60,10 @@ The SDK itself does not load files. Credentials are Git-ignored.
 
 Creation programs create real sandboxes and print their IDs. Each creates one
 sandbox except `create-daytona-linked`, which creates a parent and a child.
-Error-handling programs exercise local failures without cloud creation. Closing its client
-releases SDK resources without stopping/deleting the sandbox. Use provider tools
-for cleanup, or the configured lifetime policy where the example supplies one.
+Lifecycle programs use the configured sandbox ID. Read each guide before running
+a destructive stop, terminate, archive, or delete operation. Error-handling
+programs exercise local failures without cloud creation. Closing a client or
+handle releases local resources without changing the sandbox.
 
 ## Verify without credentials
 
@@ -70,7 +84,7 @@ Local tests require permission to bind a port. They do not establish real
 provider scheduling, account availability, or execution.
 
 The repository-wide `sandbox-kit test go` command includes every example module.
-Projects added for each supported create path compile without handler tests.
+Most focused creation and lifecycle projects compile without handler tests.
 
 ## Error handling
 

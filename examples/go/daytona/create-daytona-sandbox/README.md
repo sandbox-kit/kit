@@ -58,7 +58,11 @@ For creation policies and SDK request tests, see
 
 The example leaves policies at provider defaults. Explicit zero semantics differ
 by action; see [creation policies](../../../../docs/sandbox-creation.md#policy-semantics).
-Execution and lifecycle operations are outside this example.
+The default snapshot determines the sandbox's container or VM class. Daytona
+does not use `Isolation.Kind` to replace that snapshot choice. See the
+[runtime example](../create-daytona-with-runtime/README.md) for explicit toolbox
+language/user settings. Execution and lifecycle operations are outside this
+example.
 
 ## Error handling
 

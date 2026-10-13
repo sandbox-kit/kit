@@ -20,6 +20,7 @@ type Program struct {
 	Validation spec.Validation
 	Client     spec.Client
 	Contracts  spec.Contracts
+	Lifecycle  spec.Lifecycle
 	Providers  map[string]Provider
 	Clients    map[string]Client
 }
@@ -83,6 +84,30 @@ func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error)
 
 	if result.Generation, err = spec.LoadGeneration(root); err != nil {
 		return nil, err
+	}
+	if result.Lifecycle, err = spec.LoadLifecycle(root); err != nil {
+		return nil, err
+	}
+	for _, operation := range result.Lifecycle.Operations {
+		declaration, ok := result.API.Modules["client"].TypesByID[operation.Interface]
+		if !ok || declaration.Kind != "interface" {
+			return nil, fmt.Errorf("lifecycle %s: unknown capability interface %s", operation.ID, operation.Interface)
+		}
+		found := false
+		for _, method := range declaration.Methods {
+			if method.ID == operation.Method {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("lifecycle %s: unknown capability method %s.%s", operation.ID, operation.Interface, operation.Method)
+		}
+		if operation.Options != "" {
+			if _, lookupErr := result.Schema.Message(operation.Options); lookupErr != nil {
+				return nil, fmt.Errorf("lifecycle %s: %w", operation.ID, lookupErr)
+			}
+		}
 	}
 	if result.Validation, err = spec.LoadValidation(root); err != nil {
 		return nil, err

@@ -15,11 +15,15 @@ package modal
 
 import (
 	"context"
+	"math"
 	"time"
 
 	sdk "github.com/modal-labs/modal-client/go"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
+
+var _ sandbox.SandboxAttacher = (*backend)(nil)
+var _ sandbox.SandboxTerminator = (*backend)(nil)
 
 // createPlan is the Modal call sequence for one creation request.
 type createPlan struct {
@@ -89,7 +93,15 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		return nil, err
 	}
 	info.Name = request.Name
+	info.State = sandbox.SandboxStateRunning
 	info.Labels = plan.params.Tags
+	if request.Isolation != nil {
+		info.Isolation, err = request.Isolation.Clone()
+		if err != nil {
+			return nil, err
+		}
+		info.Origins[sandbox.InfoFieldIsolation] = sandbox.ValueOriginRequest
+	}
 	if info.Name != nil {
 		info.Origins["name"] = sandbox.ValueOriginRequest
 	}
@@ -97,6 +109,41 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		info.Origins["labels"] = sandbox.ValueOriginRequest
 	}
 	return &sandbox.CreateResult{Sandbox: &info}, nil
+}
+
+// AttachSandbox constructs a Modal handle from an ID. Modal FromID performs no
+// provider request, so this deliberately does not implement SandboxRefresher.
+func (a *backend) AttachSandbox(ctx context.Context, id string) (*sandbox.SandboxInfo, error) {
+	instance, err := a.client.Sandboxes.FromID(ctx, id, nil)
+	if err != nil {
+		return nil, mapProviderError(err, "attach")
+	}
+	info, err := mapSandboxIdentity(instance)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+// TerminateSandbox permanently finishes a Modal sandbox execution.
+func (a *backend) TerminateSandbox(ctx context.Context, id string, options *sandbox.TerminateOptions) (*sandbox.ExitResult, error) {
+	instance, err := a.client.Sandboxes.FromID(ctx, id, nil)
+	if err != nil {
+		return nil, mapProviderError(err, "terminate")
+	}
+	wait := options != nil && options.GetWait()
+	code, err := instance.Terminate(ctx, &sdk.SandboxTerminateParams{Wait: wait})
+	if err != nil {
+		return nil, mapProviderError(err, "terminate")
+	}
+	result := &sandbox.ExitResult{}
+	if wait {
+		if code < math.MinInt32 || code > math.MaxInt32 {
+			return nil, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "modal", Operation: "terminate", Field: "exit_code", Message: "sandbox-kit modal: exit code exceeds the shared int32 range"}, nil)
+		}
+		result.ExitCode = sandbox.Value(int32(code))
+	}
+	return result, nil
 }
 
 // planCreate checks the request and builds the Modal call sequence

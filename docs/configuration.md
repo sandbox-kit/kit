@@ -15,10 +15,12 @@ Applications use generated native Go types.
 | `Region`   | Provider target or default placement preference                        |
 | `Timeout`  | Default Kit operation deadline                                         |
 
-A provider must implement `sandbox.Provider` and return a complete
-`sandbox.Backend`. Bare SDK clients and arbitrary interfaces do not satisfy
-that contract. The backend's identity must match the selected provider;
-Kit closes and rejects mismatched backends.
+A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
+The backend supplies identity and cleanup, then implements typed optional
+interfaces such as `SandboxCreator`, `SandboxRefresher`, or
+`SandboxTerminator` for its supported operations. Bare SDK clients and
+arbitrary interfaces do not satisfy these contracts. The backend's identity
+must match the selected provider; Kit closes and rejects mismatched backends.
 
 ## Provider support
 
@@ -54,16 +56,20 @@ account permissions and resource availability when it processes requests.
 ## Ownership and deadlines
 
 The client owns its initialized SDK. Call `client.Close(ctx)` when finished;
-this releases SDK resources without stopping or deleting sandboxes.
+this releases SDK resources without stopping or deleting sandboxes. Close is
+idempotent, waits for operations already running through that client, and makes
+its handles unusable for later provider operations. `Sandbox.Close(ctx)` closes
+one local handle without closing the client or changing the remote sandbox.
 
 Generated state capture copies supplied scope and region values, preserving
 `nil` and explicit values. Later mutations of the original configuration do not
 change captured state. Kit also copies creation requests and returned metadata.
 
-`Config.Timeout` applies when a creation request omits
-`CreateOptions.Provisioning.Timeout`. Explicit zero adds no Kit deadline.
-An earlier caller-context deadline still applies, and native SDK transport or
-operation timeouts remain in force.
+`Config.Timeout` is the default Kit deadline for provider operations. A creation
+request can override it with `CreateOptions.Provisioning.Timeout`; lifecycle
+options can override it with their operation-specific `Timeout`. Explicit zero
+adds no Kit deadline. An earlier caller-context deadline still applies, and
+native SDK transport or operation timeouts remain in force.
 
 ## Credentials and errors
 

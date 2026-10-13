@@ -4,8 +4,9 @@ Use Modal through the shared Sandbox Kit client. This optional module depends on
 the official Modal Go SDK v0.11.0. The public `sandbox` module has no Modal SDK
 dependency.
 
-Start with the [creation example](../../../../examples/go/modal/create-modal-sandbox/README.md)
-or [resources example](../../../../examples/go/modal/create-modal-with-resources/README.md).
+Start with the [creation example](../../../../examples/go/modal/create-modal-sandbox/README.md),
+[resources example](../../../../examples/go/modal/create-modal-with-resources/README.md),
+or [attachment example](../../../../examples/go/modal/attach-modal-sandbox/README.md).
 Requires Go 1.26.9 or newer and this checkout. Modules currently use local
 development replacements.
 
@@ -83,7 +84,13 @@ and unsupported fields are rejected. See [creation coverage](../../../../docs/sa
 
 Errors expose shared kinds and preserve native SDK causes. Account permissions, resource quotas,
 and placement availability remain provider-enforced. Closing the client releases
-SDK resources without terminating the sandbox.
+SDK resources without terminating the sandbox. `Client.Attach` constructs a
+handle from a Modal ID without claiming a remote lookup; handles support
+`Terminate`. Provider-verified `Get`/`Refresh`, restartable stop, start, pause,
+archive, and resource deletion are
+not aliases for Modal termination and return `ErrorKindUnsupported`.
+Successful termination marks the handle terminal and removes all further
+lifecycle capabilities. A waited termination preserves its checked exit code.
 
 From this directory:
 
