@@ -27,6 +27,43 @@ Using `--copy` preserves the repository's existing checked-in layout.
 - **Precedence:** `AGENTS.md`, specifications, and established repository
   conventions remain authoritative when a generic recommendation differs.
 
+### `golang-testing`
+
+- **Source:** `samber/cc-skills-golang`
+- **Why selected:** Adds idiomatic table-driven tests, helpers, integration tests,
+  HTTP tests, examples, coverage, benchmarks, and mocking guidance for the Go SDK
+  and generator tooling.
+
+### `golang-error-handling`
+
+- **Source:** `samber/cc-skills-golang`
+- **Why selected:** Covers error creation, wrapping, inspection, and propagation.
+  This supports stable public SDK errors and translation of provider-specific
+  failures at adapter boundaries.
+
+### `javascript-testing-patterns`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Complements `typescript-advanced-types` with focused unit,
+  integration, asynchronous, and test-double practices for the TypeScript SDK.
+
+### `code-review`
+
+- **Source:** `mattpocock/skills`
+- **Why selected:** Provides a review workflow that checks changes separately
+  against repository standards and the originating specification. This is useful
+  for a spec-driven SDK without duplicating implementation guidance.
+- **Operational note:** Its registry assessment reported safe generation and no
+  dependency alerts, but a medium Snyk rating. The installed package contains
+  instructions and agent metadata only; review its workflow again when updating.
+
+### `security-best-practices`
+
+- **Source:** `openai/skills`
+- **Why selected:** Adds trusted language-specific security review guidance for
+  Go and TypeScript, especially around untrusted input, credentials, command
+  execution, networking, and provider configuration.
+
 ## Existing complementary skills
 
 - `golang-design-patterns` covers idiomatic Go API and lifecycle choices.
