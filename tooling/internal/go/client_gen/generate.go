@@ -51,11 +51,8 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 	if err != nil {
 		return err
 	}
-	for _, id := range []string{"backend", "provider", "sandbox_attacher", "sandbox_refresher", "sandbox_starter", "sandbox_stopper", "sandbox_pauser", "sandbox_terminator", "sandbox_archiver", "sandbox_deleter", "client"} {
-		if _, ok := compiled.Surface.TypesByID[id]; !ok {
-			continue
-		}
-		if err := d.TypeDeclaration(id); err != nil {
+	for _, declaration := range compiled.Surface.Types {
+		if err := d.TypeDeclaration(declaration.ID); err != nil {
 			return err
 		}
 	}
@@ -90,7 +87,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 			mismatch := g.QualifiedGoIdent(protogen.GoIdent{GoName: "Sprintf", GoImportPath: "fmt"}) + "(" + strconv.Quote("sandbox-kit: initialized backend %q differs from selected provider %q") + ",actual,expected)"
 			d.Body(constructor, "if actual:=backend.", d.MethodName("backend", "name"), "();actual!=expected{return nil,", errors("Join"), "(", localError("ErrorKindInvalidResponse", "expected", "initialize", "provider", mismatch), ",backend.", d.MethodName("backend", "close"), "(context.Background()))}")
 		case "return_client":
-			d.Body(constructor, "return &", name, "{", d.Field("client", "backend"), ":backend,", d.Field("client", "timeout"), ":timeout},nil")
+			d.Body(constructor, "return &", name, "{", d.Field("client", "backend"), ":backend,", d.Field("client", "timeout"), ":timeout,", d.Field("client", "lifecycle"), ":&clientLifecycle{}},nil")
 		}
 	}
 	g.P("}")
@@ -110,7 +107,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 		case "require_context":
 			d.Body(closeMethod, "if ", d.Context(closeMethod), "==nil{return ", localError("ErrorKindInvalidArgument", "provider", "close", "context", strconv.Quote("sandbox-kit: context is required")), "}")
 		case "close_backend":
-			d.Body(closeMethod, "if ", d.Receiver(closeMethod), "==nil||", d.Receiver(closeMethod), ".", d.Field("client", "backend"), "==nil{return nil};return ", d.Receiver(closeMethod), ".", d.Field("client", "backend"), ".", d.MethodName("backend", "close"), "(", d.Context(closeMethod), ")")
+			d.Body(closeMethod, "return ", d.Receiver(closeMethod), ".closeBackend(", d.Context(closeMethod), ")")
 		}
 	}
 	g.P("}")
@@ -124,17 +121,17 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, compiled model.Clien
 		case "require_context":
 			d.Body(createMethod, "if ", d.Context(createMethod), "==nil{return nil,", localError("ErrorKindInvalidArgument", "provider", "create", "context", strconv.Quote("sandbox-kit: context is required")), "};if err:=", d.Context(createMethod), ".Err();err!=nil{return nil,err}")
 		case "require_client":
-			d.Body(createMethod, "if ", d.Receiver(createMethod), "==nil||", d.Receiver(createMethod), ".", d.Field("client", "backend"), "==nil{return nil,", localError("ErrorKindInvalidArgument", "provider", "create", "client", strconv.Quote("sandbox-kit: client is not initialized")), "}")
+			d.Body(createMethod, "if ", d.Receiver(createMethod), "==nil||", d.Receiver(createMethod), ".", d.Field("client", "backend"), "==nil{return nil,", localError("ErrorKindInvalidArgument", "provider", "create", "client", strconv.Quote("sandbox-kit: client is not initialized")), "};release,err:=", d.Receiver(createMethod), ".beginOperation(\"create\");if err!=nil{return nil,err};defer release()")
 		case "prepare_request":
-			d.Body(createMethod, d.Param(createMethod, "request"), ",err:=prepareCreateRequest(", d.Param(createMethod, "request"), ");if err!=nil{return nil,err}")
+			d.Body(createMethod, d.Param(createMethod, "request"), ",err=prepareCreateRequest(", d.Param(createMethod, "request"), ");if err!=nil{return nil,err}")
 		case "resolve_deadline":
 			d.Body(createMethod, "timeout:=", d.Param(createMethod, "request"), ".GetProvisioning().GetTimeout();if timeout==nil{timeout=", d.Receiver(createMethod), ".", d.Field("client", "timeout"), "};if timeout!=nil&&*timeout>0{var cancel context.CancelFunc;", d.Context(createMethod), ",cancel=context.WithTimeout(", d.Context(createMethod), ",*timeout);defer cancel()}")
 			// Materialize the resolved timeout for backend readiness mappings too.
 			d.Body(createMethod, "if timeout!=nil{if ", d.Param(createMethod, "request"), ".Provisioning==nil{", d.Param(createMethod, "request"), ".Provisioning=&ProvisioningOptions{}};value:=*timeout;", d.Param(createMethod, "request"), ".Provisioning.Timeout=&value}")
 		case "invoke_creation":
-			d.Body(createMethod, "response,err:=", d.Receiver(createMethod), ".", d.Field("client", "backend"), ".", d.MethodName("backend", "create"), "(", d.Context(createMethod), ",", d.Param(createMethod, "request"), ");if err!=nil{return nil,err}")
+			d.Body(createMethod, "creator,ok:=", d.Receiver(createMethod), ".", d.Field("client", "backend"), ".(SandboxCreator);if !ok{return nil,", localError("ErrorKindUnsupported", "provider", "create", "", strconv.Quote("sandbox-kit: provider does not support sandbox creation")), "};response,err:=creator.Create(", d.Context(createMethod), ",", d.Param(createMethod, "request"), ");if err!=nil{return nil,err}")
 		case "return_handle":
-			d.Body(createMethod, "instance,err=sandboxFromResponse(", d.Receiver(createMethod), ".", d.Field("client", "backend"), ",response,\"create\");if err!=nil{return nil,err};instance.timeout=", d.Receiver(createMethod), ".", d.Field("client", "timeout"), ";return instance,nil")
+			d.Body(createMethod, "instance,err=sandboxFromResponse(", d.Receiver(createMethod), ".", d.Field("client", "backend"), ",response,\"create\");if err!=nil{return nil,err};instance.timeout=", d.Receiver(createMethod), ".", d.Field("client", "timeout"), ";instance.owner=", d.Receiver(createMethod), ";return instance,nil")
 		}
 	}
 	g.P("}")

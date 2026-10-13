@@ -15,7 +15,10 @@ err = instance.Start(ctx, nil)
 
 An operation-specific timeout overrides `Config.Timeout`. Nil inherits the
 client default, and explicit zero adds no Kit deadline. Closing the client does
-not change the cloud sandbox, but handles depend on its initialized provider SDK.
+not change the cloud sandbox and invalidates handles that depend on its SDK.
+`Sandbox.Close` closes only the local handle; it never changes the remote
+sandbox. Client and handle closure are idempotent and wait for operations already
+running through that object.
 
 ## Operation semantics
 
@@ -44,8 +47,10 @@ the provider's exact value. After successful `Terminate` or `Delete`, Kit marks
 the handle terminal, exposes no further lifecycle capabilities, and rejects
 subsequent lifecycle calls with `ErrorKindFailedPrecondition`.
 
-Lifecycle transitions on one handle are serialized. A caller waiting behind an
-in-progress transition can still cancel its context or reach its deadline.
+Lifecycle transitions on one handle are serialized. This does not serialize a
+different handle or process referring to the same remote sandbox. A caller
+waiting behind an in-progress transition can still cancel its context or reach
+its deadline.
 
 ## Provider support
 

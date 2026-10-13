@@ -128,3 +128,4 @@ func (a *backend) Close(ctx context.Context) error {
 
 var _ sandbox.Provider = (*Provider)(nil)
 var _ sandbox.Backend = (*backend)(nil)
+var _ sandbox.SandboxCreator = (*backend)(nil)

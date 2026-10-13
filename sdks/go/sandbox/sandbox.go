@@ -21,6 +21,8 @@ type Sandbox struct {
 	operations    any
 	timeout       *time.Duration
 	operationGate chan struct{}
+	owner         *Client
+	closed        bool
 	// info is an owned metadata copy. Info returns another copy so callers cannot mutate this one.
 	info *SandboxInfo
 }
@@ -119,6 +121,15 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s == nil || s.operations == nil {
 		return nil
 	}
+	s.mu.RLock()
+	closed := s.closed
+	s.mu.RUnlock()
+	if closed {
+		return nil
+	}
+	if s.owner != nil && s.owner.isClosed() {
+		return nil
+	}
 	info := s.Info()
 	if info == nil || info.GetTerminal() {
 		return nil
@@ -127,29 +138,7 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 		values := resolver.SandboxCapabilities(info)
 		return append([]LifecycleCapability(nil), values...)
 	}
-	values := make([]LifecycleCapability, 0, 7)
-	if _, ok := s.operations.(SandboxRefresher); ok {
-		values = append(values, LifecycleCapabilityRefresh)
-	}
-	if _, ok := s.operations.(SandboxStarter); ok {
-		values = append(values, LifecycleCapabilityStart)
-	}
-	if _, ok := s.operations.(SandboxStopper); ok {
-		values = append(values, LifecycleCapabilityStop)
-	}
-	if _, ok := s.operations.(SandboxPauser); ok {
-		values = append(values, LifecycleCapabilityPause)
-	}
-	if _, ok := s.operations.(SandboxTerminator); ok {
-		values = append(values, LifecycleCapabilityTerminate)
-	}
-	if _, ok := s.operations.(SandboxArchiver); ok {
-		values = append(values, LifecycleCapabilityArchive)
-	}
-	if _, ok := s.operations.(SandboxDeleter); ok {
-		values = append(values, LifecycleCapabilityDelete)
-	}
-	return values
+	return staticLifecycleCapabilities(s.operations)
 }
 
 // Supports reports whether capability is available for this resolved handle.
@@ -172,13 +161,29 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	if s == nil || s.operations == nil || s.ID() == "" {
 		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
 	}
+	s.mu.RLock()
+	closed := s.closed
+	s.mu.RUnlock()
+	if closed {
+		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
+	}
+	clientRelease := func() {}
+	if s.owner != nil {
+		var err error
+		clientRelease, err = s.owner.beginOperation(operation)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 	if info := s.Info(); info != nil && info.GetTerminal() {
+		clientRelease()
 		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 	}
 	if timeout == nil {
 		timeout = s.timeout
 	}
 	if timeout != nil && *timeout < 0 {
+		clientRelease()
 		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
 	}
 	operationCtx := ctx
@@ -192,15 +197,43 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 		if info := s.Info(); info != nil && info.GetTerminal() {
 			<-s.operationGate
 			baseCancel()
+			clientRelease()
 			return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 		}
-		return operationCtx, func() { <-s.operationGate; baseCancel() }, nil
+		return operationCtx, func() { <-s.operationGate; baseCancel(); clientRelease() }, nil
 	case <-operationCtx.Done():
 		baseCancel()
+		clientRelease()
 		return nil, nil, operationCtx.Err()
 	}
 }
 
+// Close releases this local handle. It never changes the remote sandbox. Close
+// is idempotent.
+func (s *Sandbox) Close(ctx context.Context) error {
+	if ctx == nil {
+		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "close_handle", Field: "context", Message: "sandbox-kit: context is required"}, nil)
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if s == nil {
+		return nil
+	}
+	if s.operationGate == nil {
+		return nil
+	}
+	select {
+	case s.operationGate <- struct{}{}:
+		defer func() { <-s.operationGate }()
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	s.mu.Lock()
+	s.closed = true
+	s.mu.Unlock()
+	return nil
+}
 func (s *Sandbox) markTerminal(state SandboxState, providerState string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -232,152 +265,5 @@ func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 	s.mu.Lock()
 	s.info = copy
 	s.mu.Unlock()
-	return nil
-}
-
-// Refresh replaces cached metadata with the provider's current metadata.
-func (s *Sandbox) Refresh(ctx context.Context) error {
-	ctx, cancel, err := s.operationContext(ctx, "refresh", nil)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	op, ok := s.operations.(SandboxRefresher)
-	if !ok {
-		return s.unsupported("refresh")
-	}
-	info, err := op.RefreshSandbox(ctx, s.ID())
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "refresh")
-	}
-	if info == nil || info.ID == "" {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: "refresh", Field: InfoFieldID, Message: "sandbox-kit: refresh returned no sandbox identity"}, nil)
-	}
-	return s.replaceInfo("refresh", info)
-}
-
-func (s *Sandbox) Start(ctx context.Context, o *StartOptions) error {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "start", t)
-	if e != nil {
-		return e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxStarter)
-	if !ok {
-		return s.unsupported("start")
-	}
-	info, err := op.StartSandbox(ctx, s.ID(), o)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "start")
-	}
-	return s.replaceInfo("start", info)
-}
-func (s *Sandbox) Stop(ctx context.Context, o *StopOptions) error {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "stop", t)
-	if e != nil {
-		return e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxStopper)
-	if !ok {
-		return s.unsupported("stop")
-	}
-	info, err := op.StopSandbox(ctx, s.ID(), o)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "stop")
-	}
-	return s.replaceInfo("stop", info)
-}
-func (s *Sandbox) Pause(ctx context.Context, o *PauseOptions) error {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "pause", t)
-	if e != nil {
-		return e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxPauser)
-	if !ok {
-		return s.unsupported("pause")
-	}
-	info, err := op.PauseSandbox(ctx, s.ID(), o)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "pause")
-	}
-	return s.replaceInfo("pause", info)
-}
-func (s *Sandbox) Terminate(ctx context.Context, o *TerminateOptions) (*ExitResult, error) {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "terminate", t)
-	if e != nil {
-		return nil, e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxTerminator)
-	if !ok {
-		return nil, s.unsupported("terminate")
-	}
-	r, e := op.TerminateSandbox(ctx, s.ID(), o)
-	if e != nil {
-		return r, WithErrorContext(e, s.ProviderName(), "terminate")
-	}
-	s.markTerminal(SandboxStateTerminated, "terminated")
-	return r, nil
-}
-func (s *Sandbox) Archive(ctx context.Context, o *ArchiveOptions) error {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "archive", t)
-	if e != nil {
-		return e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxArchiver)
-	if !ok {
-		return s.unsupported("archive")
-	}
-	info, err := op.ArchiveSandbox(ctx, s.ID(), o)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "archive")
-	}
-	return s.replaceInfo("archive", info)
-}
-func (s *Sandbox) Delete(ctx context.Context, o *DeleteOptions) error {
-	var t *time.Duration
-	if o != nil {
-		t = o.Timeout
-	}
-	ctx, c, e := s.operationContext(ctx, "delete", t)
-	if e != nil {
-		return e
-	}
-	defer c()
-	op, ok := s.operations.(SandboxDeleter)
-	if !ok {
-		return s.unsupported("delete")
-	}
-	info, err := op.DeleteSandbox(ctx, s.ID(), o)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "delete")
-	}
-	if err := s.replaceInfo("delete", info); err != nil {
-		return err
-	}
-	s.markTerminal(SandboxStateDeleted, "deleted")
 	return nil
 }

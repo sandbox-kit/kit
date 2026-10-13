@@ -17,6 +17,11 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	if c == nil || c.backend == nil {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: "get", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
+	release, err := c.beginOperation("get")
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	if id == "" {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "get", Field: InfoFieldID, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
@@ -39,6 +44,7 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 		return nil, err
 	}
 	instance.timeout = c.timeout
+	instance.owner = c
 	return instance, nil
 }
 
@@ -58,6 +64,11 @@ func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 	if c == nil || c.backend == nil {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: "attach", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
+	release, err := c.beginOperation("attach")
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 	if id == "" {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "attach", Field: InfoFieldID, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
@@ -79,5 +90,6 @@ func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 		return nil, err
 	}
 	instance.timeout = c.timeout
+	instance.owner = c
 	return instance, nil
 }

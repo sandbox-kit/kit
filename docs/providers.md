@@ -22,7 +22,8 @@ SDK cleanup.
 | Contract           | Responsibility                                          |
 | ------------------ | ------------------------------------------------------- |
 | `sandbox.Provider` | Identify the integration and initialize its backend     |
-| `sandbox.Backend`  | Create sandboxes and release SDK resources              |
+| `sandbox.Backend`  | Identify the provider and release SDK resources          |
+| `sandbox.SandboxCreator` | Create sandboxes when the provider supports creation |
 | `sandbox.Client`   | Validate shared requests, apply deadlines, and delegate |
 
 These contracts live in the consuming `sandbox` package. SDK clients stay
@@ -52,11 +53,14 @@ neither provider SDK. Future harness integrations will remain separate modules.
 
 Creation returns a shared sandbox handle with metadata origins. Errors expose
 common kinds and preserve SDK/validator causes. Metadata is copied before exposure.
-Closing a client releases SDK resources and leaves cloud sandboxes running.
+Closing a client releases SDK resources, invalidates its handles, and leaves
+cloud sandboxes running. Closing a sandbox handle is also local-only and
+idempotent. Creation is an optional backend capability, allowing future
+management-only or attach-only integrations.
 
 Sandbox Kit introduces no middle service or generated gRPC transport. Native
 provider SDKs use their own transports, including gRPC where applicable.
 
-Lifecycle methods, execution, GPU requests, storage, and harness integrations
-remain future work. See [creation coverage](sandbox-creation.md),
+Execution, GPU requests, storage, and harness integrations remain future work.
+See [creation coverage](sandbox-creation.md),
 [configuration](configuration.md), and [generation](code-generation.md).

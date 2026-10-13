@@ -37,6 +37,22 @@ func repositoryFixture(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
+	targets := `version: 1
+languages:
+  go:
+    targets:
+      - {source: shared.proto, output: sdks/go/sandbox, module: example.com/sandbox}
+      - {source: client.proto, output: sdks/go/sandbox, module: example.com/sandbox}
+      - {source: modal.proto, output: sdks/go/providers/modal, module: example.com/modal, provider: modal}
+      - {source: daytona.proto, output: sdks/go/providers/daytona, module: example.com/daytona, provider: daytona}
+`
+	path := filepath.Join(root, "specs", "targets.yaml")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(targets), 0o644); err != nil {
+		t.Fatal(err)
+	}
 	return root
 }
 
@@ -63,7 +79,7 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 				t.Fatal("generation did not use the configured executable")
 			}
 			if !failure && len(runner.steps) != 7 {
-				t.Fatalf("expected bootstrap and three SDK generations, got %d steps", len(runner.steps))
+				t.Fatalf("expected bootstrap and four SDK generations, got %d steps", len(runner.steps))
 			}
 			toolsDir := filepath.Dir(runner.steps[0].args[2])
 			relative, err := filepath.Rel(repo, toolsDir)

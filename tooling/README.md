@@ -73,7 +73,9 @@ signatures and field-path rules for descriptor-driven helpers.
 `specs/behaviors.yaml` defines the signature requirements of implemented behaviors. `specs/languages/go.yaml` controls their
 native representation and output conventions. Templates retain structured type
 bindings; body emitters resolve explicit symbols instead of renaming text. `specs/generation.yaml` declares
-output phases and ordered client instructions.
+output phases and ordered client instructions. `specs/lifecycle.yaml` is the
+semantic registry from which handle lifecycle methods and static capability
+discovery are emitted.
 `internal/go/generate.go` dispatches the compiled program to Go emitters. Adding
 another language requires an emitter for that vocabulary and native SDK bindings;
 it does not require duplicating schema resolution or semantic classification.

@@ -78,19 +78,13 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 			Message:   "sandbox-kit daytona: SDK returned no sandbox",
 		}, nil)
 	}
-	info, err := mapSandboxInfo(instance)
+	// Use the same complete resolver as Get and lifecycle responses so a newly
+	// created handle immediately has the class and metadata needed for accurate
+	// capability decisions.
+	info, err := daytonaSandboxInfo(instance)
 	if err != nil {
 		return nil, err
 	}
-	resources, err := mapAllocatedResources(instance)
-	if err != nil {
-		return nil, err
-	}
-	if resources.CPUCores != nil {
-		info.Resources = &resources
-		info.Origins["resources"] = sandbox.ValueOriginProvider
-	}
-	applyDaytonaState(&info, instance)
 	return &sandbox.CreateResult{Sandbox: &info}, nil
 }
 

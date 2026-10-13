@@ -183,3 +183,38 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 		t.Fatalf("timeout not inherited: %v", err)
 	}
 }
+
+func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
+	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+		return &sandbox.SandboxInfo{ID: id}, nil
+	}}
+	client, _ := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	instance, _ := client.Create(context.Background(), nil)
+	if err := instance.Close(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if err := instance.Close(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(instance.Capabilities()) != 0 {
+		t.Fatal("closed handle still advertises capabilities")
+	}
+	err := instance.Start(context.Background(), nil)
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
+		t.Fatalf("closed handle accepted operation: %v", err)
+	}
+
+	client2, _ := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	instance2, _ := client2.Create(context.Background(), nil)
+	if err := client2.Close(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(instance2.Capabilities()) != 0 {
+		t.Fatal("handle whose client is closed still advertises capabilities")
+	}
+	err = instance2.Start(context.Background(), nil)
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
+		t.Fatalf("handle outlived its client: %v", err)
+	}
+}

@@ -18,7 +18,7 @@ modules:
     types:
       - id: backend
         name: Backend
-        doc: is the local operation and SDK cleanup contract.
+        doc: is the provider identity and local SDK cleanup contract. Operations are optional capabilities.
         kind: interface
         visibility: public
         methods:
@@ -26,6 +26,22 @@ modules:
             name: Name
             doc: 'returns the provider identifier, such as "daytona" or "modal".'
             results: [{ type: { builtin: string } }]
+          - id: close
+            name: Close
+            doc: |
+              releases the native SDK. It does not stop or delete the cloud sandbox.
+
+              Example:
+
+                err := backend.Close(ctx)
+            cancellable: true
+            fallible: true
+      - id: sandbox_creator
+        name: SandboxCreator
+        doc: creates sandboxes when the selected provider supports creation.
+        kind: interface
+        visibility: public
+        methods:
           - id: create
             name: Create
             doc: |
@@ -50,16 +66,6 @@ modules:
                 },
               ]
             results: [{ type: { ref: schema.CreateResult, reference: true } }]
-            fallible: true
-          - id: close
-            name: Close
-            doc: |
-              releases the native SDK. It does not stop or delete the cloud sandbox.
-
-              Example:
-
-              	err := backend.Close(ctx)
-            cancellable: true
             fallible: true
       - id: provider
         name: Provider
@@ -214,6 +220,10 @@ modules:
             name: timeout
             doc: is a copy of Config.Timeout. Nil adds no Kit deadline. An explicit zero also adds none.
             type: { ref: duration, optional: true }
+          - id: lifecycle
+            name: lifecycle
+            doc: coordinates operations with idempotent client closure.
+            type: { ref: client_lifecycle, reference: true }
         methods:
           - id: provider_name
             name: ProviderName

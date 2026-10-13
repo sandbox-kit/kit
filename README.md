@@ -175,6 +175,10 @@ Errors expose shared categories and field paths while preserving native causes.
 Response origins distinguish provider-reported metadata from requested settings.
 See [responses and errors](docs/responses-and-errors.md).
 
+Creation is an optional provider capability. `Client.Close` and
+`Sandbox.Close` release local resources only; neither changes a remote sandbox.
+Closing a client invalidates handles created or opened from it.
+
 Memory and disk use MiB. Modal accepts fractional physical CPU requests in
 0.001-core increments from 0.125 cores; Daytona requires whole CPU cores and
 whole GiB allocations expressed as MiB.

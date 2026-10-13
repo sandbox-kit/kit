@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
+
 	"github.com/spf13/cobra"
 )
 
@@ -49,16 +51,19 @@ func generateGo(cmd *cobra.Command, root string, config *settings, runner runner
 		}},
 		{toolingDir, config.goBinary, []string{"build", "-o", kitPlugin, "./cmd/protoc-gen-kit-go"}},
 	}
-	for _, target := range []struct{ directory, module, source string }{
-		{"sdks/go/sandbox", "github.com/sandbox-kit/kit/sdks/go/sandbox", "kit/sandbox/v1/sandbox.proto"},
-		{"sdks/go/sandbox", "github.com/sandbox-kit/kit/sdks/go/sandbox", "kit/sandbox/v1/client.proto"},
-		{"sdks/go/providers/modal", "github.com/sandbox-kit/kit/sdks/go/providers/modal", "kit/providers/modal/v1/provider.proto"},
-		{"sdks/go/providers/daytona", "github.com/sandbox-kit/kit/sdks/go/providers/daytona", "kit/providers/daytona/v1/provider.proto"},
-	} {
+	targets, err := spec.LoadTargets(filepath.Join(root, "specs"))
+	if err != nil {
+		return err
+	}
+	goTargets, ok := targets.Languages["go"]
+	if !ok {
+		return fmt.Errorf("generation target manifest has no Go targets")
+	}
+	for _, target := range goTargets.Targets {
 		steps = append(steps, step{root, config.protoc, []string{
 			"-I", filepath.Join(root, "proto"), "--plugin=protoc-gen-kit-go=" + kitPlugin,
-			"--kit-go_out=" + filepath.Join(root, filepath.FromSlash(target.directory)),
-			"--kit-go_opt=module=" + target.module, target.source,
+			"--kit-go_out=" + filepath.Join(root, filepath.FromSlash(target.Output)),
+			"--kit-go_opt=module=" + target.Module, target.Source,
 		}})
 	}
 	for _, task := range steps {
