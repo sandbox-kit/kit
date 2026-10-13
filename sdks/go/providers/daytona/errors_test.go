@@ -32,6 +32,16 @@ func TestGeneratedNativeErrorMappingsPreserveCause(t *testing.T) {
 			t.Fatalf("unavailable error not classified: %v", err)
 		}
 	}
+	for _, native := range []*sdkerrors.DaytonaError{
+		{Message: "queue timeout", Code: "SANDBOX_QUEUE_TIMEOUT", Source: sdkerrors.SourceSDK},
+		{Message: "unknown transport failure"},
+	} {
+		err := mapProviderError(native, "stop")
+		var detail *sandbox.Error
+		if !errors.As(err, &detail) || detail.Provider != "daytona" || !errors.Is(err, native) {
+			t.Fatalf("native error details were not preserved: %v", err)
+		}
+	}
 	var detail *sandbox.Error
 	err := mapProviderError(context.DeadlineExceeded, "create")
 	if !errors.Is(err, context.DeadlineExceeded) || !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindTimeout {

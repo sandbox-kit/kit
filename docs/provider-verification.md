@@ -9,7 +9,9 @@ bindings. Local tests verify conversions, validation, SDK request serialization,
 and ownership.
 They do not prove live scheduling or account capacity. Lifecycle contract tests
 cover capability dispatch, metadata updates, class checks, attachment semantics,
-and error translation without provisioning cloud resources.
+provider-class capability resolution, and error translation without provisioning
+cloud resources. Provider tests use the pinned SDK's transport/service seams;
+they do not expose those native clients through the public SDK.
 
 ## Reference sources
 

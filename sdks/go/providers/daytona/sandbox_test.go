@@ -98,6 +98,38 @@ func TestGeneratedResourceMappings(t *testing.T) {
 	}
 }
 
+func TestSandboxCapabilitiesFollowResolvedClassAndTerminalState(t *testing.T) {
+	tests := []struct {
+		name      string
+		info      *sandbox.SandboxInfo
+		wantPause bool
+		wantArch  bool
+	}{
+		{name: "container", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}}, wantArch: true},
+		{name: "linux vm", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindLinuxVM}}, wantPause: true},
+		{name: "windows", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{ProviderKind: sandbox.Value("windows")}}, wantPause: true},
+		{name: "gpu", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, ProviderMetadata: map[string]any{"gpu_count": int64(1)}}, wantArch: false},
+		{name: "terminal", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, Terminal: sandbox.Value(true)}, wantArch: false},
+	}
+	backend := &backend{}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			caps := backend.SandboxCapabilities(tc.info)
+			has := func(want sandbox.LifecycleCapability) bool {
+				for _, cap := range caps {
+					if cap == want {
+						return true
+					}
+				}
+				return false
+			}
+			if has(sandbox.LifecycleCapabilityPause) != tc.wantPause || has(sandbox.LifecycleCapabilityArchive) != tc.wantArch {
+				t.Fatalf("capabilities=%v, pause=%v archive=%v", caps, has(sandbox.LifecycleCapabilityPause), has(sandbox.LifecycleCapabilityArchive))
+			}
+		})
+	}
+}
+
 // Operation tests inject SDK doubles behind a private factory,
 // not a public SDK constructor.
 type operationProvider struct{ adapter *backend }
