@@ -1,7 +1,7 @@
 # Code generation
 
 Protobuf and YAML define the shared contracts and portable rules. All generators
-are written in Go under `tooling/`; only Go SDK output is implemented today.
+are written in Go under `tooling/`; Go and TypeScript SDK output are implemented.
 
 ```text
 Protobuf + versioned YAML + native SDK bindings
@@ -16,7 +16,8 @@ Protobuf + versioned YAML + native SDK bindings
 `tooling/internal/model/` compiles descriptor identities, field paths, local client
 methods, validation references, mapping plans, and error classifications before
 emission. It uses protobuf reflection descriptors, not `protogen`, Go naming, or
-runtime SDK types. `internal/go/` translates that model into Go syntax and files.
+runtime SDK types. `internal/go/` and `internal/typescript/` translate that model
+into native syntax and files.
 
 ## Generate and verify
 
@@ -25,15 +26,17 @@ From `tooling/`:
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit generate go
 GOWORK=off go run ./cmd/sandbox-kit test go
+GOWORK=off go run ./cmd/sandbox-kit generate typescript
+GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
 Generation requires `protoc`. The CLI builds temporary generator binaries,
 bootstraps annotation bindings, and generates runtime source from the repository
 root, where the plugin resolves `specs/`. Temporary binaries are cleaned up.
 
-Generated source is committed under `sdks/go/`. Edit its schema, spec, or emitter,
-then regenerate. SDK applications use native types and do not load YAML or import
-protobuf messages.
+Generated source is committed under `sdks/<language>/`. Edit its schema, spec,
+or emitter, then regenerate. SDK applications use native types and do not load
+YAML or import protobuf messages.
 
 ## Inputs
 
@@ -64,7 +67,9 @@ inside the language's bindings.
 constructors, methods, parameter/result shapes, and behavior attachments.
 [`languages/go.yaml`](../specs/languages/go.yaml) lowers references, presence,
 cancellation, multiple results, and failures into Go conventions.
-`internal/go/declaration_gen/` generates declarations from the compiled model.
+[`languages/typescript.yaml`](../specs/languages/typescript.yaml) lowers the same
+semantics into TypeScript conventions, including discriminated unions and thrown
+errors. Each language's `declaration_gen/` emits declarations from the compiled model.
 Template bindings retain portable type shapes and native symbol identities.
 Behavior bodies use explicit symbol references, with no textual identifier renaming.
 The shared compiler checks their declarations against `specs/behaviors.yaml`.
@@ -111,8 +116,8 @@ the generation command's source list.
 These are semantic instructions, not arbitrary expressions or YAML code snippets.
 Constructor and method names come from `specs/api.yaml`. Output suffixes come
 from the language profile. The Go emitter turns these instructions into
-synchronous calls, context deadlines, and error results. Another emitter
-implements the same instructions with its own calling conventions.
+synchronous calls, context deadlines, and error results. The TypeScript emitter
+uses promises, abort signals, timeouts, and thrown errors.
 
 Handle lifecycle operations are registered once in `specs/lifecycle.yaml`.
 The shared compiler validates their capability interface, method, and option
@@ -121,15 +126,17 @@ timeouts, metadata replacement, terminal updates, and capability discovery from
 that registry. A new operation using an existing outcome shape therefore does
 not require adding its name to the Go emitter.
 
-The model currently resolves shared validation references, shared mapping fields,
+The model resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
-Go-specific SDK member checks and generated validator syntax remain in Go emitters.
-Handwritten provider orchestration is still required where noted below.
+Language-specific SDK member checks and generated validator syntax remain in
+the native emitters. Handwritten provider orchestration is still required where
+noted below.
 
 ## Response and error contracts
 
-All Go emitters build error expressions through `internal/go/error_gen`.
-`internal/go/schema` resolves field paths against full protobuf identities.
+Go emitters build error expressions through `internal/go/error_gen`; TypeScript
+emitters use `internal/typescript/error_gen`. Each language's schema package
+resolves field paths against full protobuf identities.
 Generated `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
 field paths used by mappings and errors. Nested mapping sources can declare
 `error_path`; unknown paths fail generation.
@@ -213,10 +220,10 @@ Conditions use `when: {field: mode, equals: 2}` or `not_equals`.
 Selection uses presence for optional values/messages, nonempty collections,
 true booleans, and nonzero/nonempty ordinary scalars.
 
-The Go emitter uses validator tags, custom checks, and struct callbacks.
-Optional fields use `omitnil`; repeated message validation rejects nil elements.
-Enum membership comes from protobuf descriptors, including numeric gaps.
-Validation preserves explicit zero/false and supplies no defaults.
+The Go emitter uses validator tags, custom checks, and struct callbacks. The
+TypeScript emitter generates nested validation functions and enum membership
+checks. Both preserve explicit zero/false and supply no defaults. Go optional
+fields use `omitnil`; repeated Go message validation rejects nil elements.
 
 ## Provider checks
 
@@ -357,9 +364,9 @@ See [tooling](../tooling/README.md), [naming](naming.md), and
 
 Client mappings can declare `environment` resolution rules with a schema field,
 ordered environment-variable names, and a default. The shared compiler checks
-that the target is an optional scalar string. The Go emitter resolves omitted
+that the target is an optional scalar string. Native emitters resolve omitted
 values into a private configuration copy before validation and SDK construction.
-Daytona uses this to validate both native endpoint environment fallbacks.
+Daytona uses this to validate native endpoint environment fallbacks.
 
 The portable `secure_endpoint` format requires remote HTTPS and permits HTTP
 only for local loopback testing; `image_reference` declares supported registry

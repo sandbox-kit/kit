@@ -28,7 +28,7 @@ vocabulary cannot express.
 
 ## Dependency audit
 
-As of 2026-10-13, `npm audit` reports four high-severity findings in the pinned
+As of 2026-10-14, `npm audit` reports four high-severity findings in the pinned
 `@daytona/sdk@0.224.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
 The registry currently reports no fix. The provider does not override those
 transitive packages because doing so could create an unsupported SDK

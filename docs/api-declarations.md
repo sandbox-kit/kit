@@ -59,9 +59,10 @@ serialized fields remain in protobuf.
 
 Object fields are instance variables. Constructors declare `kind: constructor`
 and `constructs: <object-id>`. `effect: pure|io` records execution intent for
-future language emitters; current Go operations execute synchronously.
-`doc` becomes a generated Go comment. `fields_from: provider_state` incorporates
-provider state from the existing provider YAML without duplicating storage rules.
+language emitters; Go operations execute synchronously and TypeScript provider
+operations use promises. `doc` becomes a generated native documentation comment.
+`fields_from: provider_state` incorporates provider state from the existing
+provider YAML without duplicating storage rules.
 
 Type references support builtins, named references, generic arguments, sequences,
 maps, function types, tuples, and unions. A type reference selects exactly one
@@ -193,8 +194,8 @@ an unsupported argument, or dropping failure handling is rejected during compila
 Contract changes also require matching behavior implementations in each backend.
 
 Go-specific requirements remain in the Go backend. For example, deferred error
-context needs named Go results; a future language can implement equivalent
-context enrichment through its own calling conventions.
+context needs named Go results; TypeScript performs equivalent enrichment in
+promise rejection paths.
 
 ## Structured bindings and explicit references
 

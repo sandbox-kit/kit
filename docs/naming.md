@@ -39,6 +39,10 @@ specs/                     Portable API, behavior, and mapping rules
 tooling/internal/model/    Language-neutral compiled generation model
 tooling/internal/go/       Go phase dispatcher and emitters
 examples/go/<provider>/      One folder per provider, one module per example
+sdks/typescript/sandbox/     Public TypeScript SDK package
+sdks/typescript/providers/   Optional TypeScript provider packages
+tooling/internal/typescript/ TypeScript phase dispatcher and emitters
+examples/typescript/<provider>/ One package per example
 ```
 
 Emitter directories use the `*_gen` suffix. Generated files end in `.gen.go`:
@@ -74,8 +78,10 @@ names such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
 Enums use typed constants such as `IsolationKindLinuxVM` and `PolicyModeDisabled`.
 Native SDK members use the names from their pinned bindings.
 
-Future language emitters apply their own conventions to the same contracts.
-Preserve numeric enum values and explicit serialized names: the Go fields
-`Scope` and `Provisioning` serialize as `context` and `creation`.
+The TypeScript emitter uses camelCase fields, discriminated unions for exclusive
+alternatives, interfaces for named object contracts, type aliases for unions,
+and generated files ending in `.gen.ts`. Preserve numeric enum values and
+explicit serialized names in every language: the Go fields `Scope` and
+`Provisioning` serialize as `context` and `creation`.
 
 See [provider architecture](providers.md) and [generation rules](code-generation.md).

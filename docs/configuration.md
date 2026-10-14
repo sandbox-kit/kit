@@ -1,8 +1,9 @@
 # Client configuration
 
-Construct a client with `sandbox.NewClient(sandbox.Config{...})`.
-The optional provider initializes its official SDK from this shared configuration.
-Applications use generated native Go types.
+Construct a Go client with `sandbox.NewClient(sandbox.Config{...})` or a
+TypeScript client with `new Client({...})`. The selected provider initializes
+its official SDK from shared generated configuration types. This guide uses Go
+field spelling; TypeScript exposes the same fields in camelCase.
 
 ## Configuration fields
 
@@ -24,7 +25,8 @@ must match the selected provider; Kit closes and rejects mismatched backends.
 
 ## Provider support
 
-Bindings target Modal Go v0.11.0 and Daytona Go v0.222.0.
+Go bindings target Modal v0.11.0 and Daytona v0.222.0. TypeScript bindings target
+`modal@0.11.0` and `@daytona/sdk@0.224.0`.
 
 | Setting          | Modal                                                      | Daytona                           |
 | ---------------- | ---------------------------------------------------------- | --------------------------------- |
@@ -55,11 +57,12 @@ account permissions and resource availability when it processes requests.
 
 ## Ownership and deadlines
 
-The client owns its initialized SDK. Call `client.Close(ctx)` when finished;
-this releases SDK resources without stopping or deleting sandboxes. Close is
-idempotent, waits for operations already running through that client, and makes
-its handles unusable for later provider operations. `Sandbox.Close(ctx)` closes
-one local handle without closing the client or changing the remote sandbox.
+The client owns its initialized SDK. Call `client.Close(ctx)` in Go or
+`await client.close()` in TypeScript when finished. This releases SDK resources
+without stopping or deleting sandboxes. Close is idempotent and waits for client
+operations already running through that client. Do not use its handles after
+client closure. Closing one sandbox handle does not close the client or change
+the remote sandbox.
 
 Generated state capture copies supplied scope and region values, preserving
 `nil` and explicit values. Later mutations of the original configuration do not

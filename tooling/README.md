@@ -29,12 +29,13 @@ Add `GOBIN`, or `$(go env GOPATH)/bin` when unset, to `PATH`.
 The command discovers the repository from the current directory.
 Use `--repo /absolute/path/to/kit` elsewhere.
 
-| Option        | Purpose                      |
-| ------------- | ---------------------------- |
-| `--repo`      | Explicit repository root     |
-| `--go-binary` | Go executable                |
-| `--protoc`    | Protobuf compiler executable |
-| `--help`      | Commands and usage           |
+| Option         | Purpose                      |
+| -------------- | ---------------------------- |
+| `--repo`       | Explicit repository root     |
+| `--go-binary`  | Go executable                |
+| `--npm-binary` | npm executable               |
+| `--protoc`     | Protobuf compiler executable |
+| `--help`       | Commands and usage           |
 
 ## What commands do
 
@@ -44,15 +45,17 @@ configuration assembly, field mappings, owned copies, common errors, field-path
 constants, and response-origin validation.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
-example module registered by the command. Example tests use dummy credentials and local servers; they
-create no cloud resources. Creation examples test error reporting, validation,
-or request mapping, and lifecycle examples use local provider doubles. Dedicated
-error examples test local rejection and error-kind handling.
+Go example module registered by the command. Example tests use dummy credentials
+and local servers; they create no cloud resources. Creation examples test error
+reporting, validation, or request mapping, and lifecycle examples use local
+provider doubles. Dedicated error examples test local rejection and error-kind
+handling.
 
 `generate typescript` emits shared contracts, the public client, provider
 identities, lifecycle dispatch, and typed Daytona and Modal mappings. `test
-typescript` builds and tests the shared package, both providers, and registered
-TypeScript examples without making provider calls.
+typescript` builds and tests the shared package and both providers, discovers
+every TypeScript example containing a `package.json`, and builds each example
+without making provider calls.
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Generation uses an external temporary directory and cleans up
@@ -76,8 +79,9 @@ remain attached to the specifications for selection by each language emitter.
 
 `specs/api.yaml` declares runtime APIs. `specs/templates.yaml` declares reusable
 signatures and field-path rules for descriptor-driven helpers.
-`specs/behaviors.yaml` defines the signature requirements of implemented behaviors. `specs/languages/go.yaml` controls their
-native representation and output conventions. Templates retain structured type
+`specs/behaviors.yaml` defines the signature requirements of implemented
+behaviors. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
+control native representation and output conventions. Templates retain structured type
 bindings; body emitters resolve explicit symbols instead of renaming text. `specs/generation.yaml` declares
 output phases and ordered client instructions. `specs/lifecycle.yaml` is the
 semantic registry from which handle lifecycle methods and static capability

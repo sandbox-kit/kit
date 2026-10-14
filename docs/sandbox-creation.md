@@ -1,12 +1,13 @@
 # Sandbox creation
 
-`Client.Create(ctx, options)` returns a `sandbox.Sandbox` with `ID()`,
-`ProviderName()`, and copied `Info()` metadata. Creation settings are distinct
+Go's `Client.Create(ctx, options)` and TypeScript's `client.create(options)`
+return a sandbox handle with copied metadata. Creation settings are distinct
 from lifecycle operations on an existing sandbox.
 
 ## Supported creation settings
 
-The integrations target Modal Go v0.11.0 and Daytona Go v0.222.0.
+Go integrations target Modal v0.11.0 and Daytona v0.222.0. TypeScript integrations
+target `modal@0.11.0` and `@daytona/sdk@0.224.0`.
 
 | Setting                | Modal                                                                   | Daytona                                                            |
 | ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -28,9 +29,10 @@ explicit snapshot kinds are not mapped. Supplied unsupported fields and
 
 ## Presence, units, and limits
 
-Omitted fields retain provider defaults. `sandbox.Value(v)` marks an optional
-value as supplied, including zero or false; validation determines whether that
-explicit value can be honored.
+Omitted fields retain provider defaults. In Go, `sandbox.Value(v)` marks an
+optional value as supplied, including zero or false. TypeScript uses property
+presence and `undefined`. Validation determines whether an explicit value can be
+honored.
 
 | Resource         | Modal                                          | Daytona                             |
 | ---------------- | ---------------------------------------------- | ----------------------------------- |
@@ -101,8 +103,9 @@ Kit uses generated typed copies for requests and result metadata. Errors expose
 shared details while preserving native causes. Cancellation is forwarded to the
 SDK. Kit performs no automatic retries or cloud cleanup.
 
-Closing the client releases SDK resources without changing cloud sandboxes and
-invalidates handles owned by that client. Closing a handle is also local-only.
+Closing the client releases SDK resources without changing cloud sandboxes.
+Do not use handles after their owning client closes. Closing a handle is also
+local-only.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
 Execution, GPU requests, resizing, storage, harnesses, browsers, computer use,
 and macOS/Windows creation support remain future work.

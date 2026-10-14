@@ -18,10 +18,12 @@ return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Value(time.Minut
 
 An operation-specific timeout overrides `Config.Timeout`. Nil inherits the
 client default, and explicit zero adds no Kit deadline. Closing the client does
-not change the cloud sandbox and invalidates handles that depend on its SDK.
+not change the cloud sandbox. Do not use handles that depend on its SDK after
+client closure.
 `Sandbox.Close` closes only the local handle; it never changes the remote
-sandbox. Client and handle closure are idempotent and wait for operations already
-running through that object.
+sandbox. Client and handle closure are idempotent. Go handle closure waits for
+operations already running through that handle. TypeScript callers must await a
+handle operation before closing that handle or its owning client.
 
 ## Operation semantics
 
@@ -50,10 +52,11 @@ the provider's exact value. After successful `Terminate` or `Delete`, Kit marks
 the handle terminal, exposes no further lifecycle capabilities, and rejects
 subsequent lifecycle calls with `ErrorKindFailedPrecondition`.
 
-Lifecycle transitions on one handle are serialized. This does not serialize a
-different handle or process referring to the same remote sandbox. A caller
-waiting behind an in-progress transition can still cancel its context or reach
-its deadline.
+The Go handle serializes lifecycle transitions on one handle. This does not
+serialize a different handle or process referring to the same remote sandbox. A
+Go caller waiting behind an in-progress transition can still cancel its context
+or reach its deadline. TypeScript callers must serialize concurrent lifecycle
+calls themselves when operation ordering matters.
 
 ## Provider support
 
