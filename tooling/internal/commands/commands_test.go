@@ -45,6 +45,12 @@ languages:
       - {source: client.proto, output: sdks/go/sandbox, module: example.com/sandbox}
       - {source: modal.proto, output: sdks/go/providers/modal, module: example.com/modal, provider: modal}
       - {source: daytona.proto, output: sdks/go/providers/daytona, module: example.com/daytona, provider: daytona}
+  typescript:
+    targets:
+      - {source: shared.proto, output: sdks/typescript/sandbox/src, module: '@example/sandbox'}
+      - {source: client.proto, output: sdks/typescript/sandbox/src, module: '@example/sandbox'}
+      - {source: modal.proto, output: sdks/typescript/providers/modal/src, module: '@example/modal', provider: modal}
+      - {source: daytona.proto, output: sdks/typescript/providers/daytona/src, module: '@example/daytona', provider: daytona}
 `
 	path := filepath.Join(root, "specs", "targets.yaml")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -54,6 +60,29 @@ languages:
 		t.Fatal(err)
 	}
 	return root
+}
+
+func TestTypeScriptGenerationUsesDeclaredTargets(t *testing.T) {
+	repo := repositoryFixture(t)
+	runner := &recordingRunner{}
+	command := newRootCommand(runner)
+	command.SetOut(io.Discard)
+	command.SetErr(io.Discard)
+	command.SetArgs([]string{"generate", "typescript", "--repo", repo, "--go-binary", "custom-go", "--protoc", "custom-protoc"})
+	if err := command.ExecuteContext(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(runner.steps) != 5 {
+		t.Fatalf("expected plugin build and four SDK generations, got %d", len(runner.steps))
+	}
+	if runner.steps[0].name != "custom-go" || runner.steps[1].name != "custom-protoc" {
+		t.Fatal("TypeScript generation did not use configured executables")
+	}
+	for _, task := range runner.steps[1:] {
+		if !strings.HasPrefix(task.args[2], "--plugin=protoc-gen-kit-typescript=") {
+			t.Fatalf("missing TypeScript plugin binding: %#v", task.args)
+		}
+	}
 }
 
 func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
@@ -111,6 +140,27 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 		if runner.steps[i].dir != filepath.Join(repo, filepath.FromSlash(module)) || runner.steps[i].args[0] != "test" {
 			t.Fatalf("incorrect verification step for %s", module)
 		}
+	}
+}
+
+func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
+	repo := repositoryFixture(t)
+	runner := &recordingRunner{}
+	command := newRootCommand(runner)
+	command.SetArgs([]string{"test", "typescript", "--repo", repo, "--npm-binary", "custom-npm"})
+	if err := command.ExecuteContext(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(runner.steps) != 8 {
+		t.Fatalf("unexpected TypeScript verification steps: %#v", runner.steps)
+	}
+	for _, task := range runner.steps {
+		if task.name != "custom-npm" {
+			t.Fatalf("TypeScript verification did not use configured npm: %#v", runner.steps)
+		}
+	}
+	if strings.Join(runner.steps[0].args, " ") != "run build" || strings.Join(runner.steps[1].args, " ") != "test" || strings.Join(runner.steps[7].args, " ") != "run build" {
+		t.Fatalf("TypeScript verification order is incorrect: %#v", runner.steps)
 	}
 }
 

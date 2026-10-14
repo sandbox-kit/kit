@@ -9,6 +9,11 @@ errors:
       import: github.com/daytona/clients/sdk-go/pkg/errors
       name: DaytonaError
       fields: {status: StatusCode, code: Code, source: Source}
+  typescript:
+    target:
+      import: '@daytona/sdk'
+      name: DaytonaError
+      fields: {status: statusCode, code: code, source: source}
 checks:
   - {path: runtime.language, allowed: [python, javascript, typescript]}
   - {path: network.outbound_proxy_url, format: http_url}
@@ -25,6 +30,7 @@ client:
     name: DaytonaConfig
     bindings:
       go: {import: github.com/daytona/clients/sdk-go/pkg/types, name: DaytonaConfig}
+      typescript: {import: '@daytona/sdk', name: DaytonaConfig}
   environment:
     - {field: endpoint, variables: [DAYTONA_API_URL, DAYTONA_SERVER_URL], default: "https://app.daytona.io/api"}
   settings: mapClientSettings
@@ -37,6 +43,9 @@ runtime:
   go:
     constructor: {function: NewClientWithConfig}
     cleanup: {method: Close, accepts_context: true, returns_error: true}
+  typescript:
+    constructor: {function: Daytona}
+    cleanup: {method: asyncDispose, accepts_context: false, returns_error: true}
 groups:
   - name: mapLifetimePolicies
     direction: request
@@ -48,6 +57,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: SandboxBaseParams
           fields: {stop: AutoStopInterval, pause: AutoPauseInterval, archive: AutoArchiveInterval, delete: AutoDeleteInterval}
+        typescript:
+          import: '@daytona/sdk'
+          name: CreateSandboxBaseParams
+          fields: {stop: autoStopInterval, pause: autoPauseInterval, archive: autoArchiveInterval, delete: autoDeleteInterval}
     fields:
       - {from: idle_stop, to: stop, transform: policy_minutes, policy: {disabled: zero, immediate: false}}
       - {from: idle_pause, to: pause, transform: policy_minutes, policy: {disabled: zero, immediate: false}}
@@ -63,6 +76,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: SandboxBaseParams
           fields: {name: Name, environment: EnvVars, labels: Labels}
+        typescript:
+          import: '@daytona/sdk'
+          name: CreateSandboxBaseParams
+          fields: {name: name, environment: envVars, labels: labels}
     fields:
       - {from: name, to: name}
       - {from: environment, to: environment}
@@ -77,6 +94,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: Resources
           fields: {cpu: CPU, memory: Memory, disk: Disk}
+        typescript:
+          import: '@daytona/sdk'
+          name: Resources
+          fields: {cpu: cpu, memory: memory, disk: disk}
     fields:
       - {from: cpu_cores, to: cpu, transform: whole, maximum: 2147483647, cast: integer}
       - {from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer}
@@ -91,6 +112,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/daytona
           name: Sandbox
           fields: {id: ID, name: Name, state: State, region: Target, labels: Labels}
+        typescript:
+          import: '@daytona/sdk'
+          name: Sandbox
+          fields: {id: id, name: name, state: state, region: target, labels: labels}
     target: {name: SandboxInfo}
     fields:
       - {from: id, to: id}
@@ -111,6 +136,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/daytona
           name: Sandbox
           fields: {cpu: Cpu, memory: Memory, disk: Disk}
+        typescript:
+          import: '@daytona/sdk'
+          name: Sandbox
+          fields: {cpu: cpu, memory: memory, disk: disk}
     target: {name: Resources}
     fields:
       - {from: cpu, to: cpu_cores, cast: number}
@@ -126,6 +155,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: DaytonaConfig
           fields: {endpoint: APIUrl, region: Target}
+        typescript:
+          import: '@daytona/sdk'
+          name: DaytonaConfig
+          fields: {endpoint: apiUrl, region: target}
     fields:
       - {from: endpoint, to: endpoint}
       - {from: region, to: region}
@@ -139,6 +172,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: DaytonaConfig
           fields: {key: APIKey}
+        typescript:
+          import: '@daytona/sdk'
+          name: DaytonaConfig
+          fields: {key: apiKey}
     fields:
       - {from: key, to: key}
   - name: mapBearerAuth
@@ -151,6 +188,10 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: DaytonaConfig
           fields: {token: JWTToken}
+        typescript:
+          import: '@daytona/sdk'
+          name: DaytonaConfig
+          fields: {token: jwtToken}
     fields:
       - {from: token, to: token}
   - name: mapScope
@@ -163,5 +204,9 @@ groups:
           import: github.com/daytona/clients/sdk-go/pkg/types
           name: DaytonaConfig
           fields: {organization_id: OrganizationID}
+        typescript:
+          import: '@daytona/sdk'
+          name: DaytonaConfig
+          fields: {organization_id: organizationId}
     fields:
       - {from: organization_id, to: organization_id}

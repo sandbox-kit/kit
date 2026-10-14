@@ -43,10 +43,20 @@ type Constraint struct {
 	When   *Condition `yaml:"when"`
 }
 type Binding struct {
-	Import  string             `yaml:"import"`
-	Name    string             `yaml:"name"`
-	Fields  map[string]string  `yaml:"fields"`
-	Objects map[string]Binding `yaml:"objects"`
+	Import          string                    `yaml:"import"`
+	Name            string                    `yaml:"name"`
+	Fields          map[string]string         `yaml:"fields"`
+	Objects         map[string]Binding        `yaml:"objects"`
+	Representations map[string]Representation `yaml:"representations"`
+}
+
+// Representation overrides a portable conversion when a native language SDK
+// represents the same semantic field with different units or numeric shapes.
+type Representation struct {
+	Transform string  `yaml:"transform"`
+	Factor    uint64  `yaml:"factor"`
+	Maximum   *uint64 `yaml:"maximum"`
+	Cast      string  `yaml:"cast"`
 }
 type Type struct {
 	Name     string             `yaml:"name"`

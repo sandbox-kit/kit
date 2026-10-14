@@ -21,6 +21,16 @@ errors:
       - {import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error}
       - {import: github.com/modal-labs/modal-client/go, name: SandboxTimeoutError, rule: sandbox_timeout_error}
       - {import: github.com/modal-labs/modal-client/go, name: ClientClosedError, rule: client_closed_error}
+  typescript:
+    types:
+      - {import: modal, name: InvalidError, rule: invalid_error}
+      - {import: modal, name: NotFoundError, rule: not_found_error}
+      - {import: modal, name: AlreadyExistsError, rule: already_exists_error}
+      - {import: modal, name: ConflictError, rule: conflict_error}
+      - {import: modal, name: ResourceExhaustedError, rule: resource_exhausted_error}
+      - {import: modal, name: TimeoutError, rule: timeout_error}
+      - {import: modal, name: SandboxTimeoutError, rule: sandbox_timeout_error}
+      - {import: modal, name: ClientClosedError, rule: client_closed_error}
 checks:
   - {path: resources.cpu_cores, minimum: 0.125}
   - {path: resources.memory_mib, minimum: 128}
@@ -40,6 +50,9 @@ client:
         fields: {oauth: OAuthCredentials}
         objects:
           oauth: {import: github.com/modal-labs/modal-client/go, name: OAuthCredentialsParams}
+      typescript:
+        import: modal
+        name: ModalClientParams
   managed: [provider, timeout]
   retained: [region]
   rejected: {endpoint: "Endpoint cannot be configured through this SDK's public client constructor"}
@@ -54,6 +67,9 @@ runtime:
       - {name: scope, type: Scope, optional: true, capture: scope, doc: "is the captured app and environment. Later changes to Config do not affect it."}
       - {name: region, type: string, optional: true, capture: region, doc: "is the captured default region preference. Nil means the caller omitted it."}
     cleanup: {method: Close, accepts_context: false, returns_error: false}
+  typescript:
+    constructor: {function: ModalClient}
+    cleanup: {method: close, accepts_context: false, returns_error: false}
 groups:
   - name: mapSandboxIdentity
     direction: response
@@ -65,6 +81,10 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: Sandbox
           fields: {id: SandboxID}
+        typescript:
+          import: modal
+          name: Sandbox
+          fields: {id: sandboxId}
     target: {name: SandboxInfo}
     fields:
       - {from: id, to: id}
@@ -78,6 +98,10 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: ClientParams
           fields: {environment: Environment}
+        typescript:
+          import: modal
+          name: ModalClientParams
+          fields: {environment: environment}
     fields:
       - {from: environment, to: environment}
   - name: mapCommonCreateFields
@@ -90,6 +114,10 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: SandboxCreateParams
           fields: {name: Name, environment: Env, labels: Tags}
+        typescript:
+          import: modal
+          name: SandboxCreateParams
+          fields: {name: name, environment: env, labels: tags}
     fields:
       - {from: name, to: name}
       - {from: environment, to: environment}
@@ -104,6 +132,13 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: SandboxCreateParams
           fields: {cpu: CPU, cpu_limit: CPULimit, memory: MemoryMiB, memory_limit: MemoryLimitMiB}
+        typescript:
+          import: modal
+          name: SandboxCreateParams
+          fields: {cpu: cpu, cpu_limit: cpuLimit, memory: memoryMiB, memory_limit: memoryLimitMiB}
+          representations:
+            cpu: {}
+            cpu_limit: {}
     fields:
       - {from: cpu_cores, to: cpu, transform: scaled_integer, factor: 1000, maximum: 4294967295}
       - {from: cpu_limit_cores, to: cpu_limit, transform: scaled_integer, factor: 1000, maximum: 4294967295}
@@ -119,6 +154,12 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: SandboxCreateParams
           fields: {timeout: Timeout}
+        typescript:
+          import: modal
+          name: SandboxCreateParams
+          fields: {timeout: timeoutMs}
+          representations:
+            timeout: {maximum: 86400000}
     fields:
       - {from: maximum_lifetime, to: timeout, transform: duration_seconds, maximum: 86400}
   - name: mapIdleDuration
@@ -132,6 +173,12 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: SandboxCreateParams
           fields: {timeout: IdleTimeout}
+        typescript:
+          import: modal
+          name: SandboxCreateParams
+          fields: {timeout: idleTimeoutMs}
+          representations:
+            timeout: {maximum: 4294967295000}
     fields:
       - {from: after, to: timeout, transform: duration_seconds, maximum: 4294967295}
   - name: mapTokenPairCredentials
@@ -144,6 +191,10 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: ClientParams
           fields: {id: TokenID, secret: TokenSecret}
+        typescript:
+          import: modal
+          name: ModalClientParams
+          fields: {id: tokenId, secret: tokenSecret}
     fields:
       - {from: id, to: id}
       - {from: secret, to: secret}
@@ -157,6 +208,10 @@ groups:
           import: github.com/modal-labs/modal-client/go
           name: OAuthCredentialsParams
           fields: {refresh_token: RefreshToken, client_id: ClientID, client_secret: ClientSecret, jwt_key: JWTKey}
+        typescript:
+          import: modal
+          name: ModalClientParams
+          fields: {refresh_token: oauthRefreshToken, client_id: oauthClientId, client_secret: oauthClientSecret, jwt_key: oauthJwtKey}
     fields:
       - {from: refresh_token, to: refresh_token}
       - {from: client_id, to: client_id}

@@ -93,8 +93,8 @@ through `results`, not by treating errors as another success alternative.
 interface forms, reference/presence rules, error results, multiple-return syntax,
 cancellation parameters, builtins, external symbols, and output suffixes.
 The shared loader checks safe output suffixes without imposing Go extensions.
-Go validates its required output roles and `.gen.go` suffixes in the backend.
-A `.gen.ts` profile can be loaded without implementing a TypeScript emitter.
+Language profiles select the generated roles and their native suffixes
+(`.gen.go` or `.gen.ts`); backends validate the roles they consume.
 
 Output remains inside the directories declared by the Cobra generation command
 and protobuf package bindings. Profiles cannot redirect output through suffixes.
@@ -104,13 +104,13 @@ type. The emitter rejects those type shapes explicitly; use a named result objec
 or a tagged schema alternative. Go also rejects independent generic method
 parameters; methods can use their generic receiver's parameters.
 
-For a future TypeScript emitter, optional parameters, `undefined`, `null`, unions,
-callbacks, and `Promise` results need their own lowering rules. TypeScript unions
-are alternatives in a single value, while tuple or named-object results can carry
-several values. A fallible asynchronous initializer needs a factory convention.
-These distinctions follow the official [function reference](https://www.typescriptlang.org/docs/handbook/2/functions.html)
+The TypeScript emitter preserves optional presence with `?`/`undefined`, lowers
+protobuf alternatives to discriminated unions, and uses `Promise` for provider
+operations. Operational failures throw `SandboxError`; result objects carry
+multiple successful values instead of Go-style multiple returns. These choices
+follow the official [function reference](https://www.typescriptlang.org/docs/handbook/2/functions.html)
 and [type reference](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html).
-Only Go emission is implemented and verified today.
+Both Go and TypeScript emission are implemented and verified.
 
 ## Declared surface
 

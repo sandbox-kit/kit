@@ -27,6 +27,17 @@ var goTestModules = []string{
 	"examples/go/daytona/close-daytona-handle", "examples/go/modal/close-modal-handle",
 }
 
+var typescriptTestModules = []struct {
+	path string
+	test bool
+}{
+	{"sdks/typescript/sandbox", true},
+	{"sdks/typescript/providers/daytona", true},
+	{"sdks/typescript/providers/modal", true},
+	{"examples/typescript/daytona/create-daytona-sandbox", false},
+	{"examples/typescript/modal/create-modal-sandbox", false},
+}
+
 func newTestCommand(config *settings, runner runner) *cobra.Command {
 	command := &cobra.Command{Use: "test", Short: "Verify SDK modules and examples"}
 	command.AddCommand(&cobra.Command{
@@ -41,6 +52,27 @@ func newTestCommand(config *settings, runner runner) *cobra.Command {
 					filepath.Join(root, filepath.FromSlash(module)), config.goBinary, []string{"test", "./..."},
 				}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
 					return err
+				}
+			}
+			return nil
+		},
+	})
+	command.AddCommand(&cobra.Command{
+		Use: "typescript", Short: "Build and test TypeScript SDK modules", Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			root, err := resolveRoot(config.repoRoot)
+			if err != nil {
+				return err
+			}
+			for _, module := range typescriptTestModules {
+				dir := filepath.Join(root, filepath.FromSlash(module.path))
+				if err := runner.run(cmd.Context(), step{dir, config.npmBinary, []string{"run", "build"}}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
+					return err
+				}
+				if module.test {
+					if err := runner.run(cmd.Context(), step{dir, config.npmBinary, []string{"test"}}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

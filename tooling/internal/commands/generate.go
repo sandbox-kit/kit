@@ -24,7 +24,54 @@ func newGenerateCommand(config *settings, runner runner) *cobra.Command {
 			return generateGo(cmd, root, config, runner)
 		},
 	})
+	command.AddCommand(&cobra.Command{
+		Use: "typescript", Short: "Generate TypeScript SDKs from protobuf and YAML declarations",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			root, err := resolveRoot(config.repoRoot)
+			if err != nil {
+				return err
+			}
+			return generateTypeScript(cmd, root, config, runner)
+		},
+	})
 	return command
+}
+
+func generateTypeScript(cmd *cobra.Command, root string, config *settings, runner runner) (result error) {
+	toolsDir, err := os.MkdirTemp("", "sandbox-kit-typescript-tools-")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := os.RemoveAll(toolsDir); err != nil {
+			result = errors.Join(result, fmt.Errorf("clean temporary generator tools: %w", err))
+		}
+	}()
+
+	plugin := filepath.Join(toolsDir, "protoc-gen-kit-typescript")
+	steps := []step{{filepath.Join(root, "tooling"), config.goBinary, []string{"build", "-o", plugin, "./cmd/protoc-gen-kit-typescript"}}}
+	targets, err := spec.LoadTargets(filepath.Join(root, "specs"))
+	if err != nil {
+		return err
+	}
+	group, ok := targets.Languages["typescript"]
+	if !ok {
+		return fmt.Errorf("generation target manifest has no TypeScript targets")
+	}
+	for _, target := range group.Targets {
+		steps = append(steps, step{root, config.protoc, []string{
+			"-I", filepath.Join(root, "proto"), "--plugin=protoc-gen-kit-typescript=" + plugin,
+			"--kit-typescript_out=" + filepath.Join(root, filepath.FromSlash(target.Output)), target.Source,
+		}})
+	}
+	for _, task := range steps {
+		if err := runner.run(cmd.Context(), task, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
+			return err
+		}
+	}
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Generated TypeScript client and provider identities.")
+	return err
 }
 
 func generateGo(cmd *cobra.Command, root string, config *settings, runner runner) (result error) {

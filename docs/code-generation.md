@@ -334,18 +334,20 @@ generation until copying support is added.
 6. Run the CLI verification command.
 
 SDK orchestration that the vocabulary cannot express stays in handwritten
-`sandbox.go`: lookup sequences, source selection, readiness, and remaining
-provider semantics. Another language needs its own emitter and typed integration
-code for these operations; bindings alone do not produce a complete integration.
+provider integration files (`sandbox.go` in Go and the provider-named `.ts` plus
+`mappings.ts` files in TypeScript): lookup sequences, source selection,
+readiness, and remaining provider semantics. Bindings alone do not produce a
+complete integration. Generated TypeScript `provider.mappings.gen.ts` files
+contain only compiled YAML mapping groups; they are not embedded source
+templates.
 
-Lifecycle option and result types are generated from protobuf. The Go lifecycle
-emitter generates handle methods, typed dispatch, timeout selection, metadata
-replacement, terminal updates, and static capability discovery from
-`specs/lifecycle.yaml`. Handle storage, operation/close coordination, and
-provider-specific lifecycle call sequences remain handwritten. Optional typed
-capability interfaces prevent a provider from advertising operations it cannot
-implement; Daytona resolves additional class-dependent capabilities from current
-metadata.
+Lifecycle option and result types are generated from protobuf. The Go and
+TypeScript lifecycle emitters generate handle methods and typed provider dispatch
+from `specs/lifecycle.yaml`; the Go emitter also generates static capability
+discovery. Handle storage, operation/close coordination, and provider-specific
+lifecycle call sequences remain native runtime code. Optional capabilities
+prevent a provider from advertising operations it cannot implement; Daytona
+resolves additional class-dependent capabilities from current metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).
