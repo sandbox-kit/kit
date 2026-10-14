@@ -35,7 +35,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, provider model.Provi
 	g.P()
 
 	for _, group := range provider.Groups {
-		if err := emitGroup(g, provider.Rules.Provider, group); err != nil {
+		if err := emitGroup(g, provider, group); err != nil {
 			return err
 		}
 	}
@@ -43,7 +43,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, provider model.Provi
 	return nil
 }
 
-func emitGroup(g *protogen.GeneratedFile, provider string, group model.Group) error {
+func emitGroup(g *protogen.GeneratedFile, provider model.Provider, group model.Group) error {
 	rule := group.Rule
 	request := rule.Direction == "request"
 	if !request && rule.Direction != "response" {
@@ -55,7 +55,11 @@ func emitGroup(g *protogen.GeneratedFile, provider string, group model.Group) er
 	if !request {
 		result = "Partial<" + target + ">"
 	}
-	g.P("export function ", rule.Name, "(source: ", source, " | undefined): ", result, " {")
+	operation := "create"
+	if provider.Rules.Client != nil && rule.Target.Name == provider.Rules.Client.Target.Name {
+		operation = "initialize"
+	}
+	g.P("export function ", rule.Name, "(source: ", source, " | undefined, operation: string = ", strconv.Quote(operation), "): ", result, " {")
 	g.P("  const target: Mutable<", result, "> = {};")
 	g.P("  if (source === undefined) return target;")
 	if len(rule.When) > 0 {
@@ -127,7 +131,7 @@ func emitGroup(g *protogen.GeneratedFile, provider string, group model.Group) er
 			if !request {
 				kind = "ErrorKind.InvalidResponse"
 			}
-			g.P(indent, "if (", validation, ") mappingError(", kind, ", ", strconv.Quote(resolved.ErrorPath), ", ", strconv.Quote(mapping.From+" cannot be represented"), ");")
+			g.P(indent, "if (", validation, ") mappingError(", kind, ", ", strconv.Quote(resolved.ErrorPath), ", ", strconv.Quote(mapping.From+" cannot be represented"), ", operation);")
 		}
 		if mapping.Transform == "" && mapping.Cast == "" {
 			if sharedField.IsMap() {
@@ -150,7 +154,7 @@ func emitGroup(g *protogen.GeneratedFile, provider string, group model.Group) er
 		g.P("  }")
 	}
 	if !request && rule.Target.Name == "SandboxInfo" {
-		g.P("  target.provider = ", strconv.Quote(provider), ";")
+		g.P("  target.provider = ", strconv.Quote(provider.Rules.Provider), ";")
 	}
 	g.P("  return target;")
 	g.P("}")
@@ -164,25 +168,26 @@ func emitPolicy(g *protogen.GeneratedFile, field, from, to string, mapping spec.
 	}
 	g.P("  if (source.", from, " !== undefined) {")
 	g.P("    const policy = source.", from, ";")
-	g.P("    if (policy.mode === PolicyMode.Disabled) {")
+	g.P("    const mode = policy.mode ?? PolicyMode.Default;")
+	g.P("    if (mode === PolicyMode.Disabled) {")
 	if mapping.Policy.Disabled == "zero" {
 		g.P("      target.", to, " = 0;")
 	} else {
-		g.P("      mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"explicit disabling is not representable\");")
+		g.P("      mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"explicit disabling is not representable\", operation);")
 	}
-	g.P("    } else if (policy.mode === PolicyMode.After) {")
-	g.P("      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"duration is required\");")
+	g.P("    } else if (mode === PolicyMode.After) {")
+	g.P("      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"duration is required\", operation);")
 	if !mapping.Policy.Immediate {
-		g.P("      if (policy.after === 0) mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"immediate action is not representable\");")
+		g.P("      if (policy.after === 0) mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"immediate action is not representable\", operation);")
 	}
-	g.P("      if (!Number.isFinite(policy.after) || policy.after < 0 || policy.after % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay cannot be represented in whole minutes\");")
+	g.P("      if (!Number.isFinite(policy.after) || policy.after < 0 || policy.after % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay cannot be represented in whole minutes\", operation);")
 	g.P("      const minutes = policy.after / 60_000;")
 	if mapping.Maximum != nil {
-		g.P("      if (minutes > ", *mapping.Maximum, ") mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay exceeds documented maximum\");")
+		g.P("      if (minutes > ", *mapping.Maximum, ") mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay exceeds documented maximum\", operation);")
 	}
 	g.P("      target.", to, " = minutes;")
-	g.P("    } else if (policy.mode !== PolicyMode.Default) {")
-	g.P("      mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"unknown policy mode\");")
+	g.P("    } else if (mode !== PolicyMode.Default) {")
+	g.P("      mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"unknown policy mode\", operation);")
 	g.P("    }")
 	g.P("  }")
 	return nil

@@ -254,7 +254,7 @@ export interface ImageSource {
 
 export interface SnapshotSource {
   readonly reference: string;
-  readonly kind: SnapshotKind;
+  readonly kind?: SnapshotKind;
   readonly providerKind?: string;
 }
 
@@ -272,7 +272,7 @@ export interface RuntimeConfig {
 }
 
 export interface IsolationConfig {
-  readonly kind: IsolationKind;
+  readonly kind?: IsolationKind;
   readonly providerKind?: string;
   readonly nestedVirtualization?: boolean;
 }
@@ -296,7 +296,7 @@ export interface StringAllowlist {
 }
 
 export interface NetworkConfig {
-  readonly egress: EgressMode;
+  readonly egress?: EgressMode;
   readonly outboundCidrs?: StringAllowlist;
   readonly outboundDomains?: StringAllowlist;
   readonly inboundCidrs?: StringAllowlist;
@@ -310,7 +310,7 @@ export interface NetworkConfig {
 
 export interface PortBinding {
   readonly port: number;
-  readonly transport: PortTransport;
+  readonly transport?: PortTransport;
 }
 
 export interface SecurityConfig {
@@ -322,7 +322,7 @@ export interface SecurityConfig {
 export interface SecretReference {
   readonly reference: string;
   readonly environmentVariable?: string;
-  readonly injection: SecretInjection;
+  readonly injection?: SecretInjection;
 }
 
 export interface LifetimePolicy {
@@ -336,14 +336,14 @@ export interface LifetimePolicy {
 }
 
 export interface AutomaticAction {
-  readonly mode: PolicyMode;
+  readonly mode?: PolicyMode;
   readonly after?: DurationMs;
 }
 
 export interface ProvisioningOptions {
   readonly timeout?: DurationMs;
   readonly queueTimeout?: DurationMs;
-  readonly waitFor: WaitCondition;
+  readonly waitFor?: WaitCondition;
 }
 
 export type ReadinessProbe =

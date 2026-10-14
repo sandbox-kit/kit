@@ -49,7 +49,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			// Client declarations are emitted with the client runtime because both
 			// share client.proto; shared protobuf declarations are emitted here.
 			if file.Desc.Path() == "kit/sandbox/v1/sandbox.proto" {
-				phaseErr = typesgen.Generate(plugin, file, profile)
+				phaseErr = typesgen.Generate(plugin, file, program, profile)
 			}
 		case "client":
 			phaseErr = clientgen.Generate(plugin, file, program, profile)
@@ -64,7 +64,19 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			default:
 				phaseErr = fmt.Errorf("unsupported TypeScript provider %s", providerName)
 			}
-		case "error_runtime", "copies", "diagnostic_paths", "field_paths", "validation", "lifecycle", "configuration", "checks", "errors":
+		case "errors":
+			if providerName != "" {
+				phaseErr = providergen.GenerateErrors(plugin, file, program.Providers[providerName])
+			}
+		case "checks":
+			if providerName != "" {
+				phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
+			}
+		case "configuration":
+			if providerName != "" {
+				phaseErr = providergen.GenerateConfig(plugin, file, program.Providers[providerName].Rules, program.Schema)
+			}
+		case "error_runtime", "copies", "diagnostic_paths", "field_paths", "validation", "lifecycle":
 			// These concerns currently share an output unit with types, client, or
 			// mappings. Keeping them in phase dispatch makes omissions explicit and
 			// allows each unit to be split without changing the specification.

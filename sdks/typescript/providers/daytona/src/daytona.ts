@@ -22,10 +22,10 @@ import {
 import {
   mapClientConfig,
   mapCreateRequest,
-  mapDaytonaError,
   mapSandboxInfo,
 } from "./mappings.js";
-import { providerName } from "./provider.gen.js";
+import { mapDaytonaError } from "./provider.errors.gen.js";
+import { BackendBase, ProviderBase } from "./provider.gen.js";
 
 interface NativeDaytona {
   create(
@@ -39,10 +39,8 @@ interface NativeDaytona {
 type NativeFactory = (config: DaytonaConfig) => NativeDaytona;
 
 /** @internal Exported from this module for boundary testing, but not from the package root. */
-export class DaytonaProvider implements Provider {
-  readonly name = providerName;
-
-  constructor(private readonly nativeFactory: NativeFactory = (config) => new Daytona(config)) {}
+export class DaytonaProvider extends ProviderBase {
+  constructor(private readonly nativeFactory: NativeFactory = (config) => new Daytona(config)) { super(); }
 
   initialize(config: Config): Backend {
     try {
@@ -53,10 +51,8 @@ export class DaytonaProvider implements Provider {
   }
 }
 
-class DaytonaBackend implements Backend {
-  readonly name = providerName;
-
-  constructor(private readonly native: NativeDaytona) {}
+class DaytonaBackend extends BackendBase implements Backend {
+  constructor(private readonly native: NativeDaytona) { super(); }
 
   async create(request: CreateOptions, options: OperationOptions): Promise<CreateResult> {
     try {
@@ -64,7 +60,7 @@ class DaytonaBackend implements Backend {
       const params = mapCreateRequest(request);
       const timeout = options.timeoutMs === undefined ? undefined : options.timeoutMs / 1_000;
       const sandbox = await this.native.create(params, timeout === undefined ? undefined : { timeout });
-      return { sandbox: mapSandboxInfo(sandbox) };
+      return { sandbox: mapSandboxInfo(sandbox, "create") };
     } catch (error) {
       throw mapDaytonaError(error, "create");
     }
@@ -88,7 +84,7 @@ class DaytonaBackend implements Backend {
   async closeSandbox(_id: string): Promise<void> {}
 
   private async withSandbox(id: string, operation: string, action: (sandbox: DaytonaSandbox) => Promise<void>): Promise<SandboxInfo> {
-    try { const sandbox = await this.native.get(id); await action(sandbox); return mapSandboxInfo(sandbox); }
+    try { const sandbox = await this.native.get(id); await action(sandbox); return mapSandboxInfo(sandbox, operation); }
     catch (error) { throw mapDaytonaError(error, operation); }
   }
 

@@ -112,6 +112,20 @@ follow the official [function reference](https://www.typescriptlang.org/docs/han
 and [type reference](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html).
 Both Go and TypeScript emission are implemented and verified.
 
+### TypeScript interfaces and type aliases
+
+The TypeScript emitter uses `interface` for named object shapes and behavioral
+contracts. This includes ordinary protobuf messages, provider/backend contracts,
+and option objects. Interfaces provide clear extension conflicts, stable display
+in diagnostics, and efficient relationship caching. Composition should use
+`interface extends` when the declared shape is an object contract.
+
+The emitter uses `type` when the representation is not one extensible object:
+protobuf oneofs and other unions, tuples, primitive aliases, callback aliases,
+and mapped or conditional helpers. Declaration merging is therefore available
+only for contracts intentionally represented as interfaces; it is not used as a
+substitute for changing protobuf or YAML contracts.
+
 ## Declared surface
 
 Client and provider objects, interfaces, constructors, methods, fields,

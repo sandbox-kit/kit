@@ -33,7 +33,7 @@ func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) erro
 		switch operation.Outcome {
 		case "update_handle":
 			if operation.Options == "" {
-				g.P("  async ", operation.ID, "(options: OperationOptions = {}): Promise<SandboxInfo> { this.#ensureOpen(\"", operation.ID, "\"); const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); try { const info = await method.call(this.#backend, this.id, options); this.#info = clone({ ...info, provider: this.providerName }); return this.info(); } catch (error) { throw withContext(error, this.providerName, \"", operation.ID, "\"); } }")
+				g.P("  async ", operation.ID, "(options: OperationOptions = {}): Promise<SandboxInfo> { this.#ensureOpen(\"", operation.ID, "\"); const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); let scoped: ReturnType<typeof operationSignal> | undefined; try { scoped = operationSignal(options, this.#timeoutMs); const info = await awaitWithSignal(() => method.call(this.#backend, this.id, operationOptions(options, scoped?.signal)), scoped.signal); this.#info = clone({ ...info, provider: this.providerName }); return this.info(); } catch (error) { throw withContext(error, this.providerName, \"", operation.ID, "\"); } finally { scoped?.dispose(); } }")
 				continue
 			}
 			g.P("  async ", operation.ID, "(request: ", operation.Options, " = {}, options: OperationOptions = {}): Promise<SandboxInfo> { return this.#update(\"", operation.ID, "\", this.#backend.", operation.ID, ", request, options); }")
@@ -41,7 +41,7 @@ func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) erro
 			if operation.Options == "" || operation.TerminalState == "" {
 				return fmt.Errorf("TypeScript lifecycle operation %s has an incomplete exit result declaration", operation.ID)
 			}
-			g.P("  async ", operation.ID, "(request: ", operation.Options, " = {}, options: OperationOptions = {}): Promise<ExitResult> { this.#ensureOpen(\"", operation.ID, "\"); const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); try { const result = await method.call(this.#backend, this.id, clone(request), options); this.#info = { ...this.#info, state: SandboxState.", naming.Pascal(operation.TerminalState), ", terminal: true }; return result; } catch (error) { throw withContext(error, this.providerName, \"", operation.ID, "\"); } }")
+			g.P("  async ", operation.ID, "(request: ", operation.Options, " = {}, options: OperationOptions = {}): Promise<ExitResult> { this.#ensureOpen(\"", operation.ID, "\"); const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); let scoped: ReturnType<typeof operationSignal> | undefined; try { scoped = operationSignal(options, request.timeout ?? this.#timeoutMs); const result = await awaitWithSignal(() => method.call(this.#backend, this.id, clone(request), operationOptions(options, scoped?.signal)), scoped.signal); this.#info = { ...this.#info, state: SandboxState.", naming.Pascal(operation.TerminalState), ", terminal: true }; return result; } catch (error) { throw withContext(error, this.providerName, \"", operation.ID, "\"); } finally { scoped?.dispose(); } }")
 		default:
 			return fmt.Errorf("TypeScript lifecycle operation %s has unsupported outcome %s", operation.ID, operation.Outcome)
 		}

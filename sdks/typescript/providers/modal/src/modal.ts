@@ -11,8 +11,10 @@ import {
   type SandboxInfo,
   type TerminateOptions,
 } from "@sandbox-kit/sandbox";
-import { mapClientConfig, mapCreateRequest, mapModalError, mapSandboxInfo } from "./mappings.js";
-import { providerName } from "./provider.gen.js";
+import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
+import { mapModalError } from "./provider.errors.gen.js";
+import { BackendBase, ProviderBase } from "./provider.gen.js";
+import { captureProviderState, type ProviderState } from "./provider.config.gen.js";
 
 interface NativeModal {
   readonly apps: ModalClient["apps"];
@@ -24,18 +26,16 @@ interface NativeModal {
 type NativeFactory = (config: ModalClientParams) => NativeModal;
 
 /** @internal Exported for adapter boundary tests, but not from the package root. */
-export class ModalProvider implements Provider {
-  readonly name = providerName;
-  constructor(private readonly nativeFactory: NativeFactory = (config) => new ModalClient(config)) {}
+export class ModalProvider extends ProviderBase {
+  constructor(private readonly nativeFactory: NativeFactory = (config) => new ModalClient(config)) { super(); }
   initialize(config: Config): Backend {
-    try { return new ModalBackend(this.nativeFactory(mapClientConfig(config)), structuredClone(config)); }
+    try { return new ModalBackend(this.nativeFactory(mapClientConfig(config)), captureProviderState(config)); }
     catch (error) { throw mapModalError(error, "initialize"); }
   }
 }
 
-class ModalBackend implements Backend {
-  readonly name = providerName;
-  constructor(private readonly native: NativeModal, private readonly config: Config) {}
+class ModalBackend extends BackendBase implements Backend {
+  constructor(private readonly native: NativeModal, private readonly config: ProviderState) { super(); }
 
   async create(request: CreateOptions, _options: OperationOptions): Promise<CreateResult> {
     try {

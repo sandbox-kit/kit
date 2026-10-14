@@ -18,37 +18,24 @@ import (
 // Emit writes validators for the shared request graph. The surrounding client
 // runtime supplies sandboxError and ErrorKind so invalid requests have the
 // same stable error shape as provider failures.
-func Emit(g *protogen.GeneratedFile, schema *model.Schema, rules spec.Validation, root string) error {
+func Emit(g *protogen.GeneratedFile, schema *model.Schema, rules spec.Validation, root string, helpers bool) error {
 	if len(rules.Messages) == 0 {
 		return nil
 	}
-	names := make([]string, 0, len(rules.Messages))
-	for name := range rules.Messages {
-		if _, err := schema.Message(name); err != nil {
-			return err
-		}
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	g.P(`function validationError(provider: string, operation: string, field: string, message: string): never { throw sandboxError({ kind: ErrorKind.InvalidArgument, provider, operation, field, message: "sandbox-kit: " + message }); }`)
-	g.P(`function joinValidationPath(parent: string, field: string): string { return parent ? parent + "." + field : field; }`)
-	g.P()
-	for _, name := range names {
-		message, err := schema.Message(name)
-		if err != nil {
-			return err
-		}
-		if err := emitMessage(g, message, rules.Messages[name], rules.Messages); err != nil {
-			return fmt.Errorf("TypeScript validation %s: %w", name, err)
-		}
-	}
-	rootMessage, err := schema.Message(root)
+	messages, _, err := RequiredSymbols(schema, root)
 	if err != nil {
 		return err
 	}
-	if _, exists := rules.Messages[root]; !exists {
-		if err := emitMessage(g, rootMessage, spec.Message{}, rules.Messages); err != nil {
-			return fmt.Errorf("TypeScript validation %s: %w", root, err)
+	if helpers {
+		g.P(`function validationError(provider: string, operation: string, field: string, message: string): never { throw sandboxError({ kind: ErrorKind.InvalidArgument, provider, operation, field, message: "sandbox-kit: " + message }); }`)
+		g.P(`function joinValidationPath(parent: string, field: string): string { return parent ? parent + "." + field : field; }`)
+		g.P(`function validSecureEndpoint(value: string): boolean { try { const url = new URL(value); if (!url.hostname || url.username || url.password || url.hash) return false; if (url.protocol === "https:") return true; if (url.protocol !== "http:") return false; const host = url.hostname.toLowerCase(); return host === "localhost" || host === "[::1]" || host === "::1" || /^127(?:\.[0-9]{1,3}){3}$/.test(host); } catch { return false; } }`)
+		g.P()
+	}
+	for _, message := range messages {
+		name := string(message.Name())
+		if err := emitMessage(g, message, rules.Messages[name]); err != nil {
+			return fmt.Errorf("TypeScript validation %s: %w", name, err)
 		}
 	}
 	g.P(`export function validate`, root, `(value: `, root, `, provider = "", operation = "create"): void { validate`, root, `Value(value, provider, operation, ""); }`)
@@ -56,7 +43,49 @@ func Emit(g *protogen.GeneratedFile, schema *model.Schema, rules spec.Validation
 	return nil
 }
 
-func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescriptor, rule spec.Message, all map[string]spec.Message) error {
+// RequiredSymbols returns every message reachable from root and the enum-number
+// values needed to validate JavaScript input at runtime. Traversal includes
+// containers with no direct rules so rules on deeper descendants are not lost.
+func RequiredSymbols(schema *model.Schema, root string) ([]protoreflect.MessageDescriptor, []string, error) {
+	rootMessage, err := schema.Message(root)
+	if err != nil {
+		return nil, nil, err
+	}
+	seen := map[protoreflect.FullName]bool{}
+	messages := map[string]protoreflect.MessageDescriptor{}
+	values := map[string]bool{}
+	var visit func(protoreflect.MessageDescriptor)
+	visit = func(message protoreflect.MessageDescriptor) {
+		if seen[message.FullName()] {
+			return
+		}
+		seen[message.FullName()] = true
+		messages[string(message.Name())] = message
+		for index := 0; index < message.Fields().Len(); index++ {
+			field := message.Fields().Get(index)
+			if field.Kind() == protoreflect.EnumKind {
+				values[string(field.Enum().Name())+"Number"] = true
+			}
+			if field.Message() == nil || field.IsMap() || strings.HasPrefix(string(field.Message().FullName()), "google.protobuf.") || field.Message().FullName() == "kit.sandbox.v1.MetadataObject" {
+				continue
+			}
+			visit(field.Message())
+		}
+	}
+	visit(rootMessage)
+	names := make([]string, 0, len(messages))
+	for name := range messages {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	ordered := make([]protoreflect.MessageDescriptor, 0, len(names))
+	for _, name := range names {
+		ordered = append(ordered, messages[name])
+	}
+	return ordered, sortedKeys(values), nil
+}
+
+func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescriptor, rule spec.Message) error {
 	name := string(message.Name())
 	g.P(`function validate`, name, `Value(value: `, name, ` | undefined, provider: string, operation: string, path: string): void {`)
 	g.P(`  if (value === undefined) return;`)
@@ -79,16 +108,22 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 			return err
 		}
 	}
-	// Descend through nested messages that participate in shared validation.
+	for index := 0; index < message.Fields().Len(); index++ {
+		field := message.Fields().Get(index)
+		if field.Kind() != protoreflect.EnumKind {
+			continue
+		}
+		fieldName := naming.Camel(string(field.Name()))
+		g.P(`  if (value.`, fieldName, ` !== undefined && !Object.hasOwn(`, field.Enum().Name(), `Number, value.`, fieldName, `)) validationError(provider, operation, joinValidationPath(path, "`, fieldName, `"), "must be a known `, field.Enum().Name(), ` value");`)
+	}
+	// Descend through every nested contract message, including intermediate
+	// containers without their own field rules.
 	for i := 0; i < message.Fields().Len(); i++ {
 		field := message.Fields().Get(i)
-		if field.Message() == nil || field.IsMap() || field.Message().FullName() == "google.protobuf.Duration" {
+		if field.Message() == nil || field.IsMap() || strings.HasPrefix(string(field.Message().FullName()), "google.protobuf.") || field.Message().FullName() == "kit.sandbox.v1.MetadataObject" {
 			continue
 		}
 		child := string(field.Message().Name())
-		if _, ok := all[child]; !ok {
-			continue
-		}
 		fieldName := naming.Camel(string(field.Name()))
 		fieldPath := `joinValidationPath(path, "` + fieldName + `")`
 		if realOneof(field) {
@@ -104,6 +139,15 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 	g.P(`}`)
 	g.P()
 	return nil
+}
+
+func sortedKeys(values map[string]bool) []string {
+	result := make([]string, 0, len(values))
+	for value := range values {
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result
 }
 
 func emitField(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, rule spec.Field) error {
@@ -160,6 +204,8 @@ func emitScalarRules(g *protogen.GeneratedFile, field protoreflect.FieldDescript
 		switch rule.Format {
 		case "image_reference":
 			g.P(`  if (`, value, ` !== undefined && (`, value, `.length > 512 || !/^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$/.test(`, value, `))) validationError(provider, operation, `, path, `, "must be a valid image reference");`)
+		case "secure_endpoint":
+			g.P(`  if (`, value, ` !== undefined && !validSecureEndpoint(`, value, `)) validationError(provider, operation, `, path, `, "must use HTTPS except for loopback HTTP development endpoints");`)
 		default:
 			return fmt.Errorf("%s: unsupported format %q", field.FullName(), rule.Format)
 		}
@@ -198,10 +244,11 @@ func emitBound(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, va
 	if unsigned(field) {
 		literal += "n"
 	}
+	presence := value + " !== undefined"
 	if field.Kind() == protoreflect.EnumKind {
 		value = string(field.Enum().Name()) + "Number[" + value + "]"
 	}
-	g.P(`  if (`, value, ` !== undefined && !(`, value, ` `, op, ` `, literal, `)) validationError(provider, operation, `, path, `, ", `, words, ` `, strconv.FormatFloat(bound, 'f', -1, 64), `");`)
+	g.P(`  if (`, presence, ` && !(`, value, ` `, op, ` `, literal, `)) validationError(provider, operation, `, path, `, "`, words, ` `, strconv.FormatFloat(bound, 'f', -1, 64), `");`)
 	return nil
 }
 

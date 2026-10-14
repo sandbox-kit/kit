@@ -337,9 +337,12 @@ SDK orchestration that the vocabulary cannot express stays in handwritten
 provider integration files (`sandbox.go` in Go and the provider-named `.ts` plus
 `mappings.ts` files in TypeScript): lookup sequences, source selection,
 readiness, and remaining provider semantics. Bindings alone do not produce a
-complete integration. Generated TypeScript `provider.mappings.gen.ts` files
-contain only compiled YAML mapping groups; they are not embedded source
-templates.
+complete integration. Generated TypeScript `provider.gen.ts` files own the
+provider/backend identity bases, `provider.config.gen.ts` composes native client
+configuration and retained state, `provider.checks.gen.ts` enforces portable
+provider checks, `provider.errors.gen.ts` classifies native errors, and
+`provider.mappings.gen.ts` contains compiled YAML mapping groups. None of these
+files are embedded source templates.
 
 Lifecycle option and result types are generated from protobuf. The Go and
 TypeScript lifecycle emitters generate handle methods and typed provider dispatch

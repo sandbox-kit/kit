@@ -15,9 +15,9 @@ import { DaytonaProvider } from "./daytona.js";
 import {
   mapClientConfig,
   mapCreateRequest,
-  mapDaytonaError,
   type DaytonaCreateParams,
 } from "./mappings.js";
+import { mapDaytonaError } from "./provider.errors.gen.js";
 
 describe("Daytona mappings", () => {
   it("maps API-key client configuration without exposing the provider", () => {
@@ -32,6 +32,25 @@ describe("Daytona mappings", () => {
       apiUrl: "https://daytona.example/api",
       target: "us",
     });
+  });
+
+  it("resolves generated endpoint environment precedence", () => {
+    expect(mapClientConfig({}, {
+      DAYTONA_API_URL: "https://primary.example/api",
+      DAYTONA_SERVER_URL: "https://fallback.example/api",
+    })).toMatchObject({ apiUrl: "https://primary.example/api" });
+    expect(mapClientConfig({}, { DAYTONA_SERVER_URL: "https://fallback.example/api" })).toMatchObject({
+      apiUrl: "https://fallback.example/api",
+    });
+  });
+
+  it("validates generated client configuration before SDK construction", () => {
+    expect(() => mapClientConfig({ endpoint: "http://remote.example/api" })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "endpoint", operation: "initialize" }),
+    );
+    expect(() => mapClientConfig({ scope: { projectId: "unsupported" } })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.Unsupported, field: "scope.projectId", operation: "initialize" }),
+    );
   });
 
   it("maps an image request with exact resource and policy units", () => {
@@ -127,6 +146,18 @@ describe("Daytona mappings", () => {
         field: "provisioning.waitFor",
       }),
     );
+  });
+
+  it("applies generated network and policy checks before mapping", () => {
+    expect(() => mapCreateRequest({ network: { outboundCidrs: { entries: ["not-a-cidr"] } } })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.outboundCidrs.entries" }),
+    );
+    expect(() => mapCreateRequest({
+      lifetime: {
+        idleStop: { mode: PolicyMode.After, after: 60_000 },
+        idlePause: { mode: PolicyMode.After, after: 60_000 },
+      },
+    })).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "lifetime" }));
   });
 
   it("preserves Daytona error details and cause", () => {

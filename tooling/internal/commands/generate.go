@@ -70,7 +70,7 @@ func generateTypeScript(cmd *cobra.Command, root string, config *settings, runne
 			return err
 		}
 	}
-	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Generated TypeScript client and provider identities.")
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), "Generated TypeScript SDK sources.")
 	return err
 }
 

@@ -1,12 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
-  EgressMode, IsolationKind, PolicyMode, PortTransport, SecretInjection, WaitCondition,
+  EgressMode, ErrorKind, IsolationKind, PolicyMode, PortTransport, SecretInjection, WaitCondition,
 } from "@sandbox-kit/sandbox";
+import { InvalidError } from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
+import { captureProviderState } from "./provider.config.gen.js";
+import { mapModalError } from "./provider.errors.gen.js";
 
 describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
     expect(mapClientConfig({ auth: { credentials: "tokenPair", tokenPair: { id: "id", secret: "secret" } }, scope: { environment: "dev" }, timeout: 30_000 })).toEqual({ tokenId: "id", tokenSecret: "secret", environment: "dev", timeoutMs: 30_000 });
+  });
+
+  it("rejects generated unsupported and malformed client configuration", () => {
+    expect(() => mapClientConfig({ endpoint: "https://unsupported.example" })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.Unsupported, field: "endpoint", operation: "initialize" }),
+    );
+    expect(() => mapClientConfig({
+      auth: { credentials: "tokenPair", tokenPair: { id: "", secret: "secret" } },
+    })).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "auth.tokenPair.id" }));
+  });
+
+  it("captures retained configuration without aliasing caller state", () => {
+    const config = { scope: { appName: "original", environment: "dev" }, region: "us-east-1" };
+    const state = captureProviderState(config);
+    config.scope.appName = "changed";
+
+    expect(state).toEqual({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
   });
 
   it("maps the Go creation surface into the native Modal plan", () => {
@@ -24,5 +44,27 @@ describe("Modal mappings", () => {
       observability: { verbose: true }, labels: { purpose: "test" }, environment: { NODE_ENV: "test" },
     }, { scope: { appName: "app", environment: "dev" }, region: "us-east-1" });
     expect(plan).toMatchObject({ app: "app", environment: "dev", image: "alpine:3.21", secretNames: ["credential"], waitUntilReady: true, readyTimeoutMs: 120_000, params: { name: "example", runtime: "vm", cpu: 0.5, cpuLimit: 1, memoryMiB: 512, memoryLimitMiB: 1024, cloud: "aws", regions: ["us-east-1"], i6pn: true, encryptedPorts: [443], includeOidcIdentityToken: true, timeoutMs: 300_000, idleTimeoutMs: 60_000, verbose: true } });
+  });
+
+  it("classifies native errors from the provider specification", () => {
+    const native = new InvalidError("invalid request");
+    expect(mapModalError(native, "create")).toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      provider: "modal",
+      operation: "create",
+      cause: native,
+    });
+  });
+
+  it("applies generated environment and network checks before mapping", () => {
+    const config = { scope: { appName: "app" } };
+    expect(() => mapCreateRequest({
+      source: { kind: "image", image: { reference: "alpine:3.21" } },
+      environment: { "NOT VALID": "value" },
+    }, config)).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "environment" }));
+    expect(() => mapCreateRequest({
+      source: { kind: "image", image: { reference: "alpine:3.21" } },
+      network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
+    }, config)).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.inboundCidrs.entries" }));
   });
 });

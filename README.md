@@ -6,9 +6,10 @@ Sandbox Kit is a lightweight SDK for creating and managing sandboxes across prov
 Install the public SDK and the provider you need; each provider initializes its
 official SDK from shared configuration.
 
-Go is supported across both providers. TypeScript now supports shared contracts,
-the public client, and Daytona creation; TypeScript lifecycle operations and the
-Modal provider remain planned.
+Go and TypeScript support shared contracts, the public client, Daytona, and
+Modal. The TypeScript providers include creation, common error mapping, cleanup,
+and the lifecycle operations supported by their official SDK integrations;
+additional standalone TypeScript examples are still being expanded.
 
 The current Go SDK supports Modal and Daytona, including authentication, sandbox
 creation, lifecycle operations, validation, shared metadata, and common error
@@ -27,7 +28,8 @@ cp .env.example .env
 go run .
 ```
 
-For the TypeScript Daytona example, use Node 24 and run:
+For a TypeScript example, use Node 24 and run either provider project. For
+Daytona:
 
 ```sh
 cd examples/typescript/daytona/create-daytona-sandbox

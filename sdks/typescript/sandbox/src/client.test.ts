@@ -47,6 +47,23 @@ function fixture(): { readonly client: Client; readonly backend: RecordingBacken
   return { client: new Client({ provider }), backend };
 }
 
+class HangingBackend extends RecordingBackend {
+  override async create(_request: CreateOptions, _options: OperationOptions): Promise<CreateResult> {
+    this.createCalls++;
+    return new Promise<CreateResult>(() => {});
+  }
+
+  override async terminate(_id: string, _options: TerminateOptions): Promise<ExitResult> {
+    return new Promise<ExitResult>(() => {});
+  }
+}
+
+function hangingFixture(): { readonly client: Client; readonly backend: HangingBackend } {
+  const backend = new HangingBackend();
+  const provider: Provider = { name: backend.name, initialize: () => backend };
+  return { client: new Client({ provider }), backend };
+}
+
 describe("Client cleanup", () => {
   it("makes close idempotent", async () => {
     const { client, backend } = fixture();
@@ -100,6 +117,111 @@ describe("Shared request validation", () => {
       field: "source.image.reference",
     });
     expect(backend.createCalls).toBe(0);
+  });
+
+  it("validates descendants through containers without direct rules", async () => {
+    const { client, backend } = fixture();
+
+    await expect(client.create({ security: { secrets: [{ reference: "", injection: "default" }] } })).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: "security.secrets[].reference",
+      message: "sandbox-kit: must not be blank",
+    });
+    expect(backend.createCalls).toBe(0);
+  });
+
+  it("rejects unknown runtime enum values from JavaScript callers", async () => {
+    const { client, backend } = fixture();
+    const request = { lifetime: { idleStop: { mode: "unknown-mode" } } } as unknown as CreateOptions;
+
+    await expect(client.create(request)).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: "lifetime.idleStop.mode",
+    });
+    expect(backend.createCalls).toBe(0);
+  });
+
+  it("allows callers to omit proto3 default enum fields", async () => {
+    const { client, backend } = fixture();
+
+    await expect(client.create({
+      isolation: {},
+      network: { ports: [{ port: 8080 }] },
+      provisioning: { timeout: 1_000 },
+      security: { secrets: [{ reference: "service-secret" }] },
+    })).resolves.toBeDefined();
+    expect(backend.createCalls).toBe(1);
+  });
+});
+
+describe("Shared client configuration validation", () => {
+  it("rejects insecure remote endpoints before initializing the provider", () => {
+    const backend = new RecordingBackend();
+    let initialized = false;
+    const provider: Provider = { name: backend.name, initialize: () => { initialized = true; return backend; } };
+
+    expect(() => new Client({ provider, endpoint: "http://remote.example/api" })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "endpoint", operation: "initialize" }),
+    );
+    expect(initialized).toBe(false);
+  });
+});
+
+describe("Operation cancellation", () => {
+  it("does not invoke the provider for an already-aborted operation", async () => {
+    const { client, backend } = fixture();
+    const controller = new AbortController();
+    controller.abort(new Error("caller stopped work"));
+
+    await expect(client.create({}, { signal: controller.signal })).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "create",
+    });
+    expect(backend.createCalls).toBe(0);
+  });
+
+  it("releases client operation bookkeeping after invalid timeout input", async () => {
+    const { client, backend } = fixture();
+
+    await expect(client.create({}, { timeoutMs: -1 })).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "create",
+      field: "timeoutMs",
+    });
+    await expect(client.close()).resolves.toBeUndefined();
+    expect(backend.closeCalls).toBe(1);
+  });
+
+  it("enforces a caller timeout when a provider operation does not settle", async () => {
+    const { client, backend } = hangingFixture();
+
+    await expect(client.create({}, { timeoutMs: 10 })).rejects.toMatchObject({
+      kind: ErrorKind.Timeout,
+      operation: "create",
+    });
+    expect(backend.createCalls).toBe(1);
+  });
+
+  it("maps an external abort signal to a canceled error", async () => {
+    const { client } = hangingFixture();
+    const controller = new AbortController();
+    const operation = client.create({}, { signal: controller.signal });
+    controller.abort(new Error("caller stopped work"));
+
+    await expect(operation).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "create",
+    });
+  });
+
+  it("applies request timeouts to lifecycle operations", async () => {
+    const { client } = hangingFixture();
+    const sandbox = await client.attach("sandbox-existing");
+
+    await expect(sandbox.terminate({ timeout: 10 })).rejects.toMatchObject({
+      kind: ErrorKind.Timeout,
+      operation: "terminate",
+    });
   });
 });
 
