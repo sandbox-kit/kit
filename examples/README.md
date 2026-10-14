@@ -8,6 +8,7 @@ error-handling operation.
 
 | Project                                                               | Demonstrates                                             |
 | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| [All TypeScript examples](typescript/README.md)                       | Complete Daytona and Modal TypeScript example matrix     |
 | [TypeScript Daytona creation](typescript/daytona/create-daytona-sandbox/README.md) | TypeScript client, default snapshot, and explicit cleanup |
 | [TypeScript Modal creation](typescript/modal/create-modal-sandbox/README.md) | TypeScript client, image, resources, isolation, and policies |
 | [Modal creation](go/modal/create-modal-sandbox/README.md)             | Token-pair auth, app/environment scope, registry image   |
@@ -68,5 +69,6 @@ Resource/policy tests use dummy
 credentials and local servers, exercising validation and SDK request mapping
 without cloud creation.
 
-TypeScript verification builds both provider packages and both creation
-examples through `go run ./cmd/sandbox-kit test typescript` from `tooling/`.
+TypeScript verification builds and tests the SDK packages, discovers every
+TypeScript example package, and builds the complete example matrix through
+`go run ./cmd/sandbox-kit test typescript` from `tooling/`.

@@ -1,11 +1,9 @@
 # Create a Daytona sandbox with TypeScript
 
-This example creates a private Daytona sandbox from `debian:12.9`, with explicit
-CPU, memory, disk, egress, isolation, environment, labels, idle-stop, and
-stopped-delete settings. It prints the sandbox ID and leaves the cloud sandbox
-running. Closing the client only releases local SDK resources. The example uses
-`await using`, so local cleanup runs whether sandbox creation succeeds or
-throws.
+This example creates a Daytona sandbox from the provider's default snapshot.
+It prints the sandbox ID and leaves the cloud sandbox running. Closing the
+client only releases local SDK resources. The example uses `await using`, so
+local cleanup runs whether sandbox creation succeeds or throws.
 
 ```sh
 cp .env.example .env

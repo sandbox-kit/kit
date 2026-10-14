@@ -145,6 +145,18 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 
 func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 	repo := repositoryFixture(t)
+	for _, path := range []string{
+		"examples/typescript/daytona/create-daytona-sandbox",
+		"examples/typescript/modal/create-modal-sandbox",
+	} {
+		dir := filepath.Join(repo, filepath.FromSlash(path))
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "package.json"), []byte("{}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
 	runner := &recordingRunner{}
 	command := newRootCommand(runner)
 	command.SetArgs([]string{"test", "typescript", "--repo", repo, "--npm-binary", "custom-npm"})

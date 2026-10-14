@@ -1,7 +1,10 @@
 package commands
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/spf13/cobra"
 )
@@ -34,8 +37,50 @@ var typescriptTestModules = []struct {
 	{"sdks/typescript/sandbox", true},
 	{"sdks/typescript/providers/daytona", true},
 	{"sdks/typescript/providers/modal", true},
-	{"examples/typescript/daytona/create-daytona-sandbox", false},
-	{"examples/typescript/modal/create-modal-sandbox", false},
+}
+
+func typescriptModules(root string) ([]struct {
+	path string
+	test bool
+}, error) {
+	modules := append([]struct {
+		path string
+		test bool
+	}{}, typescriptTestModules...)
+	examplesRoot := filepath.Join(root, "examples", "typescript")
+	providers, err := os.ReadDir(examplesRoot)
+	if err != nil {
+		return nil, fmt.Errorf("read TypeScript examples: %w", err)
+	}
+	var examplePaths []string
+	for _, provider := range providers {
+		if !provider.IsDir() {
+			continue
+		}
+		projects, err := os.ReadDir(filepath.Join(examplesRoot, provider.Name()))
+		if err != nil {
+			return nil, fmt.Errorf("read TypeScript %s examples: %w", provider.Name(), err)
+		}
+		for _, project := range projects {
+			if !project.IsDir() {
+				continue
+			}
+			manifest := filepath.Join(examplesRoot, provider.Name(), project.Name(), "package.json")
+			if _, err := os.Stat(manifest); err == nil {
+				examplePaths = append(examplePaths, filepath.ToSlash(filepath.Join("examples", "typescript", provider.Name(), project.Name())))
+			} else if !os.IsNotExist(err) {
+				return nil, fmt.Errorf("inspect TypeScript example %s: %w", project.Name(), err)
+			}
+		}
+	}
+	sort.Strings(examplePaths)
+	for _, path := range examplePaths {
+		modules = append(modules, struct {
+			path string
+			test bool
+		}{path: path})
+	}
+	return modules, nil
 }
 
 func newTestCommand(config *settings, runner runner) *cobra.Command {
@@ -64,7 +109,11 @@ func newTestCommand(config *settings, runner runner) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			for _, module := range typescriptTestModules {
+			modules, err := typescriptModules(root)
+			if err != nil {
+				return err
+			}
+			for _, module := range modules {
 				dir := filepath.Join(root, filepath.FromSlash(module.path))
 				if err := runner.run(cmd.Context(), step{dir, config.npmBinary, []string{"run", "build"}}, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
 					return err

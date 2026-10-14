@@ -1,58 +1,38 @@
 import { daytona } from "@sandbox-kit/provider-daytona";
 import {
   Client,
-  EgressMode,
-  IsolationKind,
+  LifecycleCapability,
   PolicyMode,
+  SandboxError,
+  type ClientConfig,
+  type Sandbox,
 } from "@sandbox-kit/sandbox";
 
-async function main(): Promise<void> {
-  await using client = new Client({
-    provider: daytona(),
-    timeout: 120_000,
-  });
-
-  const sandbox = await client.create({
-    source: {
-      kind: "image",
-      image: { reference: "debian:12.9" },
-    },
-    runtime: { language: "typescript" },
-    isolation: {
-      kind: IsolationKind.Default,
-      nestedVirtualization: false,
-    },
-    resources: {
-      cpuCores: 2,
-      memoryMib: 4_096n,
-      diskMib: 10_240n,
-    },
-    environment: {
-      NODE_ENV: "development",
-    },
-    labels: {
-      example: "create-daytona-sandbox",
-    },
-    network: {
-      egress: EgressMode.AllowAll,
-    },
-    security: {
-      publicAccess: false,
-    },
-    lifetime: {
-      idleStop: {
-        mode: PolicyMode.After,
-        after: 15 * 60_000,
-      },
-      stoppedDelete: {
-        mode: PolicyMode.After,
-        after: 24 * 60 * 60_000,
-      },
-    },
-  });
-
-  console.log(`Sandbox created: ${sandbox.id}`);
-  console.log(`Provider: ${sandbox.providerName}`);
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`${name} is required`);
+  return value;
 }
 
-await main();
+function clientConfig(): ClientConfig {
+  const endpoint = process.env.DAYTONA_API_URL;
+  const region = process.env.DAYTONA_TARGET;
+  return {
+    provider: daytona(),
+    auth: { credentials: "apiKey", apiKey: { key: requireEnv("DAYTONA_API_KEY") } },
+    timeout: 120_000,
+    ...(endpoint ? { endpoint } : {}),
+    ...(region ? { region } : {}),
+  };
+}
+
+function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+  if (!sandbox.supports(capability)) {
+    throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
+  }
+}
+
+await using client = new Client(clientConfig());
+
+const sandbox = await client.create();
+console.log(`Daytona sandbox created: ${sandbox.id}`);
