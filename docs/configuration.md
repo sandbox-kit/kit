@@ -5,6 +5,13 @@ TypeScript client with `new Client({...})`. The selected provider initializes
 its official SDK from shared generated configuration types. This guide uses Go
 field spelling; TypeScript exposes the same fields in camelCase.
 
+The constructors have the same ownership and validation semantics while
+following each language's conventions: Go returns `(*Client, error)`, and
+TypeScript throws on invalid synchronous construction. Go callers defer
+`client.Close(ctx)`; TypeScript callers use `await client.close()` or scope the
+client with `await using`. None of these cleanup forms changes the remote
+sandbox lifecycle.
+
 ## Configuration fields
 
 | Field      | Purpose                                                                |
@@ -18,10 +25,11 @@ field spelling; TypeScript exposes the same fields in camelCase.
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional
-interfaces such as `SandboxCreator`, `SandboxRefresher`, or
-`SandboxTerminator` for its supported operations. Bare SDK clients and
-arbitrary interfaces do not satisfy these contracts. The backend's identity
-must match the selected provider; Kit closes and rejects mismatched backends.
+capabilities such as creation, refresh, or termination for its supported
+operations. Bare SDK clients and arbitrary interfaces do not satisfy these
+contracts. The backend's identity must match the selected provider. Go closes
+and rejects a mismatched backend; TypeScript rejects it synchronously, which
+leaves asynchronous mismatch cleanup as a future constructor API decision.
 
 ## Provider support
 
@@ -76,9 +84,10 @@ native SDK transport or operation timeouts remain in force.
 
 ## Credentials and errors
 
-Credential fields marked `sensitive` and the provider object are excluded from
-generated JSON output. This does not protect arbitrary logging or formatting;
-keep credentials out of logs and source control.
+Go credential fields marked `sensitive` and the provider object are excluded
+from generated JSON output. TypeScript configuration uses plain structural
+objects, so `JSON.stringify` includes enumerable credential fields. Do not
+serialize, log, or persist configuration objects in either language.
 
 Construction, operation, and cleanup failures expose shared error details.
 Native SDK and validator errors remain accessible through the cause chain.

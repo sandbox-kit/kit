@@ -1,6 +1,9 @@
 # Responses and errors
 
 Protobuf defines `SandboxInfo`, `ValueOrigin`, `ErrorInfo`, and `ErrorKind`.
+Validation failures include an optional stable `rule` identifier so applications
+do not need to parse human-readable messages. Examples include `finite`,
+`nonblank`, `exclusive_minimum`, `known_enum`, and cross-field operation names.
 YAML declares provider classification and response mappings. Generators emit
 native Go and TypeScript types, owned copies, error helpers, and provider mappings.
 
@@ -37,7 +40,7 @@ current name/labels are request-derived. Daytona maps SDK-reported metadata.
 ## Handle errors in an application
 
 Initialization, creation, lifecycle operations, and cleanup expose `*sandbox.Error`.
-Its generated `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`,
+Its generated `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`, `Rule`,
 and `Message`. Optional `StatusCode`, `ProviderCode`, and `ProviderSource`
 retain native machine details when available.
 

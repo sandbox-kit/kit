@@ -66,3 +66,21 @@ func (s *Schema) ValidateRules(rules spec.Validation) error {
 	}
 	return nil
 }
+
+// ValidateRepresentation checks native exposure metadata against protobuf fields.
+func (s *Schema) ValidateRepresentation(rules spec.RepresentationPolicy) error {
+	for messageName, message := range rules.Messages {
+		if _, err := s.Message(messageName); err != nil {
+			return err
+		}
+		for fieldName, field := range message.Fields {
+			if !field.Sensitive {
+				return fmt.Errorf("%s.%s: representation field has no policy", messageName, fieldName)
+			}
+			if _, err := s.Resolve(messageName, fieldName); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}

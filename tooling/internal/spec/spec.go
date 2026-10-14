@@ -21,7 +21,6 @@ type Message struct {
 }
 type Field struct {
 	Format           string   `yaml:"format"`
-	Sensitive        bool     `yaml:"sensitive"`
 	Minimum          *float64 `yaml:"minimum"`
 	ExclusiveMinimum *float64 `yaml:"exclusive_minimum"`
 	Maximum          *float64 `yaml:"maximum"`
@@ -29,6 +28,19 @@ type Field struct {
 	Nonblank         bool     `yaml:"nonblank"`
 	Each             bool     `yaml:"each"`
 	MinItems         *int     `yaml:"min_items"`
+}
+
+// Representation contains non-validation policies for generated native fields.
+// These rules affect exposure and serialization, not whether a value is valid.
+type RepresentationPolicy struct {
+	Version  int                              `yaml:"version"`
+	Messages map[string]RepresentationMessage `yaml:"messages"`
+}
+type RepresentationMessage struct {
+	Fields map[string]RepresentationField `yaml:"fields"`
+}
+type RepresentationField struct {
+	Sensitive bool `yaml:"sensitive"`
 }
 type Condition struct {
 	Field     string `yaml:"field"`
@@ -285,15 +297,16 @@ func LoadProvider(root, name string) (Provider, error) {
 
 // Client selects schema-backed settings and portable initialization validation.
 type Client struct {
-	Version       int        `yaml:"version"`
-	ConfigMessage string     `yaml:"config_message"`
-	Validation    Validation `yaml:"validation"`
+	Version        int                  `yaml:"version"`
+	ConfigMessage  string               `yaml:"config_message"`
+	Validation     Validation           `yaml:"validation"`
+	Representation RepresentationPolicy `yaml:"representation"`
 }
 
 func LoadClient(root string) (Client, error) {
 	var c Client
 	err := decode(filepath.Join(root, "client.yaml"), &c)
-	if err == nil && (c.Version != 1 || c.ConfigMessage != "Config" || c.Validation.Version != 1 || len(c.Validation.Messages) == 0) {
+	if err == nil && (c.Version != 1 || c.ConfigMessage != "Config" || c.Validation.Version != 1 || len(c.Validation.Messages) == 0 || c.Representation.Version != 1) {
 		err = fmt.Errorf("invalid client specification")
 	}
 	return c, err

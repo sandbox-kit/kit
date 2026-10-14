@@ -21,6 +21,21 @@ into native syntax and files.
 
 ## Generate and verify
 
+The repository is a Buf v2 module rooted at `proto/`. Buf checks schema
+formatting, lint, compilation, and compatibility; the Kit CLI continues to own
+SDK generation so `specs/targets.yaml` remains the only target manifest.
+
+From `tooling/`, check the protobuf module:
+
+```sh
+GOWORK=off go run ./cmd/sandbox-kit test proto
+GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdir=proto'
+```
+
+The second command adds `buf breaking` against the selected Git or Buf input.
+The initial lint baseline is `BASIC`: it catches structural mistakes without
+renaming established enum defaults or the local `SandboxCreation` declaration.
+
 From `tooling/`:
 
 ```sh
@@ -51,7 +66,7 @@ YAML or import protobuf messages.
 | `specs/generation.yaml`           | Generation phases and ordered client-operation instructions         |
 | `specs/lifecycle.yaml`            | Handle operations, capabilities, options, outcomes, and terminal states |
 | `specs/targets.yaml`              | Language/provider output modules and source descriptors              |
-| `specs/client.yaml`               | Provider selection and client/auth validation                       |
+| `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy |
 | `specs/validation.yaml`           | Shared creation validation                                          |
 | `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                        |
 | `specs/errors.yaml`               | Shared cause classification and error-context policy                |
@@ -205,7 +220,9 @@ messages:
 
 Field rules include `minimum`, `exclusive_minimum`, `maximum`, `finite`,
 `nonblank`, `min_items`, `format: http_url`, and `each` for list elements.
-`sensitive` excludes a field from generated JSON output.
+Serialization policy is separate from validation. Client representation metadata
+marks credential fields `sensitive`, which excludes them from generated Go JSON
+output without treating secrecy as a value-validity rule.
 
 | Constraint          | Meaning                                       |
 | ------------------- | --------------------------------------------- |

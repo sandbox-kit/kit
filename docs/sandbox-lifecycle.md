@@ -21,9 +21,21 @@ client default, and explicit zero adds no Kit deadline. Closing the client does
 not change the cloud sandbox. Do not use handles that depend on its SDK after
 client closure.
 `Sandbox.Close` closes only the local handle; it never changes the remote
-sandbox. Client and handle closure are idempotent. Go handle closure waits for
-operations already running through that handle. TypeScript callers must await a
-handle operation before closing that handle or its owning client.
+sandbox. Client and handle closure are idempotent. Handle closure waits for
+operations already running through that handle, and client closure waits for
+operations owned by its handles.
+
+TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
+scoped client when its lifetime matches the current block:
+
+```ts
+await using client = new Client(config);
+const sandbox = await client.create(request);
+```
+
+Use `await using sandbox = ...` only when the handle itself should become
+unusable at the end of the block. Disposing either object releases local SDK
+resources only; it does not stop, terminate, or delete the cloud sandbox.
 
 ## Operation semantics
 
@@ -52,11 +64,10 @@ the provider's exact value. After successful `Terminate` or `Delete`, Kit marks
 the handle terminal, exposes no further lifecycle capabilities, and rejects
 subsequent lifecycle calls with `ErrorKindFailedPrecondition`.
 
-The Go handle serializes lifecycle transitions on one handle. This does not
+Each SDK serializes lifecycle transitions on one handle. This does not
 serialize a different handle or process referring to the same remote sandbox. A
-Go caller waiting behind an in-progress transition can still cancel its context
-or reach its deadline. TypeScript callers must serialize concurrent lifecycle
-calls themselves when operation ordering matters.
+caller waiting behind an in-progress transition can still cancel its context or
+abort signal, or reach its deadline.
 
 ## Provider support
 

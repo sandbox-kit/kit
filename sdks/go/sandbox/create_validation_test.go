@@ -1,6 +1,7 @@
 package sandbox
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -40,5 +41,13 @@ func TestGeneratedValidationRules(t *testing.T) {
 				t.Fatalf("valid=%v, error=%v", tc.valid, err)
 			}
 		})
+	}
+}
+
+func TestValidationErrorsExposeStableRule(t *testing.T) {
+	err := ValidateCreateOptions(&CreateOptions{Resources: &Resources{CPUCores: Value(0.0)}})
+	var detail *Error
+	if !errors.As(err, &detail) || detail.Rule == nil || detail.GetRule() != "exclusive_minimum" {
+		t.Fatalf("validation rule = %v, error = %v", detail, err)
 	}
 }

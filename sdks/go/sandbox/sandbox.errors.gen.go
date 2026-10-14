@@ -80,6 +80,7 @@ var validationFieldNames = map[string]string{
 	"Region":               "region",
 	"Regions":              "regions",
 	"Resources":            "resources",
+	"Rule":                 "rule",
 	"Runtime":              "runtime",
 	"Sandbox":              "sandbox",
 	"Secrets":              "secrets",

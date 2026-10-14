@@ -6,12 +6,14 @@ implemented in Go over one compiled semantic model.
 
 ## Run the CLI
 
-Requires Go 1.26.9 or newer. Generation also requires `protoc`.
+Requires Go 1.26.9 or newer. Generation requires `protoc`; protobuf verification
+requires the Buf CLI.
 
 From this directory:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdir=proto'
 GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate typescript
 GOWORK=off go run ./cmd/sandbox-kit test typescript
@@ -35,9 +37,13 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 | `--go-binary`  | Go executable                |
 | `--npm-binary` | npm executable               |
 | `--protoc`     | Protobuf compiler executable |
+| `--buf`        | Buf CLI executable           |
 | `--help`       | Commands and usage           |
 
 ## What commands do
+
+`test proto` checks canonical formatting, lint, and compilation with Buf. Pass
+`--against` to add a breaking-change comparison against a Git or Buf input.
 
 `generate go` rebuilds annotation bindings and emits shared native types,
 validation, client/provider contracts, SDK constructors, state capture,

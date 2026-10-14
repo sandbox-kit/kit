@@ -120,11 +120,14 @@ func emitErrorRuntime(p *protogen.Plugin, file *protogen.File, policy spec.Error
 		return err
 	}
 	d.Body(current, "\tfield := \"\"")
+	d.Body(current, "\trule := \"\"")
 	d.Body(current, "\tvar fields ", validator("ValidationErrors"))
 	d.Body(current, "\tif ", errors("As"), "(", d.Param(current, "err"), ", &fields) && len(fields) > 0 {")
 	d.Body(current, "\t\tfield = validationPath(fields[0].StructNamespace())")
+	d.Body(current, "\t\trule = fields[0].Tag()")
+	d.Body(current, "\t\tswitch rule { case \"gt\": rule = \"exclusive_minimum\"; case \"gte\": rule = \"minimum\"; case \"lte\": rule = \"maximum\"; case \"min\": rule = \"min_items\" }")
 	d.Body(current, "\t}")
-	d.Body(current, "\treturn ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidArgument"), Field: "field", Message: strconv.Quote("sandbox-kit: invalid configuration"), Cause: d.Param(current, "err")}))
+	d.Body(current, "\treturn ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidArgument"), Field: "field", Rule: "Value(rule)", Message: strconv.Quote("sandbox-kit: invalid configuration"), Cause: d.Param(current, "err")}))
 	g.P("}")
 	d.Body(current)
 	current, err = d.BeginBehavior("", "validation_path", "validation_path")

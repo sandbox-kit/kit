@@ -109,11 +109,23 @@ func WithErrorContext(err error, provider string, operation string) error {
 // records the first invalid field path.
 func validationError(err error) error {
 	field := ""
+	rule := ""
 	var fields v10.ValidationErrors
 	if errors.As(err, &fields) && len(fields) > 0 {
 		field = validationPath(fields[0].StructNamespace())
+		rule = fields[0].Tag()
+		switch rule {
+		case "gt":
+			rule = "exclusive_minimum"
+		case "gte":
+			rule = "minimum"
+		case "lte":
+			rule = "maximum"
+		case "min":
+			rule = "min_items"
+		}
 	}
-	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Field: field, Message: "sandbox-kit: invalid configuration"}, err)
+	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Field: field, Rule: Value(rule), Message: "sandbox-kit: invalid configuration"}, err)
 }
 
 // validationPath converts a validator namespace such as Config.Auth.APIKey

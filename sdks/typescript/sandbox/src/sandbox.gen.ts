@@ -420,5 +420,6 @@ export interface ErrorInfo {
   readonly statusCode?: number;
   readonly providerCode?: string;
   readonly providerSource?: string;
+  readonly rule?: string;
 }
 

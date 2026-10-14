@@ -1,0 +1,15 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  # BASIC catches structural and naming mistakes without forcing public API
+  # renames such as DEFAULT to UNSPECIFIED or SandboxCreation to *Service.
+  use:
+    - BASIC
+  except:
+    # Provider descriptor entrypoints intentionally re-export the shared client
+    # graph so custom plugins receive it in the same generation request.
+    - IMPORT_NO_PUBLIC
+breaking:
+  use:
+    - FILE

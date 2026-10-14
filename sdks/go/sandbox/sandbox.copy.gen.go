@@ -1100,6 +1100,10 @@ func (x *ErrorInfo) clone(depth int) (*ErrorInfo, error) {
 		value := *x.ProviderSource
 		out.ProviderSource = &value
 	}
+	if x.Rule != nil {
+		value := *x.Rule
+		out.Rule = &value
+	}
 	return &out, nil
 }
 

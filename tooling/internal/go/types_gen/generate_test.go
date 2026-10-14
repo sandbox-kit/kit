@@ -34,7 +34,7 @@ func TestPreservesEmptyCollectionsAndLimitsCreationHelpers(t *testing.T) {
 		t.Fatal(err)
 	}
 	templates, _ := testutil.Generation(t, "../../../../specs")
-	if err := Generate(plugin, plugin.Files[0], spec.Validation{}, model.APIModule{}, api.Modules["helpers"], profile, templates); err != nil {
+	if err := Generate(plugin, plugin.Files[0], spec.Validation{}, spec.RepresentationPolicy{}, model.APIModule{}, api.Modules["helpers"], profile, templates); err != nil {
 		t.Fatal(err)
 	}
 	response := plugin.Response()

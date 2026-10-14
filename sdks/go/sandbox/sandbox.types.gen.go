@@ -2034,6 +2034,9 @@ type ErrorInfo struct {
 	// ProviderSource is the provider component that reported the error, when
 	// available.
 	ProviderSource *string `json:"provider_source,omitempty" validate:"omitnil"`
+	// Rule is a stable portable validation or policy rule identifier, when
+	// applicable.
+	Rule *string `json:"rule,omitempty" validate:"omitnil"`
 }
 
 // GetKind returns Kind when the receiver and field are present. A nil receiver
@@ -2111,6 +2114,16 @@ func (x *ErrorInfo) GetProviderCode() string {
 func (x *ErrorInfo) GetProviderSource() string {
 	if x != nil && x.ProviderSource != nil {
 		return *x.ProviderSource
+	}
+	var zero string
+	return zero
+}
+
+// GetRule returns Rule when the receiver and field are present. A nil receiver
+// or omitted field returns the zero value.
+func (x *ErrorInfo) GetRule() string {
+	if x != nil && x.Rule != nil {
+		return *x.Rule
 	}
 	var zero string
 	return zero
