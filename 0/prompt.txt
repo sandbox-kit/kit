@@ -1,0 +1,3 @@
+what doo u think if we had use buf ecosystem buf build, protovalidate and all its ecosystem. 
+
+will all this would be easier ?

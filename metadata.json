@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M4X5VEBV8FVWZAW9RE02V69R",
+  "strategy": "manual-commit",
+  "branch": "codex/feat-typescript-sdk",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/api-declarations.md",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/src/mappings.ts",
+    "sdks/typescript/providers/daytona/src/provider.mappings.gen.ts",
+    "sdks/typescript/providers/modal/src/mappings.ts",
+    "sdks/typescript/providers/modal/src/modal.ts",
+    "sdks/typescript/providers/modal/src/provider.mappings.gen.ts",
+    "sdks/typescript/sandbox/src/client.gen.ts",
+    "sdks/typescript/sandbox/src/client.test.ts",
+    "sdks/typescript/sandbox/src/sandbox.gen.ts",
+    "tooling/internal/typescript/client_gen/generate.go",
+    "tooling/internal/typescript/error_gen/emit.go",
+    "tooling/internal/typescript/generate.go",
+    "tooling/internal/typescript/lifecycle_gen/generate.go",
+    "tooling/internal/typescript/mapping_gen/generate.go",
+    "tooling/internal/typescript/provider_gen/generate.go",
+    "tooling/internal/typescript/types_gen/generate.go",
+    "tooling/internal/typescript/validation_gen/generate.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
