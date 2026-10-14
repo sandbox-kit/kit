@@ -1,0 +1,31 @@
+{
+  "name": "@sandbox-kit/provider-daytona",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "engines": {
+    "node": "^20.0.0 || ^22.0.0 || >=24.15.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.test.json && vitest run"
+  },
+  "dependencies": {
+    "@daytona/sdk": "0.224.0",
+    "@sandbox-kit/sandbox": "file:../../sandbox"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}

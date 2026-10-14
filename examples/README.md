@@ -1,6 +1,6 @@
 # Examples
 
-Run Sandbox Kit through independent Go projects. Each selects one provider,
+Run Sandbox Kit through independent Go and TypeScript projects. Each selects one provider,
 loads its own `.env`, and demonstrates one creation, lifecycle, cleanup, or
 error-handling operation.
 
@@ -8,6 +8,9 @@ error-handling operation.
 
 | Project                                                               | Demonstrates                                             |
 | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| [All TypeScript examples](typescript/README.md)                       | Complete Daytona and Modal TypeScript example matrix     |
+| [TypeScript Daytona creation](typescript/daytona/create-daytona-sandbox/README.md) | TypeScript client, default snapshot, and explicit cleanup |
+| [TypeScript Modal creation](typescript/modal/create-modal-sandbox/README.md) | TypeScript client, image, resources, isolation, and policies |
 | [Modal creation](go/modal/create-modal-sandbox/README.md)             | Token-pair auth, app/environment scope, registry image   |
 | [Modal resources](go/modal/create-modal-with-resources/README.md)     | CPU, memory, lifetime, and validation tests              |
 | [Modal runtime](go/modal/create-modal-with-runtime/README.md)         | Working directory, entrypoint, and PTY                   |
@@ -66,4 +69,6 @@ Resource/policy tests use dummy
 credentials and local servers, exercising validation and SDK request mapping
 without cloud creation.
 
-Only Go examples are implemented today.
+TypeScript verification builds and tests the SDK packages, discovers every
+TypeScript example package, and builds the complete example matrix through
+`go run ./cmd/sandbox-kit test typescript` from `tooling/`.

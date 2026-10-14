@@ -1,0 +1,35 @@
+# Daytona provider for Sandbox Kit
+
+```ts
+import { Client } from "@sandbox-kit/sandbox";
+import { daytona } from "@sandbox-kit/provider-daytona";
+
+const client = new Client({ provider: daytona() });
+
+try {
+  const sandbox = await client.create({
+    runtime: { language: "typescript" },
+  });
+  console.log(sandbox.id);
+} finally {
+  await client.close();
+}
+```
+
+The native Daytona SDK resolves credentials from its environment when `auth` is
+omitted. Closing the client releases local Daytona SDK resources and does not
+delete the cloud sandbox.
+
+Configuration, validation, and portable field mappings are generated from the
+protobuf contracts and `specs/providers/daytona.yaml`. `src/daytona.ts` owns only
+typed Daytona SDK call ordering and lifecycle orchestration; `src/mappings.ts`
+owns the remaining provider-specific composition that the portable mapping
+vocabulary cannot express.
+
+## Dependency audit
+
+As of 2026-10-14, `npm audit` reports four high-severity findings in the pinned
+`@daytona/sdk@0.224.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
+The registry currently reports no fix. The provider does not override those
+transitive packages because doing so could create an unsupported SDK
+combination; reassess the audit when upgrading the Daytona SDK.

@@ -64,6 +64,40 @@ Using `--copy` preserves the repository's existing checked-in layout.
   Go and TypeScript, especially around untrusted input, credentials, command
   execution, networking, and provider configuration.
 
+### `python-design-patterns`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Provides Python-specific guidance for choosing composition,
+  protocols, factories, strategies, adapters, repositories, and other patterns
+  without importing Java-style structure into a Python SDK.
+
+### `python-project-structure`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Covers package boundaries, public exports, `pyproject.toml`,
+  source layouts, and dependency organization. This is directly relevant when
+  adding a distributable Python SDK under `sdks/python/`.
+
+### `python-testing-patterns`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Adds focused pytest fixtures, parametrization, mocking,
+  integration tests, and asynchronous test patterns for generated and handwritten
+  Python SDK behavior.
+
+### `python-error-handling`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Covers exception hierarchies, contextual failures, cleanup,
+  retries, and error propagation needed for a stable provider-neutral SDK API.
+
+### `async-python-patterns`
+
+- **Source:** `wshobson/agents`
+- **Why selected:** Covers structured concurrency, cancellation, timeouts,
+  resource cleanup, and async context managers. These concerns matter when a
+  Python SDK wraps networked sandbox providers.
+
 ## Existing complementary skills
 
 - `golang-design-patterns` covers idiomatic Go API and lifecycle choices.

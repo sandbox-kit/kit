@@ -59,9 +59,10 @@ serialized fields remain in protobuf.
 
 Object fields are instance variables. Constructors declare `kind: constructor`
 and `constructs: <object-id>`. `effect: pure|io` records execution intent for
-future language emitters; current Go operations execute synchronously.
-`doc` becomes a generated Go comment. `fields_from: provider_state` incorporates
-provider state from the existing provider YAML without duplicating storage rules.
+language emitters; Go operations execute synchronously and TypeScript provider
+operations use promises. `doc` becomes a generated native documentation comment.
+`fields_from: provider_state` incorporates provider state from the existing
+provider YAML without duplicating storage rules.
 
 Type references support builtins, named references, generic arguments, sequences,
 maps, function types, tuples, and unions. A type reference selects exactly one
@@ -93,8 +94,8 @@ through `results`, not by treating errors as another success alternative.
 interface forms, reference/presence rules, error results, multiple-return syntax,
 cancellation parameters, builtins, external symbols, and output suffixes.
 The shared loader checks safe output suffixes without imposing Go extensions.
-Go validates its required output roles and `.gen.go` suffixes in the backend.
-A `.gen.ts` profile can be loaded without implementing a TypeScript emitter.
+Language profiles select the generated roles and their native suffixes
+(`.gen.go` or `.gen.ts`); backends validate the roles they consume.
 
 Output remains inside the directories declared by the Cobra generation command
 and protobuf package bindings. Profiles cannot redirect output through suffixes.
@@ -104,13 +105,27 @@ type. The emitter rejects those type shapes explicitly; use a named result objec
 or a tagged schema alternative. Go also rejects independent generic method
 parameters; methods can use their generic receiver's parameters.
 
-For a future TypeScript emitter, optional parameters, `undefined`, `null`, unions,
-callbacks, and `Promise` results need their own lowering rules. TypeScript unions
-are alternatives in a single value, while tuple or named-object results can carry
-several values. A fallible asynchronous initializer needs a factory convention.
-These distinctions follow the official [function reference](https://www.typescriptlang.org/docs/handbook/2/functions.html)
+The TypeScript emitter preserves optional presence with `?`/`undefined`, lowers
+protobuf alternatives to discriminated unions, and uses `Promise` for provider
+operations. Operational failures throw `SandboxError`; result objects carry
+multiple successful values instead of Go-style multiple returns. These choices
+follow the official [function reference](https://www.typescriptlang.org/docs/handbook/2/functions.html)
 and [type reference](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html).
-Only Go emission is implemented and verified today.
+Both Go and TypeScript emission are implemented and verified.
+
+### TypeScript interfaces and type aliases
+
+The TypeScript emitter uses `interface` for named object shapes and behavioral
+contracts. This includes ordinary protobuf messages, provider/backend contracts,
+and option objects. Interfaces provide clear extension conflicts, stable display
+in diagnostics, and efficient relationship caching. Composition should use
+`interface extends` when the declared shape is an object contract.
+
+The emitter uses `type` when the representation is not one extensible object:
+protobuf oneofs and other unions, tuples, primitive aliases, callback aliases,
+and mapped or conditional helpers. Declaration merging is therefore available
+only for contracts intentionally represented as interfaces; it is not used as a
+substitute for changing protobuf or YAML contracts.
 
 ## Declared surface
 
@@ -179,8 +194,8 @@ an unsupported argument, or dropping failure handling is rejected during compila
 Contract changes also require matching behavior implementations in each backend.
 
 Go-specific requirements remain in the Go backend. For example, deferred error
-context needs named Go results; a future language can implement equivalent
-context enrichment through its own calling conventions.
+context needs named Go results; TypeScript performs equivalent enrichment in
+promise rejection paths.
 
 ## Structured bindings and explicit references
 

@@ -2,7 +2,7 @@
 
 Protobuf defines `SandboxInfo`, `ValueOrigin`, `ErrorInfo`, and `ErrorKind`.
 YAML declares provider classification and response mappings. Generators emit
-native Go types, owned copies, error helpers, and provider mappings.
+native Go and TypeScript types, owned copies, error helpers, and provider mappings.
 
 ## Response presence and origin
 
@@ -57,6 +57,21 @@ The same switch works for either provider. Runnable examples demonstrate
 [Modal unsupported intent](../examples/go/modal/handle-modal-errors/README.md) and
 [Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
 
+TypeScript operations reject with `SandboxError`. Use `instanceof` before
+reading its shared details:
+
+```ts
+try {
+  await client.create(request);
+} catch (error) {
+  if (error instanceof SandboxError) {
+    console.error(error.kind, error.field, error.operation);
+  } else {
+    throw error;
+  }
+}
+```
+
 ## Native causes
 
 Local errors are classified at their source rather than by parsing messages.
@@ -75,6 +90,9 @@ if errors.As(err, &native) {
 The last snippet imports Daytona's native errors package as `sdkerrors`.
 Applications can use common kinds without importing provider error types.
 Shared error details serialize without the runtime cause.
+
+TypeScript preserves the native error as the standard `cause` property on
+`SandboxError`.
 
 Modal uses pinned native error types and gRPC codes. Daytona uses native HTTP
 status and code/source fields. Unclassified errors retain an unknown kind and
@@ -108,9 +126,9 @@ provider classification precedence. Ordered cause rules take priority over the
 supplied kind: cancellation becomes `canceled`, deadline expiry becomes `timeout`.
 
 Provider YAML contains protocol mappings and portable rules. Modal binds its
-portable `error_rules` to native Go types through `errors.go.types`; Daytona
-binds native status/code/source members through `errors.go.target`. Go emitters
-implement matching, owned copies, and cause chaining.
+portable `error_rules` to native SDK types through language-specific bindings;
+Daytona binds native status/code/source members the same way. Go and TypeScript
+emitters implement their native matching, owned details, and cause chaining.
 
 Version 1 requires existing shared errors to take priority over native types,
 then HTTP statuses, gRPC codes, and fallback. Unsupported policy alternatives
@@ -121,6 +139,10 @@ for the specification vocabulary.
 
 Generated `Clone()` methods copy typed fields directly, preserving numeric types,
 optional presence, and empty collections. Copying uses typed generated methods.
+
+TypeScript returns independent metadata through `structuredClone`, preserving
+its native `bigint`, `Date`, byte-array, collection, and optional-property
+representations.
 
 `MetadataObject` and `MetadataValue` describe exact signed/unsigned integers,
 finite numbers, strings, booleans, bytes, lists, and objects. An empty value

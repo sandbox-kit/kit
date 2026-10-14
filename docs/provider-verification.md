@@ -1,8 +1,9 @@
 # Provider reference verification
 
-Bindings target Modal Go v0.11.0 and Daytona Go v0.222.0. Latest documentation
-helps discover APIs; pinned SDK source and compilation determine the signatures
-and serialization used by this checkout.
+Go bindings target Modal v0.11.0 and Daytona v0.222.0. TypeScript bindings target
+`modal@0.11.0` and `@daytona/sdk@0.224.0`. Latest documentation helps discover
+APIs; pinned SDK source and compilation determine the signatures and
+serialization used by this checkout.
 
 This review covers authentication, mapped creation settings, and lifecycle
 bindings. Local tests verify conversions, validation, SDK request serialization,
@@ -17,8 +18,8 @@ they do not expose those native clients through the public SDK.
 
 | Provider | API references                                                                                                                                                                                                                                                              | Service guides                                                                                                                                                                                                                          |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Modal    | [Client](https://modal.com/docs/sdk/go/latest/Client), [App](https://modal.com/docs/sdk/go/latest/App), [Image](https://modal.com/docs/sdk/go/latest/Image), [Sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), [Errors](https://modal.com/docs/sdk/go/latest/Errors) | [Resources](https://modal.com/docs/guide/resources), [Sandbox resources](https://modal.com/docs/guide/sandbox-resources), [Sandboxes](https://modal.com/docs/guide/sandboxes), [Regions](https://modal.com/docs/guide/region-selection) |
-| Daytona  | [Client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Types](https://www.daytona.io/docs/en/go-sdk/types/), [Options](https://www.daytona.io/docs/en/go-sdk/options/), [Errors](https://www.daytona.io/docs/en/go-sdk/errors/)                                 | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits)                                                                                                                                    |
+| Modal    | [Go client](https://modal.com/docs/sdk/go/latest/Client), [Go sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), [JavaScript/Go SDK guide](https://modal.com/docs/guide/sdk-javascript-go) | [Resources](https://modal.com/docs/guide/resources), [Sandbox resources](https://modal.com/docs/guide/sandbox-resources), [Sandboxes](https://modal.com/docs/guide/sandboxes), [Regions](https://modal.com/docs/guide/region-selection) |
+| Daytona  | [Go client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Go types](https://www.daytona.io/docs/en/go-sdk/types/), [TypeScript SDK](https://www.daytona.io/docs/en/typescript-sdk/) | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits) |
 
 Modal creation dependencies also use the [Secret](https://modal.com/docs/sdk/go/latest/Secret),
 [Probe](https://modal.com/docs/sdk/go/latest/Probe),
@@ -37,6 +38,12 @@ Daytona uses `NewClientWithConfig(*types.DaytonaConfig)`. Its `Create` method
 accepts snapshot/image parameters plus creation options. Timeout and wait options
 retain native behavior. Generated errors expose common categories while preserving
 native classification through the original cause.
+
+The TypeScript adapters construct `ModalClient` and `Daytona` directly. Modal
+looks up the app, image, secrets, and attached sandboxes through the pinned
+client services. Daytona uses its asynchronous create/get and lifecycle methods.
+Generated mappings and errors preserve the same portable semantics in both
+languages.
 
 ## Conflicting Daytona policy documentation
 

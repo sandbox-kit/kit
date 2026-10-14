@@ -1,17 +1,14 @@
 # Sandbox Kit
 
-![SDK generation: protobuf and specs, shared compiler producing a language-neutral model, Go emitters, provider integration, and verification](docs/sdk-generation.png)
-
 Sandbox Kit is a lightweight SDK for creating and managing sandboxes across providers.
 Install the public SDK and the provider you need; each provider initializes its
 official SDK from shared configuration.
 
-Go is supported today, with more languages planned. Shared contracts and a
-language-neutral compiler provide the foundation for additional language SDKs.
-
-The current Go SDK supports Modal and Daytona, including authentication, sandbox
-creation, lifecycle operations, validation, shared metadata, and common error
-kinds. Execution, storage, GPU requests, and harness integrations are planned.
+Go and TypeScript support shared contracts, the public client, Daytona, and
+Modal. Both languages include authentication, sandbox creation, supported
+lifecycle operations, validation, copied metadata, common error kinds, and a
+complete matrix of independent provider examples. Execution, storage, GPU
+requests, and harness integrations are planned.
 
 ## Get started
 
@@ -24,6 +21,17 @@ cd kit/examples/go/daytona/create-daytona-sandbox
 cp .env.example .env
 # Set DAYTONA_API_KEY in .env.
 go run .
+```
+
+For a TypeScript example, use Node.js 24.15.0, npm 11.19.0, and one of the
+[provider projects](examples/typescript/README.md). For Daytona:
+
+```sh
+cd examples/typescript/daytona/create-daytona-sandbox
+cp .env.example .env
+npm install
+npm run build
+npm start
 ```
 
 Skip copying the template if you already have a configured `.env`.
@@ -65,7 +73,7 @@ local resources and does not change a cloud sandbox.
 | [Modal identity](examples/go/modal/create-modal-with-identity/README.md)       | Workload identity token                                         |
 | [Modal attach](examples/go/modal/attach-modal-sandbox/README.md)               | Construct a handle from an ID without a remote lookup           |
 | [Modal terminate](examples/go/modal/terminate-modal-sandbox/README.md)         | Terminate an attached sandbox                                   |
-| [Modal waited termination](examples/go/modal/request-modal-termination/README.md) | Wait for termination and inspect the exit result             |
+| [Modal termination request](examples/go/modal/request-modal-termination/README.md) | Request termination without waiting for an exit result       |
 | [Modal close handle](examples/go/modal/close-modal-handle/README.md)           | Release a local handle without terminating the sandbox          |
 | [Modal errors](examples/go/modal/handle-modal-errors/README.md)                | Handle an unsupported disk override with `ErrorKindUnsupported` |
 | [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
@@ -197,16 +205,14 @@ See [responses and errors](docs/responses-and-errors.md).
 
 Creation is an optional provider capability. `Client.Close` and
 `Sandbox.Close` release local resources only; neither changes a remote sandbox.
-Closing a client invalidates handles created or opened from it.
+Do not use handles after closing their owning client; the provider SDK resources
+they depend on have been released.
 
 Memory and disk use MiB. Modal accepts fractional physical CPU requests in
 0.001-core increments from 0.125 cores; Daytona requires whole CPU cores and
 whole GiB allocations expressed as MiB.
 
 ## Documentation
-
-See the [SDK generation diagram](docs/sdk-generation.png) for a short explanation
-of the generation process.
 
 | Guide                                                   | Covers                                                    |
 | ------------------------------------------------------- | --------------------------------------------------------- |
@@ -227,6 +233,8 @@ Requires Go 1.26.9 or newer. From `tooling/`:
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit test typescript
+GOWORK=off go run ./cmd/sandbox-kit generate typescript
 ```
 
 Generation also requires `protoc`. Verification tests the SDK, tooling, providers,
@@ -239,8 +247,8 @@ Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
 Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves
 these inputs before language emission. Runtime APIs live in `specs/api.yaml`,
 behavior checks in `specs/behaviors.yaml`, and generation phases in
-`specs/generation.yaml`. The Go profile supplies representation and file
-suffixes. Runtime modules live in `sdks/<language>/`.
+`specs/generation.yaml`. Each language profile supplies native representation
+and file suffixes. Runtime modules live in `sdks/<language>/`.
 Update examples and docs with public changes, regenerate affected output, and
 verify before submitting. See [tooling](tooling/README.md) and
 [repository instructions](AGENTS.md).
