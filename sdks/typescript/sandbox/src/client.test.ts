@@ -316,4 +316,41 @@ describe("Sandbox lifecycle", () => {
 
     expect(maximumActive).toBe(1);
   });
+
+  it("preserves serialization when a queued transition is canceled", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    let calls = 0;
+    const backend: Backend = {
+      name: "serial-cancel",
+      close: async () => {},
+      attach: async (id) => ({ id, provider: "serial-cancel", state: "running" }),
+      start: async (id) => {
+        active++;
+        maximumActive = Math.max(maximumActive, active);
+        calls++;
+        if (calls === 1) await firstBlocked;
+        active--;
+        return { id, provider: "serial-cancel", state: "running" };
+      },
+    };
+    const client = new Client({ provider: { name: backend.name, initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-existing");
+    const controller = new AbortController();
+
+    const first = sandbox.start();
+    const canceled = sandbox.start({}, { signal: controller.signal });
+    controller.abort();
+    await expect(canceled).rejects.toMatchObject({ kind: ErrorKind.Canceled });
+
+    const third = sandbox.start();
+    await Promise.resolve();
+    expect(calls).toBe(1);
+
+    releaseFirst();
+    await Promise.all([first, third]);
+    expect(maximumActive).toBe(1);
+  });
 });
