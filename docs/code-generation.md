@@ -55,22 +55,22 @@ YAML or import protobuf messages.
 
 ## Inputs
 
-| Input                             | Defines                                                             |
-| --------------------------------- | ------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                    |
-| `proto/kit/providers/`            | Provider and native SDK declarations                                |
-| `specs/behaviors.yaml`            | Required behavior inputs, outputs, owner, and execution flags       |
-| `specs/templates.yaml`            | Reusable descriptor-driven signatures and field-path rules          |
-| `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results       |
-| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions  |
-| `specs/generation.yaml`           | Generation phases and ordered client-operation instructions         |
+| Input                             | Defines                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                        |
+| `proto/kit/providers/`            | Provider and native SDK declarations                                    |
+| `specs/behaviors.yaml`            | Required behavior inputs, outputs, owner, and execution flags           |
+| `specs/templates.yaml`            | Reusable descriptor-driven signatures and field-path rules              |
+| `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results           |
+| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions      |
+| `specs/generation.yaml`           | Generation phases and ordered client-operation instructions             |
 | `specs/lifecycle.yaml`            | Handle operations, capabilities, options, outcomes, and terminal states |
-| `specs/targets.yaml`              | Language/provider output modules and source descriptors              |
-| `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy |
-| `specs/validation.yaml`           | Shared creation validation                                          |
-| `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                        |
-| `specs/errors.yaml`               | Shared cause classification and error-context policy                |
-| `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings |
+| `specs/targets.yaml`              | Language/provider output modules and source descriptors                 |
+| `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy   |
+| `specs/validation.yaml`           | Shared creation validation                                              |
+| `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                            |
+| `specs/errors.yaml`               | Shared cause classification and error-context policy                    |
+| `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings     |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -189,11 +189,7 @@ error_rules:
 errors:
   go:
     types:
-      - {
-          import: github.com/modal-labs/modal-client/go,
-          name: TimeoutError,
-          rule: timeout_error,
-        }
+      - { import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error }
 ```
 
 Another language binds the same rule to its native SDK type. Native type names,
@@ -282,14 +278,7 @@ groups:
           name: Resources
           fields: { memory: Memory }
     fields:
-      - {
-          from: memory_mib,
-          to: memory,
-          transform: divide_exactly,
-          factor: 1024,
-          maximum: 2147483647,
-          cast: integer,
-        }
+      - { from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer }
 ```
 
 Shared types resolve against descriptors. Logical native fields resolve through

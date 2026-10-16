@@ -9,22 +9,22 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   let source = config;
   validateConfig(source, "modal", "initialize");
   const target: NativeClientConfig = {};
-  if (source.endpoint !== undefined) unsupported("endpoint", "Endpoint cannot be configured through this SDK's public client constructor");
+  if (source.endpoint !== undefined)
+    unsupported("endpoint", "Endpoint cannot be configured through this SDK's public client constructor");
   if (source.scope !== undefined) {
     const mapped = mapClientScope(source.scope, "initialize");
     Object.assign(target, mapped);
-    if (source.scope.organizationId !== undefined) unsupported("scope.organizationId", "unsupported client configuration field");
+    if (source.scope.organizationId !== undefined)
+      unsupported("scope.organizationId", "unsupported client configuration field");
     if (source.scope.projectId !== undefined) unsupported("scope.projectId", "unsupported client configuration field");
   }
   if (source.auth?.credentials === "tokenPair") {
     const mapped = mapTokenPairCredentials(source.auth.tokenPair, "initialize");
     Object.assign(target, mapped);
-  }
-  else if (source.auth?.credentials === "oauthRefresh") {
+  } else if (source.auth?.credentials === "oauthRefresh") {
     const mapped = mapOAuthAuth(source.auth.oauthRefresh, "initialize");
     Object.assign(target, mapped);
-  }
-  else if (source.auth?.credentials !== undefined) unsupported("auth", "unsupported authentication mode");
+  } else if (source.auth?.credentials !== undefined) unsupported("auth", "unsupported authentication mode");
   return target;
 }
 
@@ -40,4 +40,12 @@ export function captureProviderState(config: Config): ProviderState {
   };
 }
 
-function unsupported(field: string, message: string): never { throw sandboxError({ kind: ErrorKind.Unsupported, provider: "modal", operation: "initialize", field, message: "sandbox-kit modal: " + message }); }
+function unsupported(field: string, message: string): never {
+  throw sandboxError({
+    kind: ErrorKind.Unsupported,
+    provider: "modal",
+    operation: "initialize",
+    field,
+    message: "sandbox-kit modal: " + message,
+  });
+}

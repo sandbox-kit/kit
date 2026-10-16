@@ -33,7 +33,9 @@ class RecordingBackend implements Backend {
     return { id, provider: this.name, state: "running" };
   }
 
-  capabilities(): readonly LifecycleCapability[] { return [LifecycleCapability.Terminate]; }
+  capabilities(): readonly LifecycleCapability[] {
+    return [LifecycleCapability.Terminate];
+  }
 
   async terminate(_id: string, options: TerminateOptions): Promise<ExitResult> {
     this.terminated = true;
@@ -65,14 +67,14 @@ function hangingFixture(): { readonly client: Client; readonly backend: HangingB
 }
 
 describe("Client cleanup", () => {
-	it("starts cleanup when a provider returns the wrong backend identity", async () => {
-	  const backend = new RecordingBackend();
-	  expect(() => new Client({ provider: { name: "different", initialize: () => backend } })).toThrowError(
-		expect.objectContaining({ kind: ErrorKind.InvalidResponse, field: "provider" }),
-	  );
-	  await Promise.resolve();
-	  expect(backend.closeCalls).toBe(1);
-	});
+  it("starts cleanup when a provider returns the wrong backend identity", async () => {
+    const backend = new RecordingBackend();
+    expect(() => new Client({ provider: { name: "different", initialize: () => backend } })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidResponse, field: "provider" }),
+    );
+    await Promise.resolve();
+    expect(backend.closeCalls).toBe(1);
+  });
 
   it("makes close idempotent", async () => {
     const { client, backend } = fixture();
@@ -144,7 +146,9 @@ describe("Shared request validation", () => {
   it("validates nested source choices using the shared schema", async () => {
     const { client, backend } = fixture();
 
-    await expect(client.create({ source: { kind: "image", image: { reference: "not an image reference!" } } })).rejects.toMatchObject({
+    await expect(
+      client.create({ source: { kind: "image", image: { reference: "not an image reference!" } } }),
+    ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       field: "source.image.reference",
     });
@@ -154,7 +158,9 @@ describe("Shared request validation", () => {
   it("validates descendants through containers without direct rules", async () => {
     const { client, backend } = fixture();
 
-    await expect(client.create({ security: { secrets: [{ reference: "", injection: "default" }] } })).rejects.toMatchObject({
+    await expect(
+      client.create({ security: { secrets: [{ reference: "", injection: "default" }] } }),
+    ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       field: "security.secrets[].reference",
       message: "sandbox-kit: must not be blank",
@@ -176,12 +182,14 @@ describe("Shared request validation", () => {
   it("allows callers to omit proto3 default enum fields", async () => {
     const { client, backend } = fixture();
 
-    await expect(client.create({
-      isolation: {},
-      network: { ports: [{ port: 8080 }] },
-      provisioning: { timeout: 1_000 },
-      security: { secrets: [{ reference: "service-secret" }] },
-    })).resolves.toBeDefined();
+    await expect(
+      client.create({
+        isolation: {},
+        network: { ports: [{ port: 8080 }] },
+        provisioning: { timeout: 1_000 },
+        security: { secrets: [{ reference: "service-secret" }] },
+      }),
+    ).resolves.toBeDefined();
     expect(backend.createCalls).toBe(1);
   });
 
@@ -200,7 +208,13 @@ describe("Shared client configuration validation", () => {
   it("rejects insecure remote endpoints before initializing the provider", () => {
     const backend = new RecordingBackend();
     let initialized = false;
-    const provider: Provider = { name: backend.name, initialize: () => { initialized = true; return backend; } };
+    const provider: Provider = {
+      name: backend.name,
+      initialize: () => {
+        initialized = true;
+        return backend;
+      },
+    };
 
     expect(() => new Client({ provider, endpoint: "http://remote.example/api" })).toThrowError(
       expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "endpoint", operation: "initialize" }),
@@ -211,7 +225,13 @@ describe("Shared client configuration validation", () => {
   it("rejects a non-finite default timeout before initialization", () => {
     const backend = new RecordingBackend();
     let initialized = false;
-    const provider: Provider = { name: backend.name, initialize: () => { initialized = true; return backend; } };
+    const provider: Provider = {
+      name: backend.name,
+      initialize: () => {
+        initialized = true;
+        return backend;
+      },
+    };
 
     expect(() => new Client({ provider, timeout: Number.POSITIVE_INFINITY })).toThrowError(
       expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "timeout", operation: "initialize" }),
@@ -286,7 +306,10 @@ describe("Sandbox lifecycle", () => {
     await expect(sandbox.terminate({ wait: true })).resolves.toEqual({ exitCode: 0 });
     expect(backend.terminated).toBe(true);
     expect(sandbox.capabilities()).toEqual([]);
-    await expect(sandbox.terminate()).rejects.toMatchObject({ kind: ErrorKind.FailedPrecondition, operation: "terminate" });
+    await expect(sandbox.terminate()).rejects.toMatchObject({
+      kind: ErrorKind.FailedPrecondition,
+      operation: "terminate",
+    });
   });
 
   it("rejects lifecycle operations absent from the selected provider", async () => {
@@ -299,7 +322,9 @@ describe("Sandbox lifecycle", () => {
     let active = 0;
     let maximumActive = 0;
     let releaseFirst!: () => void;
-    const firstBlocked = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    const firstBlocked = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
     let calls = 0;
     const backend: Backend = {
       name: "serial",
@@ -330,7 +355,9 @@ describe("Sandbox lifecycle", () => {
     let active = 0;
     let maximumActive = 0;
     let releaseFirst!: () => void;
-    const firstBlocked = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    const firstBlocked = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
     let calls = 0;
     const backend: Backend = {
       name: "serial-cancel",

@@ -9,19 +9,19 @@ from lifecycle operations on an existing sandbox.
 Go integrations target Modal v0.11.0 and Daytona v0.222.0. TypeScript integrations
 target `modal@0.11.0` and `@daytona/sdk@0.224.0`.
 
-| Setting                | Modal                                                                   | Daytona                                                            |
-| ---------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Source                 | Explicit registry image and an existing app                             | Default/specified snapshot or registry image                       |
-| Runtime                | Entrypoint, absolute working directory, PTY                             | Toolbox language and user                                          |
-| Isolation              | Default, gVisor container, Linux VM                                     | Nested KVM flag; class inherited from source                       |
-| Resources              | Fractional CPU, CPU limit, memory request/limit                         | Whole CPU and GiB memory/disk; image source required for overrides |
-| Placement              | Cloud and region preferences                                            | Client target; request placement unsupported                       |
-| Environment and labels | Environment map and tags                                                | Environment map and labels                                         |
-| Security               | Named secrets and workload identity                                     | Egress-placeholder secrets and public access                       |
+| Setting                | Modal                                                                                  | Daytona                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       |
+| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          |
+| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       |
+| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides |
+| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       |
+| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         |
+| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       |
 | Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
-| Lifetime               | Maximum lifetime and idle termination                                   | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout          | Default/submitted/started                                          |
-| Observability          | Verbose output                                                          | Telemetry endpoint                                                 |
+| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Default/submitted/started                                          |
+| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
 Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
 explicit snapshot kinds are not mapped. Supplied unsupported fields and

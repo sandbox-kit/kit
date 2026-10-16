@@ -36,7 +36,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -54,4 +57,3 @@ const sandbox = await client.create({
   runtime: { workingDirectory: "/tmp", entrypoint: ["echo", "sandbox-kit"], pty: true },
 });
 console.log(`Modal sandbox created: ${sandbox.id}`);
-

@@ -26,7 +26,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -39,4 +42,3 @@ const sandbox = await client.create({
   resources: { cpuCores: 1, memoryMib: 1_024n, diskMib: 3_072n },
 });
 console.log(`Daytona sandbox created from ubuntu:22.04: ${sandbox.id}`);
-

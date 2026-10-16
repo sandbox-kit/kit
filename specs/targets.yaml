@@ -20,15 +20,15 @@ languages:
     targets:
       - source: kit/sandbox/v1/sandbox.proto
         output: sdks/typescript/sandbox/src
-        module: '@sandbox-kit/sandbox'
+        module: "@sandbox-kit/sandbox"
       - source: kit/sandbox/v1/client.proto
         output: sdks/typescript/sandbox/src
-        module: '@sandbox-kit/sandbox'
+        module: "@sandbox-kit/sandbox"
       - source: kit/providers/modal/v1/provider.proto
         output: sdks/typescript/providers/modal/src
-        module: '@sandbox-kit/provider-modal'
+        module: "@sandbox-kit/provider-modal"
         provider: modal
       - source: kit/providers/daytona/v1/provider.proto
         output: sdks/typescript/providers/daytona/src
-        module: '@sandbox-kit/provider-daytona'
+        module: "@sandbox-kit/provider-daytona"
         provider: daytona

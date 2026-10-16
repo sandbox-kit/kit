@@ -71,16 +71,16 @@ abort signal, or reach its deadline.
 
 ## Provider support
 
-| Operation | Modal | Daytona container | Daytona Linux/Windows VM | Daytona GPU |
-| --- | --- | --- | --- | --- |
-| Attach | Supported; ID only, no provider lookup | Unsupported | Unsupported | Unsupported |
-| Refresh/Get | Unsupported | Supported | Supported | Supported |
-| Start | Unsupported | Supported | Supported | Provider-enforced |
-| Stop | Unsupported | Supported; filesystem retained unless ephemeral | Supported; memory cleared | Destructive by provider design |
-| Pause | Unsupported | Unsupported | Supported; memory retained | Unsupported |
-| Terminate | Supported | Unsupported | Unsupported | Unsupported |
-| Archive | Unsupported | Supported | Unsupported | Unsupported |
-| Delete | Unsupported | Supported | Supported | Supported |
+| Operation   | Modal                                  | Daytona container                               | Daytona Linux/Windows VM   | Daytona GPU                    |
+| ----------- | -------------------------------------- | ----------------------------------------------- | -------------------------- | ------------------------------ |
+| Attach      | Supported; ID only, no provider lookup | Unsupported                                     | Unsupported                | Unsupported                    |
+| Refresh/Get | Unsupported                            | Supported                                       | Supported                  | Supported                      |
+| Start       | Unsupported                            | Supported                                       | Supported                  | Provider-enforced              |
+| Stop        | Unsupported                            | Supported; filesystem retained unless ephemeral | Supported; memory cleared  | Destructive by provider design |
+| Pause       | Unsupported                            | Unsupported                                     | Supported; memory retained | Unsupported                    |
+| Terminate   | Supported                              | Unsupported                                     | Unsupported                | Unsupported                    |
+| Archive     | Unsupported                            | Supported                                       | Unsupported                | Unsupported                    |
+| Delete      | Unsupported                            | Supported                                       | Supported                  | Supported                      |
 
 Daytona reports its resolved sandbox class after creation. Kit maps container
 and Linux VM to shared isolation kinds and preserves Windows as a provider-specific

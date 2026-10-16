@@ -58,8 +58,10 @@ provider doubles. Dedicated error examples test local rejection and error-kind
 handling.
 
 `generate typescript` emits shared contracts, the public client, provider
-identities, lifecycle dispatch, and typed Daytona and Modal mappings. `test
-typescript` builds and tests the shared package and both providers, discovers
+identities, lifecycle dispatch, and typed Daytona and Modal mappings. Its
+lifecycle surface is compiled from `specs/lifecycle.yaml`; reusable source-block
+emission keeps handwritten SDK orchestration separate from semantic generation.
+`test typescript` builds and tests the shared package and both providers, discovers
 every TypeScript example containing a `package.json`, and builds each example
 without making provider calls.
 
@@ -110,33 +112,33 @@ Error and metadata-copy signatures come from `specs/api.yaml`.
 `internal/go/types_gen/runtime.go` emits their behavior bodies. Provider error
 classifiers come from portable protocol rules and native SDK bindings.
 
-| Directory                      | Responsibility                                                                          |
-| ------------------------------ | --------------------------------------------------------------------------------------- |
-| `cmd/sandbox-kit/`             | Developer CLI                                                                           |
-| `cmd/protoc-gen-kit-go/`       | Protobuf output plugin                                                                  |
-| `internal/model/`              | Language-neutral descriptor and semantic compilation                                    |
-| `internal/go/`                 | Go phase dispatcher and native language emitters                                        |
-| `internal/spec/`               | Strict YAML loader and portable rule types                                              |
-| `internal/go/declaration_gen/` | API signature, object, interface, alias, enum, callback, and generic emission           |
-| `internal/go/types_gen/`       | Native types, copying, error runtime, paths, and origin validation                      |
-| `internal/go/error_gen/`       | Consistent shared error expressions                                                     |
-| `internal/go/schema/`          | Descriptor resolution and canonical field paths                                         |
-| `internal/go/validation_gen/`  | Shared validation and enum checks                                                       |
-| `internal/go/mapping_gen/`     | Field conversions and policy mappings                                                   |
-| `internal/go/client_gen/`      | Client contracts, deadlines, and delegation                                             |
-| `internal/go/provider_gen/`    | SDK construction, client assembly, state capture, provider checks, error classification |
-| `internal/go/naming/`          | Go field and enum naming                                                                |
-| `internal/typescript/client_gen/` | TypeScript client runtime and provider delegation                                     |
-| `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives                       |
-| `internal/typescript/error_gen/` | Shared TypeScript error construction                                                   |
-| `internal/typescript/lifecycle_gen/` | YAML-driven TypeScript handle lifecycle methods                                   |
-| `internal/typescript/mapping_gen/` | Compiled field, unit, policy, and origin mappings                                    |
-| `internal/typescript/naming/` | Protobuf-to-TypeScript identifier conventions                                            |
-| `internal/typescript/provider_gen/` | Provider identity and native runtime declarations                                  |
-| `internal/typescript/schema/` | Descriptor-to-TypeScript type lowering                                                    |
-| `internal/typescript/types_gen/` | Descriptor-driven shared TypeScript declarations                                      |
-| `internal/typescript/validation_gen/` | TypeScript representation and provider-rule validation                         |
-| `internal/gen/`                | Generated annotation bindings                                                           |
+| Directory                              | Responsibility                                                                          |
+| -------------------------------------- | --------------------------------------------------------------------------------------- |
+| `cmd/sandbox-kit/`                     | Developer CLI                                                                           |
+| `cmd/protoc-gen-kit-go/`               | Protobuf output plugin                                                                  |
+| `internal/model/`                      | Language-neutral descriptor and semantic compilation                                    |
+| `internal/go/`                         | Go phase dispatcher and native language emitters                                        |
+| `internal/spec/`                       | Strict YAML loader and portable rule types                                              |
+| `internal/go/declaration_gen/`         | API signature, object, interface, alias, enum, callback, and generic emission           |
+| `internal/go/types_gen/`               | Native types, copying, error runtime, paths, and origin validation                      |
+| `internal/go/error_gen/`               | Consistent shared error expressions                                                     |
+| `internal/go/schema/`                  | Descriptor resolution and canonical field paths                                         |
+| `internal/go/validation_gen/`          | Shared validation and enum checks                                                       |
+| `internal/go/mapping_gen/`             | Field conversions and policy mappings                                                   |
+| `internal/go/client_gen/`              | Client contracts, deadlines, and delegation                                             |
+| `internal/go/provider_gen/`            | SDK construction, client assembly, state capture, provider checks, error classification |
+| `internal/go/naming/`                  | Go field and enum naming                                                                |
+| `internal/typescript/client_gen/`      | TypeScript client runtime and provider delegation                                       |
+| `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives                                |
+| `internal/typescript/error_gen/`       | Shared TypeScript error construction                                                    |
+| `internal/typescript/lifecycle_gen/`   | YAML-driven TypeScript handle lifecycle methods                                         |
+| `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings                                       |
+| `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions                                           |
+| `internal/typescript/provider_gen/`    | Provider identity and native runtime declarations                                       |
+| `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                                                  |
+| `internal/typescript/types_gen/`       | Descriptor-driven shared TypeScript declarations                                        |
+| `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation                                  |
+| `internal/gen/`                        | Generated annotation bindings                                                           |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
 and `sdks/typescript/`, ending in `.gen.go` and `.gen.ts` respectively.

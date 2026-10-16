@@ -1,9 +1,72 @@
 version: 1
 operations:
-  - {id: refresh, capability: refresh, interface: sandbox_refresher, method: refresh_sandbox, receiver: handle, outcome: update_handle}
-  - {id: start, capability: start, interface: sandbox_starter, method: start_sandbox, receiver: handle, options: StartOptions, outcome: update_handle, timeout: true}
-  - {id: stop, capability: stop, interface: sandbox_stopper, method: stop_sandbox, receiver: handle, options: StopOptions, outcome: update_handle, timeout: true}
-  - {id: pause, capability: pause, interface: sandbox_pauser, method: pause_sandbox, receiver: handle, options: PauseOptions, outcome: update_handle, timeout: true}
-  - {id: terminate, capability: terminate, interface: sandbox_terminator, method: terminate_sandbox, receiver: handle, options: TerminateOptions, outcome: exit_result, timeout: true, terminal_state: terminated}
-  - {id: archive, capability: archive, interface: sandbox_archiver, method: archive_sandbox, receiver: handle, options: ArchiveOptions, outcome: update_handle, timeout: true}
-  - {id: delete, capability: delete, interface: sandbox_deleter, method: delete_sandbox, receiver: handle, options: DeleteOptions, outcome: update_handle, timeout: true, terminal_state: deleted}
+  - {
+      id: refresh,
+      capability: refresh,
+      interface: sandbox_refresher,
+      method: refresh_sandbox,
+      receiver: handle,
+      outcome: update_handle,
+    }
+  - {
+      id: start,
+      capability: start,
+      interface: sandbox_starter,
+      method: start_sandbox,
+      receiver: handle,
+      options: StartOptions,
+      outcome: update_handle,
+      timeout: true,
+    }
+  - {
+      id: stop,
+      capability: stop,
+      interface: sandbox_stopper,
+      method: stop_sandbox,
+      receiver: handle,
+      options: StopOptions,
+      outcome: update_handle,
+      timeout: true,
+    }
+  - {
+      id: pause,
+      capability: pause,
+      interface: sandbox_pauser,
+      method: pause_sandbox,
+      receiver: handle,
+      options: PauseOptions,
+      outcome: update_handle,
+      timeout: true,
+    }
+  - {
+      id: terminate,
+      capability: terminate,
+      interface: sandbox_terminator,
+      method: terminate_sandbox,
+      receiver: handle,
+      options: TerminateOptions,
+      outcome: exit_result,
+      timeout: true,
+      terminal_state: terminated,
+    }
+  - {
+      id: archive,
+      capability: archive,
+      interface: sandbox_archiver,
+      method: archive_sandbox,
+      receiver: handle,
+      options: ArchiveOptions,
+      outcome: update_handle,
+      timeout: true,
+    }
+  - {
+      id: delete,
+      capability: delete,
+      interface: sandbox_deleter,
+      method: delete_sandbox,
+      receiver: handle,
+      options: DeleteOptions,
+      outcome: update_handle,
+      timeout: true,
+      terminal_state: deleted,
+    }

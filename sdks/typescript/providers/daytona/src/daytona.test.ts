@@ -12,11 +12,7 @@ import {
 import { describe, expect, it } from "vitest";
 
 import { DaytonaProvider } from "./daytona.js";
-import {
-  mapClientConfig,
-  mapCreateRequest,
-  type DaytonaCreateParams,
-} from "./mappings.js";
+import { mapClientConfig, mapCreateRequest, type DaytonaCreateParams } from "./mappings.js";
 import { mapDaytonaError } from "./provider.errors.gen.js";
 
 describe("Daytona mappings", () => {
@@ -35,10 +31,15 @@ describe("Daytona mappings", () => {
   });
 
   it("resolves generated endpoint environment precedence", () => {
-    expect(mapClientConfig({}, {
-      DAYTONA_API_URL: "https://primary.example/api",
-      DAYTONA_SERVER_URL: "https://fallback.example/api",
-    })).toMatchObject({ apiUrl: "https://primary.example/api" });
+    expect(
+      mapClientConfig(
+        {},
+        {
+          DAYTONA_API_URL: "https://primary.example/api",
+          DAYTONA_SERVER_URL: "https://fallback.example/api",
+        },
+      ),
+    ).toMatchObject({ apiUrl: "https://primary.example/api" });
     expect(mapClientConfig({}, { DAYTONA_SERVER_URL: "https://fallback.example/api" })).toMatchObject({
       apiUrl: "https://fallback.example/api",
     });
@@ -136,9 +137,7 @@ describe("Daytona mappings", () => {
   });
 
   it("rejects wait intent the Daytona TypeScript SDK cannot represent", () => {
-    expect(() =>
-      mapCreateRequest({ provisioning: { waitFor: WaitCondition.Submitted } }),
-    ).toThrowError(
+    expect(() => mapCreateRequest({ provisioning: { waitFor: WaitCondition.Submitted } })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
         field: "provisioning.waitFor",
@@ -150,19 +149,21 @@ describe("Daytona mappings", () => {
     expect(() => mapCreateRequest({ network: { outboundCidrs: { entries: ["not-a-cidr"] } } })).toThrowError(
       expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.outboundCidrs.entries" }),
     );
-    expect(() => mapCreateRequest({
-      lifetime: {
-        idleStop: { mode: PolicyMode.After, after: 60_000 },
-        idlePause: { mode: PolicyMode.After, after: 60_000 },
-      },
-    })).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "lifetime" }));
-	expect(() => mapCreateRequest({ network: { linkedSandbox: "parent" } })).toThrowError(
-	  expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.linkedSandbox" }),
-	);
-	expect(mapCreateRequest({ network: { linkedSandbox: "parent" }, lifetime: { ephemeral: true } })).toMatchObject({
-	  linkedSandbox: "parent",
-	  ephemeral: true,
-	});
+    expect(() =>
+      mapCreateRequest({
+        lifetime: {
+          idleStop: { mode: PolicyMode.After, after: 60_000 },
+          idlePause: { mode: PolicyMode.After, after: 60_000 },
+        },
+      }),
+    ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "lifetime" }));
+    expect(() => mapCreateRequest({ network: { linkedSandbox: "parent" } })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.linkedSandbox" }),
+    );
+    expect(mapCreateRequest({ network: { linkedSandbox: "parent" }, lifetime: { ephemeral: true } })).toMatchObject({
+      linkedSandbox: "parent",
+      ephemeral: true,
+    });
   });
 
   it("preserves Daytona error details and cause", () => {
@@ -198,7 +199,9 @@ describe("Daytona provider orchestration", () => {
         nativeRequest = params;
         return nativeSandbox;
       },
-      async get(): Promise<DaytonaSandbox> { return nativeSandbox; },
+      async get(): Promise<DaytonaSandbox> {
+        return nativeSandbox;
+      },
       async [Symbol.asyncDispose](): Promise<void> {
         closeCalls++;
       },
