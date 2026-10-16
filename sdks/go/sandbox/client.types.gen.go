@@ -312,3 +312,213 @@ func (x *Scope) GetProjectID() string {
 	var zero string
 	return zero
 }
+
+// SandboxReference References an existing provider sandbox. It is the shared
+// input envelope for
+// retrieval and lifecycle calls; native SDKs expose the ID through a Sandbox
+// handle rather than forcing applications to construct this message.
+type SandboxReference struct {
+	SandboxID string `json:"sandbox_id,omitempty" validate:""`
+}
+
+// GetSandboxID returns SandboxID when the receiver and field are present. A
+// nil receiver or omitted field returns the zero value.
+func (x *SandboxReference) GetSandboxID() string {
+	if x != nil {
+		return x.SandboxID
+	}
+	var zero string
+	return zero
+}
+
+type GetSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *GetSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+type AttachSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *AttachSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+type RefreshSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *RefreshSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+type StartSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *StartOptions     `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StartSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StartSandboxRequest) GetOptions() *StartOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *StartOptions
+	return zero
+}
+
+type StopSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *StopOptions      `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StopSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *StopSandboxRequest) GetOptions() *StopOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *StopOptions
+	return zero
+}
+
+type PauseSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *PauseOptions     `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *PauseSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *PauseSandboxRequest) GetOptions() *PauseOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *PauseOptions
+	return zero
+}
+
+type TerminateSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *TerminateOptions `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *TerminateSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *TerminateSandboxRequest) GetOptions() *TerminateOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *TerminateOptions
+	return zero
+}
+
+type ArchiveSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *ArchiveOptions   `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *ArchiveSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *ArchiveSandboxRequest) GetOptions() *ArchiveOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *ArchiveOptions
+	return zero
+}
+
+type DeleteSandboxRequest struct {
+	Sandbox *SandboxReference `json:"sandbox,omitempty" validate:"omitnil"`
+	Options *DeleteOptions    `json:"options,omitempty" validate:"omitnil"`
+}
+
+// GetSandbox returns Sandbox when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *DeleteSandboxRequest) GetSandbox() *SandboxReference {
+	if x != nil {
+		return x.Sandbox
+	}
+	var zero *SandboxReference
+	return zero
+}
+
+// GetOptions returns Options when the receiver and field are present. A nil
+// receiver or omitted field returns the zero value.
+func (x *DeleteSandboxRequest) GetOptions() *DeleteOptions {
+	if x != nil {
+		return x.Options
+	}
+	var zero *DeleteOptions
+	return zero
+}

@@ -68,7 +68,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 		case "client":
 			err = clientgen.Generate(plugin, file, program.Clients[file.Desc.Path()], profile)
 		case "lifecycle":
-			err = lifecyclegen.Generate(plugin, file, program.Lifecycle, program.API.Modules["client"])
+			err = lifecyclegen.Generate(plugin, file, program.Clients[file.Desc.Path()])
 		case "provider":
 			err = providergen.Generate(plugin, file, provider.Rules.Runtime["go"], program.API.Modules["provider"], profile)
 		case "configuration":

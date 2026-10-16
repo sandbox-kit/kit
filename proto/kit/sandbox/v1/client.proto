@@ -8,7 +8,7 @@ import "kit/sandbox/v1/sandbox.proto";
 
 option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
 option (kit.codegen.v1.client) = {
-  creation_service: "SandboxCreation"
+  creation_service: "SandboxService"
   config_message: "Config"
 };
 option (kit.codegen.v1.native_types) = true;
@@ -84,7 +84,55 @@ message Scope {
   optional string project_id = 4;
 }
 
-// Describes local SDK methods for generation; no gRPC service is deployed.
-service SandboxCreation {
-  rpc Create(CreateOptions) returns (CreateResult);
+// Describes the complete local SDK contract for generation. No gRPC service is
+// deployed: language emitters turn these methods into native Client and
+// Sandbox-handle methods, while providers implement typed adapters.
+service SandboxService {
+  rpc Create(CreateOptions) returns (CreateResult) {
+    option (kit.codegen.v1.operation) = { id: "create" outcome: "create_handle" adapter_interface: "sandbox_creator" adapter_method: "create" };
+  }
+  rpc Get(GetSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "get" outcome: "create_handle" adapter_interface: "sandbox_refresher" adapter_method: "refresh_sandbox" };
+  }
+  rpc Attach(AttachSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "attach" outcome: "create_handle" adapter_interface: "sandbox_attacher" adapter_method: "attach_sandbox" };
+  }
+  rpc Refresh(RefreshSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "refresh" capability: "refresh" handle: true outcome: "update_handle" adapter_interface: "sandbox_refresher" adapter_method: "refresh_sandbox" };
+  }
+  rpc Start(StartSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "start" capability: "start" handle: true options_message: "StartOptions" outcome: "update_handle" timeout: true adapter_interface: "sandbox_starter" adapter_method: "start_sandbox" };
+  }
+  rpc Stop(StopSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "stop" capability: "stop" handle: true options_message: "StopOptions" outcome: "update_handle" timeout: true adapter_interface: "sandbox_stopper" adapter_method: "stop_sandbox" };
+  }
+  rpc Pause(PauseSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "pause" capability: "pause" handle: true options_message: "PauseOptions" outcome: "update_handle" timeout: true adapter_interface: "sandbox_pauser" adapter_method: "pause_sandbox" };
+  }
+  rpc Terminate(TerminateSandboxRequest) returns (ExitResult) {
+    option (kit.codegen.v1.operation) = { id: "terminate" capability: "terminate" handle: true options_message: "TerminateOptions" outcome: "exit_result" terminal_state: "terminated" timeout: true adapter_interface: "sandbox_terminator" adapter_method: "terminate_sandbox" };
+  }
+  rpc Archive(ArchiveSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "archive" capability: "archive" handle: true options_message: "ArchiveOptions" outcome: "update_handle" timeout: true adapter_interface: "sandbox_archiver" adapter_method: "archive_sandbox" };
+  }
+  rpc Delete(DeleteSandboxRequest) returns (SandboxInfo) {
+    option (kit.codegen.v1.operation) = { id: "delete" capability: "delete" handle: true options_message: "DeleteOptions" outcome: "update_handle" terminal_state: "deleted" timeout: true adapter_interface: "sandbox_deleter" adapter_method: "delete_sandbox" };
+  }
 }
+
+// References an existing provider sandbox. It is the shared input envelope for
+// retrieval and lifecycle calls; native SDKs expose the ID through a Sandbox
+// handle rather than forcing applications to construct this message.
+message SandboxReference {
+  string sandbox_id = 1;
+}
+
+message GetSandboxRequest { SandboxReference sandbox = 1; }
+message AttachSandboxRequest { SandboxReference sandbox = 1; }
+message RefreshSandboxRequest { SandboxReference sandbox = 1; }
+message StartSandboxRequest { SandboxReference sandbox = 1; StartOptions options = 2; }
+message StopSandboxRequest { SandboxReference sandbox = 1; StopOptions options = 2; }
+message PauseSandboxRequest { SandboxReference sandbox = 1; PauseOptions options = 2; }
+message TerminateSandboxRequest { SandboxReference sandbox = 1; TerminateOptions options = 2; }
+message ArchiveSandboxRequest { SandboxReference sandbox = 1; ArchiveOptions options = 2; }
+message DeleteSandboxRequest { SandboxReference sandbox = 1; DeleteOptions options = 2; }

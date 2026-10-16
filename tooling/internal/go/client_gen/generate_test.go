@@ -21,17 +21,24 @@ func generateForTest(t *testing.T, declaration *codegenv1.ClientDeclaration, edi
 		GoPackage: proto.String("github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox"),
 	}
 	if declaration != nil {
-		declaration.CreationService = "SandboxCreation"
+		declaration.CreationService = "SandboxService"
 		declaration.ConfigMessage = "Config"
 		proto.SetExtension(options, codegenv1.E_Client, declaration)
 	}
+	createOptions := &descriptorpb.MethodOptions{}
+	proto.SetExtension(createOptions, codegenv1.E_Operation, &codegenv1.OperationDeclaration{Id: "create", Outcome: "create_handle", AdapterInterface: "sandbox_creator", AdapterMethod: "create"})
+	refreshOptions := &descriptorpb.MethodOptions{}
+	proto.SetExtension(refreshOptions, codegenv1.E_Operation, &codegenv1.OperationDeclaration{Id: "refresh", Capability: "refresh", Handle: true, Outcome: "update_handle", AdapterInterface: "sandbox_refresher", AdapterMethod: "refresh_sandbox"})
 	plugin, err := (protogen.Options{}).New(&pluginpb.CodeGeneratorRequest{
 		FileToGenerate: []string{"client.proto"},
 		ProtoFile: []*descriptorpb.FileDescriptorProto{{
 			Name: proto.String("client.proto"), Syntax: proto.String("proto3"),
 			Package: proto.String("kit.sandbox.v1"), Options: options,
 			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Config")}, {Name: proto.String("CreateOptions")}, {Name: proto.String("CreateResult")}},
-			Service:     []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("SandboxCreation"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Create"), InputType: proto.String(".kit.sandbox.v1.CreateOptions"), OutputType: proto.String(".kit.sandbox.v1.CreateResult")}}}},
+			Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("SandboxService"), Method: []*descriptorpb.MethodDescriptorProto{
+				{Name: proto.String("Create"), InputType: proto.String(".kit.sandbox.v1.CreateOptions"), OutputType: proto.String(".kit.sandbox.v1.CreateResult"), Options: createOptions},
+				{Name: proto.String("Refresh"), InputType: proto.String(".kit.sandbox.v1.CreateOptions"), OutputType: proto.String(".kit.sandbox.v1.CreateResult"), Options: refreshOptions},
+			}}},
 		}},
 	})
 	if err != nil {

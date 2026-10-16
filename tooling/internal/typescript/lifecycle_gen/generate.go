@@ -6,23 +6,38 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/typescript/declaration_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/typescript/naming"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-// EmitBackendMethods adds optional provider operations to Backend.
-func EmitBackendMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) {
+// EmitServiceBackendMethods emits the complete provider operation surface from
+// SandboxService. Get reuses refresh because both resolve current metadata.
+func EmitServiceBackendMethods(g *protogen.GeneratedFile, operations []model.ServiceOperation) {
 	e := declarationgen.NewEmitter(g)
-	for _, operation := range lifecycle.Operations {
-		e.Line("  ", backendSignature(operation))
+	seen := map[string]bool{}
+	for _, operation := range operations {
+		if operation.ID == "get" || seen[operation.Method] {
+			continue
+		}
+		seen[operation.Method] = true
+		if operation.Handle {
+			e.Line("  ", backendSignature(model.LifecycleOperation{ID: operation.ID, Options: operation.Options, Outcome: operation.Outcome}))
+			continue
+		}
+		switch operation.ID {
+		case "create":
+			e.Line("  create?(request: CreateOptions, options: OperationOptions): Promise<CreateResult>;")
+		case "attach":
+			e.Line("  attach?(id: string, options: OperationOptions): Promise<SandboxInfo>;")
+		}
 	}
 }
 
 // EmitHandleMethods implements Sandbox lifecycle operations from their
 // declared outcomes. Unsupported optional backend methods fail consistently.
-func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) error {
+func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle model.Lifecycle) error {
 	e := declarationgen.NewEmitter(g)
 	for _, operation := range lifecycle.Operations {
 		method, err := handleMethod(operation)
@@ -34,7 +49,7 @@ func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) erro
 	return nil
 }
 
-func backendSignature(operation spec.LifecycleOperation) string {
+func backendSignature(operation model.LifecycleOperation) string {
 	result := "SandboxInfo"
 	if operation.Outcome == "exit_result" {
 		result = "ExitResult"
@@ -46,7 +61,7 @@ func backendSignature(operation spec.LifecycleOperation) string {
 	return fmt.Sprintf("%s?(id: string, %soptions: OperationOptions): Promise<%s>;", operation.ID, request, result)
 }
 
-func handleMethod(operation spec.LifecycleOperation) (string, error) {
+func handleMethod(operation model.LifecycleOperation) (string, error) {
 	switch operation.Outcome {
 	case "update_handle":
 		if operation.Options == "" {
@@ -86,7 +101,7 @@ func handleMethod(operation spec.LifecycleOperation) (string, error) {
 
 // UpdateOptionsUnion returns the request types accepted by the shared handle
 // update helper. Exit-result and requestless operations do not use it.
-func UpdateOptionsUnion(lifecycle spec.Lifecycle) (string, error) {
+func UpdateOptionsUnion(lifecycle model.Lifecycle) (string, error) {
 	options := make([]string, 0, len(lifecycle.Operations))
 	seen := map[string]bool{}
 	for _, operation := range lifecycle.Operations {

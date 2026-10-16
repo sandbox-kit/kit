@@ -34,7 +34,7 @@ GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdi
 
 The second command adds `buf breaking` against the selected Git or Buf input.
 The initial lint baseline is `BASIC`: it catches structural mistakes without
-renaming established enum defaults or the local `SandboxCreation` declaration.
+renaming established enum defaults or the local `SandboxService` declaration.
 
 From `tooling/`:
 
@@ -64,7 +64,7 @@ YAML or import protobuf messages.
 | `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results           |
 | `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions      |
 | `specs/generation.yaml`           | Generation phases and ordered client-operation instructions             |
-| `specs/lifecycle.yaml`            | Handle operations, capabilities, options, outcomes, and terminal states |
+| Annotated `SandboxService` methods | Handle operations, capabilities, options, outcomes, and terminal states |
 | `specs/targets.yaml`              | Language/provider output modules and source descriptors                 |
 | `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy   |
 | `specs/validation.yaml`           | Shared creation validation                                              |
@@ -134,12 +134,13 @@ from the language profile. The Go emitter turns these instructions into
 synchronous calls, context deadlines, and error results. The TypeScript emitter
 uses promises, abort signals, timeouts, and thrown errors.
 
-Handle lifecycle operations are registered once in `specs/lifecycle.yaml`.
-The shared compiler validates their capability interface, method, and option
-types. The Go lifecycle emitter derives public handle methods, typed dispatch,
-timeouts, metadata replacement, terminal updates, and capability discovery from
-that registry. A new operation using an existing outcome shape therefore does
-not require adding its name to the Go emitter.
+Handle lifecycle operations are registered once as annotated methods on
+`SandboxService` in `proto/kit/sandbox/v1/client.proto`. The shared compiler
+validates their portable operation metadata and option types. The Go lifecycle
+emitter derives public handle methods, typed dispatch, timeouts, metadata
+replacement, terminal updates, and capability discovery from that service. A
+new operation using an existing outcome shape therefore does not require adding
+its name to the Go emitter.
 
 The model resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
@@ -339,9 +340,10 @@ generation until copying support is added.
 ## Extend a provider or language
 
 1. Declare shared types and method intent in protobuf.
-2. Describe portable validation, conversions, and operation intent in YAML.
+2. Describe portable validation and conversions in YAML, and operation intent
+   on an annotated `SandboxService` method.
 3. Add native SDK symbols to the language's bindings.
-4. Register operations that use existing outcome shapes in `specs/lifecycle.yaml`;
+4. Add annotated service operations that use existing outcome shapes;
    extend the shared vocabulary and affected emitters only for a new shape.
 5. Add semantic boundary tests, regenerate, and update examples/docs.
 6. Run the CLI verification command.
@@ -359,7 +361,7 @@ files are embedded source templates.
 
 Lifecycle option and result types are generated from protobuf. The Go and
 TypeScript lifecycle emitters generate handle methods and typed provider dispatch
-from `specs/lifecycle.yaml`; the Go emitter also generates static capability
+from annotated `SandboxService` methods; the Go emitter also generates static capability
 discovery. Handle storage, operation/close coordination, and provider-specific
 lifecycle call sequences remain native runtime code. Optional capabilities
 prevent a provider from advertising operations it cannot implement; Daytona

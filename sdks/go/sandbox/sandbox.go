@@ -18,7 +18,7 @@ import (
 //	info := instance.Info()
 type Sandbox struct {
 	mu            sync.RWMutex
-	operations    any
+	operations    Backend
 	timeout       *time.Duration
 	operationGate chan struct{}
 	owner         *Client

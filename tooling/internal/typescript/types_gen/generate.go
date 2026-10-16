@@ -90,7 +90,6 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 		g.P("  readonly ", naming.Camel(string(field.Name())), marker, ": ", typeName, ";")
 	}
 	g.P("}")
-	g.P()
 	return nil
 }
 
@@ -162,7 +161,6 @@ func emitOneofMessage(g *protogen.GeneratedFile, message protoreflect.MessageDes
 		}
 		g.P("  | ", variant, end)
 	}
-	g.P()
 	return nil
 }
 

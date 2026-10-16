@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	"github.com/sandbox-kit/kit/tooling/internal/model"
 )
 
 func TestUpdateOptionsUnionUsesDeclaredUpdateOperations(t *testing.T) {
-	lifecycle := spec.Lifecycle{Operations: []spec.LifecycleOperation{
+	lifecycle := model.Lifecycle{Operations: []model.LifecycleOperation{
 		{ID: "refresh", Outcome: "update_handle"},
 		{ID: "start", Outcome: "update_handle", Options: "StartOptions"},
 		{ID: "startAgain", Outcome: "update_handle", Options: "StartOptions"},
@@ -26,14 +26,14 @@ func TestUpdateOptionsUnionUsesDeclaredUpdateOperations(t *testing.T) {
 }
 
 func TestBackendSignatureUsesLifecycleDeclaration(t *testing.T) {
-	operation := spec.LifecycleOperation{ID: "terminate", Options: "TerminateOptions", Outcome: "exit_result"}
+	operation := model.LifecycleOperation{ID: "terminate", Options: "TerminateOptions", Outcome: "exit_result"}
 	if got, want := backendSignature(operation), "terminate?(id: string, request: TerminateOptions, options: OperationOptions): Promise<ExitResult>;"; got != want {
 		t.Fatalf("backendSignature() = %q, want %q", got, want)
 	}
 }
 
 func TestHandleMethodUsesDeclaredTerminalState(t *testing.T) {
-	operation := spec.LifecycleOperation{ID: "terminate", Options: "TerminateOptions", Outcome: "exit_result", TerminalState: "terminated"}
+	operation := model.LifecycleOperation{ID: "terminate", Options: "TerminateOptions", Outcome: "exit_result", TerminalState: "terminated"}
 	got, err := handleMethod(operation)
 	if err != nil {
 		t.Fatalf("handleMethod() error = %v", err)

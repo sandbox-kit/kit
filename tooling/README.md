@@ -59,8 +59,9 @@ handling.
 
 `generate typescript` emits shared contracts, the public client, provider
 identities, lifecycle dispatch, and typed Daytona and Modal mappings. Its
-lifecycle surface is compiled from `specs/lifecycle.yaml`; reusable source-block
-emission keeps handwritten SDK orchestration separate from semantic generation.
+lifecycle surface is compiled from annotated `SandboxService` protobuf methods;
+reusable source-block emission keeps handwritten SDK orchestration separate from
+the generated contract.
 `test typescript` builds and tests the shared package and both providers, discovers
 every TypeScript example containing a `package.json`, and builds each example
 without making provider calls.
@@ -85,15 +86,15 @@ The model resolves schema identities, client methods, field paths, mappings, and
 error classifications without Go syntax or SDK dependencies. Provider bindings
 remain attached to the specifications for selection by each language emitter.
 
-`specs/api.yaml` declares runtime APIs. `specs/templates.yaml` declares reusable
+`specs/api.yaml` declares runtime-only native APIs. `specs/templates.yaml` declares reusable
 signatures and field-path rules for descriptor-driven helpers.
 `specs/behaviors.yaml` defines the signature requirements of implemented
 behaviors. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
 control native representation and output conventions. Templates retain structured type
 bindings; body emitters resolve explicit symbols instead of renaming text. `specs/generation.yaml` declares
-output phases and ordered client instructions. `specs/lifecycle.yaml` is the
-semantic registry from which handle lifecycle methods and static capability
-discovery are emitted.
+output phases and ordered client instructions. Annotated `SandboxService`
+methods are the semantic registry from which handle lifecycle methods and static
+capability discovery are emitted.
 `internal/go/generate.go` and `internal/typescript/generate.go` dispatch the
 compiled program to focused native emitters. Adding another language requires an
 emitter for that vocabulary and native SDK bindings; it does not require

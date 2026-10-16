@@ -3,18 +3,8 @@
 
 /** A duration in milliseconds. */
 export type DurationMs = number;
-export type MetadataValue =
-  | null
-  | boolean
-  | string
-  | number
-  | bigint
-  | Uint8Array
-  | readonly MetadataValue[]
-  | MetadataObject;
-export interface MetadataObject {
-  readonly [key: string]: MetadataValue;
-}
+export type MetadataValue = null | boolean | string | number | bigint | Uint8Array | readonly MetadataValue[] | MetadataObject;
+export interface MetadataObject { readonly [key: string]: MetadataValue; }
 
 export const SnapshotKind = {
   Default: "default",
@@ -247,30 +237,25 @@ export interface CreateOptions {
   readonly observability?: ObservabilityConfig;
   readonly providerOptions?: MetadataObject;
 }
-
 export type SandboxSource =
   | { readonly kind: "providerDefault"; readonly providerDefault: ProviderDefaultSource }
   | { readonly kind: "image"; readonly image: ImageSource }
   | { readonly kind: "snapshot"; readonly snapshot: SnapshotSource }
   | { readonly kind: "warmPool"; readonly warmPool: WarmPoolSource }
   | { readonly kind?: never };
-
-export interface ProviderDefaultSource {}
-
+export interface ProviderDefaultSource {
+}
 export interface ImageSource {
   readonly reference: string;
 }
-
 export interface SnapshotSource {
   readonly reference: string;
   readonly kind?: SnapshotKind;
   readonly providerKind?: string;
 }
-
 export interface WarmPoolSource {
   readonly reference: string;
 }
-
 export interface RuntimeConfig {
   readonly language?: string;
   readonly version?: string;
@@ -279,13 +264,11 @@ export interface RuntimeConfig {
   readonly entrypoint?: readonly string[];
   readonly pty?: boolean;
 }
-
 export interface IsolationConfig {
   readonly kind?: IsolationKind;
   readonly providerKind?: string;
   readonly nestedVirtualization?: boolean;
 }
-
 export interface Resources {
   readonly cpuCores?: number;
   readonly cpuLimitCores?: number;
@@ -293,17 +276,14 @@ export interface Resources {
   readonly memoryLimitMib?: bigint;
   readonly diskMib?: bigint;
 }
-
 export interface Placement {
   readonly cloud?: string;
   readonly regions?: readonly string[];
   readonly target?: string;
 }
-
 export interface StringAllowlist {
   readonly entries?: readonly string[];
 }
-
 export interface NetworkConfig {
   readonly egress?: EgressMode;
   readonly outboundCidrs?: StringAllowlist;
@@ -316,24 +296,20 @@ export interface NetworkConfig {
   readonly customDomain?: string;
   readonly ports?: readonly PortBinding[];
 }
-
 export interface PortBinding {
   readonly port: number;
   readonly transport?: PortTransport;
 }
-
 export interface SecurityConfig {
   readonly publicAccess?: boolean;
   readonly workloadIdentity?: boolean;
   readonly secrets?: readonly SecretReference[];
 }
-
 export interface SecretReference {
   readonly reference: string;
   readonly environmentVariable?: string;
   readonly injection?: SecretInjection;
 }
-
 export interface LifetimePolicy {
   readonly maximumLifetime?: DurationMs;
   readonly ephemeral?: boolean;
@@ -343,67 +319,53 @@ export interface LifetimePolicy {
   readonly stoppedArchive?: AutomaticAction;
   readonly stoppedDelete?: AutomaticAction;
 }
-
 export interface AutomaticAction {
   readonly mode?: PolicyMode;
   readonly after?: DurationMs;
 }
-
 export interface ProvisioningOptions {
   readonly timeout?: DurationMs;
   readonly queueTimeout?: DurationMs;
   readonly waitFor?: WaitCondition;
 }
-
 export type ReadinessProbe =
   | { readonly check: "tcpPort"; readonly tcpPort: number }
   | { readonly check: "command"; readonly command: CommandProbe }
   | { readonly check?: never };
-
 export interface CommandProbe {
   readonly argv?: readonly string[];
 }
-
 export interface ObservabilityConfig {
   readonly verbose?: boolean;
   readonly telemetryEndpoint?: string;
 }
-
 export interface CreateResult {
   readonly sandbox?: SandboxInfo;
 }
-
 export interface StartOptions {
   readonly timeout?: DurationMs;
 }
-
 export interface StopOptions {
   readonly timeout?: DurationMs;
   readonly force?: boolean;
 }
-
 export interface PauseOptions {
   readonly timeout?: DurationMs;
 }
-
 export interface TerminateOptions {
   readonly timeout?: DurationMs;
   readonly wait?: boolean;
 }
-
 export interface ArchiveOptions {
   readonly timeout?: DurationMs;
 }
-
 export interface DeleteOptions {
   readonly timeout?: DurationMs;
   readonly wait?: boolean;
 }
-
 export interface ExitResult {
   readonly exitCode?: number;
 }
-
 export interface SandboxInfo {
   readonly id: string;
   readonly provider: string;
@@ -419,7 +381,6 @@ export interface SandboxInfo {
   readonly state: SandboxState;
   readonly terminal?: boolean;
 }
-
 export interface ErrorInfo {
   readonly kind: ErrorKind;
   readonly provider: string;

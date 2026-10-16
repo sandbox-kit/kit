@@ -8,36 +8,28 @@ export function validateProviderCreate(request: CreateOptions): void {
   if (value0_0 !== undefined) {
     const value0 = value0_0.cpuCores;
     if (value0 !== undefined) {
-      if (value0 < 0.125)
-        fail(ErrorKind.InvalidArgument, "resources.cpuCores", "resources.cpu_cores is outside supported values");
+      if (value0 < 0.125) fail(ErrorKind.InvalidArgument, "resources.cpuCores", "resources.cpu_cores is outside supported values");
     }
   }
   const value1_0 = request.resources;
   if (value1_0 !== undefined) {
     const value1 = value1_0.memoryMib;
     if (value1 !== undefined) {
-      if (value1 < BigInt("128"))
-        fail(ErrorKind.InvalidArgument, "resources.memoryMib", "resources.memory_mib is outside supported values");
+      if (value1 < BigInt("128")) fail(ErrorKind.InvalidArgument, "resources.memoryMib", "resources.memory_mib is outside supported values");
     }
   }
   const value2_0 = request.runtime;
   if (value2_0 !== undefined) {
     const value2 = value2_0.workingDirectory;
     if (value2 !== undefined) {
-      if (!validAbsolutePath(value2))
-        fail(
-          ErrorKind.InvalidArgument,
-          "runtime.workingDirectory",
-          "runtime.working_directory is outside supported values",
-        );
+      if (!validAbsolutePath(value2)) fail(ErrorKind.InvalidArgument, "runtime.workingDirectory", "runtime.working_directory is outside supported values");
     }
   }
   const value3_0 = request.placement;
   if (value3_0 !== undefined) {
     const value3 = value3_0.cloud;
     if (value3 !== undefined) {
-      if (value3 !== "aws" && value3 !== "gcp" && value3 !== "oci" && value3 !== "auto")
-        fail(ErrorKind.Unsupported, "placement.cloud", "placement.cloud is outside supported values");
+      if (value3 !== "aws" && value3 !== "gcp" && value3 !== "oci" && value3 !== "auto") fail(ErrorKind.Unsupported, "placement.cloud", "placement.cloud is outside supported values");
     }
   }
   const value4_0 = request.network;
@@ -45,12 +37,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     const value4_1 = value4_0.outboundCidrs;
     if (value4_1 !== undefined) {
       for (const value4 of value4_1.entries ?? []) {
-        if (value4 !== "" && !validCidr(value4))
-          fail(
-            ErrorKind.InvalidArgument,
-            "network.outboundCidrs.entries",
-            "network.outbound_cidrs.entries is outside supported values",
-          );
+        if (value4 !== "" && !validCidr(value4)) fail(ErrorKind.InvalidArgument, "network.outboundCidrs.entries", "network.outbound_cidrs.entries is outside supported values");
       }
     }
   }
@@ -59,12 +46,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     const value5_1 = value5_0.inboundCidrs;
     if (value5_1 !== undefined) {
       for (const value5 of value5_1.entries ?? []) {
-        if (!validCidr(value5))
-          fail(
-            ErrorKind.InvalidArgument,
-            "network.inboundCidrs.entries",
-            "network.inbound_cidrs.entries is outside supported values",
-          );
+        if (!validCidr(value5)) fail(ErrorKind.InvalidArgument, "network.inboundCidrs.entries", "network.inbound_cidrs.entries is outside supported values");
       }
     }
   }
@@ -73,83 +55,23 @@ export function validateProviderCreate(request: CreateOptions): void {
     const value6_1 = value6_0.outboundDomains;
     if (value6_1 !== undefined) {
       for (const value6 of value6_1.entries ?? []) {
-        if (value6 !== "" && !validDomain(value6))
-          fail(
-            ErrorKind.InvalidArgument,
-            "network.outboundDomains.entries",
-            "network.outbound_domains.entries is outside supported values",
-          );
+        if (value6 !== "" && !validDomain(value6)) fail(ErrorKind.InvalidArgument, "network.outboundDomains.entries", "network.outbound_domains.entries is outside supported values");
       }
     }
   }
   for (const value7 of Object.keys(request.environment ?? {})) {
-    if (!validEnvName(value7))
-      fail(ErrorKind.InvalidArgument, "environment", "environment is outside supported values");
+    if (!validEnvName(value7)) fail(ErrorKind.InvalidArgument, "environment", "environment is outside supported values");
   }
 }
 
-function delayed(policy: AutomaticAction | undefined): boolean {
-  return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after !== undefined && policy.after > 0;
-}
-function immediate(policy: AutomaticAction | undefined): boolean {
-  return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after === 0;
-}
-function validEnvName(value: string): boolean {
-  return /^[A-Za-z_][A-Za-z0-9_]*$/.test(value);
-}
-function validAbsolutePath(value: string): boolean {
-  return value.startsWith("/");
-}
-function validHttpUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.hostname !== "" && (parsed.protocol === "http:" || parsed.protocol === "https:");
-  } catch {
-    return false;
-  }
-}
-function validDomain(value: string): boolean {
-  const domain = value.startsWith("*.") ? value.slice(2) : value;
-  return (
-    domain.length <= 253 && /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.?$/i.test(domain)
-  );
-}
-function validCidr(value: string): boolean {
-  const separator = value.lastIndexOf("/");
-  if (separator <= 0) return false;
-  const address = value.slice(0, separator);
-  const prefix = Number(value.slice(separator + 1));
-  if (!Number.isInteger(prefix)) return false;
-  return address.includes(":")
-    ? prefix >= 0 && prefix <= 128 && validIpv6(address)
-    : prefix >= 0 && prefix <= 32 && validIpv4(address);
-}
-function validIpv4(value: string): boolean {
-  const parts = value.split(".");
-  return parts.length === 4 && parts.every((part) => /^(0|[1-9][0-9]{0,2})$/.test(part) && Number(part) <= 255);
-}
-function validIpv6(value: string): boolean {
-  if ((value.match(/::/g)?.length ?? 0) > 1) return false;
-  const halves = value.split("::");
-  if (halves.length > 2) return false;
-  const count = (part: string): number | undefined => {
-    if (part === "") return 0;
-    const groups = part.split(":");
-    let total = 0;
-    for (const group of groups) {
-      if (/^[0-9a-f]{1,4}$/i.test(group)) total++;
-      else if (validIpv4(group)) total += 2;
-      else return undefined;
-    }
-    return total;
-  };
-  const left = count(halves[0] ?? "");
-  const right = count(halves[1] ?? "");
-  return left !== undefined && right !== undefined && (halves.length === 2 ? left + right < 8 : left === 8);
-}
-function invalid(field: string, message: string): never {
-  fail(ErrorKind.InvalidArgument, field, message);
-}
-function fail(kind: ErrorKind, field: string, message: string): never {
-  throw sandboxError({ kind, provider: "modal", operation: "create", field, message: "sandbox-kit modal: " + message });
-}
+function delayed(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after !== undefined && policy.after > 0; }
+function immediate(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after === 0; }
+function validEnvName(value: string): boolean { return /^[A-Za-z_][A-Za-z0-9_]*$/.test(value); }
+function validAbsolutePath(value: string): boolean { return value.startsWith("/"); }
+function validHttpUrl(value: string): boolean { try { const parsed = new URL(value); return parsed.hostname !== "" && (parsed.protocol === "http:" || parsed.protocol === "https:"); } catch { return false; } }
+function validDomain(value: string): boolean { const domain = value.startsWith("*.") ? value.slice(2) : value; return domain.length <= 253 && /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.?$/i.test(domain); }
+function validCidr(value: string): boolean { const separator = value.lastIndexOf("/"); if (separator <= 0) return false; const address = value.slice(0, separator); const prefix = Number(value.slice(separator + 1)); if (!Number.isInteger(prefix)) return false; return address.includes(":") ? prefix >= 0 && prefix <= 128 && validIpv6(address) : prefix >= 0 && prefix <= 32 && validIpv4(address); }
+function validIpv4(value: string): boolean { const parts = value.split("."); return parts.length === 4 && parts.every((part) => /^(0|[1-9][0-9]{0,2})$/.test(part) && Number(part) <= 255); }
+function validIpv6(value: string): boolean { if ((value.match(/::/g)?.length ?? 0) > 1) return false; const halves = value.split("::"); if (halves.length > 2) return false; const count = (part: string): number | undefined => { if (part === "") return 0; const groups = part.split(":"); let total = 0; for (const group of groups) { if (/^[0-9a-f]{1,4}$/i.test(group)) total++; else if (validIpv4(group)) total += 2; else return undefined; } return total; }; const left = count(halves[0] ?? ""); const right = count(halves[1] ?? ""); return left !== undefined && right !== undefined && (halves.length === 2 ? left + right < 8 : left === 8); }
+function invalid(field: string, message: string): never { fail(ErrorKind.InvalidArgument, field, message); }
+function fail(kind: ErrorKind, field: string, message: string): never { throw sandboxError({ kind, provider: "modal", operation: "create", field, message: "sandbox-kit modal: " + message }); }

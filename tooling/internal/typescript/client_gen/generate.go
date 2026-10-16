@@ -61,12 +61,10 @@ export interface OperationOptions {
 }
 
 export interface Backend {
-  readonly name: string;
-  create?(request: CreateOptions, options: OperationOptions): Promise<CreateResult>;
-  close(options: OperationOptions): Promise<void>;
-  attach?(id: string, options: OperationOptions): Promise<SandboxInfo>;`)
-	lifecyclegen.EmitBackendMethods(g, program.Lifecycle)
+	readonly name: string;`)
+	lifecyclegen.EmitServiceBackendMethods(g, program.Clients[file.Desc.Path()].ServiceOperations)
 	e.Block(`
+  close(options: OperationOptions): Promise<void>;
   closeSandbox?(id: string, options: OperationOptions): Promise<void>;
   capabilities?(info: SandboxInfo): readonly LifecycleCapability[];
 }

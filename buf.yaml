@@ -3,7 +3,7 @@ modules:
   - path: proto
 lint:
   # BASIC catches structural and naming mistakes without forcing public API
-  # renames such as DEFAULT to UNSPECIFIED or SandboxCreation to *Service.
+  # renames such as DEFAULT to UNSPECIFIED or SandboxService to *Service.
   use:
     - BASIC
   except:
