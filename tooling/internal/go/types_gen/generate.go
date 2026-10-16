@@ -16,7 +16,7 @@ import (
 )
 
 // Generate emits native Go data types. Protobuf is only a build-time input.
-func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validation, surface model.APIModule, helpers model.APIModule, profile spec.LanguageProfile, templates model.Templates) error {
+func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validation, representation spec.RepresentationPolicy, surface model.APIModule, helpers model.APIModule, profile spec.LanguageProfile, templates model.Templates) error {
 	if !proto.HasExtension(file.Desc.Options(), codegen.E_NativeTypes) || !proto.GetExtension(file.Desc.Options(), codegen.E_NativeTypes).(bool) {
 		return nil
 	}
@@ -100,7 +100,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 			if !field.Desc.IsList() && !field.Desc.IsMap() {
 				jsonName += ",omitempty"
 			}
-			if rules.Messages[name].Fields[string(field.Desc.Name())].Sensitive {
+			if representation.Messages[name].Fields[string(field.Desc.Name())].Sensitive {
 				jsonName = "-"
 			}
 			commentBefore(g, field.Comments.Leading, naming.FieldName(field))

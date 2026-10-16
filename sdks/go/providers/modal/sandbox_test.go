@@ -24,6 +24,16 @@ type imagesStub struct{ sdk.ImageService }
 
 func (imagesStub) FromRegistry(string, *sdk.ImageFromRegistryParams) *sdk.Image { return &sdk.Image{} }
 
+type proxiesStub struct {
+	sdk.ProxyService
+	calls *int
+}
+
+func (s proxiesStub) FromName(_ context.Context, name string, _ *sdk.ProxyFromNameParams) (*sdk.Proxy, error) {
+	*s.calls++
+	return &sdk.Proxy{ProxyID: "resolved-" + name}, nil
+}
+
 type sandboxesStub struct {
 	sdk.SandboxService
 	got **sdk.SandboxCreateParams
@@ -46,18 +56,21 @@ func modalConfig() *sandbox.CreateOptions {
 }
 func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 	calls := 0
+	proxyCalls := 0
 	var got *sdk.SandboxCreateParams
-	native := &sdk.Client{Apps: appsStub{calls: &calls}, Images: imagesStub{}, Sandboxes: sandboxesStub{got: &got}}
+	native := &sdk.Client{Apps: appsStub{calls: &calls}, Images: imagesStub{}, Proxies: proxiesStub{calls: &proxyCalls}, Sandboxes: sandboxesStub{got: &got}}
 	adapter := &backend{client: native, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
 	if adapter.client != native {
 		t.Fatal("SDK replaced")
 	}
 	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
-	handle, err := client.Create(context.Background(), modalConfig())
+	config := modalConfig()
+	config.Network = &sandbox.NetworkConfig{ProxyReference: sandbox.Value("static-egress")}
+	handle, err := client.Create(context.Background(), config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if handle.ID() != "created" || handle.ProviderName() != "modal" || handle.Info().GetIsolation().Kind != sandbox.IsolationKindContainer || calls != 1 || got.CPU != 1.5 || got.MemoryMiB != 2048 || got.Env["MODE"] != "test" {
+	if handle.ID() != "created" || handle.ProviderName() != "modal" || handle.Info().GetIsolation().Kind != sandbox.IsolationKindContainer || calls != 1 || proxyCalls != 1 || got.Proxy == nil || got.Proxy.ProxyID != "resolved-static-egress" || got.CPU != 1.5 || got.MemoryMiB != 2048 || got.Env["MODE"] != "test" {
 		t.Fatal("SDK mapping or response normalization failed")
 	}
 }

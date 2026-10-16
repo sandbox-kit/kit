@@ -14,7 +14,7 @@ SDK and its selected provider. Requires Go 1.26.9 or newer and this checkout.
 | [create-modal-linux-vm](modal/create-modal-linux-vm/README.md)                 | Modal token pair, existing app, optional environment | Compiles                                        |
 | [create-modal-with-placement](modal/create-modal-with-placement/README.md)     | Modal token pair, app, optional cloud and region     | Compiles                                        |
 | [create-modal-with-labels](modal/create-modal-with-labels/README.md)           | Modal token pair, existing app, optional environment | Compiles                                        |
-| [create-modal-with-network](modal/create-modal-with-network/README.md)         | Modal token pair, existing app, optional environment | Compiles                                        |
+| [create-modal-with-network](modal/create-modal-with-network/README.md)         | Modal token pair, existing app and proxy              | Compiles                                        |
 | [create-modal-idle](modal/create-modal-idle/README.md)                         | Modal token pair, existing app, optional environment | Compiles                                        |
 | [create-modal-ready](modal/create-modal-ready/README.md)                       | Modal token pair, existing app, optional environment | Compiles                                        |
 | [create-modal-verbose](modal/create-modal-verbose/README.md)                   | Modal token pair, existing app, optional environment | Compiles                                        |

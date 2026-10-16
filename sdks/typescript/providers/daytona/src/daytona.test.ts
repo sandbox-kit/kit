@@ -92,7 +92,6 @@ describe("Daytona mappings", () => {
           egress: EgressMode.Restricted,
           outboundCidrs: { entries: ["192.0.2.0/24"] },
           outboundDomains: { entries: ["example.com"] },
-          linkedSandbox: "sandbox-parent",
           outboundProxyUrl: "https://proxy.example.com",
         },
         lifetime: {
@@ -116,7 +115,6 @@ describe("Daytona mappings", () => {
       secrets: { GITHUB_TOKEN: "github-token" },
       networkAllowList: "192.0.2.0/24",
       domainAllowList: "example.com",
-      linkedSandbox: "sandbox-parent",
       outboundProxyUrl: "https://proxy.example.com",
       ttlMinutes: 60,
       ephemeral: false,
@@ -158,6 +156,13 @@ describe("Daytona mappings", () => {
         idlePause: { mode: PolicyMode.After, after: 60_000 },
       },
     })).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "lifetime" }));
+	expect(() => mapCreateRequest({ network: { linkedSandbox: "parent" } })).toThrowError(
+	  expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.linkedSandbox" }),
+	);
+	expect(mapCreateRequest({ network: { linkedSandbox: "parent" }, lifetime: { ephemeral: true } })).toMatchObject({
+	  linkedSandbox: "parent",
+	  ephemeral: true,
+	});
   });
 
   it("preserves Daytona error details and cause", () => {

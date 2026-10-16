@@ -27,6 +27,8 @@ func TestDocumentedCreationRules(t *testing.T) {
 		{"archive above maximum", &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: delay(30*24*time.Hour + time.Minute)}}, false},
 		{"immediate archive", &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: delay(0)}}, false},
 		{"bad CIDR", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{OutboundCIDRs: &sandbox.StringAllowlist{Entries: []string{"not-a-cidr"}}}}, false},
+		{"linked sandbox is ephemeral", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}, Lifetime: &sandbox.LifetimePolicy{Ephemeral: sandbox.Value(true)}}, true},
+		{"linked sandbox without ephemeral lifetime", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := planCreate(tc.request)

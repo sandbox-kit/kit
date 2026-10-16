@@ -85,6 +85,32 @@ func typescriptModules(root string) ([]struct {
 
 func newTestCommand(config *settings, runner runner) *cobra.Command {
 	command := &cobra.Command{Use: "test", Short: "Verify SDK modules and examples"}
+	var against string
+	proto := &cobra.Command{
+		Use: "proto", Short: "Check protobuf formatting, lint, compilation, and optional compatibility", Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			root, err := resolveRoot(config.repoRoot)
+			if err != nil {
+				return err
+			}
+			steps := []step{
+				{root, config.bufBinary, []string{"format", "--diff", "--exit-code"}},
+				{root, config.bufBinary, []string{"lint"}},
+				{root, config.bufBinary, []string{"build"}},
+			}
+			if against != "" {
+				steps = append(steps, step{root, config.bufBinary, []string{"breaking", "--against", against}})
+			}
+			for _, task := range steps {
+				if err := runner.run(cmd.Context(), task, cmd.OutOrStdout(), cmd.ErrOrStderr()); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	}
+	proto.Flags().StringVar(&against, "against", "", "Optional Buf or Git input used as the breaking-change baseline")
+	command.AddCommand(proto)
 	command.AddCommand(&cobra.Command{
 		Use: "go", Short: "Test Go SDKs, tooling, and the example projects", Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {

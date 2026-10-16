@@ -65,6 +65,15 @@ function hangingFixture(): { readonly client: Client; readonly backend: HangingB
 }
 
 describe("Client cleanup", () => {
+	it("starts cleanup when a provider returns the wrong backend identity", async () => {
+	  const backend = new RecordingBackend();
+	  expect(() => new Client({ provider: { name: "different", initialize: () => backend } })).toThrowError(
+		expect.objectContaining({ kind: ErrorKind.InvalidResponse, field: "provider" }),
+	  );
+	  await Promise.resolve();
+	  expect(backend.closeCalls).toBe(1);
+	});
+
   it("makes close idempotent", async () => {
     const { client, backend } = fixture();
     await Promise.all([client.close(), client.close()]);
@@ -95,6 +104,28 @@ describe("Client cleanup", () => {
     });
     expect(backend.createCalls).toBe(0);
   });
+
+  it("invalidates handles when their owning client closes", async () => {
+    const { client, backend } = fixture();
+    const sandbox = await client.attach("sandbox-existing");
+    await client.close();
+
+    await expect(sandbox.terminate()).rejects.toMatchObject({
+      kind: ErrorKind.FailedPrecondition,
+      operation: "terminate",
+    });
+    expect(backend.terminated).toBe(false);
+  });
+
+  it("supports management-only providers without a create capability", async () => {
+    const backend: Backend = { name: "manage", close: async () => {} };
+    const client = new Client({ provider: { name: backend.name, initialize: () => backend } });
+
+    await expect(client.create()).rejects.toMatchObject({
+      kind: ErrorKind.Unsupported,
+      operation: "create",
+    });
+  });
 });
 
 describe("Shared request validation", () => {
@@ -105,6 +136,7 @@ describe("Shared request validation", () => {
       kind: ErrorKind.InvalidArgument,
       operation: "create",
       field: "resources.cpuCores",
+      rule: "exclusive_minimum",
     });
     expect(backend.createCalls).toBe(0);
   });
@@ -152,6 +184,16 @@ describe("Shared request validation", () => {
     })).resolves.toBeDefined();
     expect(backend.createCalls).toBe(1);
   });
+
+  it("rejects non-finite duration values", async () => {
+    const { client, backend } = fixture();
+
+    await expect(client.create({ provisioning: { timeout: Number.POSITIVE_INFINITY } })).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: "provisioning.timeout",
+    });
+    expect(backend.createCalls).toBe(0);
+  });
 });
 
 describe("Shared client configuration validation", () => {
@@ -162,6 +204,17 @@ describe("Shared client configuration validation", () => {
 
     expect(() => new Client({ provider, endpoint: "http://remote.example/api" })).toThrowError(
       expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "endpoint", operation: "initialize" }),
+    );
+    expect(initialized).toBe(false);
+  });
+
+  it("rejects a non-finite default timeout before initialization", () => {
+    const backend = new RecordingBackend();
+    let initialized = false;
+    const provider: Provider = { name: backend.name, initialize: () => { initialized = true; return backend; } };
+
+    expect(() => new Client({ provider, timeout: Number.POSITIVE_INFINITY })).toThrowError(
+      expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "timeout", operation: "initialize" }),
     );
     expect(initialized).toBe(false);
   });
@@ -232,11 +285,81 @@ describe("Sandbox lifecycle", () => {
     expect(sandbox.supports(LifecycleCapability.Terminate)).toBe(true);
     await expect(sandbox.terminate({ wait: true })).resolves.toEqual({ exitCode: 0 });
     expect(backend.terminated).toBe(true);
+    expect(sandbox.capabilities()).toEqual([]);
+    await expect(sandbox.terminate()).rejects.toMatchObject({ kind: ErrorKind.FailedPrecondition, operation: "terminate" });
   });
 
   it("rejects lifecycle operations absent from the selected provider", async () => {
     const { client } = fixture();
     const sandbox = await client.attach("sandbox-existing");
     await expect(sandbox.pause()).rejects.toMatchObject({ kind: ErrorKind.Unsupported, operation: "pause" });
+  });
+
+  it("serializes lifecycle transitions on one handle", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    let calls = 0;
+    const backend: Backend = {
+      name: "serial",
+      close: async () => {},
+      attach: async (id) => ({ id, provider: "serial", state: "running" }),
+      start: async (id) => {
+        active++;
+        maximumActive = Math.max(maximumActive, active);
+        calls++;
+        if (calls === 1) await firstBlocked;
+        active--;
+        return { id, provider: "serial", state: "running" };
+      },
+    };
+    const client = new Client({ provider: { name: backend.name, initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-existing");
+
+    const first = sandbox.start();
+    const second = sandbox.start();
+    await Promise.resolve();
+    releaseFirst();
+    await Promise.all([first, second]);
+
+    expect(maximumActive).toBe(1);
+  });
+
+  it("preserves serialization when a queued transition is canceled", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    let calls = 0;
+    const backend: Backend = {
+      name: "serial-cancel",
+      close: async () => {},
+      attach: async (id) => ({ id, provider: "serial-cancel", state: "running" }),
+      start: async (id) => {
+        active++;
+        maximumActive = Math.max(maximumActive, active);
+        calls++;
+        if (calls === 1) await firstBlocked;
+        active--;
+        return { id, provider: "serial-cancel", state: "running" };
+      },
+    };
+    const client = new Client({ provider: { name: backend.name, initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-existing");
+    const controller = new AbortController();
+
+    const first = sandbox.start();
+    const canceled = sandbox.start({}, { signal: controller.signal });
+    controller.abort();
+    await expect(canceled).rejects.toMatchObject({ kind: ErrorKind.Canceled });
+
+    const third = sandbox.start();
+    await Promise.resolve();
+    expect(calls).toBe(1);
+
+    releaseFirst();
+    await Promise.all([first, third]);
+    expect(maximumActive).toBe(1);
   });
 });

@@ -118,6 +118,11 @@ func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error)
 	if result.Contracts, err = spec.LoadContracts(root); err != nil {
 		return nil, err
 	}
+	if _, lookupErr := result.Schema.Message(result.Client.ConfigMessage); lookupErr == nil {
+		if err = result.Schema.ValidateRepresentation(result.Client.Representation); err != nil {
+			return nil, err
+		}
+	}
 	// protoc can invoke the plugin separately for shared and client files.
 	// Validate only specifications whose root exists in this descriptor graph.
 	for _, item := range []struct {

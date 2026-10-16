@@ -37,3 +37,19 @@ func TestPortableClientEnvironmentRules(t *testing.T) {
 		}
 	}
 }
+
+func TestRepresentationMetadataResolvesSchemaFields(t *testing.T) {
+	schema := NewSchema([]protoreflect.FileDescriptor{fixture(t)})
+	valid := spec.RepresentationPolicy{Messages: map[string]spec.RepresentationMessage{
+		"Config": {Fields: map[string]spec.RepresentationField{"endpoint": {Sensitive: true}}},
+	}}
+	if err := schema.ValidateRepresentation(valid); err != nil {
+		t.Fatal(err)
+	}
+	invalid := spec.RepresentationPolicy{Messages: map[string]spec.RepresentationMessage{
+		"Config": {Fields: map[string]spec.RepresentationField{"missing": {Sensitive: true}}},
+	}}
+	if err := schema.ValidateRepresentation(invalid); err == nil {
+		t.Fatal("unknown representation field accepted")
+	}
+}

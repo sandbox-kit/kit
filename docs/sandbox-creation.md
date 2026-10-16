@@ -18,7 +18,7 @@ target `modal@0.11.0` and `@daytona/sdk@0.224.0`.
 | Placement              | Cloud and region preferences                                            | Client target; request placement unsupported                       |
 | Environment and labels | Environment map and tags                                                | Environment map and labels                                         |
 | Security               | Named secrets and workload identity                                     | Egress-placeholder secrets and public access                       |
-| Network                | Egress allowlists, inbound CIDRs, private network, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
+| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
 | Lifetime               | Maximum lifetime and idle termination                                   | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
 | Wait                   | Default/scheduled; ready requires a probe and positive timeout          | Default/submitted/started                                          |
 | Observability          | Verbose output                                                          | Telemetry endpoint                                                 |
@@ -73,6 +73,9 @@ intervals, so that request is unsupported at creation.
 Positive stop and pause delays are mutually exclusive. Ephemeral requests cannot
 combine with positive pause, archive, or delayed-delete policies. Positive pause
 also conflicts with immediate deletion.
+
+Daytona linked sandboxes must be ephemeral. Kit rejects a linked-sandbox request
+before provider calls unless `lifetime.ephemeral` is explicitly true.
 
 Modal idle termination supports disabled or positive whole-second delays.
 Its maximum lifetime and idle delay remain separate settings.

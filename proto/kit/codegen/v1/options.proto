@@ -42,7 +42,10 @@ message ProviderDeclaration {
   reserved 8;
   reserved "creation_fields";
 }
-message TargetSDK { string import_path = 1; string client_type = 2; }
+message TargetSDK {
+  string import_path = 1;
+  string client_type = 2;
+}
 
 extend google.protobuf.FileOptions {
   ClientDeclaration client = 51000;

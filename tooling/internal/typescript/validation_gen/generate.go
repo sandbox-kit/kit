@@ -27,7 +27,7 @@ func Emit(g *protogen.GeneratedFile, schema *model.Schema, rules spec.Validation
 		return err
 	}
 	if helpers {
-		g.P(`function validationError(provider: string, operation: string, field: string, message: string): never { throw sandboxError({ kind: ErrorKind.InvalidArgument, provider, operation, field, message: "sandbox-kit: " + message }); }`)
+		g.P(`function validationError(provider: string, operation: string, field: string, rule: string, message: string): never { throw sandboxError({ kind: ErrorKind.InvalidArgument, provider, operation, field, rule, message: "sandbox-kit: " + message }); }`)
 		g.P(`function joinValidationPath(parent: string, field: string): string { return parent ? parent + "." + field : field; }`)
 		g.P(`function validSecureEndpoint(value: string): boolean { try { const url = new URL(value); if (!url.hostname || url.username || url.password || url.hash) return false; if (url.protocol === "https:") return true; if (url.protocol !== "http:") return false; const host = url.hostname.toLowerCase(); return host === "localhost" || host === "[::1]" || host === "::1" || /^127(?:\.[0-9]{1,3}){3}$/.test(host); } catch { return false; } }`)
 		g.P()
@@ -114,7 +114,7 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 			continue
 		}
 		fieldName := naming.Camel(string(field.Name()))
-		g.P(`  if (value.`, fieldName, ` !== undefined && !Object.hasOwn(`, field.Enum().Name(), `Number, value.`, fieldName, `)) validationError(provider, operation, joinValidationPath(path, "`, fieldName, `"), "must be a known `, field.Enum().Name(), ` value");`)
+		g.P(`  if (value.`, fieldName, ` !== undefined && !Object.hasOwn(`, field.Enum().Name(), `Number, value.`, fieldName, `)) validationError(provider, operation, joinValidationPath(path, "`, fieldName, `"), "known_enum", "must be a known `, field.Enum().Name(), ` value");`)
 	}
 	// Descend through every nested contract message, including intermediate
 	// containers without their own field rules.
@@ -161,7 +161,7 @@ func emitField(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, ru
 		if !field.IsList() || *rule.MinItems < 0 {
 			return fmt.Errorf("%s: min_items requires a list and nonnegative bound", field.FullName())
 		}
-		g.P(`  if (`, value, ` !== undefined && `, value, `.length < `, *rule.MinItems, `) validationError(provider, operation, `, path, `, "must contain at least `, *rule.MinItems, ` item(s)");`)
+		g.P(`  if (`, value, ` !== undefined && `, value, `.length < `, *rule.MinItems, `) validationError(provider, operation, `, path, `, "min_items", "must contain at least `, *rule.MinItems, ` item(s)");`)
 	}
 	if field.IsList() {
 		if rule.Nonblank || rule.Finite || rule.Minimum != nil || rule.ExclusiveMinimum != nil || rule.Maximum != nil || rule.Format != "" {
@@ -185,17 +185,20 @@ func emitField(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, ru
 }
 
 func emitScalarRules(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, rule spec.Field, value, path string) error {
+	if field.Kind() == protoreflect.MessageKind && field.Message().FullName() == "google.protobuf.Duration" {
+		g.P(`  if (`, value, ` !== undefined && !Number.isFinite(`, value, `)) validationError(provider, operation, `, path, `, "finite", "must be finite");`)
+	}
 	if rule.Nonblank {
 		if field.Kind() != protoreflect.StringKind {
 			return fmt.Errorf("%s: nonblank requires string", field.FullName())
 		}
-		g.P(`  if (`, value, ` !== undefined && !`, value, `.trim()) validationError(provider, operation, `, path, `, "must not be blank");`)
+		g.P(`  if (`, value, ` !== undefined && !`, value, `.trim()) validationError(provider, operation, `, path, `, "nonblank", "must not be blank");`)
 	}
 	if rule.Finite {
 		if field.Kind() != protoreflect.DoubleKind && field.Kind() != protoreflect.FloatKind {
 			return fmt.Errorf("%s: finite requires floating point", field.FullName())
 		}
-		g.P(`  if (`, value, ` !== undefined && !Number.isFinite(`, value, `)) validationError(provider, operation, `, path, `, "must be finite");`)
+		g.P(`  if (`, value, ` !== undefined && !Number.isFinite(`, value, `)) validationError(provider, operation, `, path, `, "finite", "must be finite");`)
 	}
 	if rule.Format != "" {
 		if field.Kind() != protoreflect.StringKind {
@@ -203,9 +206,9 @@ func emitScalarRules(g *protogen.GeneratedFile, field protoreflect.FieldDescript
 		}
 		switch rule.Format {
 		case "image_reference":
-			g.P(`  if (`, value, ` !== undefined && (`, value, `.length > 512 || !/^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$/.test(`, value, `))) validationError(provider, operation, `, path, `, "must be a valid image reference");`)
+			g.P(`  if (`, value, ` !== undefined && (`, value, `.length > 512 || !/^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$/.test(`, value, `))) validationError(provider, operation, `, path, `, "image_reference", "must be a valid image reference");`)
 		case "secure_endpoint":
-			g.P(`  if (`, value, ` !== undefined && !validSecureEndpoint(`, value, `)) validationError(provider, operation, `, path, `, "must use HTTPS except for loopback HTTP development endpoints");`)
+			g.P(`  if (`, value, ` !== undefined && !validSecureEndpoint(`, value, `)) validationError(provider, operation, `, path, `, "secure_endpoint", "must use HTTPS except for loopback HTTP development endpoints");`)
 		default:
 			return fmt.Errorf("%s: unsupported format %q", field.FullName(), rule.Format)
 		}
@@ -219,24 +222,24 @@ func emitScalarRules(g *protogen.GeneratedFile, field protoreflect.FieldDescript
 		}
 	}
 	if rule.Minimum != nil {
-		if err := emitBound(g, field, value, path, *rule.Minimum, `>=`, "must be at least"); err != nil {
+		if err := emitBound(g, field, value, path, *rule.Minimum, `>=`, "minimum", "must be at least"); err != nil {
 			return err
 		}
 	}
 	if rule.ExclusiveMinimum != nil {
-		if err := emitBound(g, field, value, path, *rule.ExclusiveMinimum, `>`, "must be greater than"); err != nil {
+		if err := emitBound(g, field, value, path, *rule.ExclusiveMinimum, `>`, "exclusive_minimum", "must be greater than"); err != nil {
 			return err
 		}
 	}
 	if rule.Maximum != nil {
-		if err := emitBound(g, field, value, path, *rule.Maximum, `<=`, "must be at most"); err != nil {
+		if err := emitBound(g, field, value, path, *rule.Maximum, `<=`, "maximum", "must be at most"); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func emitBound(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, value, path string, bound float64, op, words string) error {
+func emitBound(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, value, path string, bound float64, op, rule, words string) error {
 	if !numeric(field) {
 		return fmt.Errorf("%s: numeric bound on nonnumeric field", field.FullName())
 	}
@@ -248,7 +251,7 @@ func emitBound(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, va
 	if field.Kind() == protoreflect.EnumKind {
 		value = string(field.Enum().Name()) + "Number[" + value + "]"
 	}
-	g.P(`  if (`, presence, ` && !(`, value, ` `, op, ` `, literal, `)) validationError(provider, operation, `, path, `, "`, words, ` `, strconv.FormatFloat(bound, 'f', -1, 64), `");`)
+	g.P(`  if (`, presence, ` && !(`, value, ` `, op, ` `, literal, `)) validationError(provider, operation, `, path, `, "`, rule, `", "`, words, ` `, strconv.FormatFloat(bound, 'f', -1, 64), `");`)
 	return nil
 }
 
@@ -290,7 +293,7 @@ func emitConstraint(g *protogen.GeneratedFile, message protoreflect.MessageDescr
 		case "forbids":
 			invalid, message = "> 0", "forbids these values"
 		}
-		g.P(`    if (`, count, ` `, invalid, `) validationError(provider, operation, joinValidationPath(path, "`, label, `"), "`, message, `"); }`)
+		g.P(`    if (`, count, ` `, invalid, `) validationError(provider, operation, joinValidationPath(path, "`, label, `"), "`, constraint.Op, `", "`, message, `"); }`)
 	case "limit", "requires_positive":
 		if constraint.Field == "" || constraint.Other == "" {
 			return fmt.Errorf("%s: %s requires field and other", message.FullName(), constraint.Op)
@@ -305,7 +308,7 @@ func emitConstraint(g *protogen.GeneratedFile, message protoreflect.MessageDescr
 		if constraint.Op == "requires_positive" {
 			invalid, message = l+" !== undefined && "+l+" > 0 && !("+r+" !== undefined && "+r+" > 0)", "requires a positive "+naming.Camel(constraint.Other)
 		}
-		g.P(`  if (`, condition, ` && `, invalid, `) validationError(provider, operation, joinValidationPath(path, "`, label, `"), "`, message, `");`)
+		g.P(`  if (`, condition, ` && `, invalid, `) validationError(provider, operation, joinValidationPath(path, "`, label, `"), "`, constraint.Op, `", "`, message, `");`)
 	default:
 		return fmt.Errorf("%s: unsupported constraint %q", message.FullName(), constraint.Op)
 	}

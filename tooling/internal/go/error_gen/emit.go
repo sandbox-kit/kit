@@ -10,9 +10,9 @@ const Core protogen.GoImportPath = "github.com/sandbox-kit/kit/sdks/go/sandbox"
 
 // Details contains Go expressions resolved from semantic generator inputs.
 type Details struct {
-	Kind, Provider, Operation, Field, Message string
-	StatusCode, ProviderCode, ProviderSource  string
-	Cause                                     string
+	Kind, Provider, Operation, Field, Rule, Message string
+	StatusCode, ProviderCode, ProviderSource        string
+	Cause                                           string
 }
 
 // Kind qualifies a schema-derived Go error-kind identifier for the output file.
@@ -24,7 +24,7 @@ func Kind(g *protogen.GeneratedFile, name string) string {
 func Expression(g *protogen.GeneratedFile, d Details) string {
 	fields := []string{}
 	for _, item := range []struct{ name, value string }{
-		{"Kind", d.Kind}, {"Provider", d.Provider}, {"Operation", d.Operation}, {"Field", d.Field}, {"Message", d.Message},
+		{"Kind", d.Kind}, {"Provider", d.Provider}, {"Operation", d.Operation}, {"Field", d.Field}, {"Rule", d.Rule}, {"Message", d.Message},
 		{"StatusCode", d.StatusCode}, {"ProviderCode", d.ProviderCode}, {"ProviderSource", d.ProviderSource},
 	} {
 		if item.value != "" {

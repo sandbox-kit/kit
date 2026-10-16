@@ -41,6 +41,8 @@ type createPlan struct {
 	readyTimeout time.Duration
 	// secrets are provider-managed secret names to resolve before creation.
 	secrets []*sandbox.SecretReference
+	// proxy is the optional provider-managed proxy name to resolve before creation.
+	proxy string
 }
 
 // create looks up the app, secrets, and image, then creates the sandbox.
@@ -68,6 +70,13 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 			return nil, err
 		}
 		plan.params.Secrets = append(plan.params.Secrets, secret)
+	}
+	if plan.proxy != "" {
+		proxy, err := a.client.Proxies.FromName(ctx, plan.proxy, &sdk.ProxyFromNameParams{Environment: plan.environment})
+		if err != nil {
+			return nil, err
+		}
+		plan.params.Proxy = proxy
 	}
 	image := a.client.Images.FromRegistry(plan.image, nil)
 	instance, err := a.client.Sandboxes.Create(ctx, app, image, &plan.params)
@@ -306,6 +315,8 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			}
 		}
 		config.Ports = nil
+		plan.proxy = config.GetProxyReference()
+		config.ProxyReference = nil
 		if err := sandbox.RejectUnmapped("modal network", &config); err != nil {
 			return plan, err
 		}

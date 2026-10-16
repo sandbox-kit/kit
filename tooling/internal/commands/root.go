@@ -14,6 +14,7 @@ type settings struct {
 	goBinary  string
 	npmBinary string
 	protoc    string
+	bufBinary string
 }
 
 // NewRootCommand returns an independent command tree with no global flag state.
@@ -32,6 +33,7 @@ func newRootCommand(runner runner) *cobra.Command {
 	root.PersistentFlags().StringVar(&config.goBinary, "go-binary", "go", "Go executable")
 	root.PersistentFlags().StringVar(&config.npmBinary, "npm-binary", "npm", "npm executable")
 	root.PersistentFlags().StringVar(&config.protoc, "protoc", "protoc", "Protobuf compiler executable")
+	root.PersistentFlags().StringVar(&config.bufBinary, "buf", "buf", "Buf CLI executable")
 	root.AddCommand(newGenerateCommand(config, runner), newTestCommand(config, runner))
 	return root
 }

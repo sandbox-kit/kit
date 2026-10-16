@@ -68,3 +68,17 @@ func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 		t.Fatal("explicit empty placement lost")
 	}
 }
+
+func TestManagedProxyIsRetainedForNativeLookup(t *testing.T) {
+	request := &sandbox.CreateOptions{
+		Source:  &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}},
+		Network: &sandbox.NetworkConfig{ProxyReference: sandbox.Value("static-egress")},
+	}
+	plan, err := planCreate(request, &sandbox.Scope{AppName: sandbox.Value("app")}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.proxy != "static-egress" {
+		t.Fatalf("proxy lookup name = %q", plan.proxy)
+	}
+}

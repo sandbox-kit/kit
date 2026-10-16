@@ -268,7 +268,9 @@ message ReadinessProbe {
   }
 }
 // is a command readiness check. Argv is the command and its arguments.
-message CommandProbe { repeated string argv = 1; }
+message CommandProbe {
+  repeated string argv = 1;
+}
 // sets provider logging and telemetry options.
 message ObservabilityConfig {
   optional bool verbose = 1;
@@ -426,6 +428,8 @@ message ErrorInfo {
   optional string provider_code = 7;
   // is the provider component that reported the error, when available.
   optional string provider_source = 8;
+  // is a stable portable validation or policy rule identifier, when applicable.
+  optional string rule = 9;
 }
 // Exact numeric alternatives avoid protobuf Struct's double-only representation.
 // An empty value represents null.

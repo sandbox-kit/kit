@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -139,6 +140,30 @@ func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 	for i, module := range goTestModules {
 		if runner.steps[i].dir != filepath.Join(repo, filepath.FromSlash(module)) || runner.steps[i].args[0] != "test" {
 			t.Fatalf("incorrect verification step for %s", module)
+		}
+	}
+}
+
+func TestProtoVerificationUsesBufAndOptionalBaseline(t *testing.T) {
+	repo := repositoryFixture(t)
+	runner := &recordingRunner{}
+	command := newRootCommand(runner)
+	command.SetArgs([]string{"test", "proto", "--repo", repo, "--buf", "custom-buf", "--against", ".git#branch=main,subdir=proto"})
+	if err := command.ExecuteContext(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	want := [][]string{
+		{"format", "--diff", "--exit-code"},
+		{"lint"},
+		{"build"},
+		{"breaking", "--against", ".git#branch=main,subdir=proto"},
+	}
+	if len(runner.steps) != len(want) {
+		t.Fatalf("expected %d protobuf checks, got %d", len(want), len(runner.steps))
+	}
+	for i, args := range want {
+		if runner.steps[i].dir != repo || runner.steps[i].name != "custom-buf" || !reflect.DeepEqual(runner.steps[i].args, args) {
+			t.Fatalf("protobuf check %d = %#v, want %q %#v", i, runner.steps[i], "custom-buf", args)
 		}
 	}
 }

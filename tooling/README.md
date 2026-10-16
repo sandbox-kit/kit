@@ -6,12 +6,14 @@ implemented in Go over one compiled semantic model.
 
 ## Run the CLI
 
-Requires Go 1.26.9 or newer. Generation also requires `protoc`.
+Requires Go 1.26.9 or newer. Generation requires `protoc`; protobuf verification
+requires the Buf CLI.
 
 From this directory:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdir=proto'
 GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate typescript
 GOWORK=off go run ./cmd/sandbox-kit test typescript
@@ -35,9 +37,13 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 | `--go-binary`  | Go executable                |
 | `--npm-binary` | npm executable               |
 | `--protoc`     | Protobuf compiler executable |
+| `--buf`        | Buf CLI executable           |
 | `--help`       | Commands and usage           |
 
 ## What commands do
+
+`test proto` checks canonical formatting, lint, and compilation with Buf. Pass
+`--against` to add a breaking-change comparison against a Git or Buf input.
 
 `generate go` rebuilds annotation bindings and emits shared native types,
 validation, client/provider contracts, SDK constructors, state capture,
@@ -133,8 +139,9 @@ classifiers come from portable protocol rules and native SDK bindings.
 | `internal/gen/`                | Generated annotation bindings                                                           |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
-and ends in `.gen.go`. Protobuf provides descriptors for generation; it does
-not add a Kit network service or public runtime message dependency.
+and `sdks/typescript/`, ending in `.gen.go` and `.gen.ts` respectively.
+Protobuf provides descriptors for generation; it does not add a Kit network
+service or public runtime message dependency.
 
 See [API declarations](../docs/api-declarations.md) and [generation specifications](../docs/code-generation.md) for the vocabulary,
 validation semantics, and extension workflow.
