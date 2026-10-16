@@ -26,7 +26,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -37,4 +40,3 @@ await using client = new Client(clientConfig());
 const sandbox = await client.get(requireEnv("DAYTONA_SANDBOX_ID"));
 await sandbox.close();
 console.log(`Closed local handle for Daytona sandbox ${sandbox.id}; the cloud sandbox was not changed.`);
-

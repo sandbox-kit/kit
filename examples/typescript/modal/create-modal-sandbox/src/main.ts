@@ -4,7 +4,8 @@ import { Client, EgressMode, IsolationKind, PolicyMode } from "@sandbox-kit/sand
 const tokenId = process.env.MODAL_TOKEN_ID;
 const tokenSecret = process.env.MODAL_TOKEN_SECRET;
 const appName = process.env.MODAL_APP_NAME;
-if (!tokenId || !tokenSecret || !appName) throw new Error("MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, and MODAL_APP_NAME are required");
+if (!tokenId || !tokenSecret || !appName)
+  throw new Error("MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, and MODAL_APP_NAME are required");
 
 await using client = new Client({
   provider: modal(),

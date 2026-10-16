@@ -19,14 +19,14 @@ The selected provider validates and maps configuration, constructs its official
 SDK, and returns a private backend. The public client owns that backend and its
 SDK cleanup.
 
-| Contract                       | Responsibility                                                       |
-| ------------------------------ | -------------------------------------------------------------------- |
-| `sandbox.Provider`             | Identify the integration and initialize its backend                  |
-| `sandbox.Backend`              | Identify the provider and release SDK resources                      |
-| `sandbox.SandboxCreator`       | Create sandboxes when the provider supports creation                 |
+| Contract                        | Responsibility                                                       |
+| ------------------------------- | -------------------------------------------------------------------- |
+| `sandbox.Provider`              | Identify the integration and initialize its backend                  |
+| `sandbox.Backend`               | Identify the provider and release SDK resources                      |
+| `sandbox.SandboxCreator`        | Create sandboxes when the provider supports creation                 |
 | Lifecycle capability interfaces | Implement only supported typed operations, such as refresh or delete |
-| `sandbox.Client`               | Validate shared requests, apply deadlines, and delegate              |
-| `sandbox.Sandbox`              | Hold copied metadata and dispatch supported lifecycle operations     |
+| `sandbox.Client`                | Validate shared requests, apply deadlines, and delegate              |
+| `sandbox.Sandbox`               | Hold copied metadata and dispatch supported lifecycle operations     |
 
 These contracts live in the consuming `sandbox` package. SDK clients stay
 private; standard operations require no application mapping callbacks.

@@ -16,10 +16,10 @@ they do not expose those native clients through the public SDK.
 
 ## Reference sources
 
-| Provider | API references                                                                                                                                                                                                                                                              | Service guides                                                                                                                                                                                                                          |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Provider | API references                                                                                                                                                                                  | Service guides                                                                                                                                                                                                                          |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Modal    | [Go client](https://modal.com/docs/sdk/go/latest/Client), [Go sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), [JavaScript/Go SDK guide](https://modal.com/docs/guide/sdk-javascript-go) | [Resources](https://modal.com/docs/guide/resources), [Sandbox resources](https://modal.com/docs/guide/sandbox-resources), [Sandboxes](https://modal.com/docs/guide/sandboxes), [Regions](https://modal.com/docs/guide/region-selection) |
-| Daytona  | [Go client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Go types](https://www.daytona.io/docs/en/go-sdk/types/), [TypeScript SDK](https://www.daytona.io/docs/en/typescript-sdk/) | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits) |
+| Daytona  | [Go client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Go types](https://www.daytona.io/docs/en/go-sdk/types/), [TypeScript SDK](https://www.daytona.io/docs/en/typescript-sdk/) | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits)                                                                                                                                    |
 
 Modal creation dependencies also use the [Secret](https://modal.com/docs/sdk/go/latest/Secret),
 [Probe](https://modal.com/docs/sdk/go/latest/Probe),
@@ -50,10 +50,10 @@ languages.
 The `SandboxBaseParams` comments label zero as immediate stop/archive/delete.
 The service guide and sandbox-object documentation disagree for stop/archive:
 
-* Zero disables auto-stop and auto-pause.
-* Archive zero selects 30 days; it does not request immediate archival.
-* Delete zero requests deletion immediately after stopping.
-* Delete disabling uses -1 in the service API, which the pinned creation SDK rejects.
+- Zero disables auto-stop and auto-pause.
+- Archive zero selects 30 days; it does not request immediate archival.
+- Delete zero requests deletion immediately after stopping.
+- Delete disabling uses -1 in the service API, which the pinned creation SDK rejects.
 
 The generated policies follow these verified service semantics. Explicit
 archive/delete disabling and immediate stop/pause/archive are rejected.

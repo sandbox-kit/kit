@@ -35,7 +35,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -53,4 +56,3 @@ const sandbox = await client.create({
   network: { proxyReference: requireEnv("MODAL_PROXY_NAME") },
 });
 console.log(`Modal sandbox created: ${sandbox.id}`);
-

@@ -11,4 +11,3 @@ npm start
 ```
 
 Closing the client or sandbox handle only releases local resources unless this example explicitly invokes a lifecycle operation.
-

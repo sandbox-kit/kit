@@ -36,7 +36,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -52,4 +55,3 @@ await using client = new Client(clientConfig());
 const sandbox = await client.attach(requireEnv("MODAL_SANDBOX_ID"));
 await sandbox.close();
 console.log(`Modal handle closed locally: ${sandbox.id} (remote sandbox unchanged)`);
-

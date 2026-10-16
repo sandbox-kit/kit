@@ -2,14 +2,14 @@
 
 ## Contracts and modules
 
-* Keep shared contracts in `proto/`, portable rules in versioned YAML under
+- Keep shared contracts in `proto/`, portable rules in versioned YAML under
   `specs/`, and runtime SDKs in `sdks/<language>/`.
-* Implement all generators in the single Go module under `tooling/`.
+- Implement all generators in the single Go module under `tooling/`.
   Put language emitters in `tooling/internal/<language>/` and shared semantic
   compilation in `tooling/internal/model/`.
-* Keep contracts independent of language runtime dependencies. Each emitter owns
+- Keep contracts independent of language runtime dependencies. Each emitter owns
   native constructor conventions and names.
-* Keep the public SDK, optional providers, and future harness integrations in
+- Keep the public SDK, optional providers, and future harness integrations in
   separate modules. Each provider depends on its official SDK.
 
 ## Public API and provider ownership
@@ -18,18 +18,18 @@ Applications construct `sandbox.NewClient` with the generated `sandbox.Config`
 and select a provider through `Config.Provider`. The provider initializes its
 native SDK; the public client owns cleanup through `Close`.
 
-* Keep initialized native SDK clients private.
-* Implement a unified interface over existing SDKs; do not expose a generic raw
+- Keep initialized native SDK clients private.
+- Implement a unified interface over existing SDKs; do not expose a generic raw
   SDK accessor or require application callbacks for standard mappings.
-* Use typed integration code. Do not invoke SDK methods through reflection.
-* Expose shared request/response types as generated native language types.
+- Use typed integration code. Do not invoke SDK methods through reflection.
+- Expose shared request/response types as generated native language types.
   Protobuf remains a schema input.
-* Creation returns a sandbox handle. Implement lifecycle methods on that handle
+- Creation returns a sandbox handle. Implement lifecycle methods on that handle
   separately from creation configuration.
-* Preserve field presence, units, source kinds, and provider defaults.
-* Reject unsupported intent before provider calls. Account quotas, permissions,
+- Preserve field presence, units, source kinds, and provider defaults.
+- Reject unsupported intent before provider calls. Account quotas, permissions,
   and capacity remain provider-enforced.
-* Closing an SDK client must not imply stopping or deleting cloud sandboxes.
+- Closing an SDK client must not imply stopping or deleting cloud sandboxes.
 
 ## Generation and validation
 
@@ -47,14 +47,14 @@ Shared validation, provider checks, configuration assembly, and expressible
 conversions belong in specs and generators. Native symbols and SDK type/member
 bindings belong in the target language's binding section.
 
-* Keep semantic rules independent of target-language code.
-* Translate validator tags in the Go emitter.
-* Add vocabulary operations with semantic tests; do not embed raw code in YAML.
-* Document SDK orchestration that remains handwritten.
-* Compare references with the pinned SDK version. Resolve conflicting docs
+- Keep semantic rules independent of target-language code.
+- Translate validator tags in the Go emitter.
+- Add vocabulary operations with semantic tests; do not embed raw code in YAML.
+- Document SDK orchestration that remains handwritten.
+- Compare references with the pinned SDK version. Resolve conflicting docs
   explicitly rather than guessing semantics.
-* Edit schemas/specs/emitters and regenerate; never hand-edit `.gen.go` files.
-* Follow [naming conventions](docs/naming.md), preserve numeric enum values,
+- Edit schemas/specs/emitters and regenerate; never hand-edit `.gen.go` files.
+- Follow [naming conventions](docs/naming.md), preserve numeric enum values,
   and preserve explicit serialized names.
 
 ## Examples and documentation

@@ -26,7 +26,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -38,4 +41,3 @@ const sandbox = await client.get(requireEnv("DAYTONA_SANDBOX_ID"));
 assertCapability(sandbox, LifecycleCapability.Stop);
 const info = await sandbox.stop();
 console.log(`Daytona sandbox stopped: ${sandbox.id} (${info.state})`);
-

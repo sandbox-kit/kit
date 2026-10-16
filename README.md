@@ -42,41 +42,41 @@ that sandbox as their names indicate. Error-handling examples exercise local
 failures without cloud creation. Closing the client or a handle releases only
 local resources and does not change a cloud sandbox.
 
-| Example                                                                        | Demonstrates                                                    |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| [Daytona creation](examples/go/daytona/create-daytona-sandbox/README.md)       | API-key authentication and the default snapshot                 |
-| [Daytona snapshot](examples/go/daytona/create-daytona-from-snapshot/README.md) | Stock `daytona-small` snapshot                                  |
-| [Daytona image](examples/go/daytona/create-daytona-from-image/README.md)       | Public image with CPU, memory, and disk                         |
-| [Daytona runtime](examples/go/daytona/create-daytona-with-runtime/README.md)   | Toolbox language, version, and user                             |
-| [Daytona ephemeral](examples/go/daytona/create-daytona-ephemeral/README.md)    | Delete-on-stop from the default snapshot                        |
-| [Daytona linked](examples/go/daytona/create-daytona-linked/README.md)          | Parent sandbox and an ephemeral linked child                    |
-| [Daytona policies](examples/go/daytona/create-daytona-with-policies/README.md) | Disabled auto-pause and delayed deletion                        |
-| [Daytona get](examples/go/daytona/get-daytona-sandbox/README.md)               | Retrieve an existing sandbox and its resolved capabilities      |
-| [Daytona refresh](examples/go/daytona/refresh-daytona-sandbox/README.md)       | Refresh metadata on an existing handle                          |
-| [Daytona start](examples/go/daytona/start-daytona-sandbox/README.md)           | Start a stopped sandbox                                         |
-| [Daytona stop](examples/go/daytona/stop-daytona-sandbox/README.md)             | Stop a restartable sandbox                                      |
-| [Daytona pause](examples/go/daytona/pause-daytona-sandbox/README.md)           | Pause a supported VM sandbox                                    |
-| [Daytona archive](examples/go/daytona/archive-daytona-sandbox/README.md)       | Archive a supported container sandbox                           |
-| [Daytona delete](examples/go/daytona/delete-daytona-sandbox/README.md)         | Delete an existing sandbox                                      |
-| [Daytona close handle](examples/go/daytona/close-daytona-handle/README.md)     | Release a local handle without changing the cloud sandbox       |
-| [Modal creation](examples/go/modal/create-modal-sandbox/README.md)             | Token-pair authentication, app/environment scope, and an image  |
-| [Modal resources](examples/go/modal/create-modal-with-resources/README.md)     | CPU, memory, and a bounded lifetime                             |
-| [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)         | Working directory, entrypoint, and PTY                          |
-| [Modal gVisor](examples/go/modal/create-modal-gvisor/README.md)                | Container isolation                                             |
-| [Modal Linux VM](examples/go/modal/create-modal-linux-vm/README.md)            | Linux VM isolation                                              |
-| [Modal placement](examples/go/modal/create-modal-with-placement/README.md)     | Cloud and optional region preference                            |
-| [Modal labels](examples/go/modal/create-modal-with-labels/README.md)           | Environment variables and tags                                  |
-| [Modal network](examples/go/modal/create-modal-with-network/README.md)         | Blocked outbound access                                         |
-| [Modal idle timeout](examples/go/modal/create-modal-idle/README.md)            | Termination after 60 idle seconds                               |
-| [Modal readiness](examples/go/modal/create-modal-ready/README.md)              | Wait until a readiness command succeeds                         |
-| [Modal verbose](examples/go/modal/create-modal-verbose/README.md)              | Verbose provider logging                                        |
-| [Modal identity](examples/go/modal/create-modal-with-identity/README.md)       | Workload identity token                                         |
-| [Modal attach](examples/go/modal/attach-modal-sandbox/README.md)               | Construct a handle from an ID without a remote lookup           |
-| [Modal terminate](examples/go/modal/terminate-modal-sandbox/README.md)         | Terminate an attached sandbox                                   |
-| [Modal termination request](examples/go/modal/request-modal-termination/README.md) | Request termination without waiting for an exit result       |
-| [Modal close handle](examples/go/modal/close-modal-handle/README.md)           | Release a local handle without terminating the sandbox          |
-| [Modal errors](examples/go/modal/handle-modal-errors/README.md)                | Handle an unsupported disk override with `ErrorKindUnsupported` |
-| [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)          | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
+| Example                                                                            | Demonstrates                                                    |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [Daytona creation](examples/go/daytona/create-daytona-sandbox/README.md)           | API-key authentication and the default snapshot                 |
+| [Daytona snapshot](examples/go/daytona/create-daytona-from-snapshot/README.md)     | Stock `daytona-small` snapshot                                  |
+| [Daytona image](examples/go/daytona/create-daytona-from-image/README.md)           | Public image with CPU, memory, and disk                         |
+| [Daytona runtime](examples/go/daytona/create-daytona-with-runtime/README.md)       | Toolbox language, version, and user                             |
+| [Daytona ephemeral](examples/go/daytona/create-daytona-ephemeral/README.md)        | Delete-on-stop from the default snapshot                        |
+| [Daytona linked](examples/go/daytona/create-daytona-linked/README.md)              | Parent sandbox and an ephemeral linked child                    |
+| [Daytona policies](examples/go/daytona/create-daytona-with-policies/README.md)     | Disabled auto-pause and delayed deletion                        |
+| [Daytona get](examples/go/daytona/get-daytona-sandbox/README.md)                   | Retrieve an existing sandbox and its resolved capabilities      |
+| [Daytona refresh](examples/go/daytona/refresh-daytona-sandbox/README.md)           | Refresh metadata on an existing handle                          |
+| [Daytona start](examples/go/daytona/start-daytona-sandbox/README.md)               | Start a stopped sandbox                                         |
+| [Daytona stop](examples/go/daytona/stop-daytona-sandbox/README.md)                 | Stop a restartable sandbox                                      |
+| [Daytona pause](examples/go/daytona/pause-daytona-sandbox/README.md)               | Pause a supported VM sandbox                                    |
+| [Daytona archive](examples/go/daytona/archive-daytona-sandbox/README.md)           | Archive a supported container sandbox                           |
+| [Daytona delete](examples/go/daytona/delete-daytona-sandbox/README.md)             | Delete an existing sandbox                                      |
+| [Daytona close handle](examples/go/daytona/close-daytona-handle/README.md)         | Release a local handle without changing the cloud sandbox       |
+| [Modal creation](examples/go/modal/create-modal-sandbox/README.md)                 | Token-pair authentication, app/environment scope, and an image  |
+| [Modal resources](examples/go/modal/create-modal-with-resources/README.md)         | CPU, memory, and a bounded lifetime                             |
+| [Modal runtime](examples/go/modal/create-modal-with-runtime/README.md)             | Working directory, entrypoint, and PTY                          |
+| [Modal gVisor](examples/go/modal/create-modal-gvisor/README.md)                    | Container isolation                                             |
+| [Modal Linux VM](examples/go/modal/create-modal-linux-vm/README.md)                | Linux VM isolation                                              |
+| [Modal placement](examples/go/modal/create-modal-with-placement/README.md)         | Cloud and optional region preference                            |
+| [Modal labels](examples/go/modal/create-modal-with-labels/README.md)               | Environment variables and tags                                  |
+| [Modal network](examples/go/modal/create-modal-with-network/README.md)             | Blocked outbound access                                         |
+| [Modal idle timeout](examples/go/modal/create-modal-idle/README.md)                | Termination after 60 idle seconds                               |
+| [Modal readiness](examples/go/modal/create-modal-ready/README.md)                  | Wait until a readiness command succeeds                         |
+| [Modal verbose](examples/go/modal/create-modal-verbose/README.md)                  | Verbose provider logging                                        |
+| [Modal identity](examples/go/modal/create-modal-with-identity/README.md)           | Workload identity token                                         |
+| [Modal attach](examples/go/modal/attach-modal-sandbox/README.md)                   | Construct a handle from an ID without a remote lookup           |
+| [Modal terminate](examples/go/modal/terminate-modal-sandbox/README.md)             | Terminate an attached sandbox                                   |
+| [Modal termination request](examples/go/modal/request-modal-termination/README.md) | Request termination without waiting for an exit result          |
+| [Modal close handle](examples/go/modal/close-modal-handle/README.md)               | Release a local handle without terminating the sandbox          |
+| [Modal errors](examples/go/modal/handle-modal-errors/README.md)                    | Handle an unsupported disk override with `ErrorKindUnsupported` |
+| [Daytona errors](examples/go/daytona/handle-daytona-errors/README.md)              | Handle an invalid CPU request with `ErrorKindInvalidArgument`   |
 
 Each project has its own module, `.env.example`, and selected provider. Modal
 requires an existing app; its [setup guide](examples/go/modal/create-modal-sandbox/README.md)

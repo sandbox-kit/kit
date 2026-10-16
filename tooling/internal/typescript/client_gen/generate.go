@@ -20,13 +20,11 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	if err := declarationgen.ValidateModule(program.API.Modules["client"], profile); err != nil {
 		return fmt.Errorf("TypeScript client declarations: %w", err)
 	}
-	operations := program.Generation.Operations
-	for _, name := range []string{"initialize", "create", "close"} {
-		if len(operations[name]) == 0 {
-			return fmt.Errorf("client operation %s has no compiled instructions", name)
-		}
+	if err := spec.ValidateOperations(program.Generation.Operations); err != nil {
+		return fmt.Errorf("TypeScript client operations: %w", err)
 	}
 	g := declarationgen.GeneratedFile(plugin, "client"+profile.Outputs["client"], string(file.Desc.Path()))
+	e := declarationgen.NewEmitter(g)
 	validationTypes, validationValues, err := validationgen.RequiredSymbols(program.Schema, "CreateOptions")
 	if err != nil {
 		return err
@@ -47,8 +45,8 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	for _, value := range configValues {
 		valueImports[value] = true
 	}
-	g.P("import { ", strings.Join(sortedImportNames(valueImports, ""), ", "), ", ", strings.Join(sortedImportNames(typeImports, "type "), ", "), ` } from "./sandbox.gen.js";`)
-	g.P()
+	e.Line("import { ", strings.Join(sortedImportNames(valueImports, ""), ", "), ", ", strings.Join(sortedImportNames(typeImports, "type "), ", "), ` } from "./sandbox.gen.js";`)
+	e.Blank()
 	inputMessages, err := typesgen.InputMessages(program)
 	if err != nil {
 		return err
@@ -56,43 +54,67 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	if err := typesgen.EmitDeclarations(g, file, false, inputMessages); err != nil {
 		return err
 	}
-	g.P(`export interface OperationOptions { readonly signal?: AbortSignal; readonly timeoutMs?: number; }`)
-	g.P(`export interface Backend {`)
-	g.P(`  readonly name: string;`)
-	g.P(`  create?(request: CreateOptions, options: OperationOptions): Promise<CreateResult>;`)
-	g.P(`  close(options: OperationOptions): Promise<void>;`)
-	g.P(`  attach?(id: string, options: OperationOptions): Promise<SandboxInfo>;`)
+	e.Block(`
+export interface OperationOptions {
+  readonly signal?: AbortSignal;
+  readonly timeoutMs?: number;
+}
+
+export interface Backend {
+  readonly name: string;
+  create?(request: CreateOptions, options: OperationOptions): Promise<CreateResult>;
+  close(options: OperationOptions): Promise<void>;
+  attach?(id: string, options: OperationOptions): Promise<SandboxInfo>;`)
 	lifecyclegen.EmitBackendMethods(g, program.Lifecycle)
-	g.P(`  closeSandbox?(id: string, options: OperationOptions): Promise<void>;`)
-	g.P(`  capabilities?(info: SandboxInfo): readonly LifecycleCapability[];`)
-	g.P(`}`)
-	g.P(`export interface Provider { readonly name: string; initialize(config: Config): Backend; }`)
-	g.P(`export interface ClientConfig extends Config { readonly provider: Provider; }`)
-	g.P()
-	g.P(`export class SandboxError extends Error {`)
-	g.P(`  readonly kind: ErrorInfo["kind"]; readonly provider: string; readonly operation: string; readonly field: string; readonly rule: string | undefined; readonly statusCode: number | undefined; readonly providerCode: string | undefined; readonly providerSource: string | undefined;`)
-	g.P(`  constructor(info: ErrorInfo, options?: ErrorOptions) { super(info.message, options); this.name = "SandboxError"; this.kind = info.kind; this.provider = info.provider; this.operation = info.operation; this.field = info.field; this.rule = info.rule; this.statusCode = info.statusCode; this.providerCode = info.providerCode; this.providerSource = info.providerSource; }`)
-	g.P(`}`)
-	g.P(`export function sandboxError(info: ErrorInfo, cause?: unknown): SandboxError { return new SandboxError(info, cause === undefined ? undefined : { cause }); }`)
-	g.P()
+	e.Block(`
+  closeSandbox?(id: string, options: OperationOptions): Promise<void>;
+  capabilities?(info: SandboxInfo): readonly LifecycleCapability[];
+}
+
+export interface Provider {
+  readonly name: string;
+  initialize(config: Config): Backend;
+}
+
+export interface ClientConfig extends Config {
+  readonly provider: Provider;
+}
+
+export class SandboxError extends Error {
+  readonly kind: ErrorInfo["kind"];
+  readonly provider: string;
+  readonly operation: string;
+  readonly field: string;
+  readonly rule: string | undefined;
+  readonly statusCode: number | undefined;
+  readonly providerCode: string | undefined;
+  readonly providerSource: string | undefined;
+
+  constructor(info: ErrorInfo, options?: ErrorOptions) {
+    super(info.message, options);
+    this.name = "SandboxError";
+    this.kind = info.kind;
+    this.provider = info.provider;
+    this.operation = info.operation;
+    this.field = info.field;
+    this.rule = info.rule;
+    this.statusCode = info.statusCode;
+    this.providerCode = info.providerCode;
+    this.providerSource = info.providerSource;
+  }
+}
+
+export function sandboxError(info: ErrorInfo, cause?: unknown): SandboxError {
+  return new SandboxError(info, cause === undefined ? undefined : { cause });
+}
+`)
 	if err := validationgen.Emit(g, program.Schema, program.Validation, "CreateOptions", true); err != nil {
 		return err
 	}
 	if err := validationgen.Emit(g, program.Schema, program.Client.Validation, program.Client.ConfigMessage, false); err != nil {
 		return err
 	}
-	g.P(`function clone<T>(value: T): T { return structuredClone(value); }`)
-	g.P(`function operationSignal(options: OperationOptions, inheritedTimeoutMs?: number): { signal?: AbortSignal; dispose(): void } {`)
-	g.P(`  const timeoutMs = options.timeoutMs ?? inheritedTimeoutMs; if (timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) throw sandboxError({ kind: ErrorKind.InvalidArgument, provider: "", operation: "", field: "timeoutMs", message: "sandbox-kit: timeoutMs must be a finite non-negative number" });`)
-	g.P(`  if ((timeoutMs === undefined || timeoutMs === 0) && options.signal === undefined) return { dispose() {} };`)
-	g.P(`  const controller = new AbortController(); const abort = () => controller.abort(options.signal?.reason); if (options.signal?.aborted) abort(); else options.signal?.addEventListener("abort", abort, { once: true });`)
-	g.P(`  const timer = timeoutMs !== undefined && timeoutMs > 0 ? setTimeout(() => controller.abort(new DOMException("The operation timed out", "TimeoutError")), timeoutMs) : undefined;`)
-	g.P(`  return { signal: controller.signal, dispose() { if (timer !== undefined) clearTimeout(timer); options.signal?.removeEventListener("abort", abort); } };`)
-	g.P(`}`)
-	g.P(`function operationOptions(options: OperationOptions, signal: AbortSignal | undefined): OperationOptions { return { ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }), ...(signal === undefined ? {} : { signal }) }; }`)
-	g.P(`function abortReason(signal: AbortSignal): DOMException { const reason = signal.reason; return reason instanceof DOMException && (reason.name === "AbortError" || reason.name === "TimeoutError") ? reason : new DOMException("The operation was aborted", "AbortError"); }`)
-	g.P(`async function awaitWithSignal<T>(operation: () => Promise<T>, signal?: AbortSignal): Promise<T> { if (signal?.aborted) throw abortReason(signal); const pending = operation(); if (signal === undefined) return pending; return new Promise<T>((resolve, reject) => { const aborted = () => reject(abortReason(signal)); const cleanup = () => signal.removeEventListener("abort", aborted); signal.addEventListener("abort", aborted, { once: true }); pending.then((value) => { cleanup(); resolve(value); }, (error: unknown) => { cleanup(); reject(error); }); }); }`)
-	g.P()
+	e.Block(runtimeHelpers)
 	g.P(`interface ClientLifecycle { begin(operation: string): () => void; isClosed(): boolean; }`)
 	g.P(`const sandboxConstructorToken: unique symbol = Symbol("sandbox-kit.Sandbox");`)
 	g.P(`export class Sandbox implements AsyncDisposable {`)
@@ -110,7 +132,9 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	if err != nil {
 		return err
 	}
-	g.P(`  async #update<T extends `, updateOptions, `>(operation: string, method: ((id: string, request: T, options: OperationOptions) => Promise<SandboxInfo>) | undefined, request: T, options: OperationOptions): Promise<SandboxInfo> { return this.#serialized(operation, options, request.timeout ?? this.#timeoutMs, async (signal) => { if (!method) unsupported(this.providerName, operation); const info = await awaitWithSignal(() => method.call(this.#backend, this.id, clone(request), operationOptions(options, signal)), signal); this.#info = clone({ ...info, provider: this.providerName }); return this.info(); }); }`)
+	if err := e.IndentedTemplate("sandbox update helper", sandboxUpdateTemplate, struct{ Options string }{updateOptions}, "  "); err != nil {
+		return err
+	}
 	g.P(`  async #serialized<T>(operation: string, options: OperationOptions, timeoutMs: number | undefined, body: (signal: AbortSignal | undefined) => Promise<T>): Promise<T> { this.#ensureOpen(operation); const releaseClient = this.#owner.begin(operation); const previous = this.#tail; let unlock!: () => void; this.#tail = new Promise<void>((resolve) => { unlock = resolve; }); let acquired = false; let scoped: ReturnType<typeof operationSignal> | undefined; try { scoped = operationSignal(options, timeoutMs); await awaitWithSignal(() => previous, scoped.signal); acquired = true; this.#ensureOpen(operation); return await body(scoped.signal); } catch (error) { throw withContext(error, this.providerName, operation); } finally { scoped?.dispose(); if (acquired) unlock(); else void previous.then(unlock, unlock); releaseClient(); } }`)
 	g.P(`  #ensureOpen(operation: string): void { if (this.#closed || this.#owner.isClosed()) throw sandboxError({ kind: ErrorKind.FailedPrecondition, provider: this.providerName, operation, field: "sandbox", message: "sandbox-kit: sandbox handle is closed" }); if (operation !== "close" && this.#info.terminal) throw sandboxError({ kind: ErrorKind.FailedPrecondition, provider: this.providerName, operation, field: "sandbox", message: "sandbox-kit: sandbox lifecycle is terminal" }); }`)
 	g.P(`}`)

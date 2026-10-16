@@ -36,7 +36,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -56,5 +59,6 @@ const sandbox = await client.create({
 });
 const info = sandbox.info();
 console.log(`Modal sandbox created: ${sandbox.id} (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)`);
-console.log(`ID origin: ${info.origins?.id ?? "unknown"}; allocated resources reported: ${info.resources !== undefined}`);
-
+console.log(
+  `ID origin: ${info.origins?.id ?? "unknown"}; allocated resources reported: ${info.resources !== undefined}`,
+);

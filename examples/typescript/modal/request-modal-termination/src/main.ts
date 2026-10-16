@@ -36,7 +36,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -53,4 +56,3 @@ const sandbox = await client.attach(requireEnv("MODAL_SANDBOX_ID"));
 assertCapability(sandbox, LifecycleCapability.Terminate);
 await sandbox.terminate({ wait: false });
 console.log(`Modal termination requested: ${sandbox.id} (terminal=${sandbox.info().terminal ?? false})`);
-

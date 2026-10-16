@@ -3,8 +3,18 @@
 
 /** A duration in milliseconds. */
 export type DurationMs = number;
-export type MetadataValue = null | boolean | string | number | bigint | Uint8Array | readonly MetadataValue[] | MetadataObject;
-export interface MetadataObject { readonly [key: string]: MetadataValue; }
+export type MetadataValue =
+  | null
+  | boolean
+  | string
+  | number
+  | bigint
+  | Uint8Array
+  | readonly MetadataValue[]
+  | MetadataObject;
+export interface MetadataObject {
+  readonly [key: string]: MetadataValue;
+}
 
 export const SnapshotKind = {
   Default: "default",
@@ -245,8 +255,7 @@ export type SandboxSource =
   | { readonly kind: "warmPool"; readonly warmPool: WarmPoolSource }
   | { readonly kind?: never };
 
-export interface ProviderDefaultSource {
-}
+export interface ProviderDefaultSource {}
 
 export interface ImageSource {
   readonly reference: string;
@@ -422,4 +431,3 @@ export interface ErrorInfo {
   readonly providerSource?: string;
   readonly rule?: string;
 }
-

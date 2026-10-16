@@ -26,7 +26,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -43,4 +46,3 @@ const sandbox = await client.create({
 const info = sandbox.info();
 console.log(`Daytona sandbox created: ${sandbox.id} (auto-pause disabled, deletion 10 minutes after stopping)`);
 console.log(`ID origin: ${info.origins?.id ?? "unknown"}; resource origin: ${info.origins?.resources ?? "unknown"}`);
-

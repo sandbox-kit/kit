@@ -26,7 +26,10 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(sandbox: Sandbox, capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability]): void {
+function assertCapability(
+  sandbox: Sandbox,
+  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
   }
@@ -36,4 +39,3 @@ await using client = new Client(clientConfig());
 
 const sandbox = await client.create({ source: { kind: "snapshot", snapshot: { reference: "daytona-small" } } });
 console.log(`Daytona sandbox created from daytona-small: ${sandbox.id}`);
-

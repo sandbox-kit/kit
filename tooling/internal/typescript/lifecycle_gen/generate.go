@@ -7,46 +7,81 @@ import (
 	"strings"
 
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
+	declarationgen "github.com/sandbox-kit/kit/tooling/internal/typescript/declaration_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/typescript/naming"
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
 // EmitBackendMethods adds optional provider operations to Backend.
 func EmitBackendMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) {
+	e := declarationgen.NewEmitter(g)
 	for _, operation := range lifecycle.Operations {
-		if operation.Options == "" {
-			g.P("  ", operation.ID, "?(id: string, options: OperationOptions): Promise<SandboxInfo>;")
-			continue
-		}
-		result := "SandboxInfo"
-		if operation.Outcome == "exit_result" {
-			result = "ExitResult"
-		}
-		g.P("  ", operation.ID, "?(id: string, request: ", operation.Options, ", options: OperationOptions): Promise<", result, ">;")
+		e.Line("  ", backendSignature(operation))
 	}
 }
 
 // EmitHandleMethods implements Sandbox lifecycle operations from their
 // declared outcomes. Unsupported optional backend methods fail consistently.
 func EmitHandleMethods(g *protogen.GeneratedFile, lifecycle spec.Lifecycle) error {
+	e := declarationgen.NewEmitter(g)
 	for _, operation := range lifecycle.Operations {
-		switch operation.Outcome {
-		case "update_handle":
-			if operation.Options == "" {
-				g.P("  async ", operation.ID, "(options: OperationOptions = {}): Promise<SandboxInfo> { return this.#serialized(\"", operation.ID, "\", options, this.#timeoutMs, async (signal) => { const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); const info = await awaitWithSignal(() => method.call(this.#backend, this.id, operationOptions(options, signal)), signal); this.#info = clone({ ...info, provider: this.providerName }); return this.info(); }); }")
-				continue
-			}
-			g.P("  async ", operation.ID, "(request: ", operation.Options, " = {}, options: OperationOptions = {}): Promise<SandboxInfo> { return this.#update(\"", operation.ID, "\", this.#backend.", operation.ID, ", request, options); }")
-		case "exit_result":
-			if operation.Options == "" || operation.TerminalState == "" {
-				return fmt.Errorf("TypeScript lifecycle operation %s has an incomplete exit result declaration", operation.ID)
-			}
-			g.P("  async ", operation.ID, "(request: ", operation.Options, " = {}, options: OperationOptions = {}): Promise<ExitResult> { return this.#serialized(\"", operation.ID, "\", options, request.timeout ?? this.#timeoutMs, async (signal) => { const method = this.#backend.", operation.ID, "; if (!method) unsupported(this.providerName, \"", operation.ID, "\"); const result = await awaitWithSignal(() => method.call(this.#backend, this.id, clone(request), operationOptions(options, signal)), signal); this.#info = { ...this.#info, state: SandboxState.", naming.Pascal(operation.TerminalState), ", terminal: true }; return result; }); }")
-		default:
-			return fmt.Errorf("TypeScript lifecycle operation %s has unsupported outcome %s", operation.ID, operation.Outcome)
+		method, err := handleMethod(operation)
+		if err != nil {
+			return err
 		}
+		e.IndentedBlock(method, "  ")
 	}
 	return nil
+}
+
+func backendSignature(operation spec.LifecycleOperation) string {
+	result := "SandboxInfo"
+	if operation.Outcome == "exit_result" {
+		result = "ExitResult"
+	}
+	request := ""
+	if operation.Options != "" {
+		request = "request: " + operation.Options + ", "
+	}
+	return fmt.Sprintf("%s?(id: string, %soptions: OperationOptions): Promise<%s>;", operation.ID, request, result)
+}
+
+func handleMethod(operation spec.LifecycleOperation) (string, error) {
+	switch operation.Outcome {
+	case "update_handle":
+		if operation.Options == "" {
+			return fmt.Sprintf(`
+  async %s(options: OperationOptions = {}): Promise<SandboxInfo> {
+    return this.#serialized(%q, options, this.#timeoutMs, async (signal) => {
+      const method = this.#backend.%s;
+      if (!method) unsupported(this.providerName, %q);
+      const info = await awaitWithSignal(() => method.call(this.#backend, this.id, operationOptions(options, signal)), signal);
+      this.#info = clone({ ...info, provider: this.providerName });
+      return this.info();
+    });
+  }`, operation.ID, operation.ID, operation.ID, operation.ID), nil
+		}
+		return fmt.Sprintf(`
+  async %s(request: %s = {}, options: OperationOptions = {}): Promise<SandboxInfo> {
+    return this.#update(%q, this.#backend.%s, request, options);
+  }`, operation.ID, operation.Options, operation.ID, operation.ID), nil
+	case "exit_result":
+		if operation.Options == "" || operation.TerminalState == "" {
+			return "", fmt.Errorf("TypeScript lifecycle operation %s has an incomplete exit result declaration", operation.ID)
+		}
+		return fmt.Sprintf(`
+  async %s(request: %s = {}, options: OperationOptions = {}): Promise<ExitResult> {
+    return this.#serialized(%q, options, request.timeout ?? this.#timeoutMs, async (signal) => {
+      const method = this.#backend.%s;
+      if (!method) unsupported(this.providerName, %q);
+      const result = await awaitWithSignal(() => method.call(this.#backend, this.id, clone(request), operationOptions(options, signal)), signal);
+      this.#info = { ...this.#info, state: SandboxState.%s, terminal: true };
+      return result;
+    });
+  }`, operation.ID, operation.Options, operation.ID, operation.ID, operation.ID, naming.Pascal(operation.TerminalState)), nil
+	default:
+		return "", fmt.Errorf("TypeScript lifecycle operation %s has unsupported outcome %s", operation.ID, operation.Outcome)
+	}
 }
 
 // UpdateOptionsUnion returns the request types accepted by the shared handle
