@@ -1,7 +1,6 @@
 import { modal } from "@sandbox-kit/provider-modal";
 import {
   Client,
-  EgressMode,
   IsolationKind,
   LifecycleCapability,
   PolicyMode,
@@ -49,6 +48,9 @@ const imageSource: SandboxSource = {
 
 await using client = new Client(clientConfig());
 
-const sandbox = await client.create({ source: imageSource, network: { egress: EgressMode.BlockAll } });
+const sandbox = await client.create({
+  source: imageSource,
+  network: { proxyReference: requireEnv("MODAL_PROXY_NAME") },
+});
 console.log(`Modal sandbox created: ${sandbox.id}`);
 

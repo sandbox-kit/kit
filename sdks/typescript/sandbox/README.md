@@ -15,7 +15,8 @@ try {
 }
 ```
 
-Runtimes that support explicit resource management may use `await using` as an
+TypeScript 5.2 or newer with the `ESNext.Disposable` library and runtimes that
+support explicit resource management may use `await using` as an
 optional convenience:
 
 ```ts

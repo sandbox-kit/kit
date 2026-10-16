@@ -1,10 +1,11 @@
 # create-modal-with-network with TypeScript
 
-This independent example mirrors the Go `create-modal-with-network` example through the Sandbox Kit TypeScript API.
+This independent example creates a sandbox whose outbound traffic uses the
+existing Modal Proxy named by `MODAL_PROXY_NAME`.
 
 ```sh
 cp .env.example .env
-# Fill in the provider credentials and any required sandbox ID.
+# Fill in the provider credentials, app name, and existing proxy name.
 npm install
 npm run build
 npm start

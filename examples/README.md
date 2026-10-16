@@ -18,7 +18,7 @@ error-handling operation.
 | [Modal Linux VM](go/modal/create-modal-linux-vm/README.md)            | Linux VM isolation                                       |
 | [Modal placement](go/modal/create-modal-with-placement/README.md)     | Cloud and optional region preference                     |
 | [Modal labels](go/modal/create-modal-with-labels/README.md)           | Environment variables and tags                           |
-| [Modal network](go/modal/create-modal-with-network/README.md)         | Blocked outbound access                                  |
+| [Modal network](go/modal/create-modal-with-network/README.md)         | Managed outbound proxy                                   |
 | [Modal idle timeout](go/modal/create-modal-idle/README.md)            | Termination after 60 idle seconds                        |
 | [Modal readiness](go/modal/create-modal-ready/README.md)              | Wait until a readiness command succeeds                  |
 | [Modal verbose](go/modal/create-modal-verbose/README.md)              | Verbose provider logging                                 |

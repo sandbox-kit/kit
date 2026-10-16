@@ -1217,9 +1217,9 @@ type NetworkConfig struct {
 	PrivateNetwork *bool `json:"private_network,omitempty" validate:"omitnil"`
 	// LinkedSandbox names another sandbox to link. The provider must already know
 	// that sandbox.
-	LinkedSandbox *string `json:"linked_sandbox,omitempty" validate:"omitnil"`
+	LinkedSandbox *string `json:"linked_sandbox,omitempty" validate:"omitnil,nonblank"`
 	// ProxyReference names a provider-managed proxy.
-	ProxyReference *string `json:"proxy_reference,omitempty" validate:"omitnil"`
+	ProxyReference *string `json:"proxy_reference,omitempty" validate:"omitnil,nonblank"`
 	// OutboundProxyURL is an outbound proxy URL.
 	OutboundProxyURL *string `json:"outbound_proxy_url,omitempty" validate:"omitnil"`
 	// CustomDomain is a custom domain for the sandbox, when the provider supports

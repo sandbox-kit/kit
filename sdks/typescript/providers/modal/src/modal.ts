@@ -17,10 +17,11 @@ import { BackendBase, ProviderBase } from "./provider.gen.js";
 import { captureProviderState, type ProviderState } from "./provider.config.gen.js";
 
 interface NativeModal {
-  readonly apps: ModalClient["apps"];
-  readonly images: ModalClient["images"];
-  readonly sandboxes: ModalClient["sandboxes"];
-  readonly secrets: ModalClient["secrets"];
+	readonly apps: Pick<ModalClient["apps"], "fromName">;
+	readonly images: Pick<ModalClient["images"], "fromRegistry">;
+	readonly proxies: Pick<ModalClient["proxies"], "fromName">;
+	readonly sandboxes: Pick<ModalClient["sandboxes"], "create" | "fromId">;
+	readonly secrets: Pick<ModalClient["secrets"], "fromName">;
   close(): void;
 }
 type NativeFactory = (config: ModalClientParams) => NativeModal;
@@ -42,8 +43,9 @@ class ModalBackend extends BackendBase implements Backend {
       const plan = mapCreateRequest(request, this.config);
       const app = await this.native.apps.fromName(plan.app, { ...(plan.environment === undefined ? {} : { environment: plan.environment }) });
       const secrets = await Promise.all(plan.secretNames.map((name) => this.native.secrets.fromName(name, { ...(plan.environment === undefined ? {} : { environment: plan.environment }) })));
+	  const proxy = plan.proxyName === undefined ? undefined : await this.native.proxies.fromName(plan.proxyName, { ...(plan.environment === undefined ? {} : { environment: plan.environment }) });
       const image = this.native.images.fromRegistry(plan.image);
-      const sandbox = await this.native.sandboxes.create(app, image, { ...plan.params, ...(secrets.length === 0 ? {} : { secrets }) });
+	  const sandbox = await this.native.sandboxes.create(app, image, { ...plan.params, ...(secrets.length === 0 ? {} : { secrets }), ...(proxy === undefined ? {} : { proxy }) });
       if (plan.waitUntilReady) await sandbox.waitUntilReady(plan.readyTimeoutMs);
       return { sandbox: mapSandboxInfo(sandbox, request) };
     } catch (error) { throw mapModalError(error, "create"); }

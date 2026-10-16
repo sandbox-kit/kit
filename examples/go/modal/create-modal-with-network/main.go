@@ -1,4 +1,4 @@
-// Create one Modal sandbox with all outbound network access blocked.
+// Create one Modal sandbox using an existing managed proxy.
 package main
 
 import (
@@ -35,7 +35,7 @@ func run() (result error) {
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
 		Source:  &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Network: &sandbox.NetworkConfig{Egress: sandbox.EgressModeBlockAll},
+		Network: &sandbox.NetworkConfig{ProxyReference: sandbox.Value(os.Getenv("MODAL_PROXY_NAME"))},
 	})
 	if err != nil {
 		return err

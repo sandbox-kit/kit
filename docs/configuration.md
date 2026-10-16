@@ -27,9 +27,10 @@ A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional
 capabilities such as creation, refresh, or termination for its supported
 operations. Bare SDK clients and arbitrary interfaces do not satisfy these
-contracts. The backend's identity must match the selected provider. Go closes
-and rejects a mismatched backend; TypeScript rejects it synchronously, which
-leaves asynchronous mismatch cleanup as a future constructor API decision.
+contracts. Both languages verify that the backend identity matches the selected
+provider. Go closes a mismatched backend before returning. Because TypeScript
+construction is synchronous while backend cleanup is asynchronous, TypeScript
+starts cleanup before throwing and suppresses only that cleanup promise's error.
 
 ## Provider support
 

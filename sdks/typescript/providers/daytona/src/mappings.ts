@@ -80,6 +80,7 @@ function mapSecurity(request: CreateOptions, target: CreateSandboxBaseParams): v
 
 function mapNetwork(request: CreateOptions, target: CreateSandboxBaseParams): void {
   const value = request.network; if (value === undefined) return;
+	if (value.linkedSandbox !== undefined && request.lifetime?.ephemeral !== true) invalid("network.linkedSandbox", "linked sandboxes must be ephemeral");
   const egress = value.egress ?? EgressMode.Default;
   if (egress === EgressMode.BlockAll) target.networkBlockAll = true;
   else if (egress !== EgressMode.Default && egress !== EgressMode.AllowAll && egress !== EgressMode.Restricted) invalid("network.egress", "unknown egress mode");

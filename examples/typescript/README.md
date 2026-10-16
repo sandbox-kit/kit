@@ -49,7 +49,7 @@ that resource. Closing a client or sandbox handle only releases local resources.
 | [create-modal-linux-vm](modal/create-modal-linux-vm/README.md) | Linux VM isolation |
 | [create-modal-with-placement](modal/create-modal-with-placement/README.md) | cloud and region placement |
 | [create-modal-with-labels](modal/create-modal-with-labels/README.md) | environment variables and tags |
-| [create-modal-with-network](modal/create-modal-with-network/README.md) | blocked outbound access |
+| [create-modal-with-network](modal/create-modal-with-network/README.md) | managed outbound proxy |
 | [create-modal-idle](modal/create-modal-idle/README.md) | idle termination |
 | [create-modal-ready](modal/create-modal-ready/README.md) | command readiness |
 | [create-modal-verbose](modal/create-modal-verbose/README.md) | verbose provider logging |

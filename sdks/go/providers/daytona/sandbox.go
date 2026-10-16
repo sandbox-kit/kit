@@ -368,6 +368,9 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	}
 	if request.Network != nil {
 		config := *request.Network
+		if config.LinkedSandbox != nil && (request.Lifetime == nil || !request.Lifetime.GetEphemeral()) {
+			return plan, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkLinkedSandbox, Message: "sandbox-kit daytona: linked sandboxes must be ephemeral"}, nil)
+		}
 		switch config.Egress {
 		case sandbox.EgressModeDefault, sandbox.EgressModeAllowAll:
 		case sandbox.EgressModeBlockAll:

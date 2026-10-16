@@ -65,6 +65,15 @@ function hangingFixture(): { readonly client: Client; readonly backend: HangingB
 }
 
 describe("Client cleanup", () => {
+	it("starts cleanup when a provider returns the wrong backend identity", async () => {
+	  const backend = new RecordingBackend();
+	  expect(() => new Client({ provider: { name: "different", initialize: () => backend } })).toThrowError(
+		expect.objectContaining({ kind: ErrorKind.InvalidResponse, field: "provider" }),
+	  );
+	  await Promise.resolve();
+	  expect(backend.closeCalls).toBe(1);
+	});
+
   it("makes close idempotent", async () => {
     const { client, backend } = fixture();
     await Promise.all([client.close(), client.close()]);

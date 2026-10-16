@@ -139,8 +139,9 @@ classifiers come from portable protocol rules and native SDK bindings.
 | `internal/gen/`                | Generated annotation bindings                                                           |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
-and ends in `.gen.go`. Protobuf provides descriptors for generation; it does
-not add a Kit network service or public runtime message dependency.
+and `sdks/typescript/`, ending in `.gen.go` and `.gen.ts` respectively.
+Protobuf provides descriptors for generation; it does not add a Kit network
+service or public runtime message dependency.
 
 See [API declarations](../docs/api-declarations.md) and [generation specifications](../docs/code-generation.md) for the vocabulary,
 validation semantics, and extension workflow.
