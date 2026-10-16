@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5328FVQDDR5VQNDAC1QEQCF",
+  "session_id": "a117216a-530e-408f-99e4-8c654f8731b8",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-16T19:15:44.067892Z",
+  "branch": "codex/protobuf-service-adapters",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "tooling/internal/commands/generate.go"
+  ],
+  "agent": "Cursor",
+  "model": "composer-2.5",
+  "turn_id": "de853e741655",
+  "session_metrics": {
+    "duration_ms": 43312,
+    "turn_count": 1
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-16T19:15:44.063524Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 1135989,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1135989,
+    "total_lines_changed": 1138936,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}
