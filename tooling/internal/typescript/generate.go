@@ -8,7 +8,6 @@ import (
 	codegen "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
-	clientgen "github.com/sandbox-kit/kit/tooling/internal/typescript/client_gen"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/typescript/declaration_gen"
 	providergen "github.com/sandbox-kit/kit/tooling/internal/typescript/provider_gen"
 	typesgen "github.com/sandbox-kit/kit/tooling/internal/typescript/types_gen"
@@ -51,10 +50,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			if file.Desc.Path() == "kit/sandbox/v1/sandbox.proto" {
 				phaseErr = typesgen.Generate(plugin, file, program, profile)
 			}
-		case "client":
-			phaseErr = clientgen.Generate(plugin, file, program, profile)
-		case "provider":
-			phaseErr = providergen.Generate(plugin, file, program.Providers[providerName], profile)
 		case "mappings":
 			switch providerName {
 			case "daytona":
@@ -64,10 +59,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			default:
 				phaseErr = fmt.Errorf("unsupported TypeScript provider %s", providerName)
 			}
-		case "errors":
-			if providerName != "" {
-				phaseErr = providergen.GenerateErrors(plugin, file, program.Providers[providerName])
-			}
 		case "checks":
 			if providerName != "" {
 				phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
@@ -76,7 +67,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			if providerName != "" {
 				phaseErr = providergen.GenerateConfig(plugin, file, program.Providers[providerName].Rules, program.Schema)
 			}
-		case "error_runtime", "copies", "diagnostic_paths", "field_paths", "validation", "lifecycle":
+		case "copies", "diagnostic_paths", "field_paths", "validation":
 			// These concerns currently share an output unit with types, client, or
 			// mappings. Keeping them in phase dispatch makes omissions explicit and
 			// allows each unit to be split without changing the specification.

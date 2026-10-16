@@ -33,6 +33,7 @@ use (
 	./examples/go/modal/terminate-modal-sandbox
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
+	./sdks/go/contracts
 	./sdks/go/sandbox
 	./tooling
 )

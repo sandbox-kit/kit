@@ -1,0 +1,18 @@
+{
+  "name": "@sandbox-kit/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "generate": "protoc -I ../../../proto --plugin=protoc-gen-es=./node_modules/.bin/protoc-gen-es --es_out=src --es_opt=target=ts,import_extension=js kit/sandbox/v1/sandbox.proto"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.11.0"
+  },
+  "devDependencies": {
+    "@bufbuild/protoc-gen-es": "2.11.0",
+    "typescript": "5.9.3"
+  }
+}

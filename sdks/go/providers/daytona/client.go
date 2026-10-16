@@ -1,0 +1,84 @@
+// Native Daytona client setup is handwritten.
+// mapClientConfig turns shared client settings into the native SDK constructor
+// options.
+//
+// Example:
+//
+//	native, err := mapClientConfig(config)
+package daytona
+
+import (
+	types "github.com/daytona/clients/sdk-go/pkg/types"
+	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
+	os "os"
+)
+
+// mapClientConfig maps shared client configuration into the native SDK
+// options. Unsupported supplied settings fail before the SDK is constructed.
+func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
+	var params types.DaytonaConfig
+	if config == nil {
+		config = &sandbox.Config{}
+	}
+	if config.Endpoint == nil {
+		resolved := *config
+		value := "https://app.daytona.io/api"
+		if candidate := os.Getenv("DAYTONA_SERVER_URL"); candidate != "" {
+			value = candidate
+		}
+		if candidate := os.Getenv("DAYTONA_API_URL"); candidate != "" {
+			value = candidate
+		}
+		resolved.Endpoint = &value
+		config = &resolved
+	}
+	if err := sandbox.ValidateConfig(config); err != nil {
+		return params, err
+	}
+	params, remaining, err := mapClientSettings(config)
+	if err != nil {
+		return params, err
+	}
+	remaining.Provider = nil
+	remaining.Timeout = nil
+	remaining.Auth = nil
+	remaining.Scope = nil
+	if config.Scope != nil {
+		mapped, rest, err := mapScope(config.Scope)
+		if err != nil {
+			return params, err
+		}
+		if err := sandbox.RejectUnmapped("daytona client scope", &rest); err != nil {
+			return params, err
+		}
+		params.OrganizationID = mapped.OrganizationID
+	}
+	if auth := config.GetAuth(); auth != nil {
+		switch {
+		case auth.APIKey != nil:
+			mapped, rest, err := mapAPIKeyCredentials(auth.APIKey)
+			if err != nil {
+				return params, err
+			}
+			if err := sandbox.RejectUnmapped("daytona client api_key", &rest); err != nil {
+				return params, err
+			}
+			params.APIKey = mapped.APIKey
+		case auth.BearerToken != nil:
+			mapped, rest, err := mapBearerAuth(auth.BearerToken)
+			if err != nil {
+				return params, err
+			}
+			if err := sandbox.RejectUnmapped("daytona client bearer_token", &rest); err != nil {
+				return params, err
+			}
+			params.JWTToken = mapped.JWTToken
+		default:
+			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
+		}
+	}
+	if err := sandbox.RejectUnmapped("daytona client", &remaining); err != nil {
+		return params, err
+	}
+	return params, nil
+}

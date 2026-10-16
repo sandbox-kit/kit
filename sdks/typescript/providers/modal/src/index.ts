@@ -1,2 +1,2 @@
-export { providerName } from "./provider.gen.js";
+export { providerName } from "./provider.js";
 export { modal } from "./modal.js";

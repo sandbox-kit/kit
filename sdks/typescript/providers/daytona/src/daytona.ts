@@ -17,7 +17,7 @@ import {
 
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
 import { mapDaytonaError } from "./provider.errors.gen.js";
-import { BackendBase, ProviderBase } from "./provider.gen.js";
+import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
   create(params: ReturnType<typeof mapCreateRequest>, options?: { readonly timeout?: number }): Promise<DaytonaSandbox>;

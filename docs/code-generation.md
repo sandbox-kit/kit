@@ -1,23 +1,14 @@
 # Code generation
 
-Protobuf and YAML define the shared contracts and portable rules. All generators
-are written in Go under `tooling/`; Go and TypeScript SDK output are implemented.
+The target architecture is documented in
+[protobuf SDK boundary](protobuf-sdk-boundary.md). Protobuf is the one source of
+truth for portable data and operation contracts. Standard protobuf plugins emit
+messages, enums, reflection metadata, and service declarations; handwritten SDK
+code owns client, handle, provider, and error behavior.
 
-```text
-Protobuf + versioned YAML + native SDK bindings
-                    ↓
-      Language-neutral compiled model
-                    ↓
-             Language emitter
-                    ↓
-            Native SDK source
-```
-
-`tooling/internal/model/` compiles descriptor identities, field paths, local client
-methods, validation references, mapping plans, and error classifications before
-emission. It uses protobuf reflection descriptors, not `protogen`, Go naming, or
-runtime SDK types. `internal/go/` and `internal/typescript/` translate that model
-into native syntax and files.
+The repository is currently being migrated from legacy Kit emitters to that
+model. Do not extend the legacy API-declaration, template, or lifecycle emitter
+paths while the migration is in progress.
 
 ## Generate and verify
 
@@ -40,14 +31,14 @@ From `tooling/`:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
 GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate typescript
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
-Generation requires `protoc`. The CLI builds temporary generator binaries,
-bootstraps annotation bindings, and generates runtime source from the repository
-root, where the plugin resolves `specs/`. Temporary binaries are cleaned up.
+Generation requires `protoc`. Temporary binaries are cleaned up.
 
 Generated source is committed under `sdks/<language>/`. Edit its schema, spec,
 or emitter, then regenerate. SDK applications use native types and do not load
@@ -57,20 +48,12 @@ YAML or import protobuf messages.
 
 | Input                             | Defines                                                                 |
 | --------------------------------- | ----------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                        |
-| `proto/kit/providers/`            | Provider and native SDK declarations                                    |
-| `specs/behaviors.yaml`            | Required behavior inputs, outputs, owner, and execution flags           |
-| `specs/templates.yaml`            | Reusable descriptor-driven signatures and field-path rules              |
-| `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results           |
-| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions      |
-| `specs/generation.yaml`           | Generation phases and ordered client-operation instructions             |
-| Annotated `SandboxService` methods | Handle operations, capabilities, options, outcomes, and terminal states |
+| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
+| `proto/kit/sandbox/internal/`     | Internal-only portable DTOs                                             |
+| `proto/kit/providers/`            | Provider contract declarations                                          |
 | `specs/targets.yaml`              | Language/provider output modules and source descriptors                 |
-| `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy   |
-| `specs/validation.yaml`           | Shared creation validation                                              |
-| `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                            |
-| `specs/errors.yaml`               | Shared cause classification and error-context policy                    |
-| `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings     |
+| `specs/validation.yaml`           | Portable validation rules                                               |
+| `specs/providers/<provider>.yaml` | Provider capability, validation, mapping, and error-classification rules |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -78,28 +61,10 @@ inside the language's bindings.
 
 ## API declarations
 
-[`api.yaml`](../specs/api.yaml) declares runtime objects, interfaces, fields,
-constructors, methods, parameter/result shapes, and behavior attachments.
-[`languages/go.yaml`](../specs/languages/go.yaml) lowers references, presence,
-cancellation, multiple results, and failures into Go conventions.
-[`languages/typescript.yaml`](../specs/languages/typescript.yaml) lowers the same
-semantics into TypeScript conventions, including discriminated unions and thrown
-errors. Each language's `declaration_gen/` emits declarations from the compiled model.
-Template bindings retain portable type shapes and native symbol identities.
-Behavior bodies use explicit symbol references, with no textual identifier renaming.
-The shared compiler checks their declarations against `specs/behaviors.yaml`.
-Native output extensions and capability checks belong to each backend.
-
-The same vocabulary supports aliases, integer enums, callbacks, generic objects
-and functions, static methods, variadic parameters, and composed fields. Go
-rejects unsupported shapes explicitly, including first-class unions/tuples and
-independent generic method parameters. Protobuf still owns shared data fields.
-
-Client/provider signatures, the error runtime, metadata-copy helpers, and `Value`
-now use these declarations. Schema getters, clone methods, validators, mappings, provider checks, and origin
-helpers use declaration templates from `specs/templates.yaml`; their bodies retain
-specialized emitters. Read the
-[declaration guide](api-declarations.md) for syntax, coverage, and extension rules.
+Public data signatures and service request/response shapes belong in protobuf.
+Private portable data belongs in the internal protobuf package. Runtime objects
+and behavior are handwritten in each language. YAML must not declare types,
+constructors, methods, result shapes, visibility, or operation sequencing.
 
 ## Generation plan and client operations
 

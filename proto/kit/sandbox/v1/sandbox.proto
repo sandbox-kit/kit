@@ -3,10 +3,8 @@ package kit.sandbox.v1;
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
-import "kit/codegen/v1/options.proto";
 
-option go_package = "github.com/sandbox-kit/kit/sdks/go/sandbox;sandbox";
-option (kit.codegen.v1.native_types) = true;
+option go_package = "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1";
 
 // is the creation request. It does not include lifecycle operations or credentials.
 // Omitted fields use provider defaults. A provider rejects settings it cannot honor.

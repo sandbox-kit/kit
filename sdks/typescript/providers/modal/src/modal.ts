@@ -13,7 +13,7 @@ import {
 } from "@sandbox-kit/sandbox";
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
 import { mapModalError } from "./provider.errors.gen.js";
-import { BackendBase, ProviderBase } from "./provider.gen.js";
+import { BackendBase, ProviderBase } from "./provider.js";
 import { captureProviderState, type ProviderState } from "./provider.config.gen.js";
 
 interface NativeModal {

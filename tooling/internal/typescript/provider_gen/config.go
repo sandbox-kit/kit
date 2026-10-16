@@ -15,6 +15,19 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
+func uniqueSorted(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		seen[value] = struct{}{}
+	}
+	result := make([]string, 0, len(seen))
+	for value := range seen {
+		result = append(result, value)
+	}
+	sort.Strings(result)
+	return result
+}
+
 // GenerateConfig emits portable client-configuration composition. Native SDK
 // construction and provider-only prerequisites remain in the adapter.
 func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.Provider, schema *model.Schema) error {

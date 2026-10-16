@@ -13,7 +13,7 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, old, new string }{
-		{"unknown phase", "error_runtime", "arbitrary_code"},
+		{"unknown phase", "types", "arbitrary_code"},
 		{"missing phase", "copies, ", ""},
 		{"duplicate phase", "copies, diagnostic_paths", "copies, copies"},
 		{"unknown instruction", "require_provider_name", "execute_go_expression"},
