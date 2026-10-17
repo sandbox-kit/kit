@@ -19,15 +19,16 @@ export function mapGeneratedClientConfig(config: Config, environment: Environmen
     if (source.scope.environment !== undefined) unsupported("scope.environment", "unsupported client configuration field");
     if (source.scope.projectId !== undefined) unsupported("scope.projectId", "unsupported client configuration field");
   }
-  if (source.auth?.credentials === "apiKey") {
-    const mapped = mapAPIKeyCredentials(source.auth.apiKey, "initialize");
+  const credentials = source.auth?.credentials;
+  if (credentials?.case === "apiKey") {
+    const mapped = mapAPIKeyCredentials(credentials.value, "initialize");
     Object.assign(target, mapped);
-  }
-  else if (source.auth?.credentials === "bearerToken") {
-    const mapped = mapBearerAuth(source.auth.bearerToken, "initialize");
+  } else if (credentials?.case === "bearerToken") {
+    const mapped = mapBearerAuth(credentials.value, "initialize");
     Object.assign(target, mapped);
+  } else if (credentials?.case !== undefined) {
+    unsupported("auth", "unsupported authentication mode");
   }
-  else if (source.auth?.credentials !== undefined) unsupported("auth", "unsupported authentication mode");
   return target;
 }
 

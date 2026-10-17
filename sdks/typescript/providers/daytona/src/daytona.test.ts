@@ -21,7 +21,7 @@ describe("Daytona mappings", () => {
       mapClientConfig({
         endpoint: "https://daytona.example/api",
         region: "us",
-        auth: { credentials: "apiKey", apiKey: { key: "secret" } },
+        auth: { credentials: { case: "apiKey", value: { key: "secret" } } },
       }),
     ).toEqual({
       apiKey: "secret",
@@ -130,7 +130,7 @@ describe("Daytona mappings", () => {
   it("maps bearer authentication with its required organization scope", () => {
     expect(
       mapClientConfig({
-        auth: { credentials: "bearerToken", bearerToken: { token: "jwt" } },
+        auth: { credentials: { case: "bearerToken", value: { token: "jwt" } } },
         scope: { organizationId: "organization-1" },
       }),
     ).toMatchObject({ jwtToken: "jwt", organizationId: "organization-1" });
@@ -210,7 +210,7 @@ describe("Daytona provider orchestration", () => {
       nativeConfig = config;
       return native;
     });
-    const client = new Client({ provider, auth: { credentials: "apiKey", apiKey: { key: "secret" } } });
+    const client = new Client({ provider, auth: { credentials: { case: "apiKey", value: { key: "secret" } } } });
 
     const sandbox = await client.create({ source: { kind: "image", image: { reference: "node:24" } } });
     await client.close();

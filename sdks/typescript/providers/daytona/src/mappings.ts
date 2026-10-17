@@ -8,8 +8,9 @@ import {
   SnapshotKind,
   ValueOrigin,
   WaitCondition,
+  materializeClientConfig,
   sandboxError,
-  type Config,
+  type ConfigInput,
   type CreateOptions,
   type CreateResult,
   type SandboxInfo,
@@ -33,9 +34,10 @@ import { mapGeneratedClientConfig, type Environment } from "./provider.config.ge
 
 export type DaytonaCreateParams = CreateSandboxFromImageParams | CreateSandboxFromSnapshotParams;
 
-export function mapClientConfig(config: Config, environment?: Environment): DaytonaConfig {
-  const result = mapGeneratedClientConfig(config, environment);
-  if (config.auth?.credentials === "bearerToken" && config.scope?.organizationId === undefined)
+export function mapClientConfig(config: ConfigInput, environment?: Environment): DaytonaConfig {
+  const source = materializeClientConfig(config);
+  const result = mapGeneratedClientConfig(source, environment);
+  if (source.auth?.credentials.case === "bearerToken" && source.scope?.organizationId === undefined)
     configInvalid("scope.organizationId", "organization ID is required with bearer authentication");
   return result;
 }

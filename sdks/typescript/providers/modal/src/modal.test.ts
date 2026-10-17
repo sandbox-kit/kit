@@ -8,6 +8,7 @@ import {
   PortTransport,
   SecretInjection,
   WaitCondition,
+  duration,
 } from "@sandbox-kit/sandbox";
 import { App, InvalidError, Proxy, type Image, type Sandbox as ModalSandbox, type SandboxCreateParams } from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
@@ -19,9 +20,9 @@ describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
     expect(
       mapClientConfig({
-        auth: { credentials: "tokenPair", tokenPair: { id: "id", secret: "secret" } },
+        auth: { credentials: { case: "tokenPair", value: { id: "id", secret: "secret" } } },
         scope: { environment: "dev" },
-        timeout: 30_000,
+        timeout: duration(30_000),
       }),
     ).toEqual({ tokenId: "id", tokenSecret: "secret", environment: "dev", timeoutMs: 30_000 });
   });
@@ -32,7 +33,7 @@ describe("Modal mappings", () => {
     );
     expect(() =>
       mapClientConfig({
-        auth: { credentials: "tokenPair", tokenPair: { id: "", secret: "secret" } },
+        auth: { credentials: { case: "tokenPair", value: { id: "", secret: "secret" } } },
       }),
     ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "auth.tokenPair.id" }));
   });
@@ -42,7 +43,7 @@ describe("Modal mappings", () => {
     const state = captureProviderState(config);
     config.scope.appName = "changed";
 
-    expect(state).toEqual({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
+    expect(state).toMatchObject({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
   });
 
   it("maps the Go creation surface into the native Modal plan", () => {

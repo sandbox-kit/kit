@@ -104,7 +104,8 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 // enum semantics in TypeScript object literals.
 func InputMessages(program *model.Program) (map[protoreflect.FullName]bool, error) {
 	result := map[protoreflect.FullName]bool{}
-	rootNames := []string{"CreateOptions", program.Client.ConfigMessage}
+	// Config and related client messages come from @sandbox-kit/contracts (client.proto).
+	rootNames := []string{"CreateOptions"}
 	for _, operation := range program.Lifecycle.Operations {
 		if operation.Options != "" {
 			rootNames = append(rootNames, operation.Options)

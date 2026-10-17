@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   Client,
   ErrorKind,
+  duration,
   type Backend,
   type CreateOptions,
   type CreateResult,
@@ -233,7 +234,7 @@ describe("Shared client configuration validation", () => {
       },
     };
 
-    expect(() => new Client({ provider, timeout: Number.POSITIVE_INFINITY })).toThrowError(
+    expect(() => new Client({ provider, timeout: { seconds: -1n, nanos: 0 } as ReturnType<typeof duration> })).toThrowError(
       expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "timeout", operation: "initialize" }),
     );
     expect(initialized).toBe(false);

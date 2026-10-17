@@ -9,6 +9,7 @@ import {
   type ClientConfig,
   type Sandbox,
   type SandboxSource,
+  duration,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -21,17 +22,16 @@ function clientConfig(): ClientConfig {
   return {
     provider: modal(),
     auth: {
-      credentials: "tokenPair",
-      tokenPair: {
+      credentials: { case: "tokenPair", value: {
         id: requireEnv("MODAL_TOKEN_ID"),
         secret: requireEnv("MODAL_TOKEN_SECRET"),
-      },
+      } },
     },
     scope: {
       appName: requireEnv("MODAL_APP_NAME"),
       environment: process.env.MODAL_ENVIRONMENT || "main",
     },
-    timeout: 120_000,
+    timeout: duration(120_000),
   };
 }
 

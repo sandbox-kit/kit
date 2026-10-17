@@ -2,7 +2,15 @@
 // source: kit/providers/modal/v1/provider.proto + specs/providers/modal.yaml
 
 import type { ModalClientParams as NativeClientConfig } from "modal";
-import { ErrorKind, sandboxError, validateConfig, type Config, type Scope } from "@sandbox-kit/sandbox";
+import {
+  ErrorKind,
+  materializeClientConfig,
+  sandboxError,
+  validateConfig,
+  type Config,
+  type ConfigInput,
+  type Scope,
+} from "@sandbox-kit/sandbox";
 import { mapClientScope, mapOAuthAuth, mapTokenPairCredentials } from "./provider.mappings.gen.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
@@ -16,27 +24,29 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
     if (source.scope.organizationId !== undefined) unsupported("scope.organizationId", "unsupported client configuration field");
     if (source.scope.projectId !== undefined) unsupported("scope.projectId", "unsupported client configuration field");
   }
-  if (source.auth?.credentials === "tokenPair") {
-    const mapped = mapTokenPairCredentials(source.auth.tokenPair, "initialize");
+  const credentials = source.auth?.credentials;
+  if (credentials?.case === "tokenPair") {
+    const mapped = mapTokenPairCredentials(credentials.value, "initialize");
     Object.assign(target, mapped);
-  }
-  else if (source.auth?.credentials === "oauthRefresh") {
-    const mapped = mapOAuthAuth(source.auth.oauthRefresh, "initialize");
+  } else if (credentials?.case === "oauthRefresh") {
+    const mapped = mapOAuthAuth(credentials.value, "initialize");
     Object.assign(target, mapped);
+  } else if (credentials?.case !== undefined) {
+    unsupported("auth", "unsupported authentication mode");
   }
-  else if (source.auth?.credentials !== undefined) unsupported("auth", "unsupported authentication mode");
   return target;
 }
 
 export interface ProviderState {
-  readonly scope?: Scope;
+  readonly scope?: ConfigInput["scope"] | Scope;
   readonly region?: string;
 }
 
-export function captureProviderState(config: Config): ProviderState {
+export function captureProviderState(config: Config | ConfigInput): ProviderState {
+  const source = materializeClientConfig(config);
   return {
-    ...(config.scope === undefined ? {} : { scope: structuredClone(config.scope) }),
-    ...(config.region === undefined ? {} : { region: config.region }),
+    ...(source.scope === undefined ? {} : { scope: structuredClone(source.scope) }),
+    ...(source.region === undefined ? {} : { region: source.region }),
   };
 }
 

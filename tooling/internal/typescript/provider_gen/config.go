@@ -67,13 +67,18 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 	g := declarationgen.GeneratedFile(plugin, "provider.config.gen.ts", string(file.Desc.Path())+" + specs/providers/"+provider.Provider+".yaml")
 	g.P("import type { ", target.Name, " as NativeClientConfig } from ", strconv.Quote(target.Import), ";")
 	runtime := provider.Runtime["typescript"]
-	sharedTypes := []string{"Config"}
+	typeImports := []string{"Config"}
+	valueImports := []string{"ErrorKind", "sandboxError", "validateConfig"}
+	if len(runtime.State) > 0 {
+		typeImports = append(typeImports, "ConfigInput")
+		valueImports = append(valueImports, "materializeClientConfig")
+	}
 	for _, state := range runtime.State {
 		if state.Type != "string" {
-			sharedTypes = append(sharedTypes, state.Type)
+			typeImports = append(typeImports, state.Type)
 		}
 	}
-	g.P(`import { ErrorKind, sandboxError, validateConfig, type `, strings.Join(uniqueSorted(sharedTypes), ", type "), ` } from "@sandbox-kit/sandbox";`)
+	g.P("import { ", strings.Join(uniqueSorted(valueImports), ", "), ", type ", strings.Join(uniqueSorted(typeImports), ", type "), ` } from "@sandbox-kit/sandbox";`)
 	if len(needed) > 0 {
 		sort.Strings(needed)
 		g.P("import { ", strings.Join(uniqueSorted(needed), ", "), ` } from "./provider.mappings.gen.js";`)
@@ -118,19 +123,21 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 		}
 	}
 	if len(client.Auth) > 0 {
+		// Protobuf-ES oneof uses { case, value } rather than a string discriminator.
+		g.P("  const credentials = source.auth?.credentials;")
 		for index, auth := range client.Auth {
 			branch := "if"
 			if index > 0 {
 				branch = "else if"
 			}
 			field := naming.Camel(auth.Field)
-			g.P("  ", branch, " (source.auth?.credentials === ", strconv.Quote(field), ") {")
-			if err := emitConfigComponentBody(g, auth, "source.auth."+field, "auth."+field, groups, client.Target, schema, "    "); err != nil {
+			g.P("  ", branch, " (credentials?.case === ", strconv.Quote(field), ") {")
+			if err := emitConfigComponentBody(g, auth, "credentials.value", "auth."+field, groups, client.Target, schema, "    "); err != nil {
 				return err
 			}
 			g.P("  }")
 		}
-		g.P(`  else if (source.auth?.credentials !== undefined) unsupported("auth", "unsupported authentication mode");`)
+		g.P(`  else if (credentials?.case !== undefined) unsupported("auth", "unsupported authentication mode");`)
 	}
 	g.P("  return target;")
 	g.P("}")
@@ -141,6 +148,9 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 			typeName := state.Type
 			if typeName == "string" {
 				typeName = "string"
+			} else {
+				// Accept plain init objects and materialized messages.
+				typeName = `ConfigInput["` + naming.Camel(state.Capture) + `"] | ` + typeName
 			}
 			optional := ""
 			if state.Optional {
@@ -150,17 +160,18 @@ func GenerateConfig(plugin *protogen.Plugin, file *protogen.File, provider spec.
 		}
 		g.P("}")
 		g.P()
-		g.P("export function captureProviderState(config: Config): ProviderState {")
+		g.P("export function captureProviderState(config: Config | ConfigInput): ProviderState {")
+		g.P("  const source = materializeClientConfig(config);")
 		g.P("  return {")
 		for _, state := range runtime.State {
 			name := naming.Camel(state.Name)
 			capture := naming.Camel(state.Capture)
-			value := "config." + capture
+			value := "source." + capture
 			if state.Type != "string" {
 				value = "structuredClone(" + value + ")"
 			}
 			if state.Optional {
-				g.P("    ...(config.", capture, " === undefined ? {} : { ", name, ": ", value, " }),")
+				g.P("    ...(source.", capture, " === undefined ? {} : { ", name, ": ", value, " }),")
 			} else {
 				g.P("    ", name, ": ", value, ",")
 			}

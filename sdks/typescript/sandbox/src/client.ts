@@ -1,9 +1,54 @@
-// Client and sandbox runtime behavior is handwritten. Portable data contracts
-// remain generated from protobuf.
+// Client and sandbox runtime behavior is handwritten. Portable client data
+// contracts come from standard protobuf generation.
 
-import { EgressModeNumber, IsolationKindNumber, PolicyModeNumber, PortTransportNumber, SandboxState, SecretInjectionNumber, SnapshotKindNumber, WaitConditionNumber, type ArchiveOptions, type AutomaticAction, type CommandProbe, type CreateOptions, type CreateResult, type DeleteOptions, type DurationMs, type ExitResult, type ImageSource, type IsolationConfig, type LifecycleCapability, type LifetimePolicy, type NetworkConfig, type ObservabilityConfig, type PauseOptions, type Placement, type PortBinding, type ProviderDefaultSource, type ProvisioningOptions, type ReadinessProbe, type Resources, type RuntimeConfig, type SandboxInfo, type SandboxSource, type SecretReference, type SecurityConfig, type SnapshotSource, type StartOptions, type StopOptions, type StringAllowlist, type TerminateOptions, type WarmPoolSource } from "./sandbox.gen.js";
+import { create, type MessageInitShape } from "@bufbuild/protobuf";
+import { durationFromMs, durationMs, type Duration } from "@bufbuild/protobuf/wkt";
+import {
+  ConfigSchema,
+  type APIKeyCredentials,
+  type ArchiveSandboxRequest,
+  type AttachSandboxRequest,
+  type AuthConfig,
+  type BearerTokenCredentials,
+  type Config,
+  type DeleteSandboxRequest,
+  type GetSandboxRequest,
+  type OAuthCredentials,
+  type PauseSandboxRequest,
+  type RefreshSandboxRequest,
+  type SandboxReference,
+  type Scope,
+  type StartSandboxRequest,
+  type StopSandboxRequest,
+  type TerminateSandboxRequest,
+  type TokenPairCredentials,
+} from "@sandbox-kit/contracts/kit/sandbox/v1/client_pb.js";
 import { ErrorKind as ProtoErrorKind } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+import { EgressModeNumber, IsolationKindNumber, PolicyModeNumber, PortTransportNumber, SandboxState, SecretInjectionNumber, SnapshotKindNumber, WaitConditionNumber, type ArchiveOptions, type AutomaticAction, type CommandProbe, type CreateOptions, type CreateResult, type DeleteOptions, type ExitResult, type ImageSource, type IsolationConfig, type LifecycleCapability, type LifetimePolicy, type NetworkConfig, type ObservabilityConfig, type PauseOptions, type Placement, type PortBinding, type ProviderDefaultSource, type ProvisioningOptions, type ReadinessProbe, type Resources, type RuntimeConfig, type SandboxInfo, type SandboxSource, type SecretReference, type SecurityConfig, type SnapshotSource, type StartOptions, type StopOptions, type StringAllowlist, type TerminateOptions, type WarmPoolSource } from "./sandbox.gen.js";
 import type { ErrorInfo } from "./sandbox.gen.js";
+
+export type {
+  APIKeyCredentials,
+  ArchiveSandboxRequest,
+  AttachSandboxRequest,
+  AuthConfig,
+  BearerTokenCredentials,
+  Config,
+  DeleteSandboxRequest,
+  GetSandboxRequest,
+  OAuthCredentials,
+  PauseSandboxRequest,
+  RefreshSandboxRequest,
+  SandboxReference,
+  Scope,
+  StartSandboxRequest,
+  StopSandboxRequest,
+  TerminateSandboxRequest,
+  TokenPairCredentials,
+};
+
+/** Plain-object client configuration accepted at construction time. */
+export type ConfigInput = MessageInitShape<typeof ConfigSchema>;
 
 // These ergonomic names reference the protobuf-generated enum values; they do
 // not define a second error classification contract.
@@ -28,77 +73,11 @@ export const ErrorKind = {
 
 export type ErrorKind = (typeof ErrorKind)[keyof typeof ErrorKind];
 
-export interface Config {
-  readonly auth?: AuthConfig;
-  readonly endpoint?: string;
-  readonly region?: string;
-  readonly scope?: Scope;
-  readonly timeout?: DurationMs;
+/** Builds a protobuf duration for client configuration. */
+export function duration(ms: number): Duration {
+  return durationFromMs(ms);
 }
-export type AuthConfig =
-  | { readonly credentials: "apiKey"; readonly apiKey: APIKeyCredentials }
-  | { readonly credentials: "tokenPair"; readonly tokenPair: TokenPairCredentials }
-  | { readonly credentials: "bearerToken"; readonly bearerToken: BearerTokenCredentials }
-  | { readonly credentials: "oauthRefresh"; readonly oauthRefresh: OAuthCredentials }
-  | { readonly credentials?: never };
-export interface APIKeyCredentials {
-  readonly key: string;
-}
-export interface TokenPairCredentials {
-  readonly id: string;
-  readonly secret: string;
-}
-export interface BearerTokenCredentials {
-  readonly token: string;
-}
-export interface OAuthCredentials {
-  readonly refreshToken: string;
-  readonly clientId: string;
-  readonly clientSecret?: string;
-  readonly jwtKey?: string;
-}
-export interface Scope {
-  readonly appName?: string;
-  readonly environment?: string;
-  readonly organizationId?: string;
-  readonly projectId?: string;
-}
-export interface SandboxReference {
-  readonly sandboxId: string;
-}
-export interface GetSandboxRequest {
-  readonly sandbox?: SandboxReference;
-}
-export interface AttachSandboxRequest {
-  readonly sandbox?: SandboxReference;
-}
-export interface RefreshSandboxRequest {
-  readonly sandbox?: SandboxReference;
-}
-export interface StartSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: StartOptions;
-}
-export interface StopSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: StopOptions;
-}
-export interface PauseSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: PauseOptions;
-}
-export interface TerminateSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: TerminateOptions;
-}
-export interface ArchiveSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: ArchiveOptions;
-}
-export interface DeleteSandboxRequest {
-  readonly sandbox?: SandboxReference;
-  readonly options?: DeleteOptions;
-}
+
 export interface OperationOptions {
   readonly signal?: AbortSignal;
   readonly timeoutMs?: number;
@@ -125,9 +104,10 @@ export interface Provider {
   initialize(config: Config): Backend;
 }
 
-export interface ClientConfig extends Config {
+/** Provider selection stays handwritten and is never part of the portable Config message. */
+export type ClientConfig = ConfigInput & {
   readonly provider: Provider;
-}
+};
 
 export class SandboxError extends Error {
   readonly kind: ErrorInfo["kind"];
@@ -346,12 +326,14 @@ function validateAPIKeyCredentialsValue(value: APIKeyCredentials | undefined, pr
 
 function validateAuthConfigValue(value: AuthConfig | undefined, provider: string, operation: string, path: string): void {
   if (value === undefined) return;
-  if (true) { const count0 = [value.credentials === "apiKey", value.credentials === "tokenPair", value.credentials === "bearerToken", value.credentials === "oauthRefresh"].filter(Boolean).length;
-    if (count0 !== 1) validationError(provider, operation, joinValidationPath(path, "apiKey,tokenPair,bearerToken,oauthRefresh"), "exactly_one", "requires exactly one value"); }
-  if (value.credentials === "apiKey") validateAPIKeyCredentialsValue(value.apiKey, provider, operation, joinValidationPath(path, "apiKey"));
-  if (value.credentials === "tokenPair") validateTokenPairCredentialsValue(value.tokenPair, provider, operation, joinValidationPath(path, "tokenPair"));
-  if (value.credentials === "bearerToken") validateBearerTokenCredentialsValue(value.bearerToken, provider, operation, joinValidationPath(path, "bearerToken"));
-  if (value.credentials === "oauthRefresh") validateOAuthCredentialsValue(value.oauthRefresh, provider, operation, joinValidationPath(path, "oauthRefresh"));
+  const credentials = value.credentials;
+  if (credentials === undefined || credentials.case === undefined) {
+    validationError(provider, operation, joinValidationPath(path, "apiKey,tokenPair,bearerToken,oauthRefresh"), "exactly_one", "requires exactly one value");
+  }
+  if (credentials.case === "apiKey") validateAPIKeyCredentialsValue(credentials.value, provider, operation, joinValidationPath(path, "apiKey"));
+  if (credentials.case === "tokenPair") validateTokenPairCredentialsValue(credentials.value, provider, operation, joinValidationPath(path, "tokenPair"));
+  if (credentials.case === "bearerToken") validateBearerTokenCredentialsValue(credentials.value, provider, operation, joinValidationPath(path, "bearerToken"));
+  if (credentials.case === "oauthRefresh") validateOAuthCredentialsValue(credentials.value, provider, operation, joinValidationPath(path, "oauthRefresh"));
 }
 
 function validateBearerTokenCredentialsValue(value: BearerTokenCredentials | undefined, provider: string, operation: string, path: string): void {
@@ -364,8 +346,15 @@ function validateConfigValue(value: Config | undefined, provider: string, operat
   if (value.endpoint !== undefined && !value.endpoint.trim()) validationError(provider, operation, joinValidationPath(path, "endpoint"), "nonblank", "must not be blank");
   if (value.endpoint !== undefined && !validSecureEndpoint(value.endpoint)) validationError(provider, operation, joinValidationPath(path, "endpoint"), "secure_endpoint", "must use HTTPS except for loopback HTTP development endpoints");
   if (value.region !== undefined && !value.region.trim()) validationError(provider, operation, joinValidationPath(path, "region"), "nonblank", "must not be blank");
-  if (value.timeout !== undefined && !Number.isFinite(value.timeout)) validationError(provider, operation, joinValidationPath(path, "timeout"), "finite", "must be finite");
-  if (value.timeout !== undefined && !(value.timeout >= 0)) validationError(provider, operation, joinValidationPath(path, "timeout"), "minimum", "must be at least 0");
+  if (value.timeout !== undefined) {
+    let timeoutMs: number;
+    try {
+      timeoutMs = durationMs(value.timeout);
+    } catch {
+      validationError(provider, operation, joinValidationPath(path, "timeout"), "finite", "must be a non-negative protobuf duration");
+    }
+    if (!Number.isFinite(timeoutMs) || timeoutMs < 0) validationError(provider, operation, joinValidationPath(path, "timeout"), "minimum", "must be at least 0");
+  }
   validateAuthConfigValue(value.auth, provider, operation, joinValidationPath(path, "auth"));
   validateScopeValue(value.scope, provider, operation, joinValidationPath(path, "scope"));
 }
@@ -394,7 +383,7 @@ function validateTokenPairCredentialsValue(value: TokenPairCredentials | undefin
   if (value.secret !== undefined && !value.secret.trim()) validationError(provider, operation, joinValidationPath(path, "secret"), "nonblank", "must not be blank");
 }
 
-export function validateConfig(value: Config, provider = "", operation = "create"): void { validateConfigValue(value, provider, operation, ""); }
+export function validateConfig(value: Config | ConfigInput, provider = "", operation = "create"): void { validateConfigValue(value as Config, provider, operation, ""); }
 
 function clone<T>(value: T): T {
   return structuredClone(value);
@@ -515,7 +504,7 @@ export class Sandbox implements AsyncDisposable {
 
 export class Client implements AsyncDisposable {
   readonly #backend: Backend; readonly #providerName: string; readonly #timeoutMs: number | undefined; readonly #lifecycle: ClientLifecycle; #active = 0; #closing = false; #closed = false; #closePromise: Promise<void> | undefined; #drain: Promise<void> | undefined; #resolveDrain: (() => void) | undefined;
-  constructor(config: ClientConfig) { if (!config.provider?.name?.trim()) throw sandboxError({ kind: ErrorKind.InvalidArgument, provider: "", operation: "initialize", field: "provider", message: "sandbox-kit: provider is required" }); validateConfig(config, config.provider.name, "initialize"); this.#providerName = config.provider.name; this.#timeoutMs = config.timeout; this.#lifecycle = { begin: (operation) => this.#begin(operation), isClosed: () => this.#closing || this.#closed }; try { this.#backend = config.provider.initialize(cloneConfig(config)); } catch (error) { throw withContext(error, config.provider.name, "initialize"); } if (!this.#backend) throw sandboxError({ kind: ErrorKind.InvalidResponse, provider: config.provider.name, operation: "initialize", field: "provider", message: "sandbox-kit: provider returned no backend" }); if (this.#backend.name !== this.#providerName) { void this.#backend.close({}).catch(() => {}); throw sandboxError({ kind: ErrorKind.InvalidResponse, provider: this.#providerName, operation: "initialize", field: "provider", message: "sandbox-kit: initialized backend identity differs from selected provider" }); } }
+  constructor(config: ClientConfig) { if (!config.provider?.name?.trim()) throw sandboxError({ kind: ErrorKind.InvalidArgument, provider: "", operation: "initialize", field: "provider", message: "sandbox-kit: provider is required" }); validateConfig(config, config.provider.name, "initialize"); this.#providerName = config.provider.name; this.#timeoutMs = config.timeout === undefined ? undefined : durationMs(config.timeout as Duration); this.#lifecycle = { begin: (operation) => this.#begin(operation), isClosed: () => this.#closing || this.#closed }; try { this.#backend = config.provider.initialize(materializeConfig(config)); } catch (error) { throw withContext(error, config.provider.name, "initialize"); } if (!this.#backend) throw sandboxError({ kind: ErrorKind.InvalidResponse, provider: config.provider.name, operation: "initialize", field: "provider", message: "sandbox-kit: provider returned no backend" }); if (this.#backend.name !== this.#providerName) { void this.#backend.close({}).catch(() => {}); throw sandboxError({ kind: ErrorKind.InvalidResponse, provider: this.#providerName, operation: "initialize", field: "provider", message: "sandbox-kit: initialized backend identity differs from selected provider" }); } }
   get providerName(): string { return this.#providerName; }
   async attach(id: string, options: OperationOptions = {}): Promise<Sandbox> { const release = this.#begin("attach"); let scoped: ReturnType<typeof operationSignal> | undefined; try { scoped = operationSignal(options, this.#timeoutMs); if (!id.trim()) throw sandboxError({ kind: ErrorKind.InvalidArgument, provider: this.providerName, operation: "attach", field: "id", message: "sandbox-kit: sandbox ID must not be blank" }); if (!this.#backend.attach) unsupported(this.providerName, "attach"); const info = await awaitWithSignal(() => this.#backend.attach!(id, operationOptions(options, scoped?.signal)), scoped.signal); return new Sandbox(sandboxConstructorToken, this.#backend, this.#lifecycle, { ...info, id, provider: this.providerName }, this.#timeoutMs); } catch (error) { throw withContext(error, this.providerName, "attach"); } finally { scoped?.dispose(); release(); } }
   async get(id: string, options: OperationOptions = {}): Promise<Sandbox> { const release = this.#begin("get"); let scoped: ReturnType<typeof operationSignal> | undefined; try { scoped = operationSignal(options, this.#timeoutMs); if (!id.trim()) throw sandboxError({ kind: ErrorKind.InvalidArgument, provider: this.providerName, operation: "get", field: "id", message: "sandbox-kit: sandbox ID must not be blank" }); if (!this.#backend.refresh) unsupported(this.providerName, "get"); const info = await awaitWithSignal(() => this.#backend.refresh!(id, operationOptions(options, scoped?.signal)), scoped.signal); return new Sandbox(sandboxConstructorToken, this.#backend, this.#lifecycle, { ...info, id, provider: this.providerName }, this.#timeoutMs); } catch (error) { throw withContext(error, this.providerName, "get"); } finally { scoped?.dispose(); release(); } }
@@ -526,6 +515,14 @@ export class Client implements AsyncDisposable {
   #begin(operation: string): () => void { if (this.#closing || this.#closed) throw sandboxError({ kind: ErrorKind.FailedPrecondition, provider: this.providerName, operation, field: "client", message: "sandbox-kit: client is closed" }); this.#active++; let released = false; return () => { if (released) return; released = true; this.#active--; if (this.#active === 0) { this.#resolveDrain?.(); this.#resolveDrain = undefined; this.#drain = undefined; } }; }
 }
 
-function cloneConfig(config: ClientConfig): Config { const { provider: _provider, ...shared } = config; return clone(shared); }
+/** Materializes a plain client config into the generated protobuf message. */
+export function materializeClientConfig(input: ConfigInput): Config {
+  return create(ConfigSchema, input);
+}
+
+function materializeConfig(config: ClientConfig): Config {
+  const { provider: _provider, ...shared } = config;
+  return materializeClientConfig(shared);
+}
 function unsupported(provider: string, operation: string): never { throw sandboxError({ kind: ErrorKind.Unsupported, provider, operation, field: "", message: "sandbox-kit: provider does not support " + operation }); }
 function withContext(error: unknown, provider: string, operation: string): SandboxError { if (error instanceof SandboxError) { if (error.provider === provider && error.operation === operation) return error; return sandboxError({ kind: error.kind, provider: error.provider || provider, operation: error.operation || operation, field: error.field, message: error.message, ...(error.rule === undefined ? {} : { rule: error.rule }), ...(error.statusCode === undefined ? {} : { statusCode: error.statusCode }), ...(error.providerCode === undefined ? {} : { providerCode: error.providerCode }), ...(error.providerSource === undefined ? {} : { providerSource: error.providerSource }) }, error.cause); } if (error instanceof DOMException && error.name === "AbortError") return sandboxError({ kind: ErrorKind.Canceled, provider, operation, field: "", message: error.message }, error); if (error instanceof DOMException && error.name === "TimeoutError") return sandboxError({ kind: ErrorKind.Timeout, provider, operation, field: "", message: error.message }, error); return sandboxError({ kind: ErrorKind.Unknown, provider, operation, field: "", message: error instanceof Error ? error.message : "sandbox-kit: provider operation failed" }, error); }

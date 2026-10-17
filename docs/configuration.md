@@ -5,9 +5,9 @@ or a TypeScript client with `new Client({...})`. The selected provider
 initializes its official SDK from generated protobuf configuration types. This
 guide uses Go field spelling; TypeScript exposes the same fields in camelCase.
 
-In Go, provider selection is a separate constructor argument and is never part
-of the portable `Config` message. TypeScript still accepts provider selection
-alongside config until its client-contract migration lands.
+Provider selection is never part of the portable `Config` message. Go passes the
+provider as a separate `NewClient` argument; TypeScript attaches it on
+`ClientConfig` beside the protobuf config fields.
 
 The constructors have the same ownership and validation semantics while
 following each language's conventions: Go returns `(*Client, error)`, and
@@ -25,7 +25,7 @@ sandbox lifecycle.
 | `Scope`    | App, environment, organization, or project scope                       |
 | `Endpoint` | Provider API URL, where supported                                      |
 | `Region`   | Provider target or default placement preference                        |
-| `Timeout`  | Default Kit operation deadline (`google.protobuf.Duration` in Go)      |
+| `Timeout`  | Default Kit operation deadline (`google.protobuf.Duration`; TS `duration(ms)`) |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional

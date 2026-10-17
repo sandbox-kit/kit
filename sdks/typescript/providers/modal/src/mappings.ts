@@ -1,4 +1,5 @@
 // Provider-specific orchestration around generated portable field mappings.
+import { durationMs } from "@bufbuild/protobuf/wkt";
 import { Probe, type ModalClientParams, type Sandbox, type SandboxCreateParams } from "modal";
 import {
   EgressMode,
@@ -9,8 +10,9 @@ import {
   SecretInjection,
   ValueOrigin,
   WaitCondition,
+  materializeClientConfig,
   sandboxError,
-  type Config,
+  type ConfigInput,
   type CreateOptions,
   type SandboxInfo,
 } from "@sandbox-kit/sandbox";
@@ -36,9 +38,10 @@ export interface ModalCreatePlan {
   readonly readyTimeoutMs?: number;
 }
 
-export function mapClientConfig(config: Config): ModalClientParams {
-  const result = mapGeneratedClientConfig(config);
-  if (config.timeout !== undefined) result.timeoutMs = duration(config.timeout, "timeout", true);
+export function mapClientConfig(config: ConfigInput): ModalClientParams {
+  const source = materializeClientConfig(config);
+  const result = mapGeneratedClientConfig(source);
+  if (source.timeout !== undefined) result.timeoutMs = finiteDurationMs(durationMs(source.timeout), "timeout", true);
   return result;
 }
 
@@ -160,14 +163,14 @@ function mapSecurity(r: CreateOptions, p: SandboxCreateParams): readonly string[
 function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.lifetime;
   if (!v) return;
-  if (v.maximumLifetime !== undefined) duration(v.maximumLifetime, "lifetime.maximumLifetime", false);
+  if (v.maximumLifetime !== undefined) finiteDurationMs(v.maximumLifetime, "lifetime.maximumLifetime", false);
   Object.assign(p, generatedMapLifetimeDuration(v));
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
     if (mode === PolicyMode.Disabled) p.idleTimeoutMs = 0;
     else if (mode === PolicyMode.After) {
       if (v.idleTerminate.after === undefined) invalid("lifetime.idleTerminate.after", "duration is required");
-      duration(v.idleTerminate.after, "lifetime.idleTerminate.after", false);
+      finiteDurationMs(v.idleTerminate.after, "lifetime.idleTerminate.after", false);
       Object.assign(p, generatedMapIdleDuration(v.idleTerminate));
     } else if (mode !== PolicyMode.Default) invalid("lifetime.idleTerminate.mode", "unknown policy mode");
   }
@@ -249,7 +252,7 @@ function integer(v: bigint, f: string, min: number): number {
   if (v < BigInt(min) || v > 2_147_483_647n) invalid(f, "is outside the supported range");
   return Number(v);
 }
-function duration(v: number, f: string, zero: boolean): number {
+function finiteDurationMs(v: number, f: string, zero: boolean): number {
   if (!Number.isFinite(v) || v < 0 || (!zero && v === 0)) invalid(f, "must be a finite positive duration");
   return v;
 }
