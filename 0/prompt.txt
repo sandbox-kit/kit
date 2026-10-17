@@ -1,0 +1,43 @@
+can u get all the chats of  project which were there in codex its named sandbox-kit there as project.
+
+and we need to have all the context of -> refactor-around-sdk-protobuf here in this chat as we need to continue working in that chat
+
+---
+
+there were lastly 5 plans u mentioned tell me which were they ?
+
+---
+
+cool now can u continue working on it
+
+---
+
+there are some explians and still clean up required can u check or is that all part of 3-5 ?
+
+---
+
+there are some fixes
+ and still clean up required can u check or is that all part of 3-5 ?
+
+---
+
+check examples there are errors in some fields and all
+
+---
+
+https://modal.com/docs/sdk/go/latest
+https://modal.com/docs/sdk/js/latest
+https://www.daytona.io/docs/en/go-sdk/
+https://www.daytona.io/docs/en/typescript-sdk/
+
+just sharing this are parent links of refrence sdk for botht the providrs. codex use to know u just know it too go to child routes u can find more links to more pages. just sharing. 
+
+and whatever changes u have made not sure if u have take typescript into consideration.
+
+---
+
+what do u think we should do typescript too or go for step 3 for go ?
+
+---
+
+go ahead with your suggestion
