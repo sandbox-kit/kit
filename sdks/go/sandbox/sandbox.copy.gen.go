@@ -1071,42 +1071,6 @@ func (x *SandboxInfo) clone(depth int) (*SandboxInfo, error) {
 	return &out, nil
 }
 
-// Clone returns an owned copy of ErrorInfo. The copy keeps optional presence
-// and numeric types. It fails when metadata is unsupported or deeper than the
-// copy limit.
-func (x *ErrorInfo) Clone() (*ErrorInfo, error) {
-	return x.clone(0)
-}
-
-// clone copies fields at depth. Clone is the caller-facing method; depth
-// starts at zero there.
-func (x *ErrorInfo) clone(depth int) (*ErrorInfo, error) {
-	if x == nil {
-		return nil, nil
-	}
-	if depth > 64 {
-		return nil, fmt.Errorf("sandbox-kit: data exceeds maximum copy depth or contains a cycle")
-	}
-	out := *x
-	if x.StatusCode != nil {
-		value := *x.StatusCode
-		out.StatusCode = &value
-	}
-	if x.ProviderCode != nil {
-		value := *x.ProviderCode
-		out.ProviderCode = &value
-	}
-	if x.ProviderSource != nil {
-		value := *x.ProviderSource
-		out.ProviderSource = &value
-	}
-	if x.Rule != nil {
-		value := *x.Rule
-		out.Rule = &value
-	}
-	return &out, nil
-}
-
 // Clone returns an owned copy of MetadataValue. The copy keeps optional
 // presence and numeric types. It fails when metadata is unsupported or deeper
 // than the copy limit.

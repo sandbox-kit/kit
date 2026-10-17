@@ -1,7 +1,32 @@
 // Client and sandbox runtime behavior is handwritten. Portable data contracts
 // remain generated from protobuf.
 
-import { EgressModeNumber, ErrorKind, IsolationKindNumber, PolicyModeNumber, PortTransportNumber, SandboxState, SecretInjectionNumber, SnapshotKindNumber, WaitConditionNumber, type ArchiveOptions, type AutomaticAction, type CommandProbe, type CreateOptions, type CreateResult, type DeleteOptions, type DurationMs, type ErrorInfo, type ExitResult, type ImageSource, type IsolationConfig, type LifecycleCapability, type LifetimePolicy, type NetworkConfig, type ObservabilityConfig, type PauseOptions, type Placement, type PortBinding, type ProviderDefaultSource, type ProvisioningOptions, type ReadinessProbe, type Resources, type RuntimeConfig, type SandboxInfo, type SandboxSource, type SecretReference, type SecurityConfig, type SnapshotSource, type StartOptions, type StopOptions, type StringAllowlist, type TerminateOptions, type WarmPoolSource } from "./sandbox.gen.js";
+import { EgressModeNumber, IsolationKindNumber, PolicyModeNumber, PortTransportNumber, SandboxState, SecretInjectionNumber, SnapshotKindNumber, WaitConditionNumber, type ArchiveOptions, type AutomaticAction, type CommandProbe, type CreateOptions, type CreateResult, type DeleteOptions, type DurationMs, type ExitResult, type ImageSource, type IsolationConfig, type LifecycleCapability, type LifetimePolicy, type NetworkConfig, type ObservabilityConfig, type PauseOptions, type Placement, type PortBinding, type ProviderDefaultSource, type ProvisioningOptions, type ReadinessProbe, type Resources, type RuntimeConfig, type SandboxInfo, type SandboxSource, type SecretReference, type SecurityConfig, type SnapshotSource, type StartOptions, type StopOptions, type StringAllowlist, type TerminateOptions, type WarmPoolSource } from "./sandbox.gen.js";
+import { ErrorKind as ProtoErrorKind } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+import type { ErrorInfo } from "./sandbox.gen.js";
+
+// These ergonomic names reference the protobuf-generated enum values; they do
+// not define a second error classification contract.
+export const ErrorKind = {
+  Unknown: ProtoErrorKind.UNKNOWN,
+  InvalidArgument: ProtoErrorKind.INVALID_ARGUMENT,
+  Unsupported: ProtoErrorKind.UNSUPPORTED,
+  Authentication: ProtoErrorKind.AUTHENTICATION,
+  PermissionDenied: ProtoErrorKind.PERMISSION_DENIED,
+  NotFound: ProtoErrorKind.NOT_FOUND,
+  AlreadyExists: ProtoErrorKind.ALREADY_EXISTS,
+  Conflict: ProtoErrorKind.CONFLICT,
+  RateLimited: ProtoErrorKind.RATE_LIMITED,
+  ResourceExhausted: ProtoErrorKind.RESOURCE_EXHAUSTED,
+  Timeout: ProtoErrorKind.TIMEOUT,
+  Canceled: ProtoErrorKind.CANCELED,
+  Unavailable: ProtoErrorKind.UNAVAILABLE,
+  InvalidResponse: ProtoErrorKind.INVALID_RESPONSE,
+  Internal: ProtoErrorKind.INTERNAL,
+  FailedPrecondition: ProtoErrorKind.FAILED_PRECONDITION,
+} as const;
+
+export type ErrorKind = (typeof ErrorKind)[keyof typeof ErrorKind];
 
 export interface Config {
   readonly auth?: AuthConfig;

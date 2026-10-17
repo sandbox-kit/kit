@@ -4,7 +4,7 @@ shared: [types, copies, diagnostic_paths, field_paths, validation]
 # Runtime orchestration is handwritten. Generation is limited to protobuf-derived
 # data helpers and portable validation while standard protobuf output is adopted.
 client: [types, diagnostic_paths, field_paths, validation]
-provider: [configuration, checks, mappings]
+provider: [checks, mappings]
 operations:
   initialize:
     - require_provider

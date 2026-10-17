@@ -61,8 +61,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			err = typesgen.GeneratePaths(plugin, file, program.Templates, profile)
 		case "validation":
 			err = validationgen.Generate(plugin, file, rules, root, program.Templates, profile)
-		case "configuration":
-			err = providergen.GenerateConfig(plugin, file, provider.Rules, program.Templates, profile)
 		case "checks":
 			err = providergen.GenerateChecks(plugin, file, provider.Rules, program.Templates, profile)
 		case "mappings":

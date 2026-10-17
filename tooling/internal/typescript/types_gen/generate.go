@@ -16,6 +16,9 @@ import (
 
 func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Program, profile spec.LanguageProfile) error {
 	g := declarationgen.GeneratedFile(plugin, "sandbox"+profile.Outputs["shared"], string(file.Desc.Path()))
+	g.P(`import type { ErrorInfo as ProtoErrorInfo } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";`)
+	g.P("// ErrorInfo is the caller-facing view of the generated protobuf message.")
+	g.P("export type ErrorInfo = Omit<ProtoErrorInfo, \"$typeName\">;")
 	g.P("/** A duration in milliseconds. */")
 	g.P("export type DurationMs = number;")
 	g.P("export type MetadataValue = null | boolean | string | number | bigint | Uint8Array | readonly MetadataValue[] | MetadataObject;")
@@ -30,10 +33,13 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 
 func EmitDeclarations(g *protogen.GeneratedFile, file *protogen.File, skipMetadata bool, inputs map[protoreflect.FullName]bool) error {
 	for _, enum := range file.Enums {
+		if enum.Desc.FullName() == "kit.sandbox.v1.ErrorKind" {
+			continue
+		}
 		emitEnum(g, enum.Desc)
 	}
 	for _, message := range file.Messages {
-		if skipMetadata && (message.Desc.FullName() == "kit.sandbox.v1.MetadataValue" || message.Desc.FullName() == "kit.sandbox.v1.MetadataList" || message.Desc.FullName() == "kit.sandbox.v1.MetadataObject") {
+		if message.Desc.FullName() == "kit.sandbox.v1.ErrorInfo" || (skipMetadata && (message.Desc.FullName() == "kit.sandbox.v1.MetadataValue" || message.Desc.FullName() == "kit.sandbox.v1.MetadataList" || message.Desc.FullName() == "kit.sandbox.v1.MetadataObject")) {
 			continue
 		}
 		if err := emitMessage(g, message.Desc, inputs); err != nil {

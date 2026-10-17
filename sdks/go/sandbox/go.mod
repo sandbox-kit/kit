@@ -2,7 +2,10 @@ module github.com/sandbox-kit/kit/sdks/go/sandbox
 
 go 1.26.9
 
-require github.com/go-playground/validator/v10 v10.30.5
+require (
+	github.com/go-playground/validator/v10 v10.30.5
+	github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0
+)
 
 require (
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect

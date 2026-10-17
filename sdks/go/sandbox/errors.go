@@ -15,7 +15,33 @@ import (
 	context "context"
 	errors "errors"
 	v10 "github.com/go-playground/validator/v10"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
+	"google.golang.org/protobuf/proto"
 	strings "strings"
+)
+
+// ErrorInfo and ErrorKind are the generated portable protobuf contracts.
+// Error below only adds native cause chaining.
+type ErrorInfo = sandboxv1.ErrorInfo
+type ErrorKind = sandboxv1.ErrorKind
+
+const (
+	ErrorKindUnknown = sandboxv1.ErrorKind_ERROR_KIND_UNKNOWN
+	ErrorKindInvalidArgument = sandboxv1.ErrorKind_ERROR_KIND_INVALID_ARGUMENT
+	ErrorKindUnsupported = sandboxv1.ErrorKind_ERROR_KIND_UNSUPPORTED
+	ErrorKindAuthentication = sandboxv1.ErrorKind_ERROR_KIND_AUTHENTICATION
+	ErrorKindPermissionDenied = sandboxv1.ErrorKind_ERROR_KIND_PERMISSION_DENIED
+	ErrorKindNotFound = sandboxv1.ErrorKind_ERROR_KIND_NOT_FOUND
+	ErrorKindAlreadyExists = sandboxv1.ErrorKind_ERROR_KIND_ALREADY_EXISTS
+	ErrorKindConflict = sandboxv1.ErrorKind_ERROR_KIND_CONFLICT
+	ErrorKindRateLimited = sandboxv1.ErrorKind_ERROR_KIND_RATE_LIMITED
+	ErrorKindResourceExhausted = sandboxv1.ErrorKind_ERROR_KIND_RESOURCE_EXHAUSTED
+	ErrorKindTimeout = sandboxv1.ErrorKind_ERROR_KIND_TIMEOUT
+	ErrorKindCanceled = sandboxv1.ErrorKind_ERROR_KIND_CANCELED
+	ErrorKindUnavailable = sandboxv1.ErrorKind_ERROR_KIND_UNAVAILABLE
+	ErrorKindInvalidResponse = sandboxv1.ErrorKind_ERROR_KIND_INVALID_RESPONSE
+	ErrorKindInternal = sandboxv1.ErrorKind_ERROR_KIND_INTERNAL
+	ErrorKindFailedPrecondition = sandboxv1.ErrorKind_ERROR_KIND_FAILED_PRECONDITION
 )
 
 // Error exposes portable details and retains the native cause for errors.Is
@@ -69,8 +95,8 @@ func (e *Error) Unwrap() error {
 //	    Message: "disk overrides are unsupported",
 //	}, cause)
 func NewError(info ErrorInfo, cause error) *Error {
-	owned, _ := info.Clone()
-	if !owned.Kind.Valid() {
+	owned := proto.Clone(&info).(*sandboxv1.ErrorInfo)
+	if owned.Kind.Descriptor().Values().ByNumber(owned.Kind.Number()) == nil {
 		owned.Kind = ErrorKindUnknown
 	}
 	if errors.Is(cause, context.Canceled) {
@@ -93,7 +119,7 @@ func WithErrorContext(err error, provider string, operation string) error {
 		if (provider == "" || existing.Provider == provider) && (operation == "" || existing.Operation == operation) {
 			return err
 		}
-		info, _ := existing.ErrorInfo.Clone()
+		info := proto.Clone(&existing.ErrorInfo).(*sandboxv1.ErrorInfo)
 		if provider != "" {
 			info.Provider = provider
 		}

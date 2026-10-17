@@ -4,28 +4,26 @@ import (
 	"fmt"
 	"strings"
 
-	codegen "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
 	validationgen "github.com/sandbox-kit/kit/tooling/internal/go/validation_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // Generate emits native Go data types. Protobuf is only a build-time input.
 func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validation, representation spec.RepresentationPolicy, surface model.APIModule, helpers model.APIModule, profile spec.LanguageProfile, templates model.Templates) error {
-	if !proto.HasExtension(file.Desc.Options(), codegen.E_NativeTypes) || !proto.GetExtension(file.Desc.Options(), codegen.E_NativeTypes).(bool) {
-		return nil
-	}
 	g := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".types.gen.go", file.GoImportPath)
 	declarationgen.Banner(g, "source: "+string(file.Desc.Path()),
 		"Native configuration and result types. A nil pointer means the caller omitted the value. Use Value to supply zero or false explicitly.",
 		"options := &CreateOptions{Resources: &Resources{CPUCores: Value(0.5)}}")
 	g.P("package ", file.GoPackageName)
 	for _, enum := range file.Enums {
+		if enum.Desc.FullName() == "kit.sandbox.v1.ErrorKind" {
+			continue
+		}
 		name := enum.GoIdent.GoName
 		commentBefore(g, enum.Comments.Leading, name)
 		g.P("type ", name, " int32")
@@ -59,7 +57,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 		g.P("default:return \"UNKNOWN\"}}")
 	}
 	for _, message := range file.Messages {
-		if message.Desc.IsMapEntry() {
+		if message.Desc.IsMapEntry() || message.Desc.FullName() == "kit.sandbox.v1.ErrorInfo" {
 			continue
 		}
 		name := message.GoIdent.GoName
@@ -159,7 +157,7 @@ func GenerateCopies(plugin *protogen.Plugin, file *protogen.File, maxDepth int, 
 		"copy, err := info.Clone()")
 	g.P("package ", file.GoPackageName)
 	for _, m := range file.Messages {
-		if m.Desc.IsMapEntry() {
+		if m.Desc.IsMapEntry() || m.Desc.FullName() == "kit.sandbox.v1.ErrorInfo" {
 			continue
 		}
 		emitter := declarationgen.TemplateEmitter{G: g, Plugin: plugin, Templates: templates, Profile: profile}

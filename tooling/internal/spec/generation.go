@@ -29,7 +29,7 @@ func LoadGeneration(root string) (Generation, error) {
 	}{
 		{"shared", result.Shared, []string{"types", "copies", "diagnostic_paths", "field_paths", "validation"}},
 		{"client", result.Client, []string{"types", "diagnostic_paths", "field_paths", "validation"}},
-		{"provider", result.Provider, []string{"configuration", "checks", "mappings"}},
+		{"provider", result.Provider, []string{"checks", "mappings"}},
 	}
 	for _, role := range roles {
 		if len(role.phases) != len(role.allowed) {

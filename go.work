@@ -37,3 +37,5 @@ use (
 	./sdks/go/sandbox
 	./tooling
 )
+
+replace github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0 => ./sdks/go/contracts
