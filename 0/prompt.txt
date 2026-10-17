@@ -41,3 +41,7 @@ what do u think we should do typescript too or go for step 3 for go ?
 ---
 
 go ahead with your suggestion
+
+---
+
+can u make two different commits one for changes of golang and other for tyepscript
