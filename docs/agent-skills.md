@@ -2,8 +2,14 @@
 
 This repository keeps shared agent skills in `.agents/skills/` and records their
 sources and content hashes in `skills-lock.json`. Install project skills from the
-repository root with `npx skills add <source> --skill <name> --agent codex --copy`.
+repository root with
+`npx skills add <source> --skill <name> --agent codex --agent cursor --copy`.
 Using `--copy` preserves the repository's existing checked-in layout.
+
+Cursor loads project skills reliably from `.cursor/skills/`. This repo keeps a
+symlink at `.cursor/skills` → `.agents/skills` so Codex and Cursor share one
+checked-in copy. Without that path, Cursor may treat `.agents/skills` entries as
+rules instead of invocable skills (`/skill-name`).
 
 ## Selected skills
 
