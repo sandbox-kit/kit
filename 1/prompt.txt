@@ -1,0 +1,14 @@
+Explore /Users/nabhag/OpenSource/kit for the remaining "area 5" work of the refactor-around-sdk-protobuf plan: internal adapter protos + YAML/generator cleanup for validation/mappings now that sandbox.proto portable types are adopted (handwritten aliases, not types_gen).
+
+Find and report:
+1. What still generates sandbox/client portable types that should be skipped/removed (Go types_gen, TS types phase, sandbox.gen.ts / sandbox.copy.gen.go etc.)
+2. Where validation_gen and mapping_gen emit Duration as number / wrong oneof shapes — what needs to change for protobuf Duration and {case,value} oneofs
+3. Temporary stubs/patches in provider .gen.ts/.gen.go that should be fixed by regenerating (e.g. daytona mapLifetimePolicies stub, durationMs imports in modal/daytona .gen.ts)
+4. Relevant specs (generation.yaml, api.yaml, templates, languages) and entrypoints to regenerate
+5. Docs/READMEs that still describe old generated-types or pending TS client migration
+
+Return a concrete implementation checklist with file paths. Be thorough but concise. Do not modify files.
+
+---
+
+Perform any necessary follow-up actions in response to the subagent completion above. If no follow-up work is needed, no further action is required. If you mention an agent or subagent in your response, link it with the `[Name](id)` Don't use generic label such as `[agent]`, `[worker]`, or `[subagent]`. For cloud subagents, when the agent has edited code, link to `[Review](bc-id#changes)`, or, if you know the exact added and deleted line counts, `[Review +A −D](bc-id#changes)`, replacing A and D with those counts. Never write A or D literally. Use `[Try Live](bc-id#desktop)` only when the agent used computer use. Don't repeat the same confirmation every time.
