@@ -47,6 +47,12 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 		return typesgen.Generate(plugin, file, rules, representation, profile, program.Templates)
 	}
 	for _, phase := range phases {
+		// Client data is emitted by protoc into the contracts module. The runtime
+		// package consumes those messages directly; it must not create a second
+		// native representation of Config, credentials, scope, or request envelopes.
+		if proto.HasExtension(file.Desc.Options(), codegen.E_Client) && (phase == "types" || phase == "copies" || phase == "validation") {
+			continue
+		}
 		var err error
 		switch phase {
 		case "types":

@@ -33,11 +33,11 @@ func TestPublicClientRejectsLossyResourcesBeforeRemoteCalls(t *testing.T) {
 	t.Setenv("MODAL_TOKEN_SECRET", "test-only-secret")
 	t.Setenv("MODAL_APP_NAME", "test-app")
 	t.Setenv("MODAL_ENVIRONMENT", "dev")
-	config := clientConfig()
+	provider, config := clientConfig()
 	if err := sandbox.ValidateCreateOptions(createOptions()); err != nil {
 		t.Fatalf("example options invalid: %v", err)
 	}
-	client, err := sandbox.NewClient(config)
+	client, err := sandbox.NewClient(provider, config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,12 +81,12 @@ func TestPublicClientRejectsLossyResourcesBeforeRemoteCalls(t *testing.T) {
 }
 
 func TestUnsupportedClientConfiguration(t *testing.T) {
-	config := clientConfig()
+	provider, config := clientConfig()
 	config.Endpoint = sandbox.Value("https://example.invalid")
 	// Endpoint is rejected independently of authentication; supply explicit dummy credentials.
-	config.Auth = &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: "dummy", Secret: "dummy"}}
+	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "dummy", Secret: "dummy"}}}
 	config.Scope = nil
-	client, err := sandbox.NewClient(config)
+	client, err := sandbox.NewClient(provider, config)
 	if client != nil || err == nil || !strings.Contains(err.Error(), "Endpoint") {
 		t.Fatalf("expected unsupported endpoint, got %v", err)
 	}

@@ -11,10 +11,9 @@ import (
 )
 
 func TestDiskOverrideReturnsUnsupported(t *testing.T) {
-	client, err := sandbox.NewClient(sandbox.Config{
-		Provider: modal.New(),
-		Auth:     &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: "test-only-id", Secret: "test-only-secret"}},
-		Scope:    &sandbox.Scope{AppName: sandbox.Value("test-only-app")},
+	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "test-only-id", Secret: "test-only-secret"}}},
+		Scope: &sandbox.Scope{AppName: sandbox.Value("test-only-app")},
 	})
 	if err != nil {
 		t.Fatal(err)

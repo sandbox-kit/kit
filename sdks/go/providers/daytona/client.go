@@ -9,19 +9,20 @@ package daytona
 
 import (
 	types "github.com/daytona/clients/sdk-go/pkg/types"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	os "os"
 )
 
 // mapClientConfig maps shared client configuration into the native SDK
 // options. Unsupported supplied settings fail before the SDK is constructed.
-func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
+func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
 	var params types.DaytonaConfig
 	if config == nil {
-		config = &sandbox.Config{}
+		config = &sandboxv1.Config{}
 	}
-	if config.Endpoint == nil {
-		resolved := *config
+	resolved := *config
+	if resolved.Endpoint == nil {
 		value := "https://app.daytona.io/api"
 		if candidate := os.Getenv("DAYTONA_SERVER_URL"); candidate != "" {
 			value = candidate
@@ -30,55 +31,45 @@ func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
 			value = candidate
 		}
 		resolved.Endpoint = &value
-		config = &resolved
 	}
-	if err := sandbox.ValidateConfig(config); err != nil {
+	if err := sandbox.ValidateConfig(&resolved); err != nil {
 		return params, err
 	}
-	params, remaining, err := mapClientSettings(config)
-	if err != nil {
-		return params, err
+	params.APIUrl = *resolved.Endpoint
+	if resolved.Region != nil {
+		params.Target = *resolved.Region
 	}
-	remaining.Provider = nil
-	remaining.Timeout = nil
-	remaining.Auth = nil
-	remaining.Scope = nil
-	if config.Scope != nil {
-		mapped, rest, err := mapScope(config.Scope)
-		if err != nil {
-			return params, err
+	if resolved.Scope != nil {
+		if resolved.Scope.AppName != nil || resolved.Scope.Environment != nil || resolved.Scope.ProjectId != nil {
+			return params, unsupportedClientField("scope", "Daytona only supports organization_id scope")
 		}
-		if err := sandbox.RejectUnmapped("daytona client scope", &rest); err != nil {
-			return params, err
+		if resolved.Scope.OrganizationId != nil {
+			params.OrganizationID = *resolved.Scope.OrganizationId
 		}
-		params.OrganizationID = mapped.OrganizationID
 	}
-	if auth := config.GetAuth(); auth != nil {
-		switch {
-		case auth.APIKey != nil:
-			mapped, rest, err := mapAPIKeyCredentials(auth.APIKey)
-			if err != nil {
-				return params, err
+	if auth := resolved.GetAuth(); auth != nil {
+		switch credentials := auth.Credentials.(type) {
+		case *sandboxv1.AuthConfig_ApiKey:
+			if credentials.ApiKey == nil || credentials.ApiKey.Key == "" {
+				return params, invalidClientField("auth.api_key", "api_key requires key")
 			}
-			if err := sandbox.RejectUnmapped("daytona client api_key", &rest); err != nil {
-				return params, err
+			params.APIKey = credentials.ApiKey.Key
+		case *sandboxv1.AuthConfig_BearerToken:
+			if credentials.BearerToken == nil || credentials.BearerToken.Token == "" {
+				return params, invalidClientField("auth.bearer_token", "bearer_token requires token")
 			}
-			params.APIKey = mapped.APIKey
-		case auth.BearerToken != nil:
-			mapped, rest, err := mapBearerAuth(auth.BearerToken)
-			if err != nil {
-				return params, err
-			}
-			if err := sandbox.RejectUnmapped("daytona client bearer_token", &rest); err != nil {
-				return params, err
-			}
-			params.JWTToken = mapped.JWTToken
+			params.JWTToken = credentials.BearerToken.Token
 		default:
 			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
 		}
 	}
-	if err := sandbox.RejectUnmapped("daytona client", &remaining); err != nil {
-		return params, err
-	}
 	return params, nil
+}
+
+func invalidClientField(field, message string) error {
+	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
+}
+
+func unsupportedClientField(field, message string) error {
+	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
 }

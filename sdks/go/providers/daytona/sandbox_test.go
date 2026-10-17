@@ -38,7 +38,7 @@ func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 	if adapter.client != native {
 		t.Fatal("SDK replaced")
 	}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 	handle, err := client.Create(context.Background(), &sandbox.CreateOptions{Name: sandbox.Value("test"), Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "python:3.11"}}, Resources: &sandbox.Resources{CPUCores: sandbox.Value(2.0), MemoryMiB: sandbox.Value(uint64(4096)), DiskMiB: sandbox.Value(uint64(8192))}, Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionSubmitted}})
 	if err != nil {
 		t.Fatal(err)
@@ -62,7 +62,7 @@ func TestUnrepresentableConfigRejectedBeforeCall(t *testing.T) {
 		{Lifetime: &sandbox.LifetimePolicy{StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
 	} {
 		adapter := &backend{client: &sdk.Client{}}
-		client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+		client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 		if _, err := client.Create(context.Background(), config); err == nil {
 			t.Fatal("unsupported config accepted")
 		}

@@ -2,14 +2,13 @@ package sandbox_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"google.golang.org/protobuf/proto"
 )
 
 type testProvider struct {
@@ -27,12 +26,17 @@ func (f *testProvider) NewClient(config *sandbox.Config) (sandbox.Backend, error
 }
 func (p *creationBackend) Close(context.Context) error { return nil }
 func newTestClient(provider sandbox.Backend) (*sandbox.Client, error) {
-	return sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: provider}})
+	return sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{})
 }
 func TestClientInitializesFromCommonConfiguration(t *testing.T) {
 	factory := &testProvider{provider: &creationBackend{}}
-	config := sandbox.Config{Provider: factory, Auth: &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: "test-key"}}, Endpoint: sandbox.Value("https://example.invalid"), Region: sandbox.Value("region"), Timeout: sandbox.Value(time.Second)}
-	client, err := sandbox.NewClient(config)
+	config := &sandbox.Config{
+		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test-key"}}},
+		Endpoint: sandbox.Value("https://example.invalid"),
+		Region:   sandbox.Value("region"),
+		Timeout:  sandbox.Duration(time.Second),
+	}
+	client, err := sandbox.NewClient(factory, config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,16 +45,17 @@ func TestClientInitializesFromCommonConfiguration(t *testing.T) {
 	}
 }
 func TestClientRejectsInvalidConfigurationBeforeInitialization(t *testing.T) {
-	for _, config := range []sandbox.Config{
-		{Timeout: sandbox.Value(-time.Second)}, {Endpoint: sandbox.Value("  ")}, {Endpoint: sandbox.Value("ftp://example.invalid")}, {Endpoint: sandbox.Value("not-a-url")},
+	for _, config := range []*sandbox.Config{
+		{Timeout: sandbox.Duration(-time.Second)},
+		{Endpoint: sandbox.Value("  ")},
+		{Endpoint: sandbox.Value("ftp://example.invalid")},
+		{Endpoint: sandbox.Value("not-a-url")},
 		{Auth: &sandbox.AuthConfig{}},
-		{Auth: &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: "key"}, BearerToken: &sandbox.BearerTokenCredentials{Token: "token"}}},
-		{Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: "id"}}},
-		{Auth: &sandbox.AuthConfig{OAuthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientID: "id"}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_OauthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "id"}}}},
 	} {
 		factory := &testProvider{provider: &creationBackend{}}
-		config.Provider = factory
-		if client, err := sandbox.NewClient(config); err == nil || client != nil {
+		if client, err := sandbox.NewClient(factory, config); err == nil || client != nil {
 			t.Fatal("invalid config accepted")
 		}
 		if factory.calls != 0 {
@@ -60,8 +65,8 @@ func TestClientRejectsInvalidConfigurationBeforeInitialization(t *testing.T) {
 }
 func TestClientRejectsNilFactoriesAndProviders(t *testing.T) {
 	var typedNil *testProvider
-	for _, config := range []sandbox.Config{{}, {Provider: typedNil}, {Provider: &testProvider{}}, {Provider: &testProvider{provider: (*creationBackend)(nil)}}} {
-		if client, err := sandbox.NewClient(config); err == nil || client != nil {
+	for _, factory := range []sandbox.Provider{nil, typedNil, &testProvider{}, &testProvider{provider: (*creationBackend)(nil)}} {
+		if client, err := sandbox.NewClient(factory, &sandbox.Config{}); err == nil || client != nil {
 			t.Fatal("nil factory/provider accepted")
 		}
 	}
@@ -69,7 +74,7 @@ func TestClientRejectsNilFactoriesAndProviders(t *testing.T) {
 func TestInitializationErrorsPassThrough(t *testing.T) {
 	expected := errors.New("SDK failure")
 	factory := &testProvider{err: expected}
-	if _, err := sandbox.NewClient(sandbox.Config{Provider: factory}); !errors.Is(err, expected) {
+	if _, err := sandbox.NewClient(factory, &sandbox.Config{}); !errors.Is(err, expected) {
 		t.Fatal("SDK initialization error changed")
 	}
 }
@@ -92,14 +97,17 @@ func TestClientDefaultTimeoutAndPerOperationOverrides(t *testing.T) {
 				}
 				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id"}}, nil
 			}}
-			config := sandbox.Config{Provider: &testProvider{provider: provider}, Timeout: tc.clientTimeout}
-			client, err := sandbox.NewClient(config)
+			config := &sandbox.Config{Timeout: nil}
+			if tc.clientTimeout != nil {
+				config.Timeout = sandbox.Duration(*tc.clientTimeout)
+			}
+			client, err := sandbox.NewClient(&testProvider{provider: provider}, config)
 			if err != nil {
 				t.Fatal(err)
 			}
-			// Constructor snapshots defaults rather than retaining caller-owned pointers.
 			if config.Timeout != nil {
-				*config.Timeout = 0
+				config.Timeout.Seconds = 0
+				config.Timeout.Nanos = 0
 			}
 			request := &sandbox.CreateOptions{}
 			if tc.operationTimeout != nil {
@@ -111,14 +119,10 @@ func TestClientDefaultTimeoutAndPerOperationOverrides(t *testing.T) {
 		})
 	}
 }
-func TestCredentialFieldsAreNotJSONSerialized(t *testing.T) {
-	config := sandbox.Config{Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: "secret-id", Secret: "secret-value"}}}
-	data, err := json.Marshal(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.Contains(string(data), "secret-id") || strings.Contains(string(data), "secret-value") {
-		t.Fatal("credentials serialized")
+func TestConfigContractsAreProtobufMessages(t *testing.T) {
+	config := &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "secret-id", Secret: "secret-value"}}}}
+	if _, ok := any(config).(proto.Message); !ok {
+		t.Fatal("config is not a protobuf message")
 	}
 }
 
@@ -128,8 +132,11 @@ func TestProviderRequiresInitializationContract(t *testing.T) {
 	if typeNameOnly.Implements(reflect.TypeFor[sandbox.Provider]()) {
 		t.Fatal("name-only provider satisfies factory contract")
 	}
-	if reflect.TypeOf(sandbox.NewClient).In(0) != reflect.TypeFor[sandbox.Config]() {
-		t.Fatal("constructor does not require Config")
+	if reflect.TypeOf(sandbox.NewClient).In(0) != reflect.TypeFor[sandbox.Provider]() {
+		t.Fatal("constructor does not require Provider")
+	}
+	if reflect.TypeOf(sandbox.NewClient).In(1) != reflect.TypeFor[*sandbox.Config]() {
+		t.Fatal("constructor does not require *Config")
 	}
 }
 
@@ -151,14 +158,14 @@ func (p *cleanupBackend) Close(context.Context) error { p.closed++; return p.clo
 func TestClientCleanupAndInvalidBackendIdentity(t *testing.T) {
 	expected := errors.New("cleanup failure")
 	provider := &cleanupBackend{name: "other", closeError: expected}
-	if client, err := sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: provider}}); client != nil || err == nil || !errors.Is(err, expected) {
+	if client, err := sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{}); client != nil || err == nil || !errors.Is(err, expected) {
 		t.Fatal("invalid backend was not rejected with cleanup error")
 	}
 	if provider.closed != 1 {
 		t.Fatal("invalid initialized provider was not closed")
 	}
 	provider = &cleanupBackend{name: "test", closeError: expected}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: provider}})
+	client, err := sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +191,7 @@ func (*managementBackend) Name() string                { return "test" }
 func (*managementBackend) Close(context.Context) error { return nil }
 
 func TestCreationIsAnOptionalBackendCapability(t *testing.T) {
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: &managementBackend{}}})
+	client, err := sandbox.NewClient(&testProvider{provider: &managementBackend{}}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -201,7 +208,7 @@ func TestCallerDeadlineSurvivesDisabledKitTimeout(t *testing.T) {
 		}
 		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id"}}, nil
 	}}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &testProvider{provider: provider}, Timeout: sandbox.Value(time.Second)})
+	client, err := sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{Timeout: sandbox.Duration(time.Second)})
 	if err != nil {
 		t.Fatal(err)
 	}

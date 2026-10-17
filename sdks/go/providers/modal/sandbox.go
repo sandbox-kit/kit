@@ -4,7 +4,7 @@
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: modal.New()})
+//	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{})
 //	instance, err := client.Create(ctx, &sandbox.CreateOptions{
 //	    Source: &sandbox.SandboxSource{
 //	        Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
@@ -19,6 +19,7 @@ import (
 	"time"
 
 	sdk "github.com/modal-labs/modal-client/go"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -157,7 +158,7 @@ func (a *backend) TerminateSandbox(ctx context.Context, id string, options *sand
 
 // planCreate checks the request and builds the Modal call sequence
 // without contacting Modal.
-func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region string) (createPlan, error) {
+func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region string) (createPlan, error) {
 	var plan createPlan
 	if err := validateProviderCreate(request); err != nil {
 		return plan, err

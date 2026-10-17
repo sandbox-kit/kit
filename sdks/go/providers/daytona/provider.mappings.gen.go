@@ -351,12 +351,12 @@ func mapScope(source *sandbox.Scope) (types.DaytonaConfig, sandbox.Scope, error)
 	if source == nil {
 		return target, remaining, nil
 	}
-	if source.OrganizationID != nil {
+	if source.OrganizationId != nil {
 		{
-			value := source.GetOrganizationID()
+			value := source.GetOrganizationId()
 			target.OrganizationID = value
 		}
 	}
-	remaining.OrganizationID = nil
+	remaining.OrganizationId = nil
 	return target, remaining, nil
 }

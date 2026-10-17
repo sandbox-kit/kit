@@ -1,9 +1,13 @@
 # Client configuration
 
-Construct a Go client with `sandbox.NewClient(sandbox.Config{...})` or a
-TypeScript client with `new Client({...})`. The selected provider initializes
-its official SDK from shared generated configuration types. This guide uses Go
-field spelling; TypeScript exposes the same fields in camelCase.
+Construct a Go client with `sandbox.NewClient(provider, &sandbox.Config{...})`
+or a TypeScript client with `new Client({...})`. The selected provider
+initializes its official SDK from generated protobuf configuration types. This
+guide uses Go field spelling; TypeScript exposes the same fields in camelCase.
+
+In Go, provider selection is a separate constructor argument and is never part
+of the portable `Config` message. TypeScript still accepts provider selection
+alongside config until its client-contract migration lands.
 
 The constructors have the same ownership and validation semantics while
 following each language's conventions: Go returns `(*Client, error)`, and
@@ -16,12 +20,12 @@ sandbox lifecycle.
 
 | Field      | Purpose                                                                |
 | ---------- | ---------------------------------------------------------------------- |
-| `Provider` | Integration selected with `modal.New()` or `daytona.New()`             |
+| `Provider` | Go: pass `modal.New()` / `daytona.New()` to `NewClient`. Not in `Config`. |
 | `Auth`     | One explicit credential variant; omit to use SDK credential resolution |
 | `Scope`    | App, environment, organization, or project scope                       |
 | `Endpoint` | Provider API URL, where supported                                      |
 | `Region`   | Provider target or default placement preference                        |
-| `Timeout`  | Default Kit operation deadline                                         |
+| `Timeout`  | Default Kit operation deadline (`google.protobuf.Duration` in Go)      |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional

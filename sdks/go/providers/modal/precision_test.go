@@ -62,9 +62,9 @@ func TestStateCapturePreservesPresenceAndOwnership(t *testing.T) {
 	if state.scope != nil || state.region != nil {
 		t.Fatal("absent values became supplied")
 	}
-	config := &sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app"), OrganizationID: sandbox.Value("org"), ProjectID: sandbox.Value("project")}, Region: sandbox.Value("")}
+	config := &sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app"), OrganizationId: sandbox.Value("org"), ProjectId: sandbox.Value("project")}, Region: sandbox.Value("")}
 	captureBackendState(&state, config)
-	if state.scope.Environment != nil || state.region == nil || *state.region != "" || state.scope.GetOrganizationID() != "org" || state.scope.GetProjectID() != "project" {
+	if state.scope.Environment != nil || state.region == nil || *state.region != "" || state.scope.GetOrganizationId() != "org" || state.scope.GetProjectId() != "project" {
 		t.Fatal("schema fields or presence lost")
 	}
 	*config.Scope.AppName = "changed"

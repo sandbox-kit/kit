@@ -9,67 +9,55 @@ package modal
 
 import (
 	_go "github.com/modal-labs/modal-client/go"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 // mapClientConfig maps shared client configuration into the native SDK
 // options. Unsupported supplied settings fail before the SDK is constructed.
-func mapClientConfig(config *sandbox.Config) (_go.ClientParams, error) {
+func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
 	var params _go.ClientParams
 	if config == nil {
-		config = &sandbox.Config{}
-	}
-	if err := sandbox.ValidateConfig(config); err != nil {
-		return params, err
+		config = &sandboxv1.Config{}
 	}
 	if config.Endpoint != nil {
 		return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldEndpoint, Message: "sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor"}, nil)
 	}
-	remaining := *config
-	remaining.Provider = nil
-	remaining.Timeout = nil
-	remaining.Region = nil
-	remaining.Auth = nil
-	remaining.Scope = nil
-	remaining.Endpoint = nil
 	if config.Scope != nil {
-		mapped, rest, err := mapClientScope(config.Scope)
-		if err != nil {
-			return params, err
+		if config.Scope.OrganizationId != nil || config.Scope.ProjectId != nil {
+			return params, unsupportedClientField("scope", "Modal only supports app_name and environment scope")
 		}
-		rest.AppName = nil
-		if err := sandbox.RejectUnmapped("modal client scope", &rest); err != nil {
-			return params, err
+		if config.Scope.Environment != nil {
+			params.Environment = *config.Scope.Environment
 		}
-		params.Environment = mapped.Environment
 	}
 	if auth := config.GetAuth(); auth != nil {
-		switch {
-		case auth.TokenPair != nil:
-			mapped, rest, err := mapTokenPairCredentials(auth.TokenPair)
-			if err != nil {
-				return params, err
+		switch credentials := auth.Credentials.(type) {
+		case *sandboxv1.AuthConfig_TokenPair:
+			if credentials.TokenPair == nil || credentials.TokenPair.Id == "" || credentials.TokenPair.Secret == "" {
+				return params, invalidClientField("auth.token_pair", "token_pair requires id and secret")
 			}
-			if err := sandbox.RejectUnmapped("modal client token_pair", &rest); err != nil {
-				return params, err
+			params.TokenID = credentials.TokenPair.Id
+			params.TokenSecret = credentials.TokenPair.Secret
+		case *sandboxv1.AuthConfig_OauthRefresh:
+			if credentials.OauthRefresh == nil || credentials.OauthRefresh.RefreshToken == "" || credentials.OauthRefresh.ClientId == "" {
+				return params, invalidClientField("auth.oauth_refresh", "oauth_refresh requires refresh_token and client_id")
 			}
-			params.TokenID = mapped.TokenID
-			params.TokenSecret = mapped.TokenSecret
-		case auth.OAuthRefresh != nil:
-			mapped, rest, err := mapOAuthAuth(auth.OAuthRefresh)
-			if err != nil {
-				return params, err
+			if credentials.OauthRefresh.ClientSecret != nil && credentials.OauthRefresh.JwtKey != nil {
+				return params, invalidClientField("auth.oauth_refresh", "oauth_refresh accepts only one of client_secret or jwt_key")
 			}
-			if err := sandbox.RejectUnmapped("modal client oauth_refresh", &rest); err != nil {
-				return params, err
-			}
-			params.OAuthCredentials = &mapped
+			params.OAuthCredentials = &_go.OAuthCredentialsParams{RefreshToken: credentials.OauthRefresh.RefreshToken, ClientID: credentials.OauthRefresh.ClientId, ClientSecret: credentials.OauthRefresh.GetClientSecret(), JWTKey: credentials.OauthRefresh.GetJwtKey()}
 		default:
 			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit modal: unsupported authentication mode"}, nil)
 		}
 	}
-	if err := sandbox.RejectUnmapped("modal client", &remaining); err != nil {
-		return params, err
-	}
 	return params, nil
+}
+
+func invalidClientField(field, message string) error {
+	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
+}
+
+func unsupportedClientField(field, message string) error {
+	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
 }

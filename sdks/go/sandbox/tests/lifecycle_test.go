@@ -50,7 +50,7 @@ func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 		}
 		return &sandbox.SandboxInfo{ID: id, ProviderState: sandbox.Value("started")}, nil
 	}}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestTerminateMakesHandleTerminal(t *testing.T) {
 			return &sandbox.ExitResult{ExitCode: sandbox.Value(int32(0))}, nil
 		},
 	}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestLifecycleOperationsSerializeAndRespectWaitingContext(t *testing.T) {
 		}
 		return &sandbox.SandboxInfo{ID: id}, nil
 	}}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	instance, _ := client.Create(context.Background(), nil)
 	done := make(chan error, 1)
 	go func() { done <- instance.Start(context.Background(), nil) }()
@@ -145,7 +145,7 @@ func TestGetAndRefreshOwnMetadata(t *testing.T) {
 			return &sandbox.SandboxInfo{ID: id, Name: sandbox.Value(name)}, nil
 		},
 	}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +170,7 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 		<-ctx.Done()
 		return nil, ctx.Err()
 	}}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}, Timeout: sandbox.Value(time.Millisecond)})
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{ Timeout: sandbox.Duration(time.Millisecond)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
 	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
 		return &sandbox.SandboxInfo{ID: id}, nil
 	}}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	instance, _ := client.Create(context.Background(), nil)
 	if err := instance.Close(context.Background()); err != nil {
 		t.Fatal(err)
@@ -205,7 +205,7 @@ func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
 		t.Fatalf("closed handle accepted operation: %v", err)
 	}
 
-	client2, _ := sandbox.NewClient(sandbox.Config{Provider: &lifecycleProvider{backend: backend}})
+	client2, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	instance2, _ := client2.Create(context.Background(), nil)
 	if err := client2.Close(context.Background()); err != nil {
 		t.Fatal(err)

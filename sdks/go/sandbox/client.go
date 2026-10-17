@@ -5,9 +5,7 @@
 //
 // Example:
 //
-//	client, err := NewClient(Config{
-//	    Provider: provider,
-//	})
+//	client, err := NewClient(provider, &Config{})
 //	instance, err := client.Create(ctx, nil)
 //	err = client.Close(ctx)
 package sandbox
@@ -16,6 +14,9 @@ import (
 	context "context"
 	errors "errors"
 	fmt "fmt"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
+	netip "net/netip"
+	url "net/url"
 	reflect "reflect"
 	strings "strings"
 	time "time"
@@ -47,7 +48,7 @@ type Provider interface {
 	//
 	// 	backend, err := provider.NewClient(&config)
 	//
-	NewClient(*Config) (Backend, error)
+	NewClient(*sandboxv1.Config) (Backend, error)
 }
 
 // Client owns its initialized provider SDK. Close it when finished.
@@ -134,18 +135,17 @@ func missingClientBinding(binding any) bool {
 //
 // Example:
 //
-//	client, err := NewClient(Config{
-//	    Provider: provider,
-//	    Timeout:  Value(2 * time.Minute),
+//	client, err := NewClient(provider, &Config{
+//	    Timeout: Duration(2 * time.Minute),
 //	})
-func NewClient(config Config) (client *Client, result error) {
+func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Client, result error) {
 	provider := ""
 	defer func() { result = WithErrorContext(result, provider, "initialize") }()
-	if missingClientBinding(config.Provider) {
+	if missingClientBinding(providerFactory) {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider is required"}, nil)
 	}
-	provider = config.Provider.Name()
-	if err := ValidateConfig(&config); err != nil {
+	provider = providerFactory.Name()
+	if err := validateProtoConfig(config); err != nil {
 		return nil, err
 	}
 	expected := provider
@@ -153,11 +153,11 @@ func NewClient(config Config) (client *Client, result error) {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider name is required"}, nil)
 	}
 	var timeout *time.Duration
-	if config.Timeout != nil {
-		value := *config.Timeout
+	if config != nil && config.Timeout != nil {
+		value := config.Timeout.AsDuration()
 		timeout = &value
 	}
-	backend, err := config.Provider.NewClient(&config)
+	backend, err := providerFactory.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +168,62 @@ func NewClient(config Config) (client *Client, result error) {
 		return nil, errors.Join(NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
 	}
 	return &Client{backend: backend, timeout: timeout, lifecycle: &clientLifecycle{}}, nil
+}
+
+// validateProtoConfig validates the generated client contract before native
+// provider initialization. Provider-specific support remains provider-owned.
+func validateProtoConfig(config *sandboxv1.Config) error {
+	if config == nil {
+		return nil
+	}
+	if config.Endpoint != nil {
+		if strings.TrimSpace(*config.Endpoint) == "" || !secureEndpoint(*config.Endpoint) {
+			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "endpoint", Message: "sandbox-kit: endpoint must use HTTPS except for loopback HTTP development endpoints"}, nil)
+		}
+	}
+	if config.Region != nil && strings.TrimSpace(*config.Region) == "" {
+		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "region", Message: "sandbox-kit: region must not be blank"}, nil)
+	}
+	if config.Timeout != nil {
+		if err := config.Timeout.CheckValid(); err != nil || config.Timeout.AsDuration() < 0 {
+			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "timeout", Message: "sandbox-kit: timeout must be a non-negative protobuf duration"}, nil)
+		}
+	}
+	if scope := config.Scope; scope != nil {
+		for field, value := range map[string]*string{"scope.app_name": scope.AppName, "scope.environment": scope.Environment, "scope.organization_id": scope.OrganizationId, "scope.project_id": scope.ProjectId} {
+			if value != nil && strings.TrimSpace(*value) == "" {
+				return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: field, Message: "sandbox-kit: scope values must not be blank"}, nil)
+			}
+		}
+	}
+	if auth := config.Auth; auth != nil {
+		switch credentials := auth.Credentials.(type) {
+		case nil:
+			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "auth", Message: "sandbox-kit: auth credentials are required when auth is supplied"}, nil)
+		case *sandboxv1.AuthConfig_ApiKey:
+			if credentials.ApiKey == nil || strings.TrimSpace(credentials.ApiKey.Key) == "" { return invalidProtoConfigField("auth.api_key.key") }
+		case *sandboxv1.AuthConfig_TokenPair:
+			if credentials.TokenPair == nil || strings.TrimSpace(credentials.TokenPair.Id) == "" || strings.TrimSpace(credentials.TokenPair.Secret) == "" { return invalidProtoConfigField("auth.token_pair") }
+		case *sandboxv1.AuthConfig_BearerToken:
+			if credentials.BearerToken == nil || strings.TrimSpace(credentials.BearerToken.Token) == "" { return invalidProtoConfigField("auth.bearer_token.token") }
+		case *sandboxv1.AuthConfig_OauthRefresh:
+			if credentials.OauthRefresh == nil || strings.TrimSpace(credentials.OauthRefresh.RefreshToken) == "" || strings.TrimSpace(credentials.OauthRefresh.ClientId) == "" || (credentials.OauthRefresh.ClientSecret == nil) == (credentials.OauthRefresh.JwtKey == nil) { return invalidProtoConfigField("auth.oauth_refresh") }
+		}
+	}
+	return nil
+}
+
+func invalidProtoConfigField(field string) error {
+	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: field, Message: "sandbox-kit: invalid client configuration"}, nil)
+}
+
+func secureEndpoint(value string) bool {
+	u, err := url.Parse(value)
+	if err != nil || u.Hostname() == "" || u.User != nil || u.Fragment != "" { return false }
+	if u.Scheme == "https" { return true }
+	if u.Scheme != "http" { return false }
+	ip, err := netip.ParseAddr(u.Hostname())
+	return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
 }
 
 // ProviderName returns the selected provider identifier, such as "daytona" or

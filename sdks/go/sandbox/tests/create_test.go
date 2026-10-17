@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type creationBackend struct {
@@ -143,8 +144,8 @@ func TestRenamedFieldsPreserveJSONKeys(t *testing.T) {
 			t.Fatalf("serialized key %s changed", key)
 		}
 	}
-	config := sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app")}}
-	encoded, err = json.Marshal(config)
+	config := &sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app")}}
+	encoded, err = protojson.Marshal(config)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,12 +4,13 @@
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: New()})
+//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
 package daytona
 
 import (
 	context "context"
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -28,7 +29,7 @@ type backend struct {
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: New()})
+//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
 func New() *Provider {
 	return &Provider{}
 }
@@ -50,16 +51,16 @@ func (*backend) Name() string {
 // Example:
 //
 //	backend, err := New().NewClient(config)
-func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
+func (*Provider) NewClient(config *sandboxv1.Config) (sandbox.Backend, error) {
 	backend, err := newBackend(config)
 	return backend, mapProviderError(err, "initialize")
 }
 
 // newBackend maps config, constructs the native SDK, and captures provider
 // state before returning the backend.
-func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
+func newBackend(config *sandboxv1.Config) (sandbox.Backend, error) {
 	if config == nil {
-		config = &sandbox.Config{}
+		config = &sandboxv1.Config{}
 	}
 	params, err := mapClientConfig(config)
 	if err != nil {
@@ -76,7 +77,7 @@ func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
 
 // captureBackendState copies retained configuration onto the backend. Later
 // changes to the caller config do not affect the copy.
-func captureBackendState(result *backend, config *sandbox.Config) {
+func captureBackendState(result *backend, config *sandboxv1.Config) {
 	if config == nil {
 		return
 	}

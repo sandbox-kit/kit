@@ -4,7 +4,7 @@
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: daytona.New()})
+//	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
 //	instance, err := client.Create(ctx, nil)
 
 package daytona

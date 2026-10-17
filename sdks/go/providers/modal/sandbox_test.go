@@ -63,7 +63,7 @@ func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 	if adapter.client != native {
 		t.Fatal("SDK replaced")
 	}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 	config := modalConfig()
 	config.Network = &sandbox.NetworkConfig{ProxyReference: sandbox.Value("static-egress")}
 	handle, err := client.Create(context.Background(), config)
@@ -78,7 +78,7 @@ func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 func TestAttachIsDistinctFromGet(t *testing.T) {
 	var got *sdk.SandboxCreateParams
 	adapter := &backend{client: &sdk.Client{Sandboxes: sandboxesStub{got: &got}}, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
-	client, err := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	client, err := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestUnsupportedSettingsFailBeforeSDKCalls(t *testing.T) {
 	calls := 0
 	native := &sdk.Client{Apps: appsStub{calls: &calls}}
 	adapter := &backend{client: native, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 	config := modalConfig()
 	config.Resources.DiskMiB = sandbox.Value(uint64(1024))
 	if _, err := client.Create(context.Background(), config); err == nil {
@@ -117,7 +117,7 @@ func TestSDKErrorPassThrough(t *testing.T) {
 	var got *sdk.SandboxCreateParams
 	expected := errors.New("SDK failure")
 	adapter := &backend{client: &sdk.Client{Apps: appsStub{calls: &calls}, Images: imagesStub{}, Sandboxes: sandboxesStub{got: &got, err: expected}}, scope: &sandbox.Scope{AppName: sandbox.Value("my-app")}}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 	if _, err := client.Create(context.Background(), modalConfig()); !errors.Is(err, expected) {
 		t.Fatal("SDK error replaced")
 	}

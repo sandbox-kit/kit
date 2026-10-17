@@ -4,12 +4,13 @@
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: New()})
+//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
 package modal
 
 import (
 	context "context"
 	_go "github.com/modal-labs/modal-client/go"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -24,7 +25,7 @@ type backend struct {
 	client *_go.Client
 	// scope is the captured app and environment. Later changes to Config do not
 	// affect it.
-	scope *sandbox.Scope
+	scope *sandboxv1.Scope
 	// region is the captured default region preference. Nil means the caller
 	// omitted it.
 	region *string
@@ -34,7 +35,7 @@ type backend struct {
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(sandbox.Config{Provider: New()})
+//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
 func New() *Provider {
 	return &Provider{}
 }
@@ -56,16 +57,16 @@ func (*backend) Name() string {
 // Example:
 //
 //	backend, err := New().NewClient(config)
-func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
+func (*Provider) NewClient(config *sandboxv1.Config) (sandbox.Backend, error) {
 	backend, err := newBackend(config)
 	return backend, mapProviderError(err, "initialize")
 }
 
 // newBackend maps config, constructs the native SDK, and captures provider
 // state before returning the backend.
-func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
+func newBackend(config *sandboxv1.Config) (sandbox.Backend, error) {
 	if config == nil {
-		config = &sandbox.Config{}
+		config = &sandboxv1.Config{}
 	}
 	params, err := mapClientConfig(config)
 	if err != nil {
@@ -82,12 +83,12 @@ func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
 
 // captureBackendState copies retained configuration onto the backend. Later
 // changes to the caller config do not affect the copy.
-func captureBackendState(result *backend, config *sandbox.Config) {
+func captureBackendState(result *backend, config *sandboxv1.Config) {
 	if config == nil {
 		return
 	}
 	if config.Scope != nil {
-		result.scope = &sandbox.Scope{}
+		result.scope = &sandboxv1.Scope{}
 		if config.Scope.AppName != nil {
 			value := *config.Scope.AppName
 			result.scope.AppName = &value
@@ -96,13 +97,13 @@ func captureBackendState(result *backend, config *sandbox.Config) {
 			value := *config.Scope.Environment
 			result.scope.Environment = &value
 		}
-		if config.Scope.OrganizationID != nil {
-			value := *config.Scope.OrganizationID
-			result.scope.OrganizationID = &value
+		if config.Scope.OrganizationId != nil {
+			value := *config.Scope.OrganizationId
+			result.scope.OrganizationId = &value
 		}
-		if config.Scope.ProjectID != nil {
-			value := *config.Scope.ProjectID
-			result.scope.ProjectID = &value
+		if config.Scope.ProjectId != nil {
+			value := *config.Scope.ProjectId
+			result.scope.ProjectId = &value
 		}
 	}
 	if config.Region != nil {

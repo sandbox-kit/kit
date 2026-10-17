@@ -6,10 +6,11 @@ Sandbox Kit calls existing provider SDKs directly. Applications install the publ
 ## Client construction
 
 ```go
-client, err := sandbox.NewClient(sandbox.Config{
-    Provider: modal.New(),
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
     Auth: &sandbox.AuthConfig{
-        TokenPair: &sandbox.TokenPairCredentials{ID: tokenID, Secret: tokenSecret},
+        Credentials: &sandbox.AuthConfig_TokenPair{
+            TokenPair: &sandbox.TokenPairCredentials{Id: tokenID, Secret: tokenSecret},
+        },
     },
     Scope: &sandbox.Scope{AppName: sandbox.Value("existing-app")},
 })

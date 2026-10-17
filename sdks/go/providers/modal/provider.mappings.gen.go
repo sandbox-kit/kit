@@ -207,10 +207,10 @@ func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (_go.ClientPa
 		return target, remaining, nil
 	}
 	{
-		value := source.ID
+		value := source.Id
 		target.TokenID = value
 	}
-	remaining.ID = ""
+	remaining.Id = ""
 	{
 		value := source.Secret
 		target.TokenSecret = value
@@ -236,10 +236,10 @@ func mapOAuthAuth(source *sandbox.OAuthCredentials) (_go.OAuthCredentialsParams,
 	}
 	remaining.RefreshToken = ""
 	{
-		value := source.ClientID
+		value := source.ClientId
 		target.ClientID = value
 	}
-	remaining.ClientID = ""
+	remaining.ClientId = ""
 	if source.ClientSecret != nil {
 		{
 			value := source.GetClientSecret()
@@ -247,12 +247,12 @@ func mapOAuthAuth(source *sandbox.OAuthCredentials) (_go.OAuthCredentialsParams,
 		}
 	}
 	remaining.ClientSecret = nil
-	if source.JWTKey != nil {
+	if source.JwtKey != nil {
 		{
-			value := source.GetJWTKey()
+			value := source.GetJwtKey()
 			target.JWTKey = value
 		}
 	}
-	remaining.JWTKey = nil
+	remaining.JwtKey = nil
 	return target, remaining, nil
 }
