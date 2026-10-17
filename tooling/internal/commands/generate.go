@@ -81,7 +81,9 @@ func generateGoContracts(cmd *cobra.Command, root string, config *settings, runn
 			"-I", filepath.Join(root, "proto"), "--plugin=protoc-gen-go=" + plugin,
 			"--go_out=" + contracts, "--go_opt=module=github.com/sandbox-kit/kit/sdks/go/contracts",
 			"--go_opt=Mkit/sandbox/v1/sandbox.proto=github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1",
-			"kit/sandbox/v1/sandbox.proto",
+			"--go_opt=Mkit/sandbox/v1/client.proto=github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1",
+			"--go_opt=Mkit/codegen/v1/options.proto=github.com/sandbox-kit/kit/sdks/go/contracts/internal/codegen/v1;codegenv1",
+			"kit/codegen/v1/options.proto", "kit/sandbox/v1/sandbox.proto", "kit/sandbox/v1/client.proto",
 		}},
 	}
 	for _, task := range steps {
