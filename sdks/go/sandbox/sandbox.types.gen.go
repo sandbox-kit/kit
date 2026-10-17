@@ -2026,14 +2026,5 @@ func (x *MetadataObject) GetValues() map[string]*MetadataValue {
 	return zero
 }
 
-// Value marks an optional scalar as explicitly supplied, including zero and
-// false.
-// It does not validate the value.
-//
-// Example:
-//
-//	cores := Value(0.5)
-//	disabled := Value(false)
-func Value[T any](value T) *T {
-	return &value
-}
+// Value marks an optional scalar as explicitly supplied, including zero and false.
+func Value[T any](value T) *T { return &value }

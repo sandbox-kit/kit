@@ -103,11 +103,6 @@ func TestCompileResolvesSpecsBeforeEmission(t *testing.T) {
 		t.Fatal(readErr)
 	}
 	files["generation.yaml"] = string(generation)
-	api, err := os.ReadFile(filepath.Join("..", "..", "..", "specs", "api.yaml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	files["api.yaml"] = string(api)
 	templates, err := os.ReadFile(filepath.Join("..", "..", "..", "specs", "templates.yaml"))
 	if err != nil {
 		t.Fatal(err)

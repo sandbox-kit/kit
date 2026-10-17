@@ -14,7 +14,7 @@ import (
 )
 
 // Generate emits native Go data types. Protobuf is only a build-time input.
-func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validation, representation spec.RepresentationPolicy, surface model.APIModule, helpers model.APIModule, profile spec.LanguageProfile, templates model.Templates) error {
+func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validation, representation spec.RepresentationPolicy, profile spec.LanguageProfile, templates model.Templates) error {
 	g := plugin.NewGeneratedFile(file.GeneratedFilenamePrefix+".types.gen.go", file.GoImportPath)
 	declarationgen.Banner(g, "source: "+string(file.Desc.Path()),
 		"Native configuration and result types. A nil pointer means the caller omitted the value. Use Value to supply zero or false explicitly.",
@@ -63,25 +63,9 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 		name := message.GoIdent.GoName
 		commentBefore(g, message.Comments.Leading, name)
 		g.P("type ", name, " struct {")
-		for _, attachment := range surface.Attachments {
-			if attachment.Target != "schema."+string(message.Desc.Name()) {
-				continue
-			}
-			d, err := declarationgen.New(g, plugin, model.APIModule{TypesByID: surface.TypesByID}, profile, nil)
-			if err != nil {
-				return err
-			}
-			for _, field := range attachment.Fields {
-				kind, err := d.Type(field.Type)
-				if err != nil {
-					return err
-				}
-				if message.Desc.Fields().ByName(protoreflect.Name(field.Name)) != nil {
-					return fmt.Errorf("runtime attachment collides with schema field %s", field.Name)
-				}
-				declarationgen.WriteComment(g, field.Name, field.Doc)
-				g.P(field.Name, " ", kind, " `json:\"-\" validate:\"-\"`")
-			}
+		if message.GoIdent.GoName == "Config" {
+			g.P("// Provider constructs the SDK from this configuration. It is never serialized.")
+			g.P("Provider Provider `json:\"-\" validate:\"-\"`")
 		}
 		for _, field := range message.Fields {
 			kind, err := fieldType(g, field)
@@ -134,16 +118,8 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, rules spec.Validatio
 	}
 	for _, message := range file.Messages {
 		if message.GoIdent.GoName == "CreateOptions" {
-			d, err := declarationgen.New(g, plugin, helpers, profile, nil)
-			if err != nil {
-				return err
-			}
-			value, err := d.BeginBehavior("", "value", "value")
-			if err != nil {
-				return err
-			}
-			d.Body(value, "return &", d.Param(value, "value"))
-			g.P("}")
+			g.P("// Value marks an optional scalar as explicitly supplied, including zero and false.")
+			g.P("func Value[T any](value T)*T{return &value}")
 		}
 	}
 	return nil

@@ -15,7 +15,6 @@ import (
 type Program struct {
 	Behaviors  Behaviors
 	Templates  Templates
-	API        API
 	Schema     *Schema
 	Generation spec.Generation
 	Validation spec.Validation
@@ -53,7 +52,6 @@ type Client struct {
 	Lifecycle         Lifecycle
 	ServiceOperations []ServiceOperation
 	Operations        map[string][]string
-	Surface           APIModule
 }
 
 type ServiceOperation struct {
@@ -132,13 +130,6 @@ func compileLifecycle(service protoreflect.ServiceDescriptor) (Lifecycle, []Serv
 func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error) {
 	result := &Program{Schema: NewSchema(files), Providers: map[string]Provider{}, Clients: map[string]Client{}}
 	var err error
-	rawAPI, err := spec.LoadAPI(root)
-	if err != nil {
-		return nil, err
-	}
-	if result.API, err = CompileAPI(rawAPI); err != nil {
-		return nil, err
-	}
 	rawTemplates, err := spec.LoadTemplates(root)
 	if err != nil {
 		return nil, err
@@ -151,9 +142,6 @@ func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error)
 		return nil, err
 	}
 	if result.Behaviors, err = CompileBehaviors(rawBehaviors); err != nil {
-		return nil, err
-	}
-	if err = result.Behaviors.ValidateAPI(result.API); err != nil {
 		return nil, err
 	}
 	if err = result.Behaviors.ValidateTemplates(result.Templates); err != nil {
@@ -199,10 +187,6 @@ func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error)
 				return nil, err
 			}
 			client.Operations = result.Generation.Operations
-			client.Surface, err = compileServiceContracts(result.API.Modules["client"], client)
-			if err != nil {
-				return nil, err
-			}
 			for _, operation := range client.Lifecycle.Operations {
 				if operation.Options != "" {
 					if _, lookupErr := result.Schema.Message(operation.Options); lookupErr != nil {

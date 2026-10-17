@@ -23,11 +23,6 @@ import (
 //	})
 type Config struct {
 	// Provider constructs the SDK from this configuration. It is never serialized.
-	//
-	// Example:
-	//
-	// 	client, err := NewClient(Config{Provider: provider})
-	//
 	Provider Provider `json:"-" validate:"-"`
 	// Auth is one credential alternative. Nil lets the native SDK resolve its own
 	// environment or profile.

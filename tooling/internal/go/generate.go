@@ -28,7 +28,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	var phases []string
 	rules := spec.Validation{}
 	representation := spec.RepresentationPolicy{}
-	surface := model.APIModule{}
 	root := "CreateOptions"
 	var provider model.Provider
 	switch {
@@ -39,20 +38,19 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 		phases = program.Generation.Client
 		rules = program.Client.Validation
 		representation = program.Client.Representation
-		surface = program.API.Modules["client"]
 		root = program.Client.ConfigMessage
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Provider):
 		declaration := proto.GetExtension(file.Desc.Options(), codegen.E_Provider).(*codegen.ProviderDeclaration)
 		provider = program.Providers[declaration.ProviderName]
 		phases = program.Generation.Provider
 	default:
-		return typesgen.Generate(plugin, file, rules, representation, surface, program.API.Modules["helpers"], profile, program.Templates)
+		return typesgen.Generate(plugin, file, rules, representation, profile, program.Templates)
 	}
 	for _, phase := range phases {
 		var err error
 		switch phase {
 		case "types":
-			err = typesgen.Generate(plugin, file, rules, representation, surface, program.API.Modules["helpers"], profile, program.Templates)
+			err = typesgen.Generate(plugin, file, rules, representation, profile, program.Templates)
 		case "copies":
 			err = typesgen.GenerateCopies(plugin, file, program.Contracts.CopyMaxDepth, program.Templates, profile)
 		case "diagnostic_paths":
