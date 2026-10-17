@@ -1,4 +1,6 @@
 // Native Modal error translation is handwritten.
+// Classification order: existing *sandbox.Error, canceled/deadline causes,
+// native Modal types, then gRPC status codes, then unknown.
 // mapProviderError classifies a native SDK error into a shared kind and keeps
 // the original cause.
 //

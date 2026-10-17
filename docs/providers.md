@@ -34,16 +34,14 @@ private; standard operations require no application mapping callbacks.
 
 ## Generation boundary
 
-Protobuf declares shared portable types and service metadata. Runtime
-constructors, client facades, and provider orchestration stay handwritten.
+Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`)
+and service metadata. Runtime constructors, client facades, provider
+orchestration, and error classification stay handwritten.
 `specs/behaviors.yaml` checks behavior compatibility before emission. Other YAML
 declares validation, configuration assembly, field conversions, provider checks,
-error classification, and native bindings. Shared error policy lives in
-`specs/errors.yaml`; provider classifications remain separate from
-language-specific SDK bindings. The shared compiler resolves these inputs into a
-language-neutral model. Go and TypeScript emitters consume the compiled mappings
-and error classifications; `specs/generation.yaml` declares generation phases and
-client operation sequences.
+and native bindings. The shared compiler resolves these inputs into a
+language-neutral model. Go and TypeScript emitters consume the compiled mappings;
+`specs/generation.yaml` declares generation phases and client operation sequences.
 
 Provider `sandbox.go` files and provider-named TypeScript files retain
 orchestration that the current vocabulary cannot express: app/image/secret
