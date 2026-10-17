@@ -24,7 +24,9 @@ func identifier(words string) string {
 	}
 	return result.String()
 }
-func FieldName(field *protogen.Field) string { return identifier(string(field.Desc.Name())) }
+// FieldName returns the protoc-gen-go field name so generated adapters match
+// the contracts package instead of a parallel native spelling.
+func FieldName(field *protogen.Field) string { return field.GoName }
 
 // Identifier formats a portable snake_case identifier using Go conventions.
 func Identifier(value string) string { return identifier(value) }

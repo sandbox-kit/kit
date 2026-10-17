@@ -21,10 +21,9 @@ func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
 		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
 	}
-	config := sandbox.Config{
-		Provider: daytona.New(),
-		Auth:     &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}},
-		Timeout:  sandbox.Value(2 * time.Minute),
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
 		config.Endpoint = sandbox.Value(endpoint)
@@ -32,7 +31,7 @@ func run() (result error) {
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	client, err := sandbox.NewClient(config)
+	client, err := sandbox.NewClient(daytona.New(), config)
 	if err != nil {
 		return err
 	}
@@ -46,6 +45,6 @@ func run() (result error) {
 		return err
 	}
 	info := instance.Info()
-	fmt.Printf("Daytona sandbox: id=%s state=%s native=%s capabilities=%v\n", info.ID, info.State, info.GetProviderState(), instance.Capabilities())
+	fmt.Printf("Daytona sandbox: id=%s state=%s native=%s capabilities=%v\n", info.Id, info.State, info.GetProviderState(), instance.Capabilities())
 	return nil
 }

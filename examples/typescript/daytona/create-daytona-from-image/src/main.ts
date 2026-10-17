@@ -6,6 +6,7 @@ import {
   SandboxError,
   type ClientConfig,
   type Sandbox,
+  duration,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -19,8 +20,8 @@ function clientConfig(): ClientConfig {
   const region = process.env.DAYTONA_TARGET;
   return {
     provider: daytona(),
-    auth: { credentials: "apiKey", apiKey: { key: requireEnv("DAYTONA_API_KEY") } },
-    timeout: 120_000,
+    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
+    timeout: duration(120_000),
     ...(endpoint ? { endpoint } : {}),
     ...(region ? { region } : {}),
   };
@@ -38,7 +39,7 @@ function assertCapability(
 await using client = new Client(clientConfig());
 
 const sandbox = await client.create({
-  source: { kind: "image", image: { reference: "ubuntu:22.04" } },
+  source: { kind: { case: "image", value: { reference: "ubuntu:22.04" } } },
   resources: { cpuCores: 1, memoryMib: 1_024n, diskMib: 3_072n },
 });
 console.log(`Daytona sandbox created from ubuntu:22.04: ${sandbox.id}`);

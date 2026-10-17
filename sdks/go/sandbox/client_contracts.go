@@ -1,0 +1,46 @@
+package sandbox
+
+import (
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
+	time "time"
+
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
+)
+
+// Client configuration and lifecycle envelopes are standard protobuf-generated
+// contracts. These aliases preserve the SDK's concise package entrypoint while
+// ensuring there is exactly one representation of each portable value.
+type (
+	Config                  = sandboxv1.Config
+	AuthConfig              = sandboxv1.AuthConfig
+	AuthConfig_ApiKey       = sandboxv1.AuthConfig_ApiKey
+	AuthConfig_TokenPair    = sandboxv1.AuthConfig_TokenPair
+	AuthConfig_BearerToken  = sandboxv1.AuthConfig_BearerToken
+	AuthConfig_OauthRefresh = sandboxv1.AuthConfig_OauthRefresh
+	APIKeyCredentials       = sandboxv1.APIKeyCredentials
+	TokenPairCredentials    = sandboxv1.TokenPairCredentials
+	BearerTokenCredentials  = sandboxv1.BearerTokenCredentials
+	OAuthCredentials        = sandboxv1.OAuthCredentials
+	Scope                   = sandboxv1.Scope
+	SandboxReference        = sandboxv1.SandboxReference
+	GetSandboxRequest       = sandboxv1.GetSandboxRequest
+	AttachSandboxRequest    = sandboxv1.AttachSandboxRequest
+	RefreshSandboxRequest   = sandboxv1.RefreshSandboxRequest
+	StartSandboxRequest     = sandboxv1.StartSandboxRequest
+	StopSandboxRequest      = sandboxv1.StopSandboxRequest
+	PauseSandboxRequest     = sandboxv1.PauseSandboxRequest
+	TerminateSandboxRequest = sandboxv1.TerminateSandboxRequest
+	ArchiveSandboxRequest   = sandboxv1.ArchiveSandboxRequest
+	DeleteSandboxRequest    = sandboxv1.DeleteSandboxRequest
+)
+
+// Duration builds a protobuf duration for client and operation configuration.
+func Duration(value time.Duration) *durationpb.Duration {
+	return durationpb.New(value)
+}
+
+// ValidateConfig validates generated client configuration before provider
+// initialization.
+func ValidateConfig(config *Config) error {
+	return validateProtoConfig(config)
+}

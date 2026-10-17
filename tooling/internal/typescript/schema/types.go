@@ -25,7 +25,7 @@ func FieldType(field protoreflect.FieldDescriptor) (string, error) {
 	case protoreflect.MessageKind:
 		switch field.Message().FullName() {
 		case "google.protobuf.Duration":
-			result = "DurationMs"
+			result = "Duration"
 		case "google.protobuf.Timestamp":
 			result = "Date"
 		case "kit.sandbox.v1.MetadataObject":

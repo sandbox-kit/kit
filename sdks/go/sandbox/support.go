@@ -36,8 +36,13 @@ func RejectUnmapped(provider string, remaining any) error {
 	}
 	var fields []string
 	for i := 0; i < value.NumField(); i++ {
+		field := value.Type().Field(i)
+		// Skip unexported and protobuf runtime fields; only contract fields matter.
+		if field.PkgPath != "" || field.Name == "state" || field.Name == "sizeCache" || field.Name == "unknownFields" {
+			continue
+		}
 		if !value.Field(i).IsZero() {
-			fields = append(fields, value.Type().Field(i).Name)
+			fields = append(fields, field.Name)
 		}
 	}
 	if len(fields) > 0 {

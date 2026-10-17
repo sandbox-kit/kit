@@ -26,7 +26,7 @@ func mapSandboxIdentity(source *_go.Sandbox) (sandbox.SandboxInfo, error) {
 	target.Origins = map[string]sandbox.ValueOrigin{}
 	{
 		value := source.SandboxID
-		target.ID = value
+		target.Id = value
 		target.Origins["id"] = sandbox.ValueOriginProvider
 	}
 	target.Provider = "modal"
@@ -96,12 +96,12 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 	if source == nil {
 		return target, remaining, nil
 	}
-	if source.CPUCores != nil {
+	if source.CpuCores != nil {
 		{
-			value := source.GetCPUCores()
+			value := source.GetCpuCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCPUCores, Message: "sandbox-kit modal: cpu_cores cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit modal: cpu_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -109,13 +109,13 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 			target.CPU = value
 		}
 	}
-	remaining.CPUCores = nil
-	if source.CPULimitCores != nil {
+	remaining.CpuCores = nil
+	if source.CpuLimitCores != nil {
 		{
-			value := source.GetCPULimitCores()
+			value := source.GetCpuLimitCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCPULimitCores, Message: "sandbox-kit modal: cpu_limit_cores cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuLimitCores, Message: "sandbox-kit modal: cpu_limit_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -123,27 +123,27 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 			target.CPULimit = value
 		}
 	}
-	remaining.CPULimitCores = nil
-	if source.MemoryMiB != nil {
+	remaining.CpuLimitCores = nil
+	if source.MemoryMib != nil {
 		{
-			value := source.GetMemoryMiB()
+			value := source.GetMemoryMib()
 			if value > 2147483647 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMiB, Message: "sandbox-kit modal: memory_mib cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit modal: memory_mib cannot be represented"}, nil)
 			}
 			target.MemoryMiB = int(value)
 		}
 	}
-	remaining.MemoryMiB = nil
-	if source.MemoryLimitMiB != nil {
+	remaining.MemoryMib = nil
+	if source.MemoryLimitMib != nil {
 		{
-			value := source.GetMemoryLimitMiB()
+			value := source.GetMemoryLimitMib()
 			if value > 2147483647 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryLimitMiB, Message: "sandbox-kit modal: memory_limit_mib cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryLimitMib, Message: "sandbox-kit modal: memory_limit_mib cannot be represented"}, nil)
 			}
 			target.MemoryLimitMiB = int(value)
 		}
 	}
-	remaining.MemoryLimitMiB = nil
+	remaining.MemoryLimitMib = nil
 	return target, remaining, nil
 }
 
@@ -160,7 +160,7 @@ func mapLifetimeDuration(source *sandbox.LifetimePolicy) (_go.SandboxCreateParam
 	}
 	if source.MaximumLifetime != nil {
 		{
-			value := *source.MaximumLifetime
+			value := source.MaximumLifetime.AsDuration()
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 86400 {
 				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeMaximumLifetime, Message: "sandbox-kit modal: maximum_lifetime cannot be represented"}, nil)
 			}
@@ -184,7 +184,7 @@ func mapIdleDuration(source *sandbox.AutomaticAction) (_go.SandboxCreateParams, 
 	}
 	if source.After != nil {
 		{
-			value := *source.After
+			value := source.After.AsDuration()
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 4294967295 {
 				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleTerminateAfter, Message: "sandbox-kit modal: after cannot be represented"}, nil)
 			}
@@ -207,10 +207,10 @@ func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (_go.ClientPa
 		return target, remaining, nil
 	}
 	{
-		value := source.ID
+		value := source.Id
 		target.TokenID = value
 	}
-	remaining.ID = ""
+	remaining.Id = ""
 	{
 		value := source.Secret
 		target.TokenSecret = value
@@ -236,10 +236,10 @@ func mapOAuthAuth(source *sandbox.OAuthCredentials) (_go.OAuthCredentialsParams,
 	}
 	remaining.RefreshToken = ""
 	{
-		value := source.ClientID
+		value := source.ClientId
 		target.ClientID = value
 	}
-	remaining.ClientID = ""
+	remaining.ClientId = ""
 	if source.ClientSecret != nil {
 		{
 			value := source.GetClientSecret()
@@ -247,12 +247,12 @@ func mapOAuthAuth(source *sandbox.OAuthCredentials) (_go.OAuthCredentialsParams,
 		}
 	}
 	remaining.ClientSecret = nil
-	if source.JWTKey != nil {
+	if source.JwtKey != nil {
 		{
-			value := source.GetJWTKey()
+			value := source.GetJwtKey()
 			target.JWTKey = value
 		}
 	}
-	remaining.JWTKey = nil
+	remaining.JwtKey = nil
 	return target, remaining, nil
 }

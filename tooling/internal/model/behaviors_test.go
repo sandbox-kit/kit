@@ -2,14 +2,12 @@ package model
 
 import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
-	"path/filepath"
 	"testing"
 )
 
 func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
 	t.Helper()
-	root := filepath.Join("..", "..", "..", "specs")
-	raw, err := spec.LoadBehaviors(root)
+	raw, err := spec.LoadBehaviors("../../../specs")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -17,21 +15,11 @@ func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	api, err := spec.LoadAPI(root)
-	if err != nil {
-		t.Fatal(err)
+	return contracts, spec.Callable{
+		ID: "create", Name: "Create", Behavior: "create", Cancellable: true, Fallible: true,
+		Params: []spec.APISlot{{ID: "request", Name: "request", Type: spec.TypeRef{Ref: "schema.CreateOptions", Reference: true, Nullable: true}}},
+		Results: []spec.APISlot{{ID: "instance", Name: "instance", Type: spec.TypeRef{Ref: "sandbox_handle", Reference: true}}},
 	}
-	for _, typ := range api.Modules["client"].Types {
-		if typ.ID == "client" {
-			for _, method := range typ.Methods {
-				if method.ID == "create" {
-					return contracts, method
-				}
-			}
-		}
-	}
-	t.Fatal("missing creation declaration")
-	return contracts, spec.Callable{}
 }
 func TestBehaviorContractsPermitNativeNames(t *testing.T) {
 	b, c := behaviorFixture(t)

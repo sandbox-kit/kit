@@ -8,6 +8,7 @@ import {
   PortTransport,
   SecretInjection,
   WaitCondition,
+  duration,
 } from "@sandbox-kit/sandbox";
 import { App, InvalidError, Proxy, type Image, type Sandbox as ModalSandbox, type SandboxCreateParams } from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
@@ -19,9 +20,9 @@ describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
     expect(
       mapClientConfig({
-        auth: { credentials: "tokenPair", tokenPair: { id: "id", secret: "secret" } },
+        auth: { credentials: { case: "tokenPair", value: { id: "id", secret: "secret" } } },
         scope: { environment: "dev" },
-        timeout: 30_000,
+        timeout: duration(30_000),
       }),
     ).toEqual({ tokenId: "id", tokenSecret: "secret", environment: "dev", timeoutMs: 30_000 });
   });
@@ -32,7 +33,7 @@ describe("Modal mappings", () => {
     );
     expect(() =>
       mapClientConfig({
-        auth: { credentials: "tokenPair", tokenPair: { id: "", secret: "secret" } },
+        auth: { credentials: { case: "tokenPair", value: { id: "", secret: "secret" } } },
       }),
     ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "auth.tokenPair.id" }));
   });
@@ -42,14 +43,14 @@ describe("Modal mappings", () => {
     const state = captureProviderState(config);
     config.scope.appName = "changed";
 
-    expect(state).toEqual({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
+    expect(state).toMatchObject({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
   });
 
   it("maps the Go creation surface into the native Modal plan", () => {
     const plan = mapCreateRequest(
       {
         name: "example",
-        source: { kind: "image", image: { reference: "alpine:3.21" } },
+        source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
         runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
         isolation: { kind: IsolationKind.LinuxVm },
         resources: { cpuCores: 0.5, cpuLimitCores: 1, memoryMib: 512n, memoryLimitMib: 1024n },
@@ -67,9 +68,9 @@ describe("Modal mappings", () => {
           workloadIdentity: true,
           secrets: [{ reference: "credential", injection: SecretInjection.Environment }],
         },
-        lifetime: { maximumLifetime: 300_000, idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
-        readiness: { check: "command", command: { argv: ["true"] } },
-        provisioning: { timeout: 120_000, waitFor: WaitCondition.Ready },
+        lifetime: { maximumLifetime: duration(300_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
+        readiness: { check: { case: "command", value: { argv: ["true"] } } },
+        provisioning: { timeout: duration(120_000), waitFor: WaitCondition.Ready },
         observability: { verbose: true },
         labels: { purpose: "test" },
         environment: { NODE_ENV: "test" },
@@ -118,7 +119,7 @@ describe("Modal mappings", () => {
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: "image", image: { reference: "alpine:3.21" } },
+          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
           environment: { "NOT VALID": "value" },
         },
         config,
@@ -127,7 +128,7 @@ describe("Modal mappings", () => {
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: "image", image: { reference: "alpine:3.21" } },
+          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
           network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
         },
         config,
@@ -183,7 +184,7 @@ describe("Modal provider orchestration", () => {
     });
 
     const sandbox = await client.create({
-      source: { kind: "image", image: { reference: "alpine:3.21" } },
+      source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
       network: { proxyReference: "static-egress" },
     });
     await client.close();

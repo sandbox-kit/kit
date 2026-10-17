@@ -11,10 +11,9 @@ import (
 )
 
 func TestDiskOverrideReturnsUnsupported(t *testing.T) {
-	client, err := sandbox.NewClient(sandbox.Config{
-		Provider: modal.New(),
-		Auth:     &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: "test-only-id", Secret: "test-only-secret"}},
-		Scope:    &sandbox.Scope{AppName: sandbox.Value("test-only-app")},
+	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "test-only-id", Secret: "test-only-secret"}}},
+		Scope: &sandbox.Scope{AppName: sandbox.Value("test-only-app")},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -25,8 +24,8 @@ func TestDiskOverrideReturnsUnsupported(t *testing.T) {
 		}
 	})
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{DiskMiB: sandbox.Value(uint64(1024))},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))},
 	})
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != "disk_mib" {

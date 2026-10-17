@@ -1,9 +1,13 @@
 # Client configuration
 
-Construct a Go client with `sandbox.NewClient(sandbox.Config{...})` or a
-TypeScript client with `new Client({...})`. The selected provider initializes
-its official SDK from shared generated configuration types. This guide uses Go
-field spelling; TypeScript exposes the same fields in camelCase.
+Construct a Go client with `sandbox.NewClient(provider, &sandbox.Config{...})`
+or a TypeScript client with `new Client({...})`. The selected provider
+initializes its official SDK from generated protobuf configuration types. This
+guide uses Go field spelling; TypeScript exposes the same fields in camelCase.
+
+Provider selection is never part of the portable `Config` message. Go passes the
+provider as a separate `NewClient` argument; TypeScript attaches it on
+`ClientConfig` beside the protobuf config fields.
 
 The constructors have the same ownership and validation semantics while
 following each language's conventions: Go returns `(*Client, error)`, and
@@ -14,14 +18,14 @@ sandbox lifecycle.
 
 ## Configuration fields
 
-| Field      | Purpose                                                                |
-| ---------- | ---------------------------------------------------------------------- |
-| `Provider` | Integration selected with `modal.New()` or `daytona.New()`             |
-| `Auth`     | One explicit credential variant; omit to use SDK credential resolution |
-| `Scope`    | App, environment, organization, or project scope                       |
-| `Endpoint` | Provider API URL, where supported                                      |
-| `Region`   | Provider target or default placement preference                        |
-| `Timeout`  | Default Kit operation deadline                                         |
+| Field      | Purpose                                                                        |
+| ---------- | ------------------------------------------------------------------------------ |
+| `Provider` | Go: pass `modal.New()` / `daytona.New()` to `NewClient`. Not in `Config`.      |
+| `Auth`     | One explicit credential variant; omit to use SDK credential resolution         |
+| `Scope`    | App, environment, organization, or project scope                               |
+| `Endpoint` | Provider API URL, where supported                                              |
+| `Region`   | Provider target or default placement preference                                |
+| `Timeout`  | Default Kit operation deadline (`google.protobuf.Duration`; TS `duration(ms)`) |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional

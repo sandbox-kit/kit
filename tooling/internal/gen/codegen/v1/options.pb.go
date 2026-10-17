@@ -27,7 +27,9 @@ const (
 // ordinary language objects and are never serialized into these messages.
 type ClientDeclaration struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Optional local creation surface; SDK handle generation is language-specific.
+	// The protobuf service that defines the complete local SDK surface.
+	// Despite being expressed as a protobuf service, this is a descriptor input
+	// for native SDK generation; Kit does not deploy a gRPC endpoint.
 	CreationService string `protobuf:"bytes,4,opt,name=creation_service,json=creationService,proto3" json:"creation_service,omitempty"`
 	// Native initialization settings; runtime provider factories are attached by emitters.
 	ConfigMessage string `protobuf:"bytes,5,opt,name=config_message,json=configMessage,proto3" json:"config_message,omitempty"`
@@ -79,6 +81,130 @@ func (x *ClientDeclaration) GetConfigMessage() string {
 	return ""
 }
 
+// OperationDeclaration binds a unary service method to the generated native
+// SDK surface.  It deliberately describes behavior, never target-language
+// syntax: language emitters choose receiver and interface conventions.
+type OperationDeclaration struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Stable portable operation identity, for example "start".
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Capability enum suffix, for example "start" or "refresh".
+	Capability string `protobuf:"bytes,2,opt,name=capability,proto3" json:"capability,omitempty"`
+	// True when the native method belongs on a Sandbox handle. False means the
+	// method belongs on Client (for example create, get, or attach).
+	Handle bool `protobuf:"varint,3,opt,name=handle,proto3" json:"handle,omitempty"`
+	// Existing option message passed to a handle operation, when any.
+	OptionsMessage string `protobuf:"bytes,4,opt,name=options_message,json=optionsMessage,proto3" json:"options_message,omitempty"`
+	// "update_handle" replaces handle metadata; "exit_result" returns an
+	// execution result; "create_handle" returns a newly created handle.
+	Outcome string `protobuf:"bytes,5,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	// Normalized terminal state after a successful operation, when any.
+	TerminalState string `protobuf:"bytes,6,opt,name=terminal_state,json=terminalState,proto3" json:"terminal_state,omitempty"`
+	// Whether timeout is obtained from the option message before Config.Timeout.
+	Timeout bool `protobuf:"varint,7,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	// Generated adapter capability interface identifier. This is a portable
+	// generator symbol, not a target-language type name.
+	AdapterInterface string `protobuf:"bytes,8,opt,name=adapter_interface,json=adapterInterface,proto3" json:"adapter_interface,omitempty"`
+	// Generated adapter method identifier. This is a portable generator symbol,
+	// not a target-language member spelling.
+	AdapterMethod string `protobuf:"bytes,9,opt,name=adapter_method,json=adapterMethod,proto3" json:"adapter_method,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OperationDeclaration) Reset() {
+	*x = OperationDeclaration{}
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OperationDeclaration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OperationDeclaration) ProtoMessage() {}
+
+func (x *OperationDeclaration) ProtoReflect() protoreflect.Message {
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OperationDeclaration.ProtoReflect.Descriptor instead.
+func (*OperationDeclaration) Descriptor() ([]byte, []int) {
+	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *OperationDeclaration) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetCapability() string {
+	if x != nil {
+		return x.Capability
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetHandle() bool {
+	if x != nil {
+		return x.Handle
+	}
+	return false
+}
+
+func (x *OperationDeclaration) GetOptionsMessage() string {
+	if x != nil {
+		return x.OptionsMessage
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetOutcome() string {
+	if x != nil {
+		return x.Outcome
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetTerminalState() string {
+	if x != nil {
+		return x.TerminalState
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetTimeout() bool {
+	if x != nil {
+		return x.Timeout
+	}
+	return false
+}
+
+func (x *OperationDeclaration) GetAdapterInterface() string {
+	if x != nil {
+		return x.AdapterInterface
+	}
+	return ""
+}
+
+func (x *OperationDeclaration) GetAdapterMethod() string {
+	if x != nil {
+		return x.AdapterMethod
+	}
+	return ""
+}
+
 // ProviderDeclaration generates a typed, optionally installed provider integration.
 type ProviderDeclaration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -90,7 +216,7 @@ type ProviderDeclaration struct {
 
 func (x *ProviderDeclaration) Reset() {
 	*x = ProviderDeclaration{}
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[1]
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -102,7 +228,7 @@ func (x *ProviderDeclaration) String() string {
 func (*ProviderDeclaration) ProtoMessage() {}
 
 func (x *ProviderDeclaration) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[1]
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +241,7 @@ func (x *ProviderDeclaration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderDeclaration.ProtoReflect.Descriptor instead.
 func (*ProviderDeclaration) Descriptor() ([]byte, []int) {
-	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{1}
+	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ProviderDeclaration) GetProviderName() string {
@@ -142,7 +268,7 @@ type TargetSDK struct {
 
 func (x *TargetSDK) Reset() {
 	*x = TargetSDK{}
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[2]
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -154,7 +280,7 @@ func (x *TargetSDK) String() string {
 func (*TargetSDK) ProtoMessage() {}
 
 func (x *TargetSDK) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[2]
+	mi := &file_kit_codegen_v1_options_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -167,7 +293,7 @@ func (x *TargetSDK) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TargetSDK.ProtoReflect.Descriptor instead.
 func (*TargetSDK) Descriptor() ([]byte, []int) {
-	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{2}
+	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *TargetSDK) GetImportPath() string {
@@ -209,6 +335,14 @@ var file_kit_codegen_v1_options_proto_extTypes = []protoimpl.ExtensionInfo{
 		Tag:           "varint,51003,opt,name=native_types",
 		Filename:      "kit/codegen/v1/options.proto",
 	},
+	{
+		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
+		ExtensionType: (*OperationDeclaration)(nil),
+		Field:         51004,
+		Name:          "kit.codegen.v1.operation",
+		Tag:           "bytes,51004,opt,name=operation",
+		Filename:      "kit/codegen/v1/options.proto",
+	},
 }
 
 // Extension fields to descriptorpb.FileOptions.
@@ -223,6 +357,14 @@ var (
 	E_NativeTypes = &file_kit_codegen_v1_options_proto_extTypes[2]
 )
 
+// Extension fields to descriptorpb.MethodOptions.
+var (
+	// Native SDK operation metadata. This replaces the lifecycle YAML registry.
+	//
+	// optional kit.codegen.v1.OperationDeclaration operation = 51004;
+	E_Operation = &file_kit_codegen_v1_options_proto_extTypes[3]
+)
+
 var File_kit_codegen_v1_options_proto protoreflect.FileDescriptor
 
 const file_kit_codegen_v1_options_proto_rawDesc = "" +
@@ -230,7 +372,19 @@ const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"\xc6\x01\n" +
 	"\x11ClientDeclaration\x12)\n" +
 	"\x10creation_service\x18\x04 \x01(\tR\x0fcreationService\x12%\n" +
-	"\x0econfig_message\x18\x05 \x01(\tR\rconfigMessageJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04nameR\x11backend_interfaceR\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xd9\x02\n" +
+	"\x0econfig_message\x18\x05 \x01(\tR\rconfigMessageJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04nameR\x11backend_interfaceR\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xb6\x02\n" +
+	"\x14OperationDeclaration\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
+	"\n" +
+	"capability\x18\x02 \x01(\tR\n" +
+	"capability\x12\x16\n" +
+	"\x06handle\x18\x03 \x01(\bR\x06handle\x12'\n" +
+	"\x0foptions_message\x18\x04 \x01(\tR\x0eoptionsMessage\x12\x18\n" +
+	"\aoutcome\x18\x05 \x01(\tR\aoutcome\x12%\n" +
+	"\x0eterminal_state\x18\x06 \x01(\tR\rterminalState\x12\x18\n" +
+	"\atimeout\x18\a \x01(\bR\atimeout\x12+\n" +
+	"\x11adapter_interface\x18\b \x01(\tR\x10adapterInterface\x12%\n" +
+	"\x0eadapter_method\x18\t \x01(\tR\radapterMethod\"\xd9\x02\n" +
 	"\x13ProviderDeclaration\x12#\n" +
 	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12A\n" +
 	"\x04sdks\x18\a \x03(\v2-.kit.codegen.v1.ProviderDeclaration.SdksEntryR\x04sdks\x1aR\n" +
@@ -244,7 +398,8 @@ const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"clientType:Y\n" +
 	"\x06client\x12\x1c.google.protobuf.FileOptions\x18\xb8\x8e\x03 \x01(\v2!.kit.codegen.v1.ClientDeclarationR\x06client:_\n" +
 	"\bprovider\x12\x1c.google.protobuf.FileOptions\x18\xb9\x8e\x03 \x01(\v2#.kit.codegen.v1.ProviderDeclarationR\bprovider:A\n" +
-	"\fnative_types\x12\x1c.google.protobuf.FileOptions\x18\xbb\x8e\x03 \x01(\bR\vnativeTypesBFZDgithub.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1b\x06proto3"
+	"\fnative_types\x12\x1c.google.protobuf.FileOptions\x18\xbb\x8e\x03 \x01(\bR\vnativeTypes:d\n" +
+	"\toperation\x12\x1e.google.protobuf.MethodOptions\x18\xbc\x8e\x03 \x01(\v2$.kit.codegen.v1.OperationDeclarationR\toperationBFZDgithub.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1b\x06proto3"
 
 var (
 	file_kit_codegen_v1_options_proto_rawDescOnce sync.Once
@@ -258,26 +413,30 @@ func file_kit_codegen_v1_options_proto_rawDescGZIP() []byte {
 	return file_kit_codegen_v1_options_proto_rawDescData
 }
 
-var file_kit_codegen_v1_options_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_kit_codegen_v1_options_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_kit_codegen_v1_options_proto_goTypes = []any{
-	(*ClientDeclaration)(nil),        // 0: kit.codegen.v1.ClientDeclaration
-	(*ProviderDeclaration)(nil),      // 1: kit.codegen.v1.ProviderDeclaration
-	(*TargetSDK)(nil),                // 2: kit.codegen.v1.TargetSDK
-	nil,                              // 3: kit.codegen.v1.ProviderDeclaration.SdksEntry
-	(*descriptorpb.FileOptions)(nil), // 4: google.protobuf.FileOptions
+	(*ClientDeclaration)(nil),          // 0: kit.codegen.v1.ClientDeclaration
+	(*OperationDeclaration)(nil),       // 1: kit.codegen.v1.OperationDeclaration
+	(*ProviderDeclaration)(nil),        // 2: kit.codegen.v1.ProviderDeclaration
+	(*TargetSDK)(nil),                  // 3: kit.codegen.v1.TargetSDK
+	nil,                                // 4: kit.codegen.v1.ProviderDeclaration.SdksEntry
+	(*descriptorpb.FileOptions)(nil),   // 5: google.protobuf.FileOptions
+	(*descriptorpb.MethodOptions)(nil), // 6: google.protobuf.MethodOptions
 }
 var file_kit_codegen_v1_options_proto_depIdxs = []int32{
-	3, // 0: kit.codegen.v1.ProviderDeclaration.sdks:type_name -> kit.codegen.v1.ProviderDeclaration.SdksEntry
-	2, // 1: kit.codegen.v1.ProviderDeclaration.SdksEntry.value:type_name -> kit.codegen.v1.TargetSDK
-	4, // 2: kit.codegen.v1.client:extendee -> google.protobuf.FileOptions
-	4, // 3: kit.codegen.v1.provider:extendee -> google.protobuf.FileOptions
-	4, // 4: kit.codegen.v1.native_types:extendee -> google.protobuf.FileOptions
-	0, // 5: kit.codegen.v1.client:type_name -> kit.codegen.v1.ClientDeclaration
-	1, // 6: kit.codegen.v1.provider:type_name -> kit.codegen.v1.ProviderDeclaration
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	5, // [5:7] is the sub-list for extension type_name
-	2, // [2:5] is the sub-list for extension extendee
+	4, // 0: kit.codegen.v1.ProviderDeclaration.sdks:type_name -> kit.codegen.v1.ProviderDeclaration.SdksEntry
+	3, // 1: kit.codegen.v1.ProviderDeclaration.SdksEntry.value:type_name -> kit.codegen.v1.TargetSDK
+	5, // 2: kit.codegen.v1.client:extendee -> google.protobuf.FileOptions
+	5, // 3: kit.codegen.v1.provider:extendee -> google.protobuf.FileOptions
+	5, // 4: kit.codegen.v1.native_types:extendee -> google.protobuf.FileOptions
+	6, // 5: kit.codegen.v1.operation:extendee -> google.protobuf.MethodOptions
+	0, // 6: kit.codegen.v1.client:type_name -> kit.codegen.v1.ClientDeclaration
+	2, // 7: kit.codegen.v1.provider:type_name -> kit.codegen.v1.ProviderDeclaration
+	1, // 8: kit.codegen.v1.operation:type_name -> kit.codegen.v1.OperationDeclaration
+	9, // [9:9] is the sub-list for method output_type
+	9, // [9:9] is the sub-list for method input_type
+	6, // [6:9] is the sub-list for extension type_name
+	2, // [2:6] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
 }
 
@@ -292,8 +451,8 @@ func file_kit_codegen_v1_options_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kit_codegen_v1_options_proto_rawDesc), len(file_kit_codegen_v1_options_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
-			NumExtensions: 3,
+			NumMessages:   5,
+			NumExtensions: 4,
 			NumServices:   0,
 		},
 		GoTypes:           file_kit_codegen_v1_options_proto_goTypes,

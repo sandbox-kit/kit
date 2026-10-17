@@ -13,9 +13,9 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, old, new string }{
-		{"unknown phase", "error_runtime", "arbitrary_code"},
-		{"missing phase", "copies, ", ""},
-		{"duplicate phase", "copies, diagnostic_paths", "copies, copies"},
+		{"unknown phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, arbitrary_code]"},
+		{"missing phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, validation]"},
+		{"duplicate phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, field_paths]"},
 		{"unknown instruction", "require_provider_name", "execute_go_expression"},
 		{"missing instruction", "    - require_backend\n", ""},
 		{"dependency ordering", "    - prepare_request\n    - resolve_deadline", "    - resolve_deadline\n    - prepare_request"},

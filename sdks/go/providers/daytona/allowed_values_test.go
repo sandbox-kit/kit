@@ -8,7 +8,7 @@ import (
 
 func TestDocumentedCreationRules(t *testing.T) {
 	delay := func(d time.Duration) *sandbox.AutomaticAction {
-		return &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(d)}
+		return &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(d)}
 	}
 	for _, tc := range []struct {
 		name    string
@@ -26,7 +26,7 @@ func TestDocumentedCreationRules(t *testing.T) {
 		{"archive maximum", &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: delay(30 * 24 * time.Hour)}}, true},
 		{"archive above maximum", &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: delay(30*24*time.Hour + time.Minute)}}, false},
 		{"immediate archive", &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: delay(0)}}, false},
-		{"bad CIDR", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{OutboundCIDRs: &sandbox.StringAllowlist{Entries: []string{"not-a-cidr"}}}}, false},
+		{"bad CIDR", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{OutboundCidrs: &sandbox.StringAllowlist{Entries: []string{"not-a-cidr"}}}}, false},
 		{"linked sandbox is ephemeral", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}, Lifetime: &sandbox.LifetimePolicy{Ephemeral: sandbox.Value(true)}}, true},
 		{"linked sandbox without ephemeral lifetime", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}}, false},
 	} {

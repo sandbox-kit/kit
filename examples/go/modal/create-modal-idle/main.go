@@ -34,10 +34,10 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
 		Lifetime: &sandbox.LifetimePolicy{IdleTerminate: &sandbox.AutomaticAction{
 			Mode:  sandbox.PolicyModeAfter,
-			After: sandbox.Value(60 * time.Second),
+			After: sandbox.Duration(60 * time.Second),
 		}},
 	})
 	if err != nil {
@@ -55,15 +55,14 @@ func newClient() (*sandbox.Client, error) {
 	if environment == "" {
 		environment = "main"
 	}
-	return sandbox.NewClient(sandbox.Config{
-		Provider: modal.New(),
-		Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{
-			ID: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-		}},
+	return sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{
+			Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		}}},
 		Scope: &sandbox.Scope{
 			AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
 			Environment: sandbox.Value(environment),
 		},
-		Timeout: sandbox.Value(2 * time.Minute),
+		Timeout: sandbox.Duration(2 * time.Minute),
 	})
 }

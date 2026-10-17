@@ -16,86 +16,10 @@ signatures:
           reference: true
     fallible: false
     cancellable: false
-  client_mapping:
-    owner: function
-    params:
-      - id: config
-        type:
-          ref: config
-          nullable: true
-          reference: true
-    results:
-      - type:
-          ref: target
-    fallible: true
-    cancellable: false
-  clone:
-    owner: method
-    results:
-      - type:
-          ref: subject
-          reference: true
-          ownership: owned
-    fallible: true
-    cancellable: false
-  clone_internal:
-    owner: method
-    params:
-      - id: depth
-        type:
-          builtin: index
-    results:
-      - type:
-          ref: subject
-          reference: true
-          ownership: owned
-    fallible: true
-    cancellable: false
-  clone_metadata:
-    owner: function
-    params:
-      - id: source
-        type:
-          nullable: true
-          map:
-            key:
-              builtin: string
-            value:
-              builtin: any
-    results:
-      - type:
-          nullable: true
-          map:
-            key:
-              builtin: string
-            value:
-              builtin: any
-    fallible: true
-    cancellable: false
   close:
     owner: method
     fallible: true
     cancellable: true
-  copy_metadata:
-    owner: function
-    params:
-      - id: value
-        type:
-          builtin: any
-          nullable: true
-      - id: depth
-        type:
-          builtin: index
-      - id: nodes
-        type: { builtin: index, reference: true }
-      - id: bytes
-        type: { builtin: index, reference: true }
-    results:
-      - type:
-          builtin: any
-          nullable: true
-    fallible: true
-    cancellable: false
   create:
     owner: method
     params:
@@ -135,13 +59,6 @@ signatures:
     results:
       - type:
           builtin: string
-    fallible: false
-    cancellable: false
-  getter:
-    owner: method
-    results:
-      - type:
-          ref: field_value
     fallible: false
     cancellable: false
   initialize:

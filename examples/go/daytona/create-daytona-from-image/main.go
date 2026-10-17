@@ -34,11 +34,11 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"}}},
 		Resources: &sandbox.Resources{
-			CPUCores:  sandbox.Value(1.0),
-			MemoryMiB: sandbox.Value(uint64(1024)),
-			DiskMiB:   sandbox.Value(uint64(3072)),
+			CpuCores:  sandbox.Value(1.0),
+			MemoryMib: sandbox.Value(uint64(1024)),
+			DiskMib:   sandbox.Value(uint64(3072)),
 		},
 	})
 	if err != nil {
@@ -52,10 +52,9 @@ func newClient() (*sandbox.Client, error) {
 	if err := godotenv.Load(".env"); err != nil {
 		return nil, fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
 	}
-	config := sandbox.Config{
-		Provider: daytona.New(),
-		Auth:     &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}},
-		Timeout:  sandbox.Value(2 * time.Minute),
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
 		config.Endpoint = sandbox.Value(endpoint)
@@ -63,5 +62,5 @@ func newClient() (*sandbox.Client, error) {
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	return sandbox.NewClient(config)
+	return sandbox.NewClient(daytona.New(), config)
 }

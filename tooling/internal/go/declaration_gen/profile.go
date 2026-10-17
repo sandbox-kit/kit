@@ -12,7 +12,7 @@ func ValidateProfile(profile spec.LanguageProfile) error {
 	if profile.Language != "go" || profile.ObjectKind != "struct" || profile.InterfaceKind != "interface" || profile.Reference != "pointer" || profile.Optional != "pointer" || profile.Nullable != "nil" || profile.Fallible != "error_result" || profile.MultipleResults != "tuple" || profile.Unions != "reject" {
 		return fmt.Errorf("unsupported Go declaration profile")
 	}
-	for _, role := range []string{"client", "provider", "errors", "copies"} {
+	for _, role := range []string{"client", "provider", "shared"} {
 		if profile.Outputs[role] == "" {
 			return fmt.Errorf("missing Go output role %s", role)
 		}

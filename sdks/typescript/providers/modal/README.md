@@ -12,7 +12,7 @@ import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider: modal(),
-  auth: { credentials: "tokenPair", tokenPair: { id: "...", secret: "..." } },
+  auth: { credentials: { case: "tokenPair", value: { id: "...", secret: "..." } } },
   scope: { appName: "my-app", environment: "main" },
 });
 ```

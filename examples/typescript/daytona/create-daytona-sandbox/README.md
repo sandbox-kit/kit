@@ -29,8 +29,7 @@ For an explicitly configured client, pass shared credentials instead:
 const client = new Client({
   provider: daytona(),
   auth: {
-    credentials: "apiKey",
-    apiKey: { key: "your-api-key" },
+    credentials: { case: "apiKey", value: { key: "your-api-key" } },
   },
   region: "us",
 });

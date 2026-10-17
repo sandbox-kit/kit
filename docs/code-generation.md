@@ -1,23 +1,14 @@
 # Code generation
 
-Protobuf and YAML define the shared contracts and portable rules. All generators
-are written in Go under `tooling/`; Go and TypeScript SDK output are implemented.
+The target architecture is documented in
+[protobuf SDK boundary](protobuf-sdk-boundary.md). Protobuf is the one source of
+truth for portable data and operation contracts. Standard protobuf plugins emit
+messages, enums, reflection metadata, and service declarations; handwritten SDK
+code owns client, handle, provider, and error behavior.
 
-```text
-Protobuf + versioned YAML + native SDK bindings
-                    ↓
-      Language-neutral compiled model
-                    ↓
-             Language emitter
-                    ↓
-            Native SDK source
-```
-
-`tooling/internal/model/` compiles descriptor identities, field paths, local client
-methods, validation references, mapping plans, and error classifications before
-emission. It uses protobuf reflection descriptors, not `protogen`, Go naming, or
-runtime SDK types. `internal/go/` and `internal/typescript/` translate that model
-into native syntax and files.
+Portable create/config/info types come from standard protobuf contracts plus
+handwritten SDK aliases. Kit emitters now own narrow helpers only: validation,
+paths, provider checks, and field mappings.
 
 ## Generate and verify
 
@@ -34,20 +25,20 @@ GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdi
 
 The second command adds `buf breaking` against the selected Git or Buf input.
 The initial lint baseline is `BASIC`: it catches structural mistakes without
-renaming established enum defaults or the local `SandboxCreation` declaration.
+renaming established enum defaults or the local `SandboxService` declaration.
 
 From `tooling/`:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
 GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit generate typescript
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
-Generation requires `protoc`. The CLI builds temporary generator binaries,
-bootstraps annotation bindings, and generates runtime source from the repository
-root, where the plugin resolves `specs/`. Temporary binaries are cleaned up.
+Generation requires `protoc`. Temporary binaries are cleaned up.
 
 Generated source is committed under `sdks/<language>/`. Edit its schema, spec,
 or emitter, then regenerate. SDK applications use native types and do not load
@@ -57,20 +48,12 @@ YAML or import protobuf messages.
 
 | Input                             | Defines                                                                 |
 | --------------------------------- | ----------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Shared types, presence, enums, and local methods                        |
-| `proto/kit/providers/`            | Provider and native SDK declarations                                    |
-| `specs/behaviors.yaml`            | Required behavior inputs, outputs, owner, and execution flags           |
-| `specs/templates.yaml`            | Reusable descriptor-driven signatures and field-path rules              |
-| `specs/api.yaml`                  | Runtime types, constructors, methods, parameters, and results           |
-| `specs/languages/<language>.yaml` | Native representation, builtins, externals, and output conventions      |
-| `specs/generation.yaml`           | Generation phases and ordered client-operation instructions             |
-| `specs/lifecycle.yaml`            | Handle operations, capabilities, options, outcomes, and terminal states |
+| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
+| `proto/kit/sandbox/internal/`     | Internal-only portable DTOs                                             |
+| `proto/kit/providers/`            | Provider contract declarations                                          |
 | `specs/targets.yaml`              | Language/provider output modules and source descriptors                 |
-| `specs/client.yaml`               | Provider selection, client/auth validation, and representation policy   |
-| `specs/validation.yaml`           | Shared creation validation                                              |
-| `specs/contracts.yaml`            | Metadata/error declarations and copy budgets                            |
-| `specs/errors.yaml`               | Shared cause classification and error-context policy                    |
-| `specs/providers/<provider>.yaml` | Client assembly, provider checks, conversions, and runtime bindings     |
+| `specs/validation.yaml`           | Portable validation rules                                               |
+| `specs/providers/<provider>.yaml` | Provider capability, validation, mapping, and error-classification rules |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -78,28 +61,10 @@ inside the language's bindings.
 
 ## API declarations
 
-[`api.yaml`](../specs/api.yaml) declares runtime objects, interfaces, fields,
-constructors, methods, parameter/result shapes, and behavior attachments.
-[`languages/go.yaml`](../specs/languages/go.yaml) lowers references, presence,
-cancellation, multiple results, and failures into Go conventions.
-[`languages/typescript.yaml`](../specs/languages/typescript.yaml) lowers the same
-semantics into TypeScript conventions, including discriminated unions and thrown
-errors. Each language's `declaration_gen/` emits declarations from the compiled model.
-Template bindings retain portable type shapes and native symbol identities.
-Behavior bodies use explicit symbol references, with no textual identifier renaming.
-The shared compiler checks their declarations against `specs/behaviors.yaml`.
-Native output extensions and capability checks belong to each backend.
-
-The same vocabulary supports aliases, integer enums, callbacks, generic objects
-and functions, static methods, variadic parameters, and composed fields. Go
-rejects unsupported shapes explicitly, including first-class unions/tuples and
-independent generic method parameters. Protobuf still owns shared data fields.
-
-Client/provider signatures, the error runtime, metadata-copy helpers, and `Value`
-now use these declarations. Schema getters, clone methods, validators, mappings, provider checks, and origin
-helpers use declaration templates from `specs/templates.yaml`; their bodies retain
-specialized emitters. Read the
-[declaration guide](api-declarations.md) for syntax, coverage, and extension rules.
+Public data signatures and service request/response shapes belong in protobuf.
+Private portable data belongs in the internal protobuf package. Runtime objects
+and behavior are handwritten in each language. YAML must not declare types,
+constructors, methods, result shapes, visibility, or operation sequencing.
 
 ## Generation plan and client operations
 
@@ -129,17 +94,15 @@ drives provider/language outputs, so adding a provider does not require editing
 the generation command's source list.
 
 These are semantic instructions, not arbitrary expressions or YAML code snippets.
-Constructor and method names come from `specs/api.yaml`. Output suffixes come
-from the language profile. The Go emitter turns these instructions into
-synchronous calls, context deadlines, and error results. The TypeScript emitter
-uses promises, abort signals, timeouts, and thrown errors.
+Client and handle method names live in handwritten runtime code shaped by
+`SandboxService` metadata. Output suffixes come from the language profile.
+Provider mapping and validation emitters consume the portable rules below.
 
-Handle lifecycle operations are registered once in `specs/lifecycle.yaml`.
-The shared compiler validates their capability interface, method, and option
-types. The Go lifecycle emitter derives public handle methods, typed dispatch,
-timeouts, metadata replacement, terminal updates, and capability discovery from
-that registry. A new operation using an existing outcome shape therefore does
-not require adding its name to the Go emitter.
+Handle lifecycle operations are registered once as annotated methods on
+`SandboxService` in `proto/kit/sandbox/v1/client.proto`. The shared compiler
+validates their portable operation metadata and option types. Handwritten
+runtime code owns public handle methods, typed dispatch, timeouts, metadata
+replacement, terminal updates, and capability discovery from that service.
 
 The model resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
@@ -162,12 +125,11 @@ collections. Context enrichment avoids an extra wrapper when details already mat
 
 `specs/contracts.yaml` identifies the shared metadata, error, and origin
 declarations and the copy depth, visited-node, and payload-byte limits.
-Error and metadata-copy signatures come from `specs/api.yaml`. `types_gen/runtime.go` emits their behavior bodies
-into `.errors.runtime.gen.go` and `.clone.runtime.gen.go`. Schema `Clone`
-methods are separate: templates declare them, and `*.copy.gen.go` copies fields
-directly, preserving numeric types and owned collections. Metadata has explicit
-signed and unsigned alternatives instead of protobuf Struct's double-only
-numeric representation.
+Portable messages come from standard protobuf generation into contract packages;
+SDK runtimes alias them and keep handwritten clone helpers (for example Go
+`clone.go` and TypeScript metadata helpers). Metadata has explicit signed and
+unsigned alternatives instead of protobuf Struct's double-only numeric
+representation.
 
 `specs/errors.yaml` declares ordered cause rules, fallback classification, context
 reuse, detail preservation, and provider classification precedence. Version 1
@@ -328,20 +290,17 @@ overrides are rejected.
 to mapped configuration and returning a client/error.
 `runtime.go.cleanup` names the cleanup method and declares context/error behavior.
 
-Backend state declares its native name, shared type, optional flag, and
-`capture` path relative to `Config`. Generated copies preserve absence and avoid
-aliasing caller data.
-
-Capture currently supports optional strings and messages with scalar/nested
-message fields. Collections, bytes, recursive messages, and real oneofs fail
-generation until copying support is added.
+Backend state capture and metadata cloning are handwritten in the SDK runtime
+(for example Go `clone.go` and TypeScript metadata helpers). Generators must not
+emit a second parallel copy of portable messages.
 
 ## Extend a provider or language
 
 1. Declare shared types and method intent in protobuf.
-2. Describe portable validation, conversions, and operation intent in YAML.
+2. Describe portable validation and conversions in YAML, and operation intent
+   on an annotated `SandboxService` method.
 3. Add native SDK symbols to the language's bindings.
-4. Register operations that use existing outcome shapes in `specs/lifecycle.yaml`;
+4. Add annotated service operations that use existing outcome shapes;
    extend the shared vocabulary and affected emitters only for a new shape.
 5. Add semantic boundary tests, regenerate, and update examples/docs.
 6. Run the CLI verification command.
@@ -357,13 +316,12 @@ provider checks, `provider.errors.gen.ts` classifies native errors, and
 `provider.mappings.gen.ts` contains compiled YAML mapping groups. None of these
 files are embedded source templates.
 
-Lifecycle option and result types are generated from protobuf. The Go and
-TypeScript lifecycle emitters generate handle methods and typed provider dispatch
-from `specs/lifecycle.yaml`; the Go emitter also generates static capability
-discovery. Handle storage, operation/close coordination, and provider-specific
-lifecycle call sequences remain native runtime code. Optional capabilities
-prevent a provider from advertising operations it cannot implement; Daytona
-resolves additional class-dependent capabilities from current metadata.
+Lifecycle option and result types come from protobuf contracts. Handle methods,
+typed provider dispatch, capability discovery, storage, and close coordination
+remain handwritten runtime code shaped by annotated `SandboxService` methods.
+Optional capabilities prevent a provider from advertising operations it cannot
+implement; Daytona resolves additional class-dependent capabilities from current
+metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

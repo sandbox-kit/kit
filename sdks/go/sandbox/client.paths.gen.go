@@ -10,17 +10,17 @@ package sandbox
 // ConfigFieldAuth is the canonical path "auth".
 const ConfigFieldAuth = "auth"
 
-// ConfigFieldAuthAPIKey is the canonical path "auth.api_key".
-const ConfigFieldAuthAPIKey = "auth.api_key"
+// ConfigFieldAuthApiKey is the canonical path "auth.api_key".
+const ConfigFieldAuthApiKey = "auth.api_key"
 
-// ConfigFieldAuthAPIKeyKey is the canonical path "auth.api_key.key".
-const ConfigFieldAuthAPIKeyKey = "auth.api_key.key"
+// ConfigFieldAuthApiKeyKey is the canonical path "auth.api_key.key".
+const ConfigFieldAuthApiKeyKey = "auth.api_key.key"
 
 // ConfigFieldAuthTokenPair is the canonical path "auth.token_pair".
 const ConfigFieldAuthTokenPair = "auth.token_pair"
 
-// ConfigFieldAuthTokenPairID is the canonical path "auth.token_pair.id".
-const ConfigFieldAuthTokenPairID = "auth.token_pair.id"
+// ConfigFieldAuthTokenPairId is the canonical path "auth.token_pair.id".
+const ConfigFieldAuthTokenPairId = "auth.token_pair.id"
 
 // ConfigFieldAuthTokenPairSecret is the canonical path
 // "auth.token_pair.secret".
@@ -33,24 +33,24 @@ const ConfigFieldAuthBearerToken = "auth.bearer_token"
 // "auth.bearer_token.token".
 const ConfigFieldAuthBearerTokenToken = "auth.bearer_token.token"
 
-// ConfigFieldAuthOAuthRefresh is the canonical path "auth.oauth_refresh".
-const ConfigFieldAuthOAuthRefresh = "auth.oauth_refresh"
+// ConfigFieldAuthOauthRefresh is the canonical path "auth.oauth_refresh".
+const ConfigFieldAuthOauthRefresh = "auth.oauth_refresh"
 
-// ConfigFieldAuthOAuthRefreshRefreshToken is the canonical path
+// ConfigFieldAuthOauthRefreshRefreshToken is the canonical path
 // "auth.oauth_refresh.refresh_token".
-const ConfigFieldAuthOAuthRefreshRefreshToken = "auth.oauth_refresh.refresh_token"
+const ConfigFieldAuthOauthRefreshRefreshToken = "auth.oauth_refresh.refresh_token"
 
-// ConfigFieldAuthOAuthRefreshClientID is the canonical path
+// ConfigFieldAuthOauthRefreshClientId is the canonical path
 // "auth.oauth_refresh.client_id".
-const ConfigFieldAuthOAuthRefreshClientID = "auth.oauth_refresh.client_id"
+const ConfigFieldAuthOauthRefreshClientId = "auth.oauth_refresh.client_id"
 
-// ConfigFieldAuthOAuthRefreshClientSecret is the canonical path
+// ConfigFieldAuthOauthRefreshClientSecret is the canonical path
 // "auth.oauth_refresh.client_secret".
-const ConfigFieldAuthOAuthRefreshClientSecret = "auth.oauth_refresh.client_secret"
+const ConfigFieldAuthOauthRefreshClientSecret = "auth.oauth_refresh.client_secret"
 
-// ConfigFieldAuthOAuthRefreshJWTKey is the canonical path
+// ConfigFieldAuthOauthRefreshJwtKey is the canonical path
 // "auth.oauth_refresh.jwt_key".
-const ConfigFieldAuthOAuthRefreshJWTKey = "auth.oauth_refresh.jwt_key"
+const ConfigFieldAuthOauthRefreshJwtKey = "auth.oauth_refresh.jwt_key"
 
 // ConfigFieldEndpoint is the canonical path "endpoint".
 const ConfigFieldEndpoint = "endpoint"
@@ -67,12 +67,12 @@ const ConfigFieldScopeAppName = "scope.app_name"
 // ConfigFieldScopeEnvironment is the canonical path "scope.environment".
 const ConfigFieldScopeEnvironment = "scope.environment"
 
-// ConfigFieldScopeOrganizationID is the canonical path
+// ConfigFieldScopeOrganizationId is the canonical path
 // "scope.organization_id".
-const ConfigFieldScopeOrganizationID = "scope.organization_id"
+const ConfigFieldScopeOrganizationId = "scope.organization_id"
 
-// ConfigFieldScopeProjectID is the canonical path "scope.project_id".
-const ConfigFieldScopeProjectID = "scope.project_id"
+// ConfigFieldScopeProjectId is the canonical path "scope.project_id".
+const ConfigFieldScopeProjectId = "scope.project_id"
 
 // ConfigFieldTimeout is the canonical path "timeout".
 const ConfigFieldTimeout = "timeout"

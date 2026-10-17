@@ -1,2 +1,2 @@
 export { daytona } from "./daytona.js";
-export { providerName } from "./provider.gen.js";
+export { providerName } from "./provider.js";

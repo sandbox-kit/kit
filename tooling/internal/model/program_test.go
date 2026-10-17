@@ -92,23 +92,17 @@ func TestPortableProviderCompilation(t *testing.T) {
 func TestCompileResolvesSpecsBeforeEmission(t *testing.T) {
 	root := t.TempDir()
 	files := map[string]string{
-		"generation.yaml": "version: 1\nshared: [types, error_runtime, copies, diagnostic_paths, field_paths, validation]\nclient: [types, diagnostic_paths, field_paths, validation, client]\nprovider: [provider, configuration, checks, errors, mappings]\n",
+		"generation.yaml": "version: 1\nshared: [diagnostic_paths, field_paths, validation]\nclient: [diagnostic_paths, field_paths]\nprovider: [checks, mappings]\n",
 		"validation.yaml": "version: 1\nmessages:\n  Resources:\n    fields:\n      cpu_cores: {finite: true}\n",
 		"client.yaml":     "version: 1\nconfig_message: Config\nrepresentation:\n  version: 1\n  messages: {}\nvalidation:\n  version: 1\n  messages:\n    Config:\n      fields:\n        endpoint: {nonblank: true}\n",
 		"contracts.yaml":  "version: 1\ncopy_max_depth: 64\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n",
 		"errors.yaml":     "version: 1\nfallback_kind: unknown\ncause_rules: []\nexisting_error: {reuse_matching_context: true, preserve_details: true}\nclassification_precedence: [existing_error, native_type, http_status, grpc_code, fallback]\n",
-		"lifecycle.yaml":  "version: 1\noperations:\n  - {id: refresh, capability: refresh, interface: sandbox_refresher, method: refresh_sandbox, receiver: handle, outcome: update_handle}\n",
 	}
 	generation, readErr := os.ReadFile(filepath.Join("..", "..", "..", "specs", "generation.yaml"))
 	if readErr != nil {
 		t.Fatal(readErr)
 	}
 	files["generation.yaml"] = string(generation)
-	api, err := os.ReadFile(filepath.Join("..", "..", "..", "specs", "api.yaml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	files["api.yaml"] = string(api)
 	templates, err := os.ReadFile(filepath.Join("..", "..", "..", "specs", "templates.yaml"))
 	if err != nil {
 		t.Fatal(err)

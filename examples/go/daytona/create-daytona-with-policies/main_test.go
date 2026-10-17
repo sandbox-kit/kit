@@ -95,7 +95,7 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 		want string
 	}{
 		{"immediate stop", func(p *sandbox.LifetimePolicy) {
-			p.IdleStop = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}
+			p.IdleStop = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}
 		}, "idle_stop"},
 		{"disabled archive", func(p *sandbox.LifetimePolicy) {
 			p.StoppedArchive = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}
@@ -104,7 +104,7 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 			p.StoppedDelete = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}
 		}, "stopped_delete"},
 		{"immediate pause", func(p *sandbox.LifetimePolicy) {
-			p.IdlePause = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}
+			p.IdlePause = &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}
 		}, "idle_pause"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -157,7 +157,7 @@ func TestImmediateActionsRemainExplicitOnWire(t *testing.T) {
 	} {
 		t.Run(tc.field, func(t *testing.T) {
 			lifetime := &sandbox.LifetimePolicy{}
-			tc.set(lifetime, &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))})
+			tc.set(lifetime, &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))})
 			if _, err := client.Create(context.Background(), &sandbox.CreateOptions{Lifetime: lifetime}); err != nil {
 				t.Fatal(err)
 			}

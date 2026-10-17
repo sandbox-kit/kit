@@ -27,16 +27,15 @@ func run() (result error) {
 	if environment == "" {
 		environment = "main"
 	}
-	client, err := sandbox.NewClient(sandbox.Config{
-		Provider: modal.New(),
-		Auth: &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{
-			ID: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-		}},
+	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{
+			Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		}}},
 		Scope: &sandbox.Scope{
 			AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
 			Environment: sandbox.Value(environment),
 		},
-		Timeout: sandbox.Value(2 * time.Minute),
+		Timeout: sandbox.Duration(2 * time.Minute),
 	})
 	if err != nil {
 		return err
@@ -53,8 +52,8 @@ func run() (result error) {
 
 	// Modal does not support a disk allocation override at creation.
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{DiskMiB: sandbox.Value(uint64(1024))},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))},
 	})
 	if err != nil {
 		handleError(os.Stdout, err)

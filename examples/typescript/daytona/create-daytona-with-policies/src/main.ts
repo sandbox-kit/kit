@@ -6,6 +6,7 @@ import {
   SandboxError,
   type ClientConfig,
   type Sandbox,
+  duration,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -19,8 +20,8 @@ function clientConfig(): ClientConfig {
   const region = process.env.DAYTONA_TARGET;
   return {
     provider: daytona(),
-    auth: { credentials: "apiKey", apiKey: { key: requireEnv("DAYTONA_API_KEY") } },
-    timeout: 120_000,
+    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
+    timeout: duration(120_000),
     ...(endpoint ? { endpoint } : {}),
     ...(region ? { region } : {}),
   };
@@ -40,7 +41,7 @@ await using client = new Client(clientConfig());
 const sandbox = await client.create({
   lifetime: {
     idlePause: { mode: PolicyMode.Disabled },
-    stoppedDelete: { mode: PolicyMode.After, after: 10 * 60_000 },
+    stoppedDelete: { mode: PolicyMode.After, after: duration(10 * 60_000) },
   },
 });
 const info = sandbox.info();

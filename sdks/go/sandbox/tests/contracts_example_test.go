@@ -3,6 +3,7 @@ package sandbox_test
 import (
 	"errors"
 	"fmt"
+
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -22,13 +23,18 @@ func ExampleNewError() {
 	// Output: ERROR_KIND_UNSUPPORTED resources.disk_mib true
 }
 
-func ExampleSandboxInfo_Clone() {
-	original := &sandbox.SandboxInfo{ID: "example", ProviderMetadata: map[string]any{"generation": int64(9007199254740993)}, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
-	copied, err := original.Clone()
+func ExampleCloneSandboxInfo() {
+	metadata, err := sandbox.MetadataObjectFromMap(map[string]any{"generation": int64(9007199254740993)})
 	if err != nil {
 		panic(err)
 	}
-	original.ProviderMetadata["generation"] = int64(0)
-	fmt.Printf("%T %v %v\n", copied.ProviderMetadata["generation"], copied.ProviderMetadata["generation"], copied.Origins["id"])
+	original := &sandbox.SandboxInfo{Id: "example", ProviderMetadata: metadata, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
+	copied := sandbox.CloneSandboxInfo(original)
+	original.ProviderMetadata.Values["generation"] = &sandbox.MetadataValue{Value: &sandbox.MetadataValue_SignedInteger{SignedInteger: 0}}
+	copiedMap, err := sandbox.MetadataObjectAsMap(copied.ProviderMetadata)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%T %v %v\n", copiedMap["generation"], copiedMap["generation"], copied.Origins["id"])
 	// Output: int64 9007199254740993 VALUE_ORIGIN_PROVIDER
 }

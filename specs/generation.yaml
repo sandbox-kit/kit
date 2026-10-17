@@ -1,8 +1,11 @@
 version: 1
 # Semantic generation phases; language emitters own syntax and file conventions.
-shared: [types, error_runtime, copies, diagnostic_paths, field_paths, validation]
-client: [types, diagnostic_paths, field_paths, validation, client, lifecycle]
-provider: [provider, configuration, checks, errors, mappings]
+# Portable types and copies come from standard protobuf contracts plus handwritten
+# runtime aliases. Shared generation keeps paths and validation helpers only.
+shared: [diagnostic_paths, field_paths, validation]
+# Client portable config types come from contracts; runtime aliases them by hand.
+client: [diagnostic_paths, field_paths]
+provider: [checks, mappings]
 operations:
   initialize:
     - require_provider

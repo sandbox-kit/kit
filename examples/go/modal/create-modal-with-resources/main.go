@@ -19,24 +19,23 @@ func main() {
 	}
 }
 
-func clientConfig() sandbox.Config {
+func clientConfig() (sandbox.Provider, *sandbox.Config) {
 	environment := os.Getenv("MODAL_ENVIRONMENT")
 	if environment == "" {
 		environment = "main"
 	}
-	return sandbox.Config{
-		Provider: modal.New(),
-		Auth:     &sandbox.AuthConfig{TokenPair: &sandbox.TokenPairCredentials{ID: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET")}},
-		Scope:    &sandbox.Scope{AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment)},
-		Timeout:  sandbox.Value(2 * time.Minute),
+	return modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET")}}},
+		Scope: &sandbox.Scope{AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment)},
+		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 }
 
 func createOptions() *sandbox.CreateOptions {
 	return &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{CPUCores: sandbox.Value(0.5), MemoryMiB: sandbox.Value(uint64(512))},
-		Lifetime:  &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Value(5 * time.Minute)},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{CpuCores: sandbox.Value(0.5), MemoryMib: sandbox.Value(uint64(512))},
+		Lifetime:  &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Duration(5 * time.Minute)},
 	}
 }
 

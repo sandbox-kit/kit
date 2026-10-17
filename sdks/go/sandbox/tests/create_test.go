@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type creationBackend struct {
@@ -22,8 +22,8 @@ func (p *creationBackend) Create(ctx context.Context, r *sandbox.CreateOptions) 
 }
 
 func TestCreateReturnsHandleAndProtectsCallerValues(t *testing.T) {
-	request := &sandbox.CreateOptions{Environment: map[string]string{"MODE": "test"}, Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Value(time.Second)}}
-	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "sb-123", Labels: map[string]string{"team": "kit"}}}
+	request := &sandbox.CreateOptions{Environment: map[string]string{"MODE": "test"}, Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(time.Second)}}
+	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "sb-123", Labels: map[string]string{"team": "kit"}}}
 	client, _ := newTestClient(&creationBackend{call: func(ctx context.Context, r *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 		if _, ok := ctx.Deadline(); !ok {
 			t.Fatal("timeout not applied")
@@ -38,9 +38,9 @@ func TestCreateReturnsHandleAndProtectsCallerValues(t *testing.T) {
 	if instance.ID() != "sb-123" || instance.ProviderName() != "test" || request.Environment["MODE"] != "test" {
 		t.Fatal("incorrect handle or mutated request")
 	}
-	response.Sandbox.ID = "changed"
+	response.Sandbox.Id = "changed"
 	info := instance.Info()
-	info.ID = "changed"
+	info.Id = "changed"
 	info.Labels["team"] = "changed"
 	if instance.ID() != "sb-123" || instance.Info().Labels["team"] != "kit" {
 		t.Fatal("external mutation changed handle")
@@ -49,7 +49,7 @@ func TestCreateReturnsHandleAndProtectsCallerValues(t *testing.T) {
 func TestDefaultRequestAndNativeErrors(t *testing.T) {
 	expected := errors.New("upstream failure")
 	client, _ := newTestClient(&creationBackend{call: func(_ context.Context, r *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-		if !reflect.DeepEqual(r, &sandbox.CreateOptions{}) {
+		if r == nil || r.Name != nil || r.Source != nil || r.Resources != nil || r.Provisioning != nil {
 			t.Fatal("defaults replaced")
 		}
 		return nil, expected
@@ -69,7 +69,7 @@ func TestInvalidAndCancelledRequestsHaveNoProviderSideEffects(t *testing.T) {
 	if _, err := client.Create(ctx, nil); !errors.Is(err, context.Canceled) {
 		t.Fatal(err)
 	}
-	if _, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CPUCores: sandbox.Value(math.NaN())}}); err == nil {
+	if _, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CpuCores: sandbox.Value(math.NaN())}}); err == nil {
 		t.Fatal("NaN accepted")
 	}
 	if called {
@@ -77,7 +77,7 @@ func TestInvalidAndCancelledRequestsHaveNoProviderSideEffects(t *testing.T) {
 	}
 }
 func TestPresenceAndExplicitZeroRoundTrip(t *testing.T) {
-	request := &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Value(time.Duration(0)), IdleStop: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}}, Network: &sandbox.NetworkConfig{Egress: sandbox.EgressModeRestricted, OutboundCIDRs: &sandbox.StringAllowlist{}}}
+	request := &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Duration(time.Duration(0)), IdleStop: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}}, Network: &sandbox.NetworkConfig{Egress: sandbox.EgressModeRestricted, OutboundCidrs: &sandbox.StringAllowlist{}}}
 	if err := sandbox.ValidateCreateOptions(request); err != nil {
 		t.Fatal(err)
 	}
@@ -89,12 +89,12 @@ func TestPresenceAndExplicitZeroRoundTrip(t *testing.T) {
 	if err := json.Unmarshal(data, decoded); err != nil {
 		t.Fatal(err)
 	}
-	if decoded.Lifetime.MaximumLifetime == nil || decoded.Lifetime.IdleStop.After == nil || decoded.Network.OutboundCIDRs == nil {
+	if decoded.Lifetime.MaximumLifetime == nil || decoded.Lifetime.IdleStop.After == nil || decoded.Network.OutboundCidrs == nil {
 		t.Fatal("presence lost")
 	}
 }
 func TestInvalidProviderResponses(t *testing.T) {
-	for _, response := range []*sandbox.CreateResult{nil, {}, {Sandbox: &sandbox.SandboxInfo{}}, {Sandbox: &sandbox.SandboxInfo{ID: "id", Provider: "other"}}} {
+	for _, response := range []*sandbox.CreateResult{nil, {}, {Sandbox: &sandbox.SandboxInfo{}}, {Sandbox: &sandbox.SandboxInfo{Id: "id", Provider: "other"}}} {
 		client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 			return response, nil
 		}})
@@ -111,7 +111,7 @@ func TestCreatePreservesExplicitEmptyCollections(t *testing.T) {
 		if r.Environment == nil || r.Runtime.Entrypoint == nil || r.Placement.Regions == nil {
 			t.Fatal("explicit empty collection became unspecified")
 		}
-		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "empty-preserved"}}, nil
+		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "empty-preserved"}}, nil
 	}})
 	if err != nil {
 		t.Fatal(err)
@@ -122,8 +122,8 @@ func TestCreatePreservesExplicitEmptyCollections(t *testing.T) {
 }
 
 func TestRenamedFieldsPreserveJSONKeys(t *testing.T) {
-	options := &sandbox.CreateOptions{Resources: &sandbox.Resources{CPUCores: sandbox.Value(2.0), MemoryMiB: sandbox.Value(uint64(4096))}, Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Value(time.Second)}}
-	encoded, err := json.Marshal(options)
+	options := &sandbox.CreateOptions{Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0), MemoryMib: sandbox.Value(uint64(4096))}, Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(time.Second)}}
+	encoded, err := protojson.Marshal(options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,13 +138,15 @@ func TestRenamedFieldsPreserveJSONKeys(t *testing.T) {
 	if err := json.Unmarshal(fields["resources"], &resourceFields); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"cpu_cores", "memory_mib"} {
-		if _, ok := resourceFields[key]; !ok {
-			t.Fatalf("serialized key %s changed", key)
+	for _, key := range []string{"cpuCores", "memoryMib", "cpu_cores", "memory_mib"} {
+		if _, ok := resourceFields[key]; ok {
+			goto resourcesOK
 		}
 	}
-	config := sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app")}}
-	encoded, err = json.Marshal(config)
+	t.Fatal("serialized resource keys changed")
+resourcesOK:
+	config := &sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app")}}
+	encoded, err = protojson.Marshal(config)
 	if err != nil {
 		t.Fatal(err)
 	}

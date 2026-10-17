@@ -9,7 +9,8 @@ import {
   WaitCondition,
   type ClientConfig,
   type Sandbox,
-  type SandboxSource,
+  type SandboxSourceInput,
+  duration,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -22,17 +23,16 @@ function clientConfig(): ClientConfig {
   return {
     provider: modal(),
     auth: {
-      credentials: "tokenPair",
-      tokenPair: {
+      credentials: { case: "tokenPair", value: {
         id: requireEnv("MODAL_TOKEN_ID"),
         secret: requireEnv("MODAL_TOKEN_SECRET"),
-      },
+      } },
     },
     scope: {
       appName: requireEnv("MODAL_APP_NAME"),
       environment: process.env.MODAL_ENVIRONMENT || "main",
     },
-    timeout: 120_000,
+    timeout: duration(120_000),
   };
 }
 
@@ -45,9 +45,8 @@ function assertCapability(
   }
 }
 
-const imageSource: SandboxSource = {
-  kind: "image",
-  image: { reference: "alpine:3.21" },
+const imageSource: SandboxSourceInput = {
+  kind: { case: "image", value: { reference: "alpine:3.21" } },
 };
 
 await using client = new Client(clientConfig());

@@ -26,7 +26,7 @@ func TestDescriptorTemplateNamesParamsAndTypes(t *testing.T) {
 			t.Fatalf("missing %s: %s", want, source)
 		}
 	}
-	if _, _, err := emitter.Begin("getter", TemplateBindings{Names: map[string]string{"subject": "Resources", "field": "CPU"}}); err == nil {
-		t.Fatal("missing projected return type accepted")
+	if _, _, err := emitter.Begin("request_mapping", TemplateBindings{Names: map[string]string{"mapping": "convertResources"}}); err == nil {
+		t.Fatal("missing projected type bindings accepted")
 	}
 }

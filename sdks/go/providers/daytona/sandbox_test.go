@@ -18,6 +18,15 @@ type transportFunc func(*http.Request) (*http.Response, error)
 
 func (f transportFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
+func mustMetadata(t *testing.T, values map[string]any) *sandbox.MetadataObject {
+	t.Helper()
+	object, err := sandbox.MetadataObjectFromMap(values)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return object
+}
+
 func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 	var got map[string]any
 	transport := transportFunc(func(r *http.Request) (*http.Response, error) {
@@ -38,12 +47,12 @@ func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 	if adapter.client != native {
 		t.Fatal("SDK replaced")
 	}
-	client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
-	handle, err := client.Create(context.Background(), &sandbox.CreateOptions{Name: sandbox.Value("test"), Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "python:3.11"}}, Resources: &sandbox.Resources{CPUCores: sandbox.Value(2.0), MemoryMiB: sandbox.Value(uint64(4096)), DiskMiB: sandbox.Value(uint64(8192))}, Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionSubmitted}})
+	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
+	handle, err := client.Create(context.Background(), &sandbox.CreateOptions{Name: sandbox.Value("test"), Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "python:3.11"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0), MemoryMib: sandbox.Value(uint64(4096)), DiskMib: sandbox.Value(uint64(8192))}, Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionSubmitted}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if handle.ID() != "created" || handle.ProviderName() != "daytona" || handle.Info().GetResources().GetMemoryMiB() != 4096 {
+	if handle.ID() != "created" || handle.ProviderName() != "daytona" || handle.Info().GetResources().GetMemoryMib() != 4096 {
 		t.Fatal("response not normalized")
 	}
 	if got["memory"] != float64(4) || got["disk"] != float64(8) {
@@ -52,17 +61,17 @@ func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 }
 func TestUnrepresentableConfigRejectedBeforeCall(t *testing.T) {
 	for _, config := range []*sandbox.CreateOptions{
-		{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}}, Resources: &sandbox.Resources{CPUCores: sandbox.Value(1.5)}},
-		{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}}, Resources: &sandbox.Resources{MemoryMiB: sandbox.Value(uint64(1000))}},
-		{Resources: &sandbox.Resources{CPUCores: sandbox.Value(2.0)}},
+		{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(1.5)}},
+		{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{MemoryMib: sandbox.Value(uint64(1000))}},
+		{Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0)}},
 		{Placement: &sandbox.Placement{Regions: []string{"region"}}},
-		{Lifetime: &sandbox.LifetimePolicy{IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}}},
-		{Lifetime: &sandbox.LifetimePolicy{IdleStop: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(time.Duration(0))}}},
+		{Lifetime: &sandbox.LifetimePolicy{IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}}},
+		{Lifetime: &sandbox.LifetimePolicy{IdleStop: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}}},
 		{Lifetime: &sandbox.LifetimePolicy{StoppedArchive: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
 		{Lifetime: &sandbox.LifetimePolicy{StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
 	} {
 		adapter := &backend{client: &sdk.Client{}}
-		client, _ := sandbox.NewClient(sandbox.Config{Provider: &operationProvider{adapter: adapter}})
+		client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
 		if _, err := client.Create(context.Background(), config); err == nil {
 			t.Fatal("unsupported config accepted")
 		}
@@ -75,11 +84,11 @@ func TestGeneratedResourceMappings(t *testing.T) {
 		request *sandbox.Resources
 		valid   bool
 	}{
-		{"whole GiB", &sandbox.Resources{CPUCores: sandbox.Value(2.0), MemoryMiB: sandbox.Value(uint64(4096))}, true},
-		{"fractional CPU", &sandbox.Resources{CPUCores: sandbox.Value(0.5)}, false},
-		{"fractional GiB", &sandbox.Resources{MemoryMiB: sandbox.Value(uint64(4097))}, false},
-		{"maximum GiB", &sandbox.Resources{MemoryMiB: sandbox.Value(uint64(2147483647) * 1024)}, true},
-		{"overflow GiB", &sandbox.Resources{MemoryMiB: sandbox.Value(uint64(2147483648) * 1024)}, false},
+		{"whole GiB", &sandbox.Resources{CpuCores: sandbox.Value(2.0), MemoryMib: sandbox.Value(uint64(4096))}, true},
+		{"fractional CPU", &sandbox.Resources{CpuCores: sandbox.Value(0.5)}, false},
+		{"fractional GiB", &sandbox.Resources{MemoryMib: sandbox.Value(uint64(4097))}, false},
+		{"maximum GiB", &sandbox.Resources{MemoryMib: sandbox.Value(uint64(2147483647) * 1024)}, true},
+		{"overflow GiB", &sandbox.Resources{MemoryMib: sandbox.Value(uint64(2147483648) * 1024)}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			mapped, remaining, err := mapResources(tc.request)
@@ -87,10 +96,10 @@ func TestGeneratedResourceMappings(t *testing.T) {
 				t.Fatalf("valid=%v err=%v", tc.valid, err)
 			}
 			if err == nil {
-				if remaining.MemoryMiB != nil || remaining.CPUCores != nil {
+				if remaining.MemoryMib != nil || remaining.CpuCores != nil {
 					t.Fatal("mapped fields not consumed")
 				}
-				if tc.request.MemoryMiB != nil && uint64(mapped.Memory)*1024 != *tc.request.MemoryMiB {
+				if tc.request.MemoryMib != nil && uint64(mapped.Memory)*1024 != *tc.request.MemoryMib {
 					t.Fatal("incorrect conversion")
 				}
 			}
@@ -108,7 +117,7 @@ func TestSandboxCapabilitiesFollowResolvedClassAndTerminalState(t *testing.T) {
 		{name: "container", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}}, wantArch: true},
 		{name: "linux vm", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindLinuxVM}}, wantPause: true},
 		{name: "windows", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{ProviderKind: sandbox.Value("windows")}}, wantPause: true},
-		{name: "gpu", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, ProviderMetadata: map[string]any{"gpu_count": int64(1)}}, wantArch: false},
+		{name: "gpu", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, ProviderMetadata: mustMetadata(t, map[string]any{"gpu_count": int64(1)})}, wantArch: false},
 		{name: "terminal", info: &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, Terminal: sandbox.Value(true)}, wantArch: false},
 	}
 	backend := &backend{}

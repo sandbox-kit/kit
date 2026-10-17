@@ -1,9 +1,10 @@
 package mappinggen
 
 import (
-	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"strings"
 	"testing"
+
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 
 	"github.com/sandbox-kit/kit/tooling/internal/go/schema"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
@@ -35,7 +36,7 @@ func TestGeneratesPresenceAndPrecisionChecks(t *testing.T) {
 		t.Fatal(r.GetError())
 	}
 	s := r.File[0].GetContent()
-	for _, want := range []string{"source.MemoryMiB != nil", "value%1024 != 0", "int(value / 1024)", "remaining.MemoryMiB = nil"} {
+	for _, want := range []string{"source.MemoryMib != nil", "value%1024 != 0", "int(value / 1024)", "remaining.MemoryMib = nil"} {
 		if !strings.Contains(s, want) {
 			t.Fatalf("missing %q", want)
 		}

@@ -19,21 +19,24 @@ func main() {
 	}
 }
 
-func clientConfig() sandbox.Config {
-	config := sandbox.Config{Provider: daytona.New(), Auth: &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}, Timeout: sandbox.Value(2 * time.Minute)}
+func clientConfig() (sandbox.Provider, *sandbox.Config) {
+	config := &sandbox.Config{
+		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Timeout: sandbox.Duration(2 * time.Minute),
+	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
 		config.Endpoint = sandbox.Value(endpoint)
 	}
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	return config
+	return daytona.New(), config
 }
 
 func createOptions() *sandbox.CreateOptions {
 	return &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{
 		IdlePause:     &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
-		StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(10 * time.Minute)},
+		StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(10 * time.Minute)},
 	}}
 }
 

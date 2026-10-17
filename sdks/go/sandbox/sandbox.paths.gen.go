@@ -64,8 +64,8 @@ const CreateFieldRuntimeWorkingDirectory = "runtime.working_directory"
 // CreateFieldRuntimeEntrypoint is the canonical path "runtime.entrypoint".
 const CreateFieldRuntimeEntrypoint = "runtime.entrypoint"
 
-// CreateFieldRuntimePTY is the canonical path "runtime.pty".
-const CreateFieldRuntimePTY = "runtime.pty"
+// CreateFieldRuntimePty is the canonical path "runtime.pty".
+const CreateFieldRuntimePty = "runtime.pty"
 
 // CreateFieldIsolation is the canonical path "isolation".
 const CreateFieldIsolation = "isolation"
@@ -84,22 +84,22 @@ const CreateFieldIsolationNestedVirtualization = "isolation.nested_virtualizatio
 // CreateFieldResources is the canonical path "resources".
 const CreateFieldResources = "resources"
 
-// CreateFieldResourcesCPUCores is the canonical path "resources.cpu_cores".
-const CreateFieldResourcesCPUCores = "resources.cpu_cores"
+// CreateFieldResourcesCpuCores is the canonical path "resources.cpu_cores".
+const CreateFieldResourcesCpuCores = "resources.cpu_cores"
 
-// CreateFieldResourcesCPULimitCores is the canonical path
+// CreateFieldResourcesCpuLimitCores is the canonical path
 // "resources.cpu_limit_cores".
-const CreateFieldResourcesCPULimitCores = "resources.cpu_limit_cores"
+const CreateFieldResourcesCpuLimitCores = "resources.cpu_limit_cores"
 
-// CreateFieldResourcesMemoryMiB is the canonical path "resources.memory_mib".
-const CreateFieldResourcesMemoryMiB = "resources.memory_mib"
+// CreateFieldResourcesMemoryMib is the canonical path "resources.memory_mib".
+const CreateFieldResourcesMemoryMib = "resources.memory_mib"
 
-// CreateFieldResourcesMemoryLimitMiB is the canonical path
+// CreateFieldResourcesMemoryLimitMib is the canonical path
 // "resources.memory_limit_mib".
-const CreateFieldResourcesMemoryLimitMiB = "resources.memory_limit_mib"
+const CreateFieldResourcesMemoryLimitMib = "resources.memory_limit_mib"
 
-// CreateFieldResourcesDiskMiB is the canonical path "resources.disk_mib".
-const CreateFieldResourcesDiskMiB = "resources.disk_mib"
+// CreateFieldResourcesDiskMib is the canonical path "resources.disk_mib".
+const CreateFieldResourcesDiskMib = "resources.disk_mib"
 
 // CreateFieldPlacement is the canonical path "placement".
 const CreateFieldPlacement = "placement"
@@ -125,13 +125,13 @@ const CreateFieldNetwork = "network"
 // CreateFieldNetworkEgress is the canonical path "network.egress".
 const CreateFieldNetworkEgress = "network.egress"
 
-// CreateFieldNetworkOutboundCIDRs is the canonical path
+// CreateFieldNetworkOutboundCidrs is the canonical path
 // "network.outbound_cidrs".
-const CreateFieldNetworkOutboundCIDRs = "network.outbound_cidrs"
+const CreateFieldNetworkOutboundCidrs = "network.outbound_cidrs"
 
-// CreateFieldNetworkOutboundCIDRsEntries is the canonical path
+// CreateFieldNetworkOutboundCidrsEntries is the canonical path
 // "network.outbound_cidrs.entries".
-const CreateFieldNetworkOutboundCIDRsEntries = "network.outbound_cidrs.entries"
+const CreateFieldNetworkOutboundCidrsEntries = "network.outbound_cidrs.entries"
 
 // CreateFieldNetworkOutboundDomains is the canonical path
 // "network.outbound_domains".
@@ -141,13 +141,13 @@ const CreateFieldNetworkOutboundDomains = "network.outbound_domains"
 // "network.outbound_domains.entries".
 const CreateFieldNetworkOutboundDomainsEntries = "network.outbound_domains.entries"
 
-// CreateFieldNetworkInboundCIDRs is the canonical path
+// CreateFieldNetworkInboundCidrs is the canonical path
 // "network.inbound_cidrs".
-const CreateFieldNetworkInboundCIDRs = "network.inbound_cidrs"
+const CreateFieldNetworkInboundCidrs = "network.inbound_cidrs"
 
-// CreateFieldNetworkInboundCIDRsEntries is the canonical path
+// CreateFieldNetworkInboundCidrsEntries is the canonical path
 // "network.inbound_cidrs.entries".
-const CreateFieldNetworkInboundCIDRsEntries = "network.inbound_cidrs.entries"
+const CreateFieldNetworkInboundCidrsEntries = "network.inbound_cidrs.entries"
 
 // CreateFieldNetworkPrivateNetwork is the canonical path
 // "network.private_network".
@@ -161,9 +161,9 @@ const CreateFieldNetworkLinkedSandbox = "network.linked_sandbox"
 // "network.proxy_reference".
 const CreateFieldNetworkProxyReference = "network.proxy_reference"
 
-// CreateFieldNetworkOutboundProxyURL is the canonical path
+// CreateFieldNetworkOutboundProxyUrl is the canonical path
 // "network.outbound_proxy_url".
-const CreateFieldNetworkOutboundProxyURL = "network.outbound_proxy_url"
+const CreateFieldNetworkOutboundProxyUrl = "network.outbound_proxy_url"
 
 // CreateFieldNetworkCustomDomain is the canonical path
 // "network.custom_domain".
@@ -290,8 +290,8 @@ const CreateFieldProvisioningWaitFor = "provisioning.wait_for"
 // CreateFieldReadiness is the canonical path "readiness".
 const CreateFieldReadiness = "readiness"
 
-// CreateFieldReadinessTCPPort is the canonical path "readiness.tcp_port".
-const CreateFieldReadinessTCPPort = "readiness.tcp_port"
+// CreateFieldReadinessTcpPort is the canonical path "readiness.tcp_port".
+const CreateFieldReadinessTcpPort = "readiness.tcp_port"
 
 // CreateFieldReadinessCommand is the canonical path "readiness.command".
 const CreateFieldReadinessCommand = "readiness.command"
@@ -314,8 +314,8 @@ const CreateFieldObservabilityTelemetryEndpoint = "observability.telemetry_endpo
 // CreateFieldProviderOptions is the canonical path "provider_options".
 const CreateFieldProviderOptions = "provider_options"
 
-// InfoFieldID is the canonical path "id".
-const InfoFieldID = "id"
+// InfoFieldId is the canonical path "id".
+const InfoFieldId = "id"
 
 // InfoFieldProvider is the canonical path "provider".
 const InfoFieldProvider = "provider"
@@ -346,22 +346,22 @@ const InfoFieldIsolationNestedVirtualization = "isolation.nested_virtualization"
 // InfoFieldResources is the canonical path "resources".
 const InfoFieldResources = "resources"
 
-// InfoFieldResourcesCPUCores is the canonical path "resources.cpu_cores".
-const InfoFieldResourcesCPUCores = "resources.cpu_cores"
+// InfoFieldResourcesCpuCores is the canonical path "resources.cpu_cores".
+const InfoFieldResourcesCpuCores = "resources.cpu_cores"
 
-// InfoFieldResourcesCPULimitCores is the canonical path
+// InfoFieldResourcesCpuLimitCores is the canonical path
 // "resources.cpu_limit_cores".
-const InfoFieldResourcesCPULimitCores = "resources.cpu_limit_cores"
+const InfoFieldResourcesCpuLimitCores = "resources.cpu_limit_cores"
 
-// InfoFieldResourcesMemoryMiB is the canonical path "resources.memory_mib".
-const InfoFieldResourcesMemoryMiB = "resources.memory_mib"
+// InfoFieldResourcesMemoryMib is the canonical path "resources.memory_mib".
+const InfoFieldResourcesMemoryMib = "resources.memory_mib"
 
-// InfoFieldResourcesMemoryLimitMiB is the canonical path
+// InfoFieldResourcesMemoryLimitMib is the canonical path
 // "resources.memory_limit_mib".
-const InfoFieldResourcesMemoryLimitMiB = "resources.memory_limit_mib"
+const InfoFieldResourcesMemoryLimitMib = "resources.memory_limit_mib"
 
-// InfoFieldResourcesDiskMiB is the canonical path "resources.disk_mib".
-const InfoFieldResourcesDiskMiB = "resources.disk_mib"
+// InfoFieldResourcesDiskMib is the canonical path "resources.disk_mib".
+const InfoFieldResourcesDiskMib = "resources.disk_mib"
 
 // InfoFieldLabels is the canonical path "labels".
 const InfoFieldLabels = "labels"
@@ -388,8 +388,8 @@ func responseFieldPresent(info *SandboxInfo, path string) bool {
 		return false
 	}
 	switch path {
-	case InfoFieldID:
-		return info.ID != ""
+	case InfoFieldId:
+		return info.Id != ""
 	case InfoFieldProvider:
 		return info.Provider != ""
 	case InfoFieldName:
@@ -417,31 +417,31 @@ func responseFieldPresent(info *SandboxInfo, path string) bool {
 		return info.Isolation.NestedVirtualization != nil
 	case InfoFieldResources:
 		return info.Resources != nil
-	case InfoFieldResourcesCPUCores:
+	case InfoFieldResourcesCpuCores:
 		if info.Resources == nil {
 			return false
 		}
-		return info.Resources.CPUCores != nil
-	case InfoFieldResourcesCPULimitCores:
+		return info.Resources.CpuCores != nil
+	case InfoFieldResourcesCpuLimitCores:
 		if info.Resources == nil {
 			return false
 		}
-		return info.Resources.CPULimitCores != nil
-	case InfoFieldResourcesMemoryMiB:
+		return info.Resources.CpuLimitCores != nil
+	case InfoFieldResourcesMemoryMib:
 		if info.Resources == nil {
 			return false
 		}
-		return info.Resources.MemoryMiB != nil
-	case InfoFieldResourcesMemoryLimitMiB:
+		return info.Resources.MemoryMib != nil
+	case InfoFieldResourcesMemoryLimitMib:
 		if info.Resources == nil {
 			return false
 		}
-		return info.Resources.MemoryLimitMiB != nil
-	case InfoFieldResourcesDiskMiB:
+		return info.Resources.MemoryLimitMib != nil
+	case InfoFieldResourcesDiskMib:
 		if info.Resources == nil {
 			return false
 		}
-		return info.Resources.DiskMiB != nil
+		return info.Resources.DiskMib != nil
 	case InfoFieldLabels:
 		return info.Labels != nil
 	case InfoFieldCreatedAt:
@@ -461,7 +461,7 @@ func responseFieldPresent(info *SandboxInfo, path string) bool {
 // actually present. A missing origin means the source is unknown.
 func validateResponseOrigins(info *SandboxInfo, operation string) error {
 	for path, origin := range info.Origins {
-		if !origin.Valid() || !responseFieldPresent(info, path) {
+		if !ValidValueOrigin(origin) || !responseFieldPresent(info, path) {
 			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
 		}
 	}

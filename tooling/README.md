@@ -59,8 +59,9 @@ handling.
 
 `generate typescript` emits shared contracts, the public client, provider
 identities, lifecycle dispatch, and typed Daytona and Modal mappings. Its
-lifecycle surface is compiled from `specs/lifecycle.yaml`; reusable source-block
-emission keeps handwritten SDK orchestration separate from semantic generation.
+lifecycle surface is compiled from annotated `SandboxService` protobuf methods;
+reusable source-block emission keeps handwritten SDK orchestration separate from
+the generated contract.
 `test typescript` builds and tests the shared package and both providers, discovers
 every TypeScript example containing a `package.json`, and builds each example
 without making provider calls.
@@ -85,15 +86,15 @@ The model resolves schema identities, client methods, field paths, mappings, and
 error classifications without Go syntax or SDK dependencies. Provider bindings
 remain attached to the specifications for selection by each language emitter.
 
-`specs/api.yaml` declares runtime APIs. `specs/templates.yaml` declares reusable
+Portable public types come from protobuf contracts. `specs/templates.yaml` declares reusable
 signatures and field-path rules for descriptor-driven helpers.
 `specs/behaviors.yaml` defines the signature requirements of implemented
 behaviors. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
 control native representation and output conventions. Templates retain structured type
 bindings; body emitters resolve explicit symbols instead of renaming text. `specs/generation.yaml` declares
-output phases and ordered client instructions. `specs/lifecycle.yaml` is the
-semantic registry from which handle lifecycle methods and static capability
-discovery are emitted.
+output phases and ordered client instructions. Annotated `SandboxService`
+methods are the semantic registry from which handle lifecycle methods and static
+capability discovery are emitted.
 `internal/go/generate.go` and `internal/typescript/generate.go` dispatch the
 compiled program to focused native emitters. Adding another language requires an
 emitter for that vocabulary and native SDK bindings; it does not require
@@ -108,9 +109,8 @@ generates public path constants and response provenance validation.
 Response/error generation reads `specs/contracts.yaml` and `specs/errors.yaml`.
 The latter declares cause classification, context reuse, detail preservation,
 and classification precedence. Unsupported policy alternatives fail generation.
-Error and metadata-copy signatures come from `specs/api.yaml`.
-`internal/go/types_gen/runtime.go` emits their behavior bodies. Provider error
-classifiers come from portable protocol rules and native SDK bindings.
+Provider error classifiers come from portable protocol rules and native SDK
+bindings. Runtime facades and metadata clone helpers stay handwritten.
 
 | Directory                              | Responsibility                                                                          |
 | -------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -119,24 +119,20 @@ classifiers come from portable protocol rules and native SDK bindings.
 | `internal/model/`                      | Language-neutral descriptor and semantic compilation                                    |
 | `internal/go/`                         | Go phase dispatcher and native language emitters                                        |
 | `internal/spec/`                       | Strict YAML loader and portable rule types                                              |
-| `internal/go/declaration_gen/`         | API signature, object, interface, alias, enum, callback, and generic emission           |
-| `internal/go/types_gen/`               | Native types, copying, error runtime, paths, and origin validation                      |
+| `internal/go/declaration_gen/`         | Declaration primitives                                                                  |
+| `internal/go/types_gen/`               | Paths, diagnostic field names, and related helpers (not portable public types)          |
 | `internal/go/error_gen/`               | Consistent shared error expressions                                                     |
 | `internal/go/schema/`                  | Descriptor resolution and canonical field paths                                         |
 | `internal/go/validation_gen/`          | Shared validation and enum checks                                                       |
 | `internal/go/mapping_gen/`             | Field conversions and policy mappings                                                   |
-| `internal/go/client_gen/`              | Client contracts, deadlines, and delegation                                             |
-| `internal/go/provider_gen/`            | SDK construction, client assembly, state capture, provider checks, error classification |
+| `internal/go/provider_gen/`            | Provider checks, config assembly, and error classification                              |
 | `internal/go/naming/`                  | Go field and enum naming                                                                |
-| `internal/typescript/client_gen/`      | TypeScript client runtime and provider delegation                                       |
 | `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives                                |
 | `internal/typescript/error_gen/`       | Shared TypeScript error construction                                                    |
-| `internal/typescript/lifecycle_gen/`   | YAML-driven TypeScript handle lifecycle methods                                         |
 | `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings                                       |
 | `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions                                           |
-| `internal/typescript/provider_gen/`    | Provider identity and native runtime declarations                                       |
+| `internal/typescript/provider_gen/`    | Provider checks, config assembly, and related helpers                                   |
 | `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                                                  |
-| `internal/typescript/types_gen/`       | Descriptor-driven shared TypeScript declarations                                        |
 | `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation                                  |
 | `internal/gen/`                        | Generated annotation bindings                                                           |
 

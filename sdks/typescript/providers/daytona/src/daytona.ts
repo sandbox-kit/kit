@@ -1,9 +1,11 @@
 import { Daytona, type DaytonaConfig, type Sandbox as DaytonaSandbox } from "@daytona/sdk";
+import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   type Backend,
   type Config,
   type CreateOptions,
   type CreateResult,
+  IsolationKind,
   LifecycleCapability,
   type OperationOptions,
   type ArchiveOptions,
@@ -13,11 +15,13 @@ import {
   type SandboxInfo,
   type StartOptions,
   type StopOptions,
+  metadataObjectAsMap,
 } from "@sandbox-kit/sandbox";
+import type { Duration } from "@sandbox-kit/sandbox";
 
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
 import { mapDaytonaError } from "./provider.errors.gen.js";
-import { BackendBase, ProviderBase } from "./provider.gen.js";
+import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
   create(params: ReturnType<typeof mapCreateRequest>, options?: { readonly timeout?: number }): Promise<DaytonaSandbox>;
@@ -67,10 +71,18 @@ class DaytonaBackend extends BackendBase implements Backend {
       LifecycleCapability.Stop,
       LifecycleCapability.Delete,
     ];
-    const hasGpu = typeof info.providerMetadata?.gpu_count === "number" && info.providerMetadata.gpu_count > 0;
-    if (!hasGpu && (info.isolation?.kind === "linux_vm" || info.isolation?.providerKind === "windows"))
+    const metadata = metadataObjectAsMap(info.providerMetadata);
+    const gpuCount = metadata?.gpu_count;
+    const hasGpu =
+      (typeof gpuCount === "number" && gpuCount > 0) ||
+      (typeof gpuCount === "bigint" && gpuCount > 0n);
+    if (
+      !hasGpu &&
+      (info.isolation?.kind === IsolationKind.LinuxVm || info.isolation?.providerKind === "windows")
+    )
       result.push(LifecycleCapability.Pause);
-    if (!hasGpu && info.isolation?.kind === "container") result.push(LifecycleCapability.Archive);
+    if (!hasGpu && info.isolation?.kind === IsolationKind.Container)
+      result.push(LifecycleCapability.Archive);
     return result;
   }
 
@@ -119,8 +131,8 @@ class DaytonaBackend extends BackendBase implements Backend {
   }
 }
 
-function seconds(milliseconds: number | undefined): number | undefined {
-  return milliseconds === undefined ? undefined : milliseconds / 1_000;
+function seconds(value: Duration | undefined): number | undefined {
+  return value === undefined ? undefined : durationMs(value) / 1_000;
 }
 
 /** Selects Daytona as the provider for the shared Sandbox Kit client. */

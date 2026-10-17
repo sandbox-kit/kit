@@ -1,5 +1,11 @@
 // Provider-specific orchestration around generated portable field mappings.
-import { Probe, type ModalClientParams, type Sandbox, type SandboxCreateParams } from "modal";
+import { durationMs } from "@bufbuild/protobuf/wkt";
+import {
+  Probe,
+  type ModalClientParams,
+  type Sandbox,
+  type SandboxCreateParams,
+} from "modal";
 import {
   EgressMode,
   ErrorKind,
@@ -7,10 +13,12 @@ import {
   PolicyMode,
   PortTransport,
   SecretInjection,
+  SandboxState,
   ValueOrigin,
   WaitCondition,
+  materializeClientConfig,
   sandboxError,
-  type Config,
+  type ConfigInput,
   type CreateOptions,
   type SandboxInfo,
 } from "@sandbox-kit/sandbox";
@@ -36,22 +44,33 @@ export interface ModalCreatePlan {
   readonly readyTimeoutMs?: number;
 }
 
-export function mapClientConfig(config: Config): ModalClientParams {
-  const result = mapGeneratedClientConfig(config);
-  if (config.timeout !== undefined) result.timeoutMs = duration(config.timeout, "timeout", true);
+export function mapClientConfig(config: ConfigInput): ModalClientParams {
+  const source = materializeClientConfig(config);
+  const result = mapGeneratedClientConfig(source);
+  if (source.timeout !== undefined)
+    result.timeoutMs = finiteDurationMs(
+      durationMs(source.timeout),
+      "timeout",
+      true,
+    );
   return result;
 }
 
-export function mapCreateRequest(request: CreateOptions, config: ProviderState): ModalCreatePlan {
+export function mapCreateRequest(
+  request: CreateOptions,
+  config: ProviderState,
+): ModalCreatePlan {
   validateProviderCreate(request);
   const app =
     config.scope?.appName === undefined
       ? invalid("scope.appName", "Modal app name is required")
       : nonblank(config.scope.appName, "scope.appName");
-  if (request.source?.kind !== "image") unsupported("source", "Modal requires an explicit image source");
+  if (request.source?.kind?.case !== "image")
+    unsupported("source", "Modal requires an explicit image source");
   const params: SandboxCreateParams = generatedMapCommonCreateFields(request);
   if (request.name !== undefined) params.name = nonblank(request.name, "name");
-  if (config.region !== undefined) params.regions = [nonblankConfig(config.region, "region")];
+  if (config.region !== undefined)
+    params.regions = [nonblankConfig(config.region, "region")];
   mapRuntime(request, params);
   mapIsolation(request, params);
   mapResources(request, params);
@@ -62,16 +81,27 @@ export function mapCreateRequest(request: CreateOptions, config: ProviderState):
   mapReadiness(request, params);
   const wait = mapProvisioning(request, params);
   mapObservability(request, params);
-  if (request.providerOptions !== undefined) unsupported("providerOptions", "Modal provider options are not mapped");
+  if (request.providerOptions !== undefined)
+    unsupported("providerOptions", "Modal provider options are not mapped");
   return {
     app,
-    ...(config.scope?.environment === undefined ? {} : { environment: config.scope.environment }),
-    image: nonblank(request.source.image.reference, "source.image.reference"),
+    ...(config.scope?.environment === undefined
+      ? {}
+      : { environment: config.scope.environment }),
+    image: nonblank(
+      request.source.kind.value.reference,
+      "source.image.reference",
+    ),
     params,
     secretNames,
     ...(request.network?.proxyReference === undefined
       ? {}
-      : { proxyName: nonblank(request.network.proxyReference, "network.proxyReference") }),
+      : {
+          proxyName: nonblank(
+            request.network.proxyReference,
+            "network.proxyReference",
+          ),
+        }),
     ...wait,
   };
 }
@@ -81,8 +111,15 @@ function mapRuntime(r: CreateOptions, p: SandboxCreateParams): void {
   if (v.workingDirectory !== undefined) p.workdir = v.workingDirectory;
   if (v.entrypoint !== undefined) p.command = [...v.entrypoint];
   if (v.pty !== undefined) p.pty = v.pty;
-  if (v.language !== undefined || v.version !== undefined || v.user !== undefined)
-    unsupported("runtime", "language, version, and user must come from the Modal image");
+  if (
+    v.language !== undefined ||
+    v.version !== undefined ||
+    v.user !== undefined
+  )
+    unsupported(
+      "runtime",
+      "language, version, and user must come from the Modal image",
+    );
 }
 function mapIsolation(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.isolation;
@@ -90,17 +127,25 @@ function mapIsolation(r: CreateOptions, p: SandboxCreateParams): void {
   const kind = v.kind ?? IsolationKind.Default;
   if (kind === IsolationKind.LinuxVm) p.runtime = "vm";
   else if (kind === IsolationKind.Container) p.runtime = "gvisor";
-  else if (kind !== IsolationKind.Default) unsupported("isolation.kind", "requested Modal isolation is unsupported");
+  else if (kind !== IsolationKind.Default)
+    unsupported("isolation.kind", "requested Modal isolation is unsupported");
   if (v.providerKind !== undefined || v.nestedVirtualization !== undefined)
-    unsupported("isolation", "provider kind and nested virtualization are unsupported");
+    unsupported(
+      "isolation",
+      "provider kind and nested virtualization are unsupported",
+    );
 }
 function mapResources(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.resources;
   if (!v) return;
-  if (v.cpuLimitCores !== undefined) positive(v.cpuLimitCores, "resources.cpuLimitCores");
-  if (v.memoryMib !== undefined) integer(v.memoryMib, "resources.memoryMib", 128);
-  if (v.memoryLimitMib !== undefined) integer(v.memoryLimitMib, "resources.memoryLimitMib", 1);
-  if (v.diskMib !== undefined) unsupported("resources.diskMib", "Modal disk override is unsupported");
+  if (v.cpuLimitCores !== undefined)
+    positive(v.cpuLimitCores, "resources.cpuLimitCores");
+  if (v.memoryMib !== undefined)
+    integer(v.memoryMib, "resources.memoryMib", 128);
+  if (v.memoryLimitMib !== undefined)
+    integer(v.memoryLimitMib, "resources.memoryLimitMib", 1);
+  if (v.diskMib !== undefined)
+    unsupported("resources.diskMib", "Modal disk override is unsupported");
   Object.assign(p, generatedMapResources(v));
 }
 function mapPlacement(r: CreateOptions, p: SandboxCreateParams): void {
@@ -108,20 +153,30 @@ function mapPlacement(r: CreateOptions, p: SandboxCreateParams): void {
   if (!v) return;
   if (v.cloud !== undefined) p.cloud = v.cloud;
   if (v.regions !== undefined) p.regions = [...v.regions];
-  if (v.target !== undefined) unsupported("placement.target", "Modal placement target is unsupported");
+  if (v.target !== undefined)
+    unsupported("placement.target", "Modal placement target is unsupported");
 }
 function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.network;
   if (!v) return;
   const egress = v.egress ?? EgressMode.Default;
   if (egress === EgressMode.BlockAll) p.blockNetwork = true;
-  else if (egress !== EgressMode.Default && egress !== EgressMode.AllowAll && egress !== EgressMode.Restricted)
+  else if (
+    egress !== EgressMode.Default &&
+    egress !== EgressMode.AllowAll &&
+    egress !== EgressMode.Restricted
+  )
     invalid("network.egress", "unknown egress mode");
-  if (v.outboundCidrs) p.outboundCidrAllowlist = [...(v.outboundCidrs.entries ?? [])];
-  if (v.outboundDomains) p.outboundDomainAllowlist = [...(v.outboundDomains.entries ?? [])];
+  if (v.outboundCidrs)
+    p.outboundCidrAllowlist = [...(v.outboundCidrs.entries ?? [])];
+  if (v.outboundDomains)
+    p.outboundDomainAllowlist = [...(v.outboundDomains.entries ?? [])];
   if (v.inboundCidrs) {
     if (!v.inboundCidrs.entries?.length)
-      unsupported("network.inboundCidrs", "empty inbound deny-all is not representable");
+      unsupported(
+        "network.inboundCidrs",
+        "empty inbound deny-all is not representable",
+      );
     p.inboundCidrAllowlist = [...v.inboundCidrs.entries];
   }
   if (v.privateNetwork !== undefined) p.i6pn = v.privateNetwork;
@@ -134,25 +189,46 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
       const transport = x.transport ?? PortTransport.Default;
       if (transport === PortTransport.Tls) p.encryptedPorts.push(x.port);
       else if (transport === PortTransport.Http2Tls) p.h2Ports.push(x.port);
-      else if (transport === PortTransport.Plain) p.unencryptedPorts.push(x.port);
+      else if (transport === PortTransport.Plain)
+        p.unencryptedPorts.push(x.port);
       else invalid("network.ports.transport", "explicit transport is required");
     }
   }
   if (v.linkedSandbox !== undefined || v.outboundProxyUrl !== undefined)
-    unsupported("network", "linked sandbox and outbound proxy URL mappings are unsupported");
+    unsupported(
+      "network",
+      "linked sandbox and outbound proxy URL mappings are unsupported",
+    );
 }
-function mapSecurity(r: CreateOptions, p: SandboxCreateParams): readonly string[] {
+function mapSecurity(
+  r: CreateOptions,
+  p: SandboxCreateParams,
+): readonly string[] {
   const v = r.security;
   if (!v) return [];
-  if (v.workloadIdentity !== undefined) p.includeOidcIdentityToken = v.workloadIdentity;
-  if (v.publicAccess !== undefined) unsupported("security.publicAccess", "Modal public access is represented by ports");
+  if (v.workloadIdentity !== undefined)
+    p.includeOidcIdentityToken = v.workloadIdentity;
+  if (v.publicAccess !== undefined)
+    unsupported(
+      "security.publicAccess",
+      "Modal public access is represented by ports",
+    );
   const names: string[] = [];
   for (const s of v.secrets ?? []) {
     if (s.environmentVariable !== undefined)
-      unsupported("security.secrets.environmentVariable", "per-variable secret renaming is unsupported");
+      unsupported(
+        "security.secrets.environmentVariable",
+        "per-variable secret renaming is unsupported",
+      );
     const injection = s.injection ?? SecretInjection.Default;
-    if (injection !== SecretInjection.Default && injection !== SecretInjection.Environment)
-      unsupported("security.secrets.injection", "egress-placeholder injection is unsupported");
+    if (
+      injection !== SecretInjection.Default &&
+      injection !== SecretInjection.Environment
+    )
+      unsupported(
+        "security.secrets.injection",
+        "egress-placeholder injection is unsupported",
+      );
     names.push(nonblank(s.reference, "security.secrets.reference"));
   }
   return names;
@@ -160,16 +236,27 @@ function mapSecurity(r: CreateOptions, p: SandboxCreateParams): readonly string[
 function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.lifetime;
   if (!v) return;
-  if (v.maximumLifetime !== undefined) duration(v.maximumLifetime, "lifetime.maximumLifetime", false);
+  if (v.maximumLifetime !== undefined)
+    finiteDurationMs(
+      durationMs(v.maximumLifetime),
+      "lifetime.maximumLifetime",
+      false,
+    );
   Object.assign(p, generatedMapLifetimeDuration(v));
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
     if (mode === PolicyMode.Disabled) p.idleTimeoutMs = 0;
     else if (mode === PolicyMode.After) {
-      if (v.idleTerminate.after === undefined) invalid("lifetime.idleTerminate.after", "duration is required");
-      duration(v.idleTerminate.after, "lifetime.idleTerminate.after", false);
+      if (v.idleTerminate.after === undefined)
+        invalid("lifetime.idleTerminate.after", "duration is required");
+      finiteDurationMs(
+        durationMs(v.idleTerminate.after),
+        "lifetime.idleTerminate.after",
+        false,
+      );
       Object.assign(p, generatedMapIdleDuration(v.idleTerminate));
-    } else if (mode !== PolicyMode.Default) invalid("lifetime.idleTerminate.mode", "unknown policy mode");
+    } else if (mode !== PolicyMode.Default)
+      invalid("lifetime.idleTerminate.mode", "unknown policy mode");
   }
   if (
     v.ephemeral !== undefined ||
@@ -178,13 +265,18 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
     v.stoppedArchive !== undefined ||
     v.stoppedDelete !== undefined
   )
-    unsupported("lifetime", "requested lifecycle policy is unsupported by Modal");
+    unsupported(
+      "lifetime",
+      "requested lifecycle policy is unsupported by Modal",
+    );
 }
 function mapReadiness(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.readiness;
   if (!v) return;
-  if (v.check === "tcpPort") p.readinessProbe = Probe.withTcp(v.tcpPort);
-  else if (v.check === "command") p.readinessProbe = Probe.withExec([...(v.command.argv ?? [])]);
+  if (v.check?.case === "tcpPort")
+    p.readinessProbe = Probe.withTcp(v.check.value);
+  else if (v.check?.case === "command")
+    p.readinessProbe = Probe.withExec([...(v.check.value.argv ?? [])]);
   else invalid("readiness", "probe is required");
 }
 function mapProvisioning(
@@ -193,29 +285,49 @@ function mapProvisioning(
 ): { waitUntilReady: boolean; readyTimeoutMs?: number } {
   const v = r.provisioning;
   if (!v) return { waitUntilReady: false };
-  if (v.queueTimeout !== undefined) unsupported("provisioning.queueTimeout", "Modal queue timeout is unsupported");
+  if (v.queueTimeout !== undefined)
+    unsupported(
+      "provisioning.queueTimeout",
+      "Modal queue timeout is unsupported",
+    );
   const waitFor = v.waitFor ?? WaitCondition.Default;
-  if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled) return { waitUntilReady: false };
+  if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled)
+    return { waitUntilReady: false };
   if (waitFor === WaitCondition.Ready) {
-    if (v.timeout === undefined || v.timeout <= 0)
+    if (v.timeout === undefined || durationMs(v.timeout) <= 0)
       invalid("provisioning.timeout", "ready wait requires a positive timeout");
     if (!r.readiness) invalid("readiness", "ready wait requires a probe");
-    return { waitUntilReady: true, readyTimeoutMs: v.timeout };
+    return { waitUntilReady: true, readyTimeoutMs: durationMs(v.timeout) };
   }
-  unsupported("provisioning.waitFor", "requested wait condition is unsupported");
+  unsupported(
+    "provisioning.waitFor",
+    "requested wait condition is unsupported",
+  );
 }
 function mapObservability(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.observability;
   if (!v) return;
   if (v.verbose !== undefined) p.verbose = v.verbose;
   if (v.telemetryEndpoint !== undefined)
-    unsupported("observability.telemetryEndpoint", "per-sandbox telemetry endpoint is unsupported");
+    unsupported(
+      "observability.telemetryEndpoint",
+      "per-sandbox telemetry endpoint is unsupported",
+    );
 }
 
-export function mapSandboxInfo(value: Sandbox, request?: CreateOptions): SandboxInfo {
+export function mapSandboxInfo(
+  value: Sandbox,
+  request?: CreateOptions,
+): SandboxInfo {
   const mapped = generatedMapSandboxIdentity(value);
   const origins: Record<string, ValueOrigin> = { ...(mapped.origins ?? {}) };
-  const result: SandboxInfo = { id: mapped.id ?? value.sandboxId, provider: "modal", state: "running", origins };
+  const result: SandboxInfo = {
+    id: mapped.id ?? value.sandboxId,
+    provider: "modal",
+    state: SandboxState.Running,
+    labels: {},
+    origins,
+  };
   if (request?.name !== undefined) {
     mutable(result).name = request.name;
     origins.name = ValueOrigin.Request;
@@ -230,7 +342,9 @@ export function mapSandboxInfo(value: Sandbox, request?: CreateOptions): Sandbox
   }
   return result;
 }
-function mutable(v: SandboxInfo): { -readonly [K in keyof SandboxInfo]: SandboxInfo[K] } {
+function mutable(v: SandboxInfo): {
+  -readonly [K in keyof SandboxInfo]: SandboxInfo[K];
+} {
   return v;
 }
 function nonblank(v: string, f: string): string {
@@ -246,11 +360,13 @@ function positive(v: number, f: string): number {
   return v;
 }
 function integer(v: bigint, f: string, min: number): number {
-  if (v < BigInt(min) || v > 2_147_483_647n) invalid(f, "is outside the supported range");
+  if (v < BigInt(min) || v > 2_147_483_647n)
+    invalid(f, "is outside the supported range");
   return Number(v);
 }
-function duration(v: number, f: string, zero: boolean): number {
-  if (!Number.isFinite(v) || v < 0 || (!zero && v === 0)) invalid(f, "must be a finite positive duration");
+function finiteDurationMs(v: number, f: string, zero: boolean): number {
+  if (!Number.isFinite(v) || v < 0 || (!zero && v === 0))
+    invalid(f, "must be a finite positive duration");
   return v;
 }
 function invalid(field: string, message: string): never {

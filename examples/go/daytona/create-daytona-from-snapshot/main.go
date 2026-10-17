@@ -34,7 +34,7 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Snapshot: &sandbox.SnapshotSource{Reference: "daytona-small"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Snapshot{Snapshot: &sandbox.SnapshotSource{Reference: "daytona-small"}}},
 	})
 	if err != nil {
 		return err
@@ -47,10 +47,9 @@ func newClient() (*sandbox.Client, error) {
 	if err := godotenv.Load(".env"); err != nil {
 		return nil, fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
 	}
-	config := sandbox.Config{
-		Provider: daytona.New(),
-		Auth:     &sandbox.AuthConfig{APIKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}},
-		Timeout:  sandbox.Value(2 * time.Minute),
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
 		config.Endpoint = sandbox.Value(endpoint)
@@ -58,5 +57,5 @@ func newClient() (*sandbox.Client, error) {
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	return sandbox.NewClient(config)
+	return sandbox.NewClient(daytona.New(), config)
 }

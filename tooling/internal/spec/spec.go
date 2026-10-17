@@ -139,46 +139,6 @@ type Provider struct {
 	Groups          []Group                   `yaml:"groups"`
 }
 
-// Lifecycle describes portable handle operations. IDs refer to declarations in
-// api.yaml and schema types; emitters own native method and enum spelling.
-type Lifecycle struct {
-	Version    int                  `yaml:"version"`
-	Operations []LifecycleOperation `yaml:"operations"`
-}
-
-type LifecycleOperation struct {
-	ID            string `yaml:"id"`
-	Capability    string `yaml:"capability"`
-	Interface     string `yaml:"interface"`
-	Method        string `yaml:"method"`
-	Receiver      string `yaml:"receiver"`
-	Options       string `yaml:"options"`
-	Outcome       string `yaml:"outcome"`
-	Timeout       bool   `yaml:"timeout"`
-	TerminalState string `yaml:"terminal_state"`
-}
-
-func LoadLifecycle(root string) (Lifecycle, error) {
-	var lifecycle Lifecycle
-	if err := decode(filepath.Join(root, "lifecycle.yaml"), &lifecycle); err != nil {
-		return lifecycle, err
-	}
-	if lifecycle.Version != 1 || len(lifecycle.Operations) == 0 {
-		return lifecycle, fmt.Errorf("invalid lifecycle specification")
-	}
-	seen := map[string]bool{}
-	for _, operation := range lifecycle.Operations {
-		if operation.ID == "" || seen[operation.ID] || operation.Capability == "" || operation.Interface == "" || operation.Method == "" || operation.Receiver != "handle" || (operation.Outcome != "update_handle" && operation.Outcome != "exit_result") {
-			return lifecycle, fmt.Errorf("invalid lifecycle operation %q", operation.ID)
-		}
-		if operation.Outcome == "exit_result" && operation.TerminalState == "" {
-			return lifecycle, fmt.Errorf("result operation %q requires terminal state", operation.ID)
-		}
-		seen[operation.ID] = true
-	}
-	return lifecycle, nil
-}
-
 type Targets struct {
 	Version   int                        `yaml:"version"`
 	Languages map[string]LanguageTargets `yaml:"languages"`

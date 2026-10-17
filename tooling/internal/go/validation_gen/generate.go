@@ -25,12 +25,22 @@ func field(m *protogen.Message, name string) (*protogen.Field, error) {
 	return nil, fmt.Errorf("%s: unknown validation field %q", m.Desc.FullName(), name)
 }
 func active(f *protogen.Field) string {
-	path := "x." + naming.FieldName(f)
+	name := naming.FieldName(f)
+	path := "x." + name
+	if f.Oneof != nil && !f.Oneof.Desc.IsSynthetic() {
+		parent := string(f.Parent.GoIdent.GoName)
+		oneof := naming.Identifier(string(f.Oneof.Desc.Name()))
+		wrapper := parent + "_" + name
+		if f.Desc.Kind() == protoreflect.MessageKind {
+			return "x.Get" + name + "()!=nil"
+		}
+		return "func() bool { _, ok := x." + oneof + ".(*" + wrapper + "); return ok }()"
+	}
 	if f.Desc.IsList() || f.Desc.IsMap() {
 		return "len(" + path + ")>0"
 	}
 	if f.Desc.Kind() == protoreflect.BoolKind {
-		return "x.Get" + naming.FieldName(f) + "()"
+		return "x.Get" + name + "()"
 	}
 	if f.Desc.HasPresence() {
 		return path + "!=nil"
@@ -56,11 +66,19 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 		if _, ok := rules.Messages[m.GoIdent.GoName]; ok {
 			continue
 		}
+		needsValidation := false
 		for _, fld := range m.Fields {
 			if fld.Desc.Kind() == protoreflect.EnumKind {
-				names = append(names, m.GoIdent.GoName)
+				needsValidation = true
 				break
 			}
+			if fld.Desc.IsList() && fld.Desc.Kind() == protoreflect.MessageKind {
+				needsValidation = true
+				break
+			}
+		}
+		if needsValidation {
+			names = append(names, m.GoIdent.GoName)
 		}
 	}
 	sort.Strings(names)
@@ -127,15 +145,22 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			}
 		}
 		hasEnums := false
+		hasRepeatedMessages := false
 		for _, fld := range m.Fields {
 			if fld.Desc.Kind() == protoreflect.EnumKind {
 				hasEnums = true
 			}
+			if fld.Desc.IsList() && fld.Desc.Kind() == protoreflect.MessageKind {
+				hasRepeatedMessages = true
+			}
 		}
-		if len(r.Constraints) == 0 && !hasEnums {
+		if len(r.Constraints) == 0 && !hasEnums && len(r.Fields) == 0 && !hasRepeatedMessages {
 			continue
 		}
 		d.Body(callable, "v.RegisterStructValidation(func(sl ", validator("StructLevel"), "){x:=sl.Current().Interface().(", name, ");_ = x")
+		if err := emitFieldRules(d, callable, m, r.Fields); err != nil {
+			return err
+		}
 		for _, fld := range m.Fields {
 			if fld.Desc.Kind() != protoreflect.EnumKind {
 				continue
@@ -226,6 +251,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, rules spec.Validation, root 
 			}
 			d.Body(callable, "if (", condition, ") && (", invalid, "){sl.ReportError(x,", strconv.Quote(label), ",", strconv.Quote(label), ",", strconv.Quote(c.Op), ",\"\")}")
 		}
+		emitRepeatedMessageDive(d, callable, m)
 		d.Body(callable, "},", name, "{})")
 	}
 	d.Body(callable, "return v }")
@@ -251,5 +277,67 @@ func numeric(field *protogen.Field) bool {
 		return field.Message.Desc.FullName() == "google.protobuf.Duration"
 	default:
 		return false
+	}
+}
+
+// emitFieldRules translates portable YAML field rules into imperative checks so
+// validation does not depend on struct tags on a parallel native type.
+func emitFieldRules(d *declarationgen.Emitter, callable spec.Callable, m *protogen.Message, fields map[string]spec.Field) error {
+	names := make([]string, 0, len(fields))
+	for name := range fields {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		rule := fields[name]
+		fld, err := field(m, name)
+		if err != nil {
+			return err
+		}
+		goName := naming.FieldName(fld)
+		label := strconv.Quote(goName)
+		present := active(fld)
+		value := "x.Get" + goName + "()"
+		if fld.Desc.Kind() == protoreflect.MessageKind && fld.Message.Desc.FullName() == "google.protobuf.Duration" {
+			value = "x." + goName + ".AsDuration()"
+		}
+		if rule.Each && rule.Nonblank {
+			d.Body(callable, "if ", present, "{for _,item:=range x.", goName, "{if ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(item)==\"\"{sl.ReportError(x,", label, ",", label, ",\"nonblank\",\"\");break}}}")
+		} else if rule.Nonblank {
+			d.Body(callable, "if ", present, " && ", protogen.GoIdent{GoName: "TrimSpace", GoImportPath: "strings"}, "(", value, ")==\"\"{sl.ReportError(x,", label, ",", label, ",\"nonblank\",\"\")}")
+		}
+		if rule.Format == "image_reference" {
+			d.Body(callable, "if ", present, " && !(len(", value, ")<=512 && ", protogen.GoIdent{GoName: "MustCompile", GoImportPath: "regexp"}, "(", strconv.Quote(`^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$`), ").MatchString(", value, ")){sl.ReportError(x,", label, ",", label, ",\"image_reference\",\"\")}")
+		}
+		if rule.Finite {
+			d.Body(callable, "if ", present, " && (", protogen.GoIdent{GoName: "IsNaN", GoImportPath: "math"}, "(", value, ")||", protogen.GoIdent{GoName: "IsInf", GoImportPath: "math"}, "(", value, ",0)){sl.ReportError(x,", label, ",", label, ",\"finite\",\"\")}")
+		}
+		if rule.Minimum != nil {
+			d.Body(callable, "if ", present, " && ", value, "<", fmt.Sprintf("%g", *rule.Minimum), "{sl.ReportError(x,", label, ",", label, ",\"gte\",\"\")}")
+		}
+		if rule.ExclusiveMinimum != nil {
+			d.Body(callable, "if ", present, " && !(", value, ">", fmt.Sprintf("%g", *rule.ExclusiveMinimum), "){sl.ReportError(x,", label, ",", label, ",\"gt\",\"\")}")
+		}
+		if rule.Maximum != nil {
+			d.Body(callable, "if ", present, " && ", value, ">", fmt.Sprintf("%g", *rule.Maximum), "{sl.ReportError(x,", label, ",", label, ",\"lte\",\"\")}")
+		}
+		if rule.MinItems != nil {
+			// min_items applies whenever the message is validated; an empty list is present.
+			d.Body(callable, "if len(x.", goName, ")<", *rule.MinItems, "{sl.ReportError(x,", label, ",", label, ",\"min\",\"\")}")
+		}
+	}
+	return nil
+}
+
+// emitRepeatedMessageDive rejects nil list elements and runs nested struct
+// validation, matching the former dive,required struct-tag behavior.
+func emitRepeatedMessageDive(d *declarationgen.Emitter, callable spec.Callable, m *protogen.Message) {
+	for _, fld := range m.Fields {
+		if !fld.Desc.IsList() || fld.Desc.Kind() != protoreflect.MessageKind {
+			continue
+		}
+		goName := naming.FieldName(fld)
+		label := strconv.Quote(goName)
+		d.Body(callable, "for _,item:=range x.", goName, "{if item==nil{sl.ReportError(x,", label, ",", label, ",\"required\",\"\");continue};if err:=sl.Validator().Struct(item);err!=nil{if fields,ok:=err.(", protogen.GoIdent{GoName: "ValidationErrors", GoImportPath: "github.com/go-playground/validator/v10"}, ");ok{for _,fe:=range fields{sl.ReportError(item,fe.Field(),fe.StructField(),fe.Tag(),fe.Param())}}}}")
 	}
 }

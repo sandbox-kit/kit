@@ -63,7 +63,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider, te
 					return "", fmt.Errorf("relationship requires policy")
 				}
 				n := "lifetime." + naming.FieldName(fld)
-				return n + "!=nil && " + n + ".Mode==2 && " + n + ".After!=nil && *" + n + ".After>0", nil
+				return n + "!=nil && " + n + ".Mode==2 && " + n + ".After!=nil && " + n + ".After.AsDuration()>0", nil
 			}
 			invalid := ""
 			if len(check.ExclusivePolicies) > 0 {
@@ -89,7 +89,7 @@ func GenerateChecks(p *protogen.Plugin, file *protogen.File, s spec.Provider, te
 				case "ephemeral":
 					b = "lifetime.GetEphemeral()"
 				case "stopped_delete":
-					b = "lifetime.StoppedDelete!=nil && lifetime.StoppedDelete.Mode==2 && lifetime.StoppedDelete.After!=nil && *lifetime.StoppedDelete.After==0"
+					b = "lifetime.StoppedDelete!=nil && lifetime.StoppedDelete.Mode==2 && lifetime.StoppedDelete.After!=nil && lifetime.StoppedDelete.After.AsDuration()==0"
 				default:
 					return fmt.Errorf("unsupported policy relationship")
 				}

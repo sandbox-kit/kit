@@ -18,6 +18,7 @@ import (
 // checks vocabulary. Quotas, permissions, and remote capacity remain native.
 func GenerateChecks(plugin *protogen.Plugin, file *protogen.File, provider spec.Provider, schema *model.Schema) error {
 	g := declarationgen.GeneratedFile(plugin, "provider.checks.gen.ts", string(file.Desc.Path())+" + specs/providers/"+provider.Provider+".yaml")
+	g.P(`import { durationMs } from "@bufbuild/protobuf/wkt";`)
 	g.P(`import { ErrorKind, PolicyMode, sandboxError, type AutomaticAction, type CreateOptions } from "@sandbox-kit/sandbox";`)
 	g.P()
 	g.P("export function validateProviderCreate(request: CreateOptions): void {")
@@ -190,8 +191,8 @@ func typescriptPath(fields []protoreflect.FieldDescriptor) string {
 }
 
 func emitCheckHelpers(g *protogen.GeneratedFile, provider string) {
-	g.P(`function delayed(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after !== undefined && policy.after > 0; }`)
-	g.P(`function immediate(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after === 0; }`)
+	g.P(`function delayed(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after !== undefined && durationMs(policy.after) > 0; }`)
+	g.P(`function immediate(policy: AutomaticAction | undefined): boolean { return (policy?.mode ?? PolicyMode.Default) === PolicyMode.After && policy?.after !== undefined && durationMs(policy.after) === 0; }`)
 	g.P(`function validEnvName(value: string): boolean { return /^[A-Za-z_][A-Za-z0-9_]*$/.test(value); }`)
 	g.P(`function validAbsolutePath(value: string): boolean { return value.startsWith("/"); }`)
 	g.P(`function validHttpUrl(value: string): boolean { try { const parsed = new URL(value); return parsed.hostname !== "" && (parsed.protocol === "http:" || parsed.protocol === "https:"); } catch { return false; } }`)
