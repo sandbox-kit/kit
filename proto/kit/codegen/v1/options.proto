@@ -10,7 +10,7 @@ option go_package = "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;
 // These annotations are build-time metadata; SDK clients and credentials are
 // ordinary language objects and are never serialized into these messages.
 message ClientDeclaration {
-  // Runtime declaration names now belong to specs/api.yaml.
+  // Retired runtime declaration name fields; public names live in handwritten SDKs.
   reserved 1, 2;
   reserved "name", "backend_interface";
   reserved "go_name", "go_provider_interface";
@@ -56,7 +56,7 @@ message OperationDeclaration {
 // ProviderDeclaration generates a typed, optionally installed provider integration.
 message ProviderDeclaration {
   string provider_name = 1;
-  // Runtime declaration names now belong to specs/api.yaml.
+  // Retired runtime declaration name fields; public names live in handwritten SDKs.
   reserved 2;
   reserved "name";
   // Constructor naming belongs to the language generator (New in Go).

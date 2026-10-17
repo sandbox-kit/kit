@@ -116,14 +116,6 @@ type LanguageProfile struct {
 	Externals       map[string]ExternalType `yaml:"externals"`
 }
 
-func LoadAPI(root string) (API, error) {
-	var a API
-	err := decode(filepath.Join(root, "api.yaml"), &a)
-	if err == nil && (a.Version != 1 || len(a.Modules) == 0) {
-		err = fmt.Errorf("unsupported or empty API declarations")
-	}
-	return a, err
-}
 func LoadLanguageProfile(root, language string) (LanguageProfile, error) {
 	var p LanguageProfile
 	if err := decode(filepath.Join(root, "languages", language+".yaml"), &p); err != nil {

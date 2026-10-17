@@ -9,8 +9,7 @@ import (
 )
 
 // Signature lowers a compiled callable to a TypeScript method signature. The
-// callable ID is the stable semantic name; Go-specific display names from
-// api.yaml are not reused as JavaScript method names.
+// callable ID is the stable semantic name used across languages.
 func (r *Renderer) Signature(callable spec.Callable) (string, error) {
 	params := make([]string, 0, len(callable.Params)+1)
 	for _, parameter := range callable.Params {

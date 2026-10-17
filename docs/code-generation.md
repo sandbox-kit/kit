@@ -6,9 +6,9 @@ truth for portable data and operation contracts. Standard protobuf plugins emit
 messages, enums, reflection metadata, and service declarations; handwritten SDK
 code owns client, handle, provider, and error behavior.
 
-The repository is currently being migrated from legacy Kit emitters to that
-model. Do not extend the legacy API-declaration, template, or lifecycle emitter
-paths while the migration is in progress.
+Portable create/config/info types come from standard protobuf contracts plus
+handwritten SDK aliases. Kit emitters now own narrow helpers only: validation,
+paths, provider checks, and field mappings.
 
 ## Generate and verify
 
@@ -290,13 +290,9 @@ overrides are rejected.
 to mapped configuration and returning a client/error.
 `runtime.go.cleanup` names the cleanup method and declares context/error behavior.
 
-Backend state declares its native name, shared type, optional flag, and
-`capture` path relative to `Config`. Generated copies preserve absence and avoid
-aliasing caller data.
-
-Capture currently supports optional strings and messages with scalar/nested
-message fields. Collections, bytes, recursive messages, and real oneofs fail
-generation until copying support is added.
+Backend state capture and metadata cloning are handwritten in the SDK runtime
+(for example Go `clone.go` and TypeScript metadata helpers). Generators must not
+emit a second parallel copy of portable messages.
 
 ## Extend a provider or language
 
@@ -320,13 +316,12 @@ provider checks, `provider.errors.gen.ts` classifies native errors, and
 `provider.mappings.gen.ts` contains compiled YAML mapping groups. None of these
 files are embedded source templates.
 
-Lifecycle option and result types are generated from protobuf. The Go and
-TypeScript lifecycle emitters generate handle methods and typed provider dispatch
-from annotated `SandboxService` methods; the Go emitter also generates static capability
-discovery. Handle storage, operation/close coordination, and provider-specific
-lifecycle call sequences remain native runtime code. Optional capabilities
-prevent a provider from advertising operations it cannot implement; Daytona
-resolves additional class-dependent capabilities from current metadata.
+Lifecycle option and result types come from protobuf contracts. Handle methods,
+typed provider dispatch, capability discovery, storage, and close coordination
+remain handwritten runtime code shaped by annotated `SandboxService` methods.
+Optional capabilities prevent a provider from advertising operations it cannot
+implement; Daytona resolves additional class-dependent capabilities from current
+metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

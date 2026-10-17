@@ -133,7 +133,6 @@ bindings. Runtime facades and metadata clone helpers stay handwritten.
 | `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions                                           |
 | `internal/typescript/provider_gen/`    | Provider checks, config assembly, and related helpers                                   |
 | `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                                                  |
-| `internal/typescript/types_gen/`       | Retired portable-type emitter (contracts + handwritten aliases replace it)              |
 | `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation                                  |
 | `internal/gen/`                        | Generated annotation bindings                                                           |
 

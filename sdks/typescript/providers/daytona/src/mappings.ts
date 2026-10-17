@@ -1,5 +1,4 @@
 // Provider-specific orchestration around generated portable field mappings.
-// Duration/oneof-sensitive mapping stays handwritten until area-5 regenerates providers.
 import { durationMs, timestampFromDate } from "@bufbuild/protobuf/wkt";
 import {
   EgressMode,

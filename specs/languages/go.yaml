@@ -36,5 +36,4 @@ externals:
 outputs:
   client: .gen.go
   provider: .gen.go
-  errors: .errors.runtime.gen.go
-  copies: .clone.runtime.gen.go
+  shared: .gen.go
