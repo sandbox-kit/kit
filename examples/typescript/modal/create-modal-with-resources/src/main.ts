@@ -9,7 +9,7 @@ import {
   WaitCondition,
   type ClientConfig,
   type Sandbox,
-  type SandboxSource,
+  type SandboxSourceInput,
   duration,
 } from "@sandbox-kit/sandbox";
 
@@ -45,9 +45,8 @@ function assertCapability(
   }
 }
 
-const imageSource: SandboxSource = {
-  kind: "image",
-  image: { reference: "alpine:3.21" },
+const imageSource: SandboxSourceInput = {
+  kind: { case: "image", value: { reference: "alpine:3.21" } },
 };
 
 await using client = new Client(clientConfig());
@@ -55,7 +54,7 @@ await using client = new Client(clientConfig());
 const sandbox = await client.create({
   source: imageSource,
   resources: { cpuCores: 0.5, memoryMib: 512n },
-  lifetime: { maximumLifetime: 5 * 60_000 },
+  lifetime: { maximumLifetime: duration(5 * 60_000) },
 });
 const info = sandbox.info();
 console.log(`Modal sandbox created: ${sandbox.id} (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)`);

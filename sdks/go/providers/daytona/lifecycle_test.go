@@ -34,8 +34,11 @@ func TestResolvedSandboxClassMapping(t *testing.T) {
 			if info.Origins[sandbox.InfoFieldIsolation] != sandbox.ValueOriginProvider {
 				t.Fatal("resolved class origin missing")
 			}
-			if tc.gpu > 0 && info.GetProviderMetadata()["gpu_count"] != int64(1) {
-				t.Fatal("GPU metadata missing")
+			if tc.gpu > 0 {
+				metadata, err := sandbox.MetadataObjectAsMap(info.GetProviderMetadata())
+				if err != nil || metadata["gpu_count"] != int64(1) {
+					t.Fatal("GPU metadata missing")
+				}
 			}
 		})
 	}

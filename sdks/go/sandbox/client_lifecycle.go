@@ -25,7 +25,7 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	}
 	defer release()
 	if id == "" {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldID, Message: "sandbox-kit: sandbox ID is required"}, nil)
+		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
 	operationContext, cancel := ctx, func() {}
 	if c.timeout != nil && *c.timeout > 0 {

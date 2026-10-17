@@ -26,6 +26,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, provider model.Provi
 	g := declarationgen.GeneratedFile(plugin, "provider.mappings.gen.ts", string(file.Desc.Path())+" + specs/providers/"+provider.Rules.Provider+".yaml")
 
 	shared, native := mappingImports(provider)
+	g.P("import { durationMs } from \"@bufbuild/protobuf/wkt\";")
 	g.P("import { ErrorKind, PolicyMode, ValueOrigin, sandboxError, type ", strings.Join(shared, ", type "), " } from \"@sandbox-kit/sandbox\";")
 	for _, path := range sortedKeys(native) {
 		g.P("import type { ", strings.Join(native[path], ", "), " } from ", strconv.Quote(path), ";")
@@ -121,7 +122,11 @@ func emitGroup(g *protogen.GeneratedFile, provider model.Provider, group model.G
 			g.P("    if (source.", from, " !== undefined) {")
 			indent = "      "
 		}
-		g.P(indent, "const value = source.", from, ";")
+		if isDurationField(sharedField) {
+			g.P(indent, "const value = durationMs(source.", from, ");")
+		} else {
+			g.P(indent, "const value = source.", from, ";")
+		}
 		expression, validation, err := transformExpression("value", mapping.Transform, mapping.Factor, mapping.Maximum, mapping.Cast, sharedField)
 		if err != nil {
 			return fmt.Errorf("%s.%s: %w", rule.Name, mapping.From, err)
@@ -177,11 +182,12 @@ func emitPolicy(g *protogen.GeneratedFile, field, from, to string, mapping spec.
 	}
 	g.P("    } else if (mode === PolicyMode.After) {")
 	g.P("      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"duration is required\", operation);")
+	g.P("      const afterMs = durationMs(policy.after);")
 	if !mapping.Policy.Immediate {
-		g.P("      if (policy.after === 0) mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"immediate action is not representable\", operation);")
+		g.P("      if (afterMs === 0) mappingError(ErrorKind.Unsupported, ", strconv.Quote(field), ", \"immediate action is not representable\", operation);")
 	}
-	g.P("      if (!Number.isFinite(policy.after) || policy.after < 0 || policy.after % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay cannot be represented in whole minutes\", operation);")
-	g.P("      const minutes = policy.after / 60_000;")
+	g.P("      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay cannot be represented in whole minutes\", operation);")
+	g.P("      const minutes = afterMs / 60_000;")
 	if mapping.Maximum != nil {
 		g.P("      if (minutes > ", *mapping.Maximum, ") mappingError(ErrorKind.InvalidArgument, ", strconv.Quote(field), ", \"delay exceeds documented maximum\", operation);")
 	}
@@ -248,6 +254,10 @@ func transformExpression(value, transform string, factor uint64, maximum *uint64
 		return "", "", fmt.Errorf("unknown cast %q", cast)
 	}
 	return expression, invalid, nil
+}
+
+func isDurationField(field protoreflect.FieldDescriptor) bool {
+	return field.Kind() == protoreflect.MessageKind && field.Message() != nil && field.Message().FullName() == "google.protobuf.Duration"
 }
 
 func mappingImports(provider model.Provider) ([]string, map[string][]string) {

@@ -53,7 +53,7 @@ func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) 
 }
 func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 	scope := &sandbox.Scope{AppName: sandbox.Value("app")}
-	request := &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}}}
+	request := &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}}
 	plan, err := planCreate(request, scope, "default-region")
 	if err != nil {
 		t.Fatal(err)
@@ -75,7 +75,7 @@ func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 
 func TestManagedProxyIsRetainedForNativeLookup(t *testing.T) {
 	request := &sandbox.CreateOptions{
-		Source:  &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "image"}},
+		Source:  &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}},
 		Network: &sandbox.NetworkConfig{ProxyReference: sandbox.Value("static-egress")},
 	}
 	plan, err := planCreate(request, &sandbox.Scope{AppName: sandbox.Value("app")}, "")

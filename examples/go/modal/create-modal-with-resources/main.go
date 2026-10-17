@@ -33,9 +33,9 @@ func clientConfig() (sandbox.Provider, *sandbox.Config) {
 
 func createOptions() *sandbox.CreateOptions {
 	return &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{CPUCores: sandbox.Value(0.5), MemoryMiB: sandbox.Value(uint64(512))},
-		Lifetime:  &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Value(5 * time.Minute)},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{CpuCores: sandbox.Value(0.5), MemoryMib: sandbox.Value(uint64(512))},
+		Lifetime:  &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Duration(5 * time.Minute)},
 	}
 }
 

@@ -34,7 +34,7 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Snapshot: &sandbox.SnapshotSource{Reference: "daytona-small"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Snapshot{Snapshot: &sandbox.SnapshotSource{Reference: "daytona-small"}}},
 	})
 	if err != nil {
 		return err

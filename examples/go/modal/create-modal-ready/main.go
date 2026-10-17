@@ -34,13 +34,13 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
 		Runtime: &sandbox.RuntimeConfig{
 			Entrypoint: []string{"sleep", "300"},
 		},
-		Readiness: &sandbox.ReadinessProbe{Command: &sandbox.CommandProbe{Argv: []string{"true"}}},
+		Readiness: &sandbox.ReadinessProbe{Check: &sandbox.ReadinessProbe_Command{Command: &sandbox.CommandProbe{Argv: []string{"true"}}}},
 		Provisioning: &sandbox.ProvisioningOptions{
-			Timeout: sandbox.Value(2 * time.Minute),
+			Timeout: sandbox.Duration(2 * time.Minute),
 			WaitFor: sandbox.WaitConditionReady,
 		},
 	})

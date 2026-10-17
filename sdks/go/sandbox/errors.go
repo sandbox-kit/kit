@@ -91,7 +91,7 @@ func (e *Error) Unwrap() error {
 //
 //	err := NewError(ErrorInfo{
 //	    Kind:    ErrorKindUnsupported,
-//	    Field:   CreateFieldResourcesDiskMiB,
+//	    Field:   CreateFieldResourcesDiskMib,
 //	    Message: "disk overrides are unsupported",
 //	}, cause)
 func NewError(info ErrorInfo, cause error) *Error {

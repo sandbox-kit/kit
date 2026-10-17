@@ -155,11 +155,11 @@ func Generate(p *protogen.Plugin, f *protogen.File, compiled model.Provider, tem
 				minute := protogen.GoIdent{GoName: "Minute", GoImportPath: "time"}
 				comparison := "<0"
 				if !mapping.Policy.Immediate {
-					d.Body(c, "if *policy.After==0{")
+					d.Body(c, "if policy.After.AsDuration()==0{")
 					fail("immediate action is not representable", "ErrorKindUnsupported")
 					d.Body(c, "}")
 				}
-				d.Body(c, "duration:=*policy.After;if duration", comparison, " || duration%", minute, "!=0 || duration/", minute, ">2147483647{")
+				d.Body(c, "duration:=policy.After.AsDuration();if duration", comparison, " || duration%", minute, "!=0 || duration/", minute, ">2147483647{")
 				fail("delay cannot be represented in whole minutes", "ErrorKindInvalidArgument")
 				d.Body(c, "}")
 				if mapping.Maximum != nil {
@@ -186,7 +186,7 @@ func Generate(p *protogen.Plugin, f *protogen.File, compiled model.Provider, tem
 			if optional {
 				value = d.Param(c, "source") + ".Get" + from + "()"
 				if duration {
-					value = "*" + d.Param(c, "source") + "." + from
+					value = d.Param(c, "source") + "." + from + ".AsDuration()"
 				}
 			}
 			d.Body(c, "{")

@@ -1,13 +1,14 @@
 package typesgen
 
 import (
+	"strings"
+	"testing"
+
 	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/pluginpb"
-	"strings"
-	"testing"
 )
 
 func TestCopyEmitterUsesSchemaPresenceAndDepth(t *testing.T) {
@@ -24,7 +25,7 @@ func TestCopyEmitterUsesSchemaPresenceAndDepth(t *testing.T) {
 		t.Fatal(r.GetError())
 	}
 	src := r.File[0].GetContent()
-	for _, want := range []string{"depth > 7", "x.MemoryMiB != nil", "value := *x.MemoryMiB", "out.MemoryMiB = &value"} {
+	for _, want := range []string{"depth > 7", "x.MemoryMib != nil", "value := *x.MemoryMib", "out.MemoryMib = &value"} {
 		if !strings.Contains(src, want) {
 			t.Fatalf("missing %s", want)
 		}

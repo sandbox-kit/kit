@@ -55,7 +55,7 @@ func (s *Sandbox) Refresh(ctx context.Context) error {
 func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "start", timeout)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "stop", timeout)
 	if err != nil {
@@ -101,7 +101,7 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "pause", timeout)
 	if err != nil {
@@ -124,7 +124,7 @@ func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "terminate", timeout)
 	if err != nil {
@@ -145,7 +145,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "archive", timeout)
 	if err != nil {
@@ -168,7 +168,7 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	var timeout *time.Duration
 	if options != nil {
-		timeout = options.Timeout
+		timeout = OptionalDuration(options.Timeout)
 	}
 	operationContext, cancel, err := s.operationContext(ctx, "delete", timeout)
 	if err != nil {

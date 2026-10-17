@@ -9,7 +9,7 @@ import {
   WaitCondition,
   type ClientConfig,
   type Sandbox,
-  type SandboxSource,
+  type SandboxSourceInput,
   duration,
 } from "@sandbox-kit/sandbox";
 
@@ -45,9 +45,8 @@ function assertCapability(
   }
 }
 
-const imageSource: SandboxSource = {
-  kind: "image",
-  image: { reference: "alpine:3.21" },
+const imageSource: SandboxSourceInput = {
+  kind: { case: "image", value: { reference: "alpine:3.21" } },
 };
 
 await using client = new Client(clientConfig());

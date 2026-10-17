@@ -2,9 +2,10 @@ package sandbox_test
 
 import (
 	"context"
-	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	"strings"
 	"testing"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 func TestSecureEndpoints(t *testing.T) {
@@ -36,9 +37,9 @@ func TestImageReferenceValidationBeforeBackend(t *testing.T) {
 			called := false
 			client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 				called = true
-				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "test"}}, nil
+				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "test"}}, nil
 			}})
-			_, err := client.Create(context.Background(), &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: tc.reference}}})
+			_, err := client.Create(context.Background(), &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: tc.reference}}}})
 			if (err == nil) != tc.valid || called != tc.valid {
 				t.Fatalf("valid=%v called=%v error=%v", tc.valid, called, err)
 			}
@@ -53,14 +54,13 @@ func TestMetadataCopyBudgets(t *testing.T) {
 	}
 	for name, value := range map[string]any{"shared graph": graph, "wide list": make([]any, 16385), "bytes": make([]byte, 1048577), "string": strings.Repeat("x", 1048577), "string list": []string{strings.Repeat("x", 1048577)}, "map key": map[string]any{strings.Repeat("x", 1048577): true}} {
 		t.Run(name, func(t *testing.T) {
-			_, err := (&sandbox.CreateOptions{ProviderOptions: map[string]any{"value": value}}).Clone()
-			if err == nil || !strings.Contains(err.Error(), "budget") {
+			_, err := sandbox.MetadataObjectFromMap(map[string]any{"value": value})
+			if err == nil || !strings.Contains(err.Error(), "budget") && !strings.Contains(err.Error(), "depth") && !strings.Contains(err.Error(), "cycle") {
 				t.Fatalf("expected bounded rejection, got %v", err)
 			}
 		})
 	}
-	_, err := (&sandbox.CreateOptions{ProviderOptions: map[string]any{"value": []byte{1, 2}}}).Clone()
-	if err != nil {
+	if _, err := sandbox.MetadataObjectFromMap(map[string]any{"value": []byte{1, 2}}); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -52,8 +52,8 @@ func run() (result error) {
 
 	// Modal does not support a disk allocation override at creation.
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{DiskMiB: sandbox.Value(uint64(1024))},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))},
 	})
 	if err != nil {
 		handleError(os.Stdout, err)

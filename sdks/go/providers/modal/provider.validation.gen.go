@@ -24,16 +24,16 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		return nil
 	}
 	if request.Resources != nil {
-		if request.Resources.CPUCores != nil {
-			if *request.Resources.CPUCores < 0.125 {
-				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCPUCores, Message: "sandbox-kit modal: resources.cpu_cores is outside supported values"}, nil)
+		if request.Resources.CpuCores != nil {
+			if *request.Resources.CpuCores < 0.125 {
+				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit modal: resources.cpu_cores is outside supported values"}, nil)
 			}
 		}
 	}
 	if request.Resources != nil {
-		if request.Resources.MemoryMiB != nil {
-			if *request.Resources.MemoryMiB < 128 {
-				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMiB, Message: "sandbox-kit modal: resources.memory_mib is outside supported values"}, nil)
+		if request.Resources.MemoryMib != nil {
+			if *request.Resources.MemoryMib < 128 {
+				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit modal: resources.memory_mib is outside supported values"}, nil)
 			}
 		}
 	}
@@ -52,21 +52,21 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		}
 	}
 	if request.Network != nil {
-		if request.Network.OutboundCIDRs != nil {
-			for _, value := range request.Network.OutboundCIDRs.Entries {
+		if request.Network.OutboundCidrs != nil {
+			for _, value := range request.Network.OutboundCidrs.Entries {
 				_, err := netip.ParsePrefix(value)
 				if value != "" && err != nil {
-					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundCIDRsEntries, Message: "sandbox-kit modal: network.outbound_cidrs.entries is outside supported values"}, nil)
+					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundCidrsEntries, Message: "sandbox-kit modal: network.outbound_cidrs.entries is outside supported values"}, nil)
 				}
 			}
 		}
 	}
 	if request.Network != nil {
-		if request.Network.InboundCIDRs != nil {
-			for _, value := range request.Network.InboundCIDRs.Entries {
+		if request.Network.InboundCidrs != nil {
+			for _, value := range request.Network.InboundCidrs.Entries {
 				_, err := netip.ParsePrefix(value)
 				if err != nil {
-					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldNetworkInboundCIDRsEntries, Message: "sandbox-kit modal: network.inbound_cidrs.entries is outside supported values"}, nil)
+					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldNetworkInboundCidrsEntries, Message: "sandbox-kit modal: network.inbound_cidrs.entries is outside supported values"}, nil)
 				}
 			}
 		}

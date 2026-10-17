@@ -25,7 +25,7 @@ func (b *lifecycleBackend) TerminateSandbox(ctx context.Context, id string, opti
 func (*lifecycleBackend) Name() string                { return "lifecycle" }
 func (*lifecycleBackend) Close(context.Context) error { return nil }
 func (*lifecycleBackend) Create(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-	return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "created"}}, nil
+	return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "created"}}, nil
 }
 func (b *lifecycleBackend) StartSandbox(ctx context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
 	return b.start(ctx, id, options)
@@ -45,10 +45,10 @@ func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 	called := false
 	backend := &lifecycleBackend{start: func(ctx context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
 		called = true
-		if id != "created" || options.GetTimeout() == nil || *options.GetTimeout() != time.Second {
+		if id != "created" || options.GetTimeout() == nil || options.GetTimeout().AsDuration() != time.Second {
 			t.Fatal("operation input changed")
 		}
-		return &sandbox.SandboxInfo{ID: id, ProviderState: sandbox.Value("started")}, nil
+		return &sandbox.SandboxInfo{Id: id, ProviderState: sandbox.Value("started")}, nil
 	}}
 	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	if err != nil {
@@ -58,7 +58,7 @@ func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := instance.Start(context.Background(), &sandbox.StartOptions{Timeout: sandbox.Value(time.Second)}); err != nil {
+	if err := instance.Start(context.Background(), &sandbox.StartOptions{Timeout: sandbox.Duration(time.Second)}); err != nil {
 		t.Fatal(err)
 	}
 	if !called {
@@ -80,7 +80,7 @@ func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 func TestTerminateMakesHandleTerminal(t *testing.T) {
 	backend := &lifecycleBackend{
 		start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-			return &sandbox.SandboxInfo{ID: id}, nil
+			return &sandbox.SandboxInfo{Id: id}, nil
 		},
 		terminate: func(context.Context, string, *sandbox.TerminateOptions) (*sandbox.ExitResult, error) {
 			return &sandbox.ExitResult{ExitCode: sandbox.Value(int32(0))}, nil
@@ -117,7 +117,7 @@ func TestLifecycleOperationsSerializeAndRespectWaitingContext(t *testing.T) {
 		default:
 			t.Fatal("concurrent lifecycle call reached provider")
 		}
-		return &sandbox.SandboxInfo{ID: id}, nil
+		return &sandbox.SandboxInfo{Id: id}, nil
 	}}
 	client, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	instance, _ := client.Create(context.Background(), nil)
@@ -139,10 +139,10 @@ func TestGetAndRefreshOwnMetadata(t *testing.T) {
 	name := "first"
 	backend := &lifecycleBackend{
 		start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-			return &sandbox.SandboxInfo{ID: id}, nil
+			return &sandbox.SandboxInfo{Id: id}, nil
 		},
 		get: func(_ context.Context, id string) (*sandbox.SandboxInfo, error) {
-			return &sandbox.SandboxInfo{ID: id, Name: sandbox.Value(name)}, nil
+			return &sandbox.SandboxInfo{Id: id, Name: sandbox.Value(name)}, nil
 		},
 	}
 	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
@@ -186,7 +186,7 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 
 func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
 	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-		return &sandbox.SandboxInfo{ID: id}, nil
+		return &sandbox.SandboxInfo{Id: id}, nil
 	}}
 	client, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	instance, _ := client.Create(context.Background(), nil)

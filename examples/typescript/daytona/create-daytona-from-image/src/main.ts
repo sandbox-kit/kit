@@ -39,7 +39,7 @@ function assertCapability(
 await using client = new Client(clientConfig());
 
 const sandbox = await client.create({
-  source: { kind: "image", image: { reference: "ubuntu:22.04" } },
+  source: { kind: { case: "image", value: { reference: "ubuntu:22.04" } } },
   resources: { cpuCores: 1, memoryMib: 1_024n, diskMib: 3_072n },
 });
 console.log(`Daytona sandbox created from ubuntu:22.04: ${sandbox.id}`);

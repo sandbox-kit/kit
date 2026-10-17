@@ -36,7 +36,7 @@ func clientConfig() (sandbox.Provider, *sandbox.Config) {
 func createOptions() *sandbox.CreateOptions {
 	return &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{
 		IdlePause:     &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
-		StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Value(10 * time.Minute)},
+		StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(10 * time.Minute)},
 	}}
 }
 

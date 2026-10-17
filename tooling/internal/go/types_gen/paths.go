@@ -1,6 +1,9 @@
 package typesgen
 
 import (
+	"strconv"
+	"strings"
+
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	errorgen "github.com/sandbox-kit/kit/tooling/internal/go/error_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/go/naming"
@@ -9,8 +12,6 @@ import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"strconv"
-	"strings"
 )
 
 // GeneratePaths emits canonical field constants and schema-based response presence.
@@ -108,7 +109,7 @@ func GeneratePaths(p *protogen.Plugin, file *protogen.File, templates model.Temp
 		if err != nil {
 			return err
 		}
-		d.Body(c, "for path,origin:=range ", d.Param(c, "info"), ".Origins{if !origin.Valid()||!", presence.Declaration.Name, "(", d.Param(c, "info"), ",path){return ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidResponse"), Provider: d.Param(c, "info") + ".Provider", Operation: d.Param(c, "operation"), Field: strconv.Quote("origins.") + "+path", Message: strconv.Quote("sandbox-kit: origin must describe a known, present response field")}), "}};return nil")
+		d.Body(c, "for path,origin:=range ", d.Param(c, "info"), ".Origins{if !ValidValueOrigin(origin)||!", presence.Declaration.Name, "(", d.Param(c, "info"), ",path){return ", errorgen.Expression(g, errorgen.Details{Kind: errorgen.Kind(g, "ErrorKindInvalidResponse"), Provider: d.Param(c, "info") + ".Provider", Operation: d.Param(c, "operation"), Field: strconv.Quote("origins.") + "+path", Message: strconv.Quote("sandbox-kit: origin must describe a known, present response field")}), "}};return nil")
 		g.P("}")
 	}
 	return nil

@@ -14,12 +14,13 @@ import (
 	context "context"
 	errors "errors"
 	fmt "fmt"
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	netip "net/netip"
 	url "net/url"
 	reflect "reflect"
 	strings "strings"
 	time "time"
+
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 )
 
 // Backend is the provider identity and local SDK cleanup contract. Operations
@@ -282,7 +283,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if err != nil {
 		return nil, err
 	}
-	timeout := request.GetProvisioning().GetTimeout()
+	timeout := OptionalDuration(request.GetProvisioning().GetTimeout())
 	if timeout == nil {
 		timeout = c.timeout
 	}
@@ -295,8 +296,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 		if request.Provisioning == nil {
 			request.Provisioning = &ProvisioningOptions{}
 		}
-		value := *timeout
-		request.Provisioning.Timeout = &value
+		request.Provisioning.Timeout = Duration(*timeout)
 	}
 	creator, ok := c.backend.(SandboxCreator)
 	if !ok {

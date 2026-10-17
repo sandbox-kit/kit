@@ -53,11 +53,11 @@ func TestPublicClientRejectsLossyResourcesBeforeRemoteCalls(t *testing.T) {
 		modify func(*sandbox.CreateOptions)
 		want   string
 	}{
-		{"below minimum CPU", func(o *sandbox.CreateOptions) { o.Resources.CPUCores = sandbox.Value(0.0001) }, "resources.cpu_cores"},
-		{"CPU overflow", func(o *sandbox.CreateOptions) { o.Resources.CPUCores = sandbox.Value(float64(math.MaxUint32+1) / 1000) }, "cpu_cores cannot be represented"},
-		{"fractional lifetime", func(o *sandbox.CreateOptions) { o.Lifetime.MaximumLifetime = sandbox.Value(time.Millisecond) }, "maximum_lifetime cannot be represented"},
+		{"below minimum CPU", func(o *sandbox.CreateOptions) { o.Resources.CpuCores = sandbox.Value(0.0001) }, "resources.cpu_cores"},
+		{"CPU overflow", func(o *sandbox.CreateOptions) { o.Resources.CpuCores = sandbox.Value(float64(math.MaxUint32+1) / 1000) }, "cpu_cores cannot be represented"},
+		{"fractional lifetime", func(o *sandbox.CreateOptions) { o.Lifetime.MaximumLifetime = sandbox.Duration(time.Millisecond) }, "maximum_lifetime cannot be represented"},
 		{"lifetime overflow", func(o *sandbox.CreateOptions) {
-			o.Lifetime.MaximumLifetime = sandbox.Value(time.Duration(math.MaxUint32+1) * time.Second)
+			o.Lifetime.MaximumLifetime = sandbox.Duration(time.Duration(math.MaxUint32+1) * time.Second)
 		}, "maximum_lifetime cannot be represented"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

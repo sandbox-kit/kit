@@ -127,7 +127,8 @@ func emitMessage(g *protogen.GeneratedFile, message protoreflect.MessageDescript
 		fieldName := naming.Camel(string(field.Name()))
 		fieldPath := `joinValidationPath(path, "` + fieldName + `")`
 		if realOneof(field) {
-			g.P(`  if (value.`, oneofDiscriminator(field), ` === "`, fieldName, `") validate`, child, `Value(value.`, fieldName, `, provider, operation, `, fieldPath, `);`)
+			disc := oneofDiscriminator(field)
+			g.P(`  if (value.`, disc, `?.case === "`, fieldName, `") validate`, child, `Value(value.`, disc, `.value, provider, operation, `, fieldPath, `);`)
 			continue
 		}
 		if field.IsList() {
@@ -174,8 +175,9 @@ func emitField(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, ru
 		return nil
 	}
 	if realOneof(field) {
-		g.P(`  if (value.`, oneofDiscriminator(field), ` === "`, name, `") {`)
-		if err := emitScalarRules(g, field, rule, value, path); err != nil {
+		disc := oneofDiscriminator(field)
+		g.P(`  if (value.`, disc, `?.case === "`, name, `") {`)
+		if err := emitScalarRules(g, field, rule, "value."+disc+".value", path); err != nil {
 			return err
 		}
 		g.P(`  }`)
@@ -186,7 +188,7 @@ func emitField(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, ru
 
 func emitScalarRules(g *protogen.GeneratedFile, field protoreflect.FieldDescriptor, rule spec.Field, value, path string) error {
 	if field.Kind() == protoreflect.MessageKind && field.Message().FullName() == "google.protobuf.Duration" {
-		g.P(`  if (`, value, ` !== undefined && !Number.isFinite(`, value, `)) validationError(provider, operation, `, path, `, "finite", "must be finite");`)
+		g.P(`  if (`, value, ` !== undefined && !Number.isFinite(durationMs(`, value, `))) validationError(provider, operation, `, path, `, "finite", "must be a finite protobuf duration");`)
 	}
 	if rule.Nonblank {
 		if field.Kind() != protoreflect.StringKind {
@@ -345,7 +347,7 @@ func conditionExpression(message protoreflect.MessageDescriptor, condition *spec
 func activeExpression(field protoreflect.FieldDescriptor) string {
 	value := "value." + naming.Camel(string(field.Name()))
 	if realOneof(field) {
-		return "value." + oneofDiscriminator(field) + " === " + strconv.Quote(naming.Camel(string(field.Name())))
+		return "value." + oneofDiscriminator(field) + "?.case === " + strconv.Quote(naming.Camel(string(field.Name())))
 	}
 	if field.IsList() || field.IsMap() {
 		return value + " !== undefined && " + value + ".length > 0"

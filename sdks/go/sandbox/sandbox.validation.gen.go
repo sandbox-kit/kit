@@ -46,6 +46,15 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(AutomaticAction)
 		_ = x
+		if x.After != nil && x.After.AsDuration() < 0 {
+			sl.ReportError(x, "After", "After", "gte", "")
+		}
+		if x.Mode != 0 && x.GetMode() < 0 {
+			sl.ReportError(x, "Mode", "Mode", "gte", "")
+		}
+		if x.Mode != 0 && x.GetMode() > 2 {
+			sl.ReportError(x, "Mode", "Mode", "lte", "")
+		}
 		switch x.GetMode() {
 		case 0, 1, 2:
 		default:
@@ -67,6 +76,13 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, AutomaticAction{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(CommandProbe)
+		_ = x
+		if len(x.Argv) < 1 {
+			sl.ReportError(x, "Argv", "Argv", "min", "")
+		}
+	}, CommandProbe{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(ErrorInfo)
 		_ = x
 		switch x.GetKind() {
@@ -75,6 +91,16 @@ func newCreateOptionsValidator() *v10.Validate {
 			sl.ReportError(x, "Kind", "Kind", "known_enum", "")
 		}
 	}, ErrorInfo{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(ImageSource)
+		_ = x
+		if x.Reference != "" && strings.TrimSpace(x.GetReference()) == "" {
+			sl.ReportError(x, "Reference", "Reference", "nonblank", "")
+		}
+		if x.Reference != "" && !(len(x.GetReference()) <= 512 && regexp.MustCompile("^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$").MatchString(x.GetReference())) {
+			sl.ReportError(x, "Reference", "Reference", "image_reference", "")
+		}
+	}, ImageSource{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(IsolationConfig)
 		_ = x
@@ -85,15 +111,45 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, IsolationConfig{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(LifetimePolicy)
+		_ = x
+		if x.MaximumLifetime != nil && x.MaximumLifetime.AsDuration() < 0 {
+			sl.ReportError(x, "MaximumLifetime", "MaximumLifetime", "gte", "")
+		}
+	}, LifetimePolicy{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(MetadataList)
+		_ = x
+		for _, item := range x.Values {
+			if item == nil {
+				sl.ReportError(x, "Values", "Values", "required", "")
+				continue
+			}
+			if err := sl.Validator().Struct(item); err != nil {
+				if fields, ok := err.(v10.ValidationErrors); ok {
+					for _, fe := range fields {
+						sl.ReportError(item, fe.Field(), fe.StructField(), fe.Tag(), fe.Param())
+					}
+				}
+			}
+		}
+	}, MetadataList{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(NetworkConfig)
 		_ = x
+		if x.LinkedSandbox != nil && strings.TrimSpace(x.GetLinkedSandbox()) == "" {
+			sl.ReportError(x, "LinkedSandbox", "LinkedSandbox", "nonblank", "")
+		}
+		if x.ProxyReference != nil && strings.TrimSpace(x.GetProxyReference()) == "" {
+			sl.ReportError(x, "ProxyReference", "ProxyReference", "nonblank", "")
+		}
 		switch x.GetEgress() {
 		case 0, 1, 2, 3:
 		default:
 			sl.ReportError(x, "Egress", "Egress", "known_enum", "")
 		}
 		count0 := 0
-		if x.OutboundCIDRs != nil {
+		if x.OutboundCidrs != nil {
 			count0++
 		}
 		if x.OutboundDomains != nil {
@@ -103,7 +159,7 @@ func newCreateOptionsValidator() *v10.Validate {
 			sl.ReportError(x, "outbound_cidrs,outbound_domains", "outbound_cidrs,outbound_domains", "requires_any", "")
 		}
 		count1 := 0
-		if x.OutboundCIDRs != nil {
+		if x.OutboundCidrs != nil {
 			count1++
 		}
 		if x.OutboundDomains != nil {
@@ -115,7 +171,7 @@ func newCreateOptionsValidator() *v10.Validate {
 		if x.LinkedSandbox != nil {
 			count1++
 		}
-		if x.InboundCIDRs != nil {
+		if x.InboundCidrs != nil {
 			count1++
 		}
 		if len(x.Ports) > 0 {
@@ -125,7 +181,7 @@ func newCreateOptionsValidator() *v10.Validate {
 			sl.ReportError(x, "outbound_cidrs,outbound_domains,private_network,linked_sandbox,inbound_cidrs,ports", "outbound_cidrs,outbound_domains,private_network,linked_sandbox,inbound_cidrs,ports", "forbids", "")
 		}
 		count2 := 0
-		if x.OutboundCIDRs != nil {
+		if x.OutboundCidrs != nil {
 			count2++
 		}
 		if x.OutboundDomains != nil {
@@ -134,10 +190,48 @@ func newCreateOptionsValidator() *v10.Validate {
 		if (x.GetEgress() == 1) && (count2 > 0) {
 			sl.ReportError(x, "outbound_cidrs,outbound_domains", "outbound_cidrs,outbound_domains", "forbids", "")
 		}
+		for _, item := range x.Ports {
+			if item == nil {
+				sl.ReportError(x, "Ports", "Ports", "required", "")
+				continue
+			}
+			if err := sl.Validator().Struct(item); err != nil {
+				if fields, ok := err.(v10.ValidationErrors); ok {
+					for _, fe := range fields {
+						sl.ReportError(item, fe.Field(), fe.StructField(), fe.Tag(), fe.Param())
+					}
+				}
+			}
+		}
 	}, NetworkConfig{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(ObservabilityConfig)
+		_ = x
+		if x.TelemetryEndpoint != nil && strings.TrimSpace(x.GetTelemetryEndpoint()) == "" {
+			sl.ReportError(x, "TelemetryEndpoint", "TelemetryEndpoint", "nonblank", "")
+		}
+	}, ObservabilityConfig{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(Placement)
+		_ = x
+		if len(x.Regions) > 0 {
+			for _, item := range x.Regions {
+				if strings.TrimSpace(item) == "" {
+					sl.ReportError(x, "Regions", "Regions", "nonblank", "")
+					break
+				}
+			}
+		}
+	}, Placement{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(PortBinding)
 		_ = x
+		if x.Port != 0 && x.GetPort() < 1 {
+			sl.ReportError(x, "Port", "Port", "gte", "")
+		}
+		if x.Port != 0 && x.GetPort() > 65535 {
+			sl.ReportError(x, "Port", "Port", "lte", "")
+		}
 		switch x.GetTransport() {
 		case 0, 1, 2, 3:
 		default:
@@ -147,6 +241,12 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(ProvisioningOptions)
 		_ = x
+		if x.QueueTimeout != nil && x.QueueTimeout.AsDuration() < 0 {
+			sl.ReportError(x, "QueueTimeout", "QueueTimeout", "gte", "")
+		}
+		if x.Timeout != nil && x.Timeout.AsDuration() < 0 {
+			sl.ReportError(x, "Timeout", "Timeout", "gte", "")
+		}
 		switch x.GetWaitFor() {
 		case 0, 1, 2, 3, 4:
 		default:
@@ -156,11 +256,17 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(ReadinessProbe)
 		_ = x
+		if func() bool { _, ok := x.Check.(*ReadinessProbe_TcpPort); return ok }() && x.GetTcpPort() < 1 {
+			sl.ReportError(x, "TcpPort", "TcpPort", "gte", "")
+		}
+		if func() bool { _, ok := x.Check.(*ReadinessProbe_TcpPort); return ok }() && x.GetTcpPort() > 65535 {
+			sl.ReportError(x, "TcpPort", "TcpPort", "lte", "")
+		}
 		count0 := 0
-		if x.TCPPort != nil {
+		if func() bool { _, ok := x.Check.(*ReadinessProbe_TcpPort); return ok }() {
 			count0++
 		}
-		if x.Command != nil {
+		if x.GetCommand() != nil {
 			count0++
 		}
 		if (true) && (count0 != 1) {
@@ -170,19 +276,61 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(Resources)
 		_ = x
-		if (true) && (x.GetCPULimitCores() > 0 && x.GetCPULimitCores() < x.GetCPUCores()) {
+		if x.CpuCores != nil && (math.IsNaN(x.GetCpuCores()) || math.IsInf(x.GetCpuCores(), 0)) {
+			sl.ReportError(x, "CpuCores", "CpuCores", "finite", "")
+		}
+		if x.CpuCores != nil && !(x.GetCpuCores() > 0) {
+			sl.ReportError(x, "CpuCores", "CpuCores", "gt", "")
+		}
+		if x.CpuLimitCores != nil && (math.IsNaN(x.GetCpuLimitCores()) || math.IsInf(x.GetCpuLimitCores(), 0)) {
+			sl.ReportError(x, "CpuLimitCores", "CpuLimitCores", "finite", "")
+		}
+		if x.CpuLimitCores != nil && x.GetCpuLimitCores() < 0 {
+			sl.ReportError(x, "CpuLimitCores", "CpuLimitCores", "gte", "")
+		}
+		if x.DiskMib != nil && !(x.GetDiskMib() > 0) {
+			sl.ReportError(x, "DiskMib", "DiskMib", "gt", "")
+		}
+		if x.MemoryMib != nil && !(x.GetMemoryMib() > 0) {
+			sl.ReportError(x, "MemoryMib", "MemoryMib", "gt", "")
+		}
+		if (true) && (x.GetCpuLimitCores() > 0 && x.GetCpuLimitCores() < x.GetCpuCores()) {
 			sl.ReportError(x, "cpu_limit_cores", "cpu_limit_cores", "limit", "")
 		}
-		if (true) && (x.GetMemoryLimitMiB() > 0 && x.GetMemoryLimitMiB() < x.GetMemoryMiB()) {
+		if (true) && (x.GetMemoryLimitMib() > 0 && x.GetMemoryLimitMib() < x.GetMemoryMib()) {
 			sl.ReportError(x, "memory_limit_mib", "memory_limit_mib", "limit", "")
 		}
-		if (true) && (x.GetCPULimitCores() > 0 && x.GetCPUCores() == 0) {
+		if (true) && (x.GetCpuLimitCores() > 0 && x.GetCpuCores() == 0) {
 			sl.ReportError(x, "cpu_limit_cores", "cpu_limit_cores", "requires_positive", "")
 		}
-		if (true) && (x.GetMemoryLimitMiB() > 0 && x.GetMemoryMiB() == 0) {
+		if (true) && (x.GetMemoryLimitMib() > 0 && x.GetMemoryMib() == 0) {
 			sl.ReportError(x, "memory_limit_mib", "memory_limit_mib", "requires_positive", "")
 		}
 	}, Resources{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(RuntimeConfig)
+		_ = x
+		if len(x.Entrypoint) > 0 {
+			for _, item := range x.Entrypoint {
+				if strings.TrimSpace(item) == "" {
+					sl.ReportError(x, "Entrypoint", "Entrypoint", "nonblank", "")
+					break
+				}
+			}
+		}
+		if x.Language != nil && strings.TrimSpace(x.GetLanguage()) == "" {
+			sl.ReportError(x, "Language", "Language", "nonblank", "")
+		}
+		if x.User != nil && strings.TrimSpace(x.GetUser()) == "" {
+			sl.ReportError(x, "User", "User", "nonblank", "")
+		}
+		if x.Version != nil && strings.TrimSpace(x.GetVersion()) == "" {
+			sl.ReportError(x, "Version", "Version", "nonblank", "")
+		}
+		if x.WorkingDirectory != nil && strings.TrimSpace(x.GetWorkingDirectory()) == "" {
+			sl.ReportError(x, "WorkingDirectory", "WorkingDirectory", "nonblank", "")
+		}
+	}, RuntimeConfig{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(SandboxInfo)
 		_ = x
@@ -196,16 +344,16 @@ func newCreateOptionsValidator() *v10.Validate {
 		x := sl.Current().Interface().(SandboxSource)
 		_ = x
 		count0 := 0
-		if x.ProviderDefault != nil {
+		if x.GetProviderDefault() != nil {
 			count0++
 		}
-		if x.Image != nil {
+		if x.GetImage() != nil {
 			count0++
 		}
-		if x.Snapshot != nil {
+		if x.GetSnapshot() != nil {
 			count0++
 		}
-		if x.WarmPool != nil {
+		if x.GetWarmPool() != nil {
 			count0++
 		}
 		if (true) && (count0 > 1) {
@@ -215,6 +363,12 @@ func newCreateOptionsValidator() *v10.Validate {
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(SecretReference)
 		_ = x
+		if x.EnvironmentVariable != nil && strings.TrimSpace(x.GetEnvironmentVariable()) == "" {
+			sl.ReportError(x, "EnvironmentVariable", "EnvironmentVariable", "nonblank", "")
+		}
+		if x.Reference != "" && strings.TrimSpace(x.GetReference()) == "" {
+			sl.ReportError(x, "Reference", "Reference", "nonblank", "")
+		}
 		switch x.GetInjection() {
 		case 0, 1, 2:
 		default:
@@ -222,14 +376,41 @@ func newCreateOptionsValidator() *v10.Validate {
 		}
 	}, SecretReference{})
 	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(SecurityConfig)
+		_ = x
+		for _, item := range x.Secrets {
+			if item == nil {
+				sl.ReportError(x, "Secrets", "Secrets", "required", "")
+				continue
+			}
+			if err := sl.Validator().Struct(item); err != nil {
+				if fields, ok := err.(v10.ValidationErrors); ok {
+					for _, fe := range fields {
+						sl.ReportError(item, fe.Field(), fe.StructField(), fe.Tag(), fe.Param())
+					}
+				}
+			}
+		}
+	}, SecurityConfig{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
 		x := sl.Current().Interface().(SnapshotSource)
 		_ = x
+		if x.Reference != "" && strings.TrimSpace(x.GetReference()) == "" {
+			sl.ReportError(x, "Reference", "Reference", "nonblank", "")
+		}
 		switch x.GetKind() {
 		case 0, 1, 2, 3, 4, 5, 6:
 		default:
 			sl.ReportError(x, "Kind", "Kind", "known_enum", "")
 		}
 	}, SnapshotSource{})
+	v.RegisterStructValidation(func(sl v10.StructLevel) {
+		x := sl.Current().Interface().(WarmPoolSource)
+		_ = x
+		if x.Reference != "" && strings.TrimSpace(x.GetReference()) == "" {
+			sl.ReportError(x, "Reference", "Reference", "nonblank", "")
+		}
+	}, WarmPoolSource{})
 	return v
 }
 

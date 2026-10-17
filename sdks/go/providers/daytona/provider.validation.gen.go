@@ -32,19 +32,19 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		}
 	}
 	if request.Network != nil {
-		if request.Network.OutboundProxyURL != nil {
-			parsed, err := url.Parse(*request.Network.OutboundProxyURL)
+		if request.Network.OutboundProxyUrl != nil {
+			parsed, err := url.Parse(*request.Network.OutboundProxyUrl)
 			if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
-				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundProxyURL, Message: "sandbox-kit daytona: network.outbound_proxy_url is outside supported values"}, nil)
+				return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundProxyUrl, Message: "sandbox-kit daytona: network.outbound_proxy_url is outside supported values"}, nil)
 			}
 		}
 	}
 	if request.Network != nil {
-		if request.Network.OutboundCIDRs != nil {
-			for _, value := range request.Network.OutboundCIDRs.Entries {
+		if request.Network.OutboundCidrs != nil {
+			for _, value := range request.Network.OutboundCidrs.Entries {
 				_, err := netip.ParsePrefix(value)
 				if err != nil {
-					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundCIDRsEntries, Message: "sandbox-kit daytona: network.outbound_cidrs.entries is outside supported values"}, nil)
+					return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkOutboundCidrsEntries, Message: "sandbox-kit daytona: network.outbound_cidrs.entries is outside supported values"}, nil)
 				}
 			}
 		}
@@ -74,27 +74,27 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		}
 	}
 	if lifetime := request.Lifetime; lifetime != nil {
-		if (lifetime.IdleStop != nil && lifetime.IdleStop.Mode == 2 && lifetime.IdleStop.After != nil && *lifetime.IdleStop.After > 0) && (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && *lifetime.IdlePause.After > 0) {
+		if (lifetime.IdleStop != nil && lifetime.IdleStop.Mode == 2 && lifetime.IdleStop.After != nil && lifetime.IdleStop.After.AsDuration() > 0) && (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && lifetime.IdlePause.After.AsDuration() > 0) {
 			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetime, Message: "sandbox-kit: incompatible lifetime policies"}, nil)
 		}
 	}
 	if lifetime := request.Lifetime; lifetime != nil {
-		if (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && *lifetime.IdlePause.After > 0) && (lifetime.GetEphemeral()) {
+		if (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && lifetime.IdlePause.After.AsDuration() > 0) && (lifetime.GetEphemeral()) {
 			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetime, Message: "sandbox-kit: incompatible lifetime policies"}, nil)
 		}
 	}
 	if lifetime := request.Lifetime; lifetime != nil {
-		if (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && *lifetime.IdlePause.After > 0) && (lifetime.StoppedDelete != nil && lifetime.StoppedDelete.Mode == 2 && lifetime.StoppedDelete.After != nil && *lifetime.StoppedDelete.After == 0) {
+		if (lifetime.IdlePause != nil && lifetime.IdlePause.Mode == 2 && lifetime.IdlePause.After != nil && lifetime.IdlePause.After.AsDuration() > 0) && (lifetime.StoppedDelete != nil && lifetime.StoppedDelete.Mode == 2 && lifetime.StoppedDelete.After != nil && lifetime.StoppedDelete.After.AsDuration() == 0) {
 			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetime, Message: "sandbox-kit: incompatible lifetime policies"}, nil)
 		}
 	}
 	if lifetime := request.Lifetime; lifetime != nil {
-		if (lifetime.StoppedDelete != nil && lifetime.StoppedDelete.Mode == 2 && lifetime.StoppedDelete.After != nil && *lifetime.StoppedDelete.After > 0) && (lifetime.GetEphemeral()) {
+		if (lifetime.StoppedDelete != nil && lifetime.StoppedDelete.Mode == 2 && lifetime.StoppedDelete.After != nil && lifetime.StoppedDelete.After.AsDuration() > 0) && (lifetime.GetEphemeral()) {
 			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetime, Message: "sandbox-kit: incompatible lifetime policies"}, nil)
 		}
 	}
 	if lifetime := request.Lifetime; lifetime != nil {
-		if (lifetime.StoppedArchive != nil && lifetime.StoppedArchive.Mode == 2 && lifetime.StoppedArchive.After != nil && *lifetime.StoppedArchive.After > 0) && (lifetime.GetEphemeral()) {
+		if (lifetime.StoppedArchive != nil && lifetime.StoppedArchive.Mode == 2 && lifetime.StoppedArchive.After != nil && lifetime.StoppedArchive.After.AsDuration() > 0) && (lifetime.GetEphemeral()) {
 			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldLifetime, Message: "sandbox-kit: incompatible lifetime policies"}, nil)
 		}
 	}

@@ -12,10 +12,11 @@ types, constructors, methods, errors, or control flow.
 - sandbox metadata, lifecycle options, results, and portable error details;
 - `SandboxService` request/response messages and its operation graph.
 
-`kit.sandbox.internal.v1` contains implementation-only contract data used by
-the SDK runtime and provider adapters.  Its generated Go output is placed
-below a Go `internal/` directory.  TypeScript does not re-export its generated
-module from a package entrypoint.
+`kit.sandbox.internal.v1` is reserved for implementation-only contract data used
+by the SDK runtime and provider adapters.  It is not required for the current
+public `client.proto` / `sandbox.proto` adoption.  When added, generated Go
+output belongs under a Go `internal/` directory, and TypeScript must not
+re-export that module from a package entrypoint.
 
 An internal protobuf message is still a data contract.  It must not contain a
 native SDK client, callback, mutex, function, or another runtime object.

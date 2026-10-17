@@ -1,4 +1,6 @@
 // Provider-specific orchestration around generated portable field mappings.
+// Duration/oneof-sensitive mapping stays handwritten until area-5 regenerates providers.
+import { durationMs, timestampFromDate } from "@bufbuild/protobuf/wkt";
 import {
   EgressMode,
   ErrorKind,
@@ -9,10 +11,10 @@ import {
   ValueOrigin,
   WaitCondition,
   materializeClientConfig,
+  metadataObjectFromMap,
   sandboxError,
   type ConfigInput,
   type CreateOptions,
-  type CreateResult,
   type SandboxInfo,
 } from "@sandbox-kit/sandbox";
 import {
@@ -57,20 +59,22 @@ export function mapCreateRequest(request: CreateOptions): DaytonaCreateParams {
   if (request.readiness !== undefined) unsupported("readiness", "Daytona readiness probes are not mapped");
   if (request.providerOptions !== undefined) unsupported("providerOptions", "Daytona provider options are not mapped");
   const source = request.source;
-  if (source?.kind === "warmPool") unsupported("source.warmPool", "explicit warm-pool creation mapping is unavailable");
-  if (source?.kind === "image")
+  if (source?.kind?.case === "warmPool")
+    unsupported("source.warmPool", "explicit warm-pool creation mapping is unavailable");
+  if (source?.kind?.case === "image")
     return {
       ...base,
-      image: nonblank(source.image.reference, "source.image.reference"),
+      image: nonblank(source.kind.value.reference, "source.image.reference"),
       ...(request.resources === undefined ? {} : { resources: mapResources(request.resources) }),
     };
   if (request.resources !== undefined) unsupported("resources", "Daytona resources require an image source");
-  if (source?.kind === "snapshot") {
-    if ((source.snapshot.kind ?? SnapshotKind.Default) !== SnapshotKind.Default)
+  if (source?.kind?.case === "snapshot") {
+    const snapshot = source.kind.value;
+    if ((snapshot.kind ?? SnapshotKind.Default) !== SnapshotKind.Default)
       unsupported("source.snapshot.kind", "explicit snapshot-kind restore mapping is unavailable");
-    if (source.snapshot.providerKind !== undefined)
+    if (snapshot.providerKind !== undefined)
       unsupported("source.snapshot.providerKind", "provider snapshot kind is unsupported");
-    return { ...base, snapshot: nonblank(source.snapshot.reference, "source.snapshot.reference") };
+    return { ...base, snapshot: nonblank(snapshot.reference, "source.snapshot.reference") };
   }
   return { ...base };
 }
@@ -159,7 +163,7 @@ function mapLifetime(request: CreateOptions, target: CreateSandboxBaseParams): v
   Object.assign(target, generatedMapLifetimePolicies(value));
   if (value.ephemeral !== undefined) target.ephemeral = value.ephemeral;
   if (value.maximumLifetime !== undefined)
-    target.ttlMinutes = wholeMinutes(value.maximumLifetime, "lifetime.maximumLifetime", true);
+    target.ttlMinutes = wholeMinutes(durationMs(value.maximumLifetime), "lifetime.maximumLifetime", true);
   if (value.idleTerminate !== undefined)
     unsupported("lifetime.idleTerminate", "Daytona idle termination is not mapped");
 }
@@ -168,7 +172,7 @@ function mapProvisioning(request: CreateOptions, target: CreateSandboxBaseParams
   const value = request.provisioning;
   if (value === undefined) return;
   if (value.queueTimeout !== undefined)
-    target.queueTimeout = wholeMinutes(value.queueTimeout, "provisioning.queueTimeout", false);
+    target.queueTimeout = wholeMinutes(durationMs(value.queueTimeout), "provisioning.queueTimeout", false);
   const waitFor = value.waitFor ?? WaitCondition.Default;
   if (waitFor !== WaitCondition.Default && waitFor !== WaitCondition.Started)
     unsupported("provisioning.waitFor", "the Daytona TypeScript SDK only returns after startup");
@@ -205,7 +209,14 @@ export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): San
   const mapped = generatedMapSandboxInfo(value, operation);
   const origins: Record<string, ValueOrigin> = { ...(mapped.origins ?? {}) };
   const state = mapState(value.state === undefined ? undefined : String(value.state));
-  const result: SandboxInfo = { ...mapped, id: mapped.id ?? value.id, provider: "daytona", state, origins };
+  const result: SandboxInfo = {
+    ...mapped,
+    id: mapped.id ?? value.id,
+    provider: "daytona",
+    state,
+    labels: mapped.labels ?? {},
+    origins,
+  };
   const resources = generatedMapAllocatedResources(value, operation);
   if (Object.keys(resources).length > 0) {
     resultMutable(result).resources = resources;
@@ -252,13 +263,16 @@ export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): San
   ] as const)
     if (entry !== undefined) metadata[key] = entry;
   if (Object.keys(metadata).length > 0) {
-    resultMutable(result).providerMetadata = metadata;
-    origins.provider_metadata = ValueOrigin.Provider;
+    const providerMetadata = metadataObjectFromMap(metadata);
+    if (providerMetadata !== undefined) {
+      resultMutable(result).providerMetadata = providerMetadata;
+      origins.provider_metadata = ValueOrigin.Provider;
+    }
   }
   if (value.createdAt !== undefined) {
     const date = new Date(value.createdAt);
     if (!Number.isNaN(date.valueOf())) {
-      resultMutable(result).createdAt = date;
+      resultMutable(result).createdAt = timestampFromDate(date);
       origins.created_at = ValueOrigin.Provider;
     }
   }

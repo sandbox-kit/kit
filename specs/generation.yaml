@@ -1,9 +1,10 @@
 version: 1
 # Semantic generation phases; language emitters own syntax and file conventions.
-shared: [types, copies, diagnostic_paths, field_paths, validation]
-# Runtime orchestration is handwritten. Generation is limited to protobuf-derived
-# data helpers and portable validation while standard protobuf output is adopted.
-client: [types, diagnostic_paths, field_paths, validation]
+# Portable types and copies come from standard protobuf contracts plus handwritten
+# runtime aliases. Shared generation keeps paths and validation helpers only.
+shared: [diagnostic_paths, field_paths, validation]
+# Client portable config types come from contracts; runtime aliases them by hand.
+client: [diagnostic_paths, field_paths]
 provider: [checks, mappings]
 operations:
   initialize:

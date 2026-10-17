@@ -38,5 +38,5 @@ function assertCapability(
 
 await using client = new Client(clientConfig());
 
-const sandbox = await client.create({ source: { kind: "snapshot", snapshot: { reference: "daytona-small" } } });
+const sandbox = await client.create({ source: { kind: { case: "snapshot", value: { reference: "daytona-small" } } } });
 console.log(`Daytona sandbox created from daytona-small: ${sandbox.id}`);

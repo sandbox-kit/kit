@@ -34,7 +34,7 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source:  &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
+		Source:  &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
 		Network: &sandbox.NetworkConfig{ProxyReference: sandbox.Value(os.Getenv("MODAL_PROXY_NAME"))},
 	})
 	if err != nil {

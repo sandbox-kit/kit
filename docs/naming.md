@@ -19,10 +19,11 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Backend result          | `CreateResult`        | Shared sandbox metadata                              |
 | Public handle           | `Sandbox`             | Identity, copied metadata, and lifecycle methods     |
 
-Runtime declaration names come from `specs/api.yaml`. Descriptor-driven getter,
-clone, validation, mapping, and origin signatures come from `specs/templates.yaml`.
-`specs/languages/go.yaml` owns Go representation and output suffixes. Protobuf
-annotations identify source contracts and provider SDK bindings.
+Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
+the SDK runtime. Descriptor-driven getter, validation, mapping, and origin
+signatures come from `specs/templates.yaml`. `specs/languages/go.yaml` owns Go
+representation and output suffixes. Protobuf annotations identify source
+contracts and provider SDK bindings.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses `sandbox.NewClient(sandbox.Config{...})`.
@@ -45,27 +46,25 @@ tooling/internal/typescript/ TypeScript phase dispatcher and emitters
 examples/typescript/<provider>/ One package per example
 ```
 
-Emitter directories use the `*_gen` suffix. Generated files end in `.gen.go`:
+Emitter directories use the `*_gen` suffix. Kit-generated helpers end in `.gen.go`
+(or `.gen.ts`). Portable messages and enums are not re-emitted by kit generators;
+they come from contract packages plus handwritten aliases such as
+`sandbox_data_contracts.go` / `sandbox_data_contracts.ts`.
 
-| File                       | Purpose                                            |
-| -------------------------- | -------------------------------------------------- |
-| `client.gen.go`            | Public client and provider/backend contracts       |
-| `client.lifecycle.gen.go`  | Public handle lifecycle methods and typed dispatch |
-| `*.types.gen.go`           | Native shared types                                |
-| `*.validation.gen.go`      | Shared or provider validation                      |
-| `*.errors.gen.go`          | Diagnostic field names and provider classification |
-| `*.paths.gen.go`           | Canonical field-path constants                     |
-| `*.copy.gen.go`            | Owned schema copies                                |
-| `*.errors.runtime.gen.go`  | Error object, constructor, and context helpers     |
-| `*.clone.runtime.gen.go`   | Metadata copy helpers                              |
-| `provider.gen.go`          | Provider construction, state capture, and cleanup  |
-| `provider.client.gen.go`   | Native SDK configuration assembly                  |
-| `provider.mappings.gen.go` | Request and metadata field conversions             |
+| File                         | Purpose                                            |
+| ---------------------------- | -------------------------------------------------- |
+| `*.validation.gen.go`        | Shared request validation                          |
+| `*.errors.gen.go`            | Diagnostic field names and provider classification |
+| `*.paths.gen.go`             | Canonical field-path constants                     |
+| `provider.mappings.gen.go`   | Request and metadata field conversions             |
+| `provider.validation.gen.go` | Provider-specific create checks                    |
+| `provider.config.gen.ts`     | Native SDK configuration assembly                  |
+| `provider.checks.gen.ts`     | Provider-specific create checks                    |
+| `provider.mappings.gen.ts`   | Request and metadata field conversions             |
 
-Output suffixes for client, provider, error-runtime, and metadata-copy files
-come from `specs/languages/go.yaml`. Handwritten `sandbox.go` files contain
-remaining provider creation orchestration. Change the schema, spec, or emitter
-when changing generated behavior.
+Handwritten runtime and provider files own client/orchestration behavior and
+metadata clone helpers. Change the schema, spec, or emitter when changing
+generated helpers.
 
 ## Language conventions
 

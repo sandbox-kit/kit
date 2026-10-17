@@ -4,27 +4,37 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
+	"testing"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-	"math"
-	"reflect"
-	"testing"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestCopiedMetadataRetainsNumbersAndOwnership(t *testing.T) {
 	big := uint64(math.MaxUint64)
-	source := &sandbox.SandboxInfo{ID: "id", ProviderMetadata: map[string]any{"large": big, "signed": int64(9007199254740993), "nested": []any{map[string]any{"bytes": []byte{1, 2}}}}, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
-	copied, err := source.Clone()
+	metadata, err := sandbox.MetadataObjectFromMap(map[string]any{"large": big, "signed": int64(9007199254740993), "nested": []any{map[string]any{"bytes": []byte{1, 2}}}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(source, copied) {
+	source := &sandbox.SandboxInfo{Id: "id", ProviderMetadata: metadata, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
+	copied := sandbox.CloneSandboxInfo(source)
+	if !proto.Equal(source, copied) {
 		t.Fatal("types or values changed")
 	}
-	source.ProviderMetadata["large"] = uint64(0)
-	source.ProviderMetadata["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] = 9
+	sourceMap, err := sandbox.MetadataObjectAsMap(source.ProviderMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sourceMap["large"] = uint64(0)
+	sourceMap["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] = 9
 	source.Origins["id"] = sandbox.ValueOriginRequest
-	if copied.ProviderMetadata["large"] != big || copied.ProviderMetadata["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] != 1 || copied.Origins["id"] != sandbox.ValueOriginProvider {
+	copiedMap, err := sandbox.MetadataObjectAsMap(copied.ProviderMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if copiedMap["large"] != big || copiedMap["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] != 1 || copied.Origins["id"] != sandbox.ValueOriginProvider {
 		t.Fatal("copy aliases original")
 	}
 }
@@ -77,11 +87,11 @@ func TestResponseOriginRequiresKnownPresentField(t *testing.T) {
 		{"missing nested value", &sandbox.SandboxInfo{Resources: &sandbox.Resources{}, Origins: map[string]sandbox.ValueOrigin{"resources.cpu_cores": sandbox.ValueOriginProvider}}, false},
 		{"explicit empty name", &sandbox.SandboxInfo{Name: sandbox.Value(""), Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginProvider}}, true},
 		{"empty map", &sandbox.SandboxInfo{Labels: map[string]string{}, Origins: map[string]sandbox.ValueOrigin{"labels": sandbox.ValueOriginProvider}}, true},
-		{"explicit zero", &sandbox.SandboxInfo{Resources: &sandbox.Resources{CPUCores: sandbox.Value(0.0)}, Origins: map[string]sandbox.ValueOrigin{"resources.cpu_cores": sandbox.ValueOriginProvider}}, true},
+		{"explicit zero", &sandbox.SandboxInfo{Resources: &sandbox.Resources{CpuCores: sandbox.Value(0.0)}, Origins: map[string]sandbox.ValueOrigin{"resources.cpu_cores": sandbox.ValueOriginProvider}}, true},
 		{"explicit false", &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{NestedVirtualization: sandbox.Value(false)}, Origins: map[string]sandbox.ValueOrigin{"isolation.nested_virtualization": sandbox.ValueOriginProvider}}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			tc.info.ID = "id"
+			tc.info.Id = "id"
 			client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 				return &sandbox.CreateResult{Sandbox: tc.info}, nil
 			}})
@@ -102,17 +112,19 @@ func TestInvalidMetadataNeverReachesBackend(t *testing.T) {
 			called = true
 			return nil, nil
 		}})
-		_, err := client.Create(context.Background(), &sandbox.CreateOptions{ProviderOptions: map[string]any{"value": value}})
-		var detail *sandbox.Error
-		if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != "provider_options" || called {
-			t.Fatalf("invalid metadata reached provider or was misclassified: %v", err)
+		options, err := sandbox.MetadataObjectFromMap(map[string]any{"value": value})
+		if err == nil {
+			_, err = client.Create(context.Background(), &sandbox.CreateOptions{ProviderOptions: options})
+		}
+		if err == nil || called {
+			t.Fatalf("invalid metadata reached provider or was accepted: %v", err)
 		}
 	}
 }
 
 func TestLocalErrorDetailsAndOriginalValidator(t *testing.T) {
 	client, _ := newTestClient(&creationBackend{})
-	_, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CPUCores: sandbox.Value(-1.0)}})
+	_, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)}})
 	var detail *sandbox.Error
 	var original validator.ValidationErrors
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != "resources.cpu_cores" || detail.Provider != "test" || detail.Operation != "create" || !errors.As(err, &original) {
@@ -127,7 +139,7 @@ func TestLocalErrorDetailsAndOriginalValidator(t *testing.T) {
 }
 
 func TestResponseAvailabilityAndOrigins(t *testing.T) {
-	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id", Name: sandbox.Value("requested"), Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginRequest}}}
+	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id", Name: sandbox.Value("requested"), Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginRequest}}}
 	client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) { return response, nil }})
 	instance, err := client.Create(context.Background(), nil)
 	if err != nil {
@@ -146,13 +158,13 @@ func TestResponseAvailabilityAndOrigins(t *testing.T) {
 }
 
 func TestTypedMetadataCyclesAndUnknownResponseOrigins(t *testing.T) {
-	value := &sandbox.MetadataValue{}
-	value.List = &sandbox.MetadataList{Values: []*sandbox.MetadataValue{value}}
-	if _, err := value.Clone(); err == nil {
+	cyclic := map[string]any{}
+	cyclic["self"] = cyclic
+	if _, err := sandbox.MetadataObjectFromMap(cyclic); err == nil {
 		t.Fatal("typed metadata cycle accepted")
 	}
 	client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id", Origins: map[string]sandbox.ValueOrigin{"id": 99}}}, nil
+		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id", Origins: map[string]sandbox.ValueOrigin{"id": 99}}}, nil
 	}})
 	_, err := client.Create(context.Background(), nil)
 	var detail *sandbox.Error

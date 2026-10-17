@@ -15,12 +15,12 @@ await using client = new Client({
 });
 
 const sandbox = await client.create({
-  source: { kind: "image", image: { reference: "alpine:3.21" } },
+  source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
   runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
   isolation: { kind: IsolationKind.Container },
   resources: { cpuCores: 0.5, memoryMib: 512n },
   network: { egress: EgressMode.AllowAll },
-  lifetime: { maximumLifetime: 5 * 60_000, idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
+  lifetime: { maximumLifetime: duration(5 * 60_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
   labels: { example: "create-modal-sandbox" },
 });
 

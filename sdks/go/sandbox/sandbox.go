@@ -30,25 +30,16 @@ type Sandbox struct {
 // sandboxFromResponse checks that creation returned an identifier
 // and consistent provider metadata.
 func sandboxFromResponse(backend Backend, response *CreateResult, operation string) (*Sandbox, error) {
-	if response == nil || response.Sandbox == nil || response.Sandbox.ID == "" {
+	if response == nil || response.Sandbox == nil || response.Sandbox.Id == "" {
 		return nil, NewError(ErrorInfo{
 			Kind:      ErrorKindInvalidResponse,
 			Provider:  backend.Name(),
 			Operation: operation,
-			Field:     InfoFieldID,
+			Field:     InfoFieldId,
 			Message:   "sandbox-kit: provider returned no sandbox identity",
 		}, nil)
 	}
-	info, err := response.Sandbox.Clone()
-	if err != nil {
-		return nil, NewError(ErrorInfo{
-			Kind:      ErrorKindInvalidResponse,
-			Provider:  backend.Name(),
-			Operation: operation,
-			Field:     InfoFieldProviderMetadata,
-			Message:   err.Error(),
-		}, err)
-	}
+	info := CloneSandboxInfo(response.Sandbox)
 	name := backend.Name()
 	if info.Provider != "" && info.Provider != name {
 		return nil, NewError(ErrorInfo{
@@ -76,7 +67,7 @@ func (s *Sandbox) ID() string {
 	if s.info == nil {
 		return ""
 	}
-	return s.info.ID
+	return s.info.Id
 }
 
 // ProviderName returns the selected provider, such as "daytona" or "modal".
@@ -97,7 +88,7 @@ func (s *Sandbox) ProviderName() string {
 // Example:
 //
 //	info := instance.Info()
-//	fmt.Println(info.GetID(), info.Origins[InfoFieldID])
+//	fmt.Println(info.GetID(), info.Origins[InfoFieldId])
 func (s *Sandbox) Info() *SandboxInfo {
 	if s == nil {
 		return nil
@@ -107,7 +98,7 @@ func (s *Sandbox) Info() *SandboxInfo {
 	if s.info == nil {
 		return nil
 	}
-	info, _ := s.info.Clone()
+	info := CloneSandboxInfo(s.info)
 	return info
 }
 
@@ -250,20 +241,16 @@ func (s *Sandbox) unsupported(operation string) error {
 }
 
 func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
-	if info == nil || info.ID == "" {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: operation, Field: InfoFieldID, Message: "sandbox-kit: provider returned no sandbox identity"}, nil)
+	if info == nil || info.Id == "" {
+		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: provider returned no sandbox identity"}, nil)
 	}
 	provider := s.ProviderName()
 	if info.Provider != "" && info.Provider != provider {
 		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldProvider, Message: "sandbox-kit: provider returned inconsistent sandbox metadata"}, nil)
 	}
 	info.Provider = provider
-	copy, err := info.Clone()
-	if err != nil {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldProviderMetadata, Message: err.Error()}, err)
-	}
 	s.mu.Lock()
-	s.info = copy
+	s.info = CloneSandboxInfo(info)
 	s.mu.Unlock()
 	return nil
 }

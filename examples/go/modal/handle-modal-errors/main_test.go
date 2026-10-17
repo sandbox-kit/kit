@@ -24,8 +24,8 @@ func TestDiskOverrideReturnsUnsupported(t *testing.T) {
 		}
 	})
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
-		Source:    &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
-		Resources: &sandbox.Resources{DiskMiB: sandbox.Value(uint64(1024))},
+		Source:    &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))},
 	})
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != "disk_mib" {

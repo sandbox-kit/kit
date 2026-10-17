@@ -1,9 +1,10 @@
 package validationgen
 
 import (
-	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 	"strings"
 	"testing"
+
+	"github.com/sandbox-kit/kit/tooling/internal/testutil"
 
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -32,7 +33,7 @@ func TestGeneratesLimitRule(t *testing.T) {
 		t.Fatal(response.GetError())
 	}
 	s := response.File[0].GetContent()
-	if !strings.Contains(s, "x.GetCPULimitCores() < x.GetCPUCores()") {
+	if !strings.Contains(s, "x.GetCpuLimitCores() < x.GetCpuCores()") {
 		t.Fatal("limit rule was not generated")
 	}
 }

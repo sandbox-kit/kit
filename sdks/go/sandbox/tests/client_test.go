@@ -95,7 +95,7 @@ func TestClientDefaultTimeoutAndPerOperationOverrides(t *testing.T) {
 				if has != tc.hasDeadline {
 					t.Fatalf("deadline=%v", has)
 				}
-				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id"}}, nil
+				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id"}}, nil
 			}}
 			config := &sandbox.Config{Timeout: nil}
 			if tc.clientTimeout != nil {
@@ -111,7 +111,7 @@ func TestClientDefaultTimeoutAndPerOperationOverrides(t *testing.T) {
 			}
 			request := &sandbox.CreateOptions{}
 			if tc.operationTimeout != nil {
-				request.Provisioning = &sandbox.ProvisioningOptions{Timeout: tc.operationTimeout}
+				request.Provisioning = &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(*tc.operationTimeout)}
 			}
 			if _, err := client.Create(context.Background(), request); err != nil {
 				t.Fatal(err)
@@ -206,7 +206,7 @@ func TestCallerDeadlineSurvivesDisabledKitTimeout(t *testing.T) {
 		if _, ok := ctx.Deadline(); !ok {
 			t.Fatal("caller deadline removed")
 		}
-		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{ID: "id"}}, nil
+		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id"}}, nil
 	}}
 	client, err := sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{Timeout: sandbox.Duration(time.Second)})
 	if err != nil {
@@ -214,7 +214,7 @@ func TestCallerDeadlineSurvivesDisabledKitTimeout(t *testing.T) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	if _, err := client.Create(ctx, &sandbox.CreateOptions{Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Value(time.Duration(0))}}); err != nil {
+	if _, err := client.Create(ctx, &sandbox.CreateOptions{Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(time.Duration(0))}}); err != nil {
 		t.Fatal(err)
 	}
 }

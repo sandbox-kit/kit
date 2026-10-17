@@ -1,5 +1,5 @@
 import { DaytonaError, type DaytonaConfig, type Sandbox as DaytonaSandbox } from "@daytona/sdk";
-import {
+import { duration,
   Client,
   EgressMode,
   ErrorKind,
@@ -56,11 +56,11 @@ describe("Daytona mappings", () => {
 
   it("maps an image request with exact resource and policy units", () => {
     const request: CreateOptions = {
-      source: { kind: "image", image: { reference: "node:24" } },
+      source: { kind: { case: "image", value: { reference: "node:24" } } },
       runtime: { language: "typescript" },
       resources: { cpuCores: 2, memoryMib: 2_048n, diskMib: 10_240n },
       lifetime: {
-        idleStop: { mode: PolicyMode.After, after: 120_000 },
+        idleStop: { mode: PolicyMode.After, after: duration(120_000) },
       },
     };
 
@@ -96,14 +96,14 @@ describe("Daytona mappings", () => {
           outboundProxyUrl: "https://proxy.example.com",
         },
         lifetime: {
-          maximumLifetime: 3_600_000,
+          maximumLifetime: duration(3_600_000),
           ephemeral: false,
-          idleStop: { mode: PolicyMode.After, after: 900_000 },
-          stoppedArchive: { mode: PolicyMode.After, after: 86_400_000 },
-          stoppedDelete: { mode: PolicyMode.After, after: 172_800_000 },
+          idleStop: { mode: PolicyMode.After, after: duration(900_000) },
+          stoppedArchive: { mode: PolicyMode.After, after: duration(86_400_000) },
+          stoppedDelete: { mode: PolicyMode.After, after: duration(172_800_000) },
         },
         provisioning: {
-          queueTimeout: 300_000,
+          queueTimeout: duration(300_000),
           waitFor: WaitCondition.Started,
         },
         observability: {
@@ -152,8 +152,8 @@ describe("Daytona mappings", () => {
     expect(() =>
       mapCreateRequest({
         lifetime: {
-          idleStop: { mode: PolicyMode.After, after: 60_000 },
-          idlePause: { mode: PolicyMode.After, after: 60_000 },
+          idleStop: { mode: PolicyMode.After, after: duration(60_000) },
+          idlePause: { mode: PolicyMode.After, after: duration(60_000) },
         },
       }),
     ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "lifetime" }));
@@ -212,7 +212,7 @@ describe("Daytona provider orchestration", () => {
     });
     const client = new Client({ provider, auth: { credentials: { case: "apiKey", value: { key: "secret" } } } });
 
-    const sandbox = await client.create({ source: { kind: "image", image: { reference: "node:24" } } });
+    const sandbox = await client.create({ source: { kind: { case: "image", value: { reference: "node:24" } } } });
     await client.close();
 
     expect(nativeConfig?.apiKey).toBe("secret");

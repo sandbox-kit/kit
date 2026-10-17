@@ -34,11 +34,11 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
 		Runtime: &sandbox.RuntimeConfig{
 			WorkingDirectory: sandbox.Value("/tmp"),
 			Entrypoint:       []string{"echo", "sandbox-kit"},
-			PTY:              sandbox.Value(true),
+			Pty:              sandbox.Value(true),
 		},
 	})
 	if err != nil {

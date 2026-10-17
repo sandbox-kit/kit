@@ -45,6 +45,6 @@ func run() (result error) {
 		return err
 	}
 	info := instance.Info()
-	fmt.Printf("Daytona sandbox: id=%s state=%s native=%s capabilities=%v\n", info.ID, info.State, info.GetProviderState(), instance.Capabilities())
+	fmt.Printf("Daytona sandbox: id=%s state=%s native=%s capabilities=%v\n", info.Id, info.State, info.GetProviderState(), instance.Capabilities())
 	return nil
 }

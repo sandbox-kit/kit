@@ -50,7 +50,7 @@ describe("Modal mappings", () => {
     const plan = mapCreateRequest(
       {
         name: "example",
-        source: { kind: "image", image: { reference: "alpine:3.21" } },
+        source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
         runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
         isolation: { kind: IsolationKind.LinuxVm },
         resources: { cpuCores: 0.5, cpuLimitCores: 1, memoryMib: 512n, memoryLimitMib: 1024n },
@@ -68,9 +68,9 @@ describe("Modal mappings", () => {
           workloadIdentity: true,
           secrets: [{ reference: "credential", injection: SecretInjection.Environment }],
         },
-        lifetime: { maximumLifetime: 300_000, idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
-        readiness: { check: "command", command: { argv: ["true"] } },
-        provisioning: { timeout: 120_000, waitFor: WaitCondition.Ready },
+        lifetime: { maximumLifetime: duration(300_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
+        readiness: { check: { case: "command", value: { argv: ["true"] } } },
+        provisioning: { timeout: duration(120_000), waitFor: WaitCondition.Ready },
         observability: { verbose: true },
         labels: { purpose: "test" },
         environment: { NODE_ENV: "test" },
@@ -119,7 +119,7 @@ describe("Modal mappings", () => {
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: "image", image: { reference: "alpine:3.21" } },
+          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
           environment: { "NOT VALID": "value" },
         },
         config,
@@ -128,7 +128,7 @@ describe("Modal mappings", () => {
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: "image", image: { reference: "alpine:3.21" } },
+          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
           network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
         },
         config,
@@ -184,7 +184,7 @@ describe("Modal provider orchestration", () => {
     });
 
     const sandbox = await client.create({
-      source: { kind: "image", image: { reference: "alpine:3.21" } },
+      source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
       network: { proxyReference: "static-egress" },
     });
     await client.close();

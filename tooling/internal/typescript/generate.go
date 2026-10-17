@@ -10,7 +10,6 @@ import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/typescript/declaration_gen"
 	providergen "github.com/sandbox-kit/kit/tooling/internal/typescript/provider_gen"
-	typesgen "github.com/sandbox-kit/kit/tooling/internal/typescript/types_gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 )
@@ -44,12 +43,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	for _, phase := range phases {
 		var phaseErr error
 		switch phase {
-		case "types":
-			// Client declarations are emitted with the client runtime because both
-			// share client.proto; shared protobuf declarations are emitted here.
-			if file.Desc.Path() == "kit/sandbox/v1/sandbox.proto" {
-				phaseErr = typesgen.Generate(plugin, file, program, profile)
-			}
 		case "mappings":
 			switch providerName {
 			case "daytona":
@@ -67,10 +60,9 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			if providerName != "" {
 				phaseErr = providergen.GenerateConfig(plugin, file, program.Providers[providerName].Rules, program.Schema)
 			}
-		case "copies", "diagnostic_paths", "field_paths", "validation":
-			// These concerns currently share an output unit with types, client, or
-			// mappings. Keeping them in phase dispatch makes omissions explicit and
-			// allows each unit to be split without changing the specification.
+		case "diagnostic_paths", "field_paths", "validation":
+			// Shared/client TypeScript validation and path tables are not emitted yet;
+			// Go owns those helpers. Phases remain listed so omissions stay explicit.
 		default:
 			return fmt.Errorf("%s: unsupported TypeScript emission phase %s", file.Desc.Path(), phase)
 		}

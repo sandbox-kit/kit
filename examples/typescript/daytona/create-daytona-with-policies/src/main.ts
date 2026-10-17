@@ -41,7 +41,7 @@ await using client = new Client(clientConfig());
 const sandbox = await client.create({
   lifetime: {
     idlePause: { mode: PolicyMode.Disabled },
-    stoppedDelete: { mode: PolicyMode.After, after: 10 * 60_000 },
+    stoppedDelete: { mode: PolicyMode.After, after: duration(10 * 60_000) },
   },
 });
 const info = sandbox.info();

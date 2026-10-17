@@ -25,7 +25,7 @@ func TestHandleErrorUsesCommonKind(t *testing.T) {
 		{sandbox.ErrorKindUnknown, "unexpected failure"},
 	} {
 		var output bytes.Buffer
-		err := sandbox.NewError(sandbox.ErrorInfo{Kind: tc.kind, Field: sandbox.CreateFieldResourcesCPUCores, Message: "unexpected failure"}, nil)
+		err := sandbox.NewError(sandbox.ErrorInfo{Kind: tc.kind, Field: sandbox.CreateFieldResourcesCpuCores, Message: "unexpected failure"}, nil)
 		handleError(&output, err)
 		if !strings.Contains(output.String(), tc.want) {
 			t.Fatalf("%s: %s", tc.kind, output.String())

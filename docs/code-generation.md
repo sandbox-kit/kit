@@ -94,18 +94,15 @@ drives provider/language outputs, so adding a provider does not require editing
 the generation command's source list.
 
 These are semantic instructions, not arbitrary expressions or YAML code snippets.
-Constructor and method names come from `specs/api.yaml`. Output suffixes come
-from the language profile. The Go emitter turns these instructions into
-synchronous calls, context deadlines, and error results. The TypeScript emitter
-uses promises, abort signals, timeouts, and thrown errors.
+Client and handle method names live in handwritten runtime code shaped by
+`SandboxService` metadata. Output suffixes come from the language profile.
+Provider mapping and validation emitters consume the portable rules below.
 
 Handle lifecycle operations are registered once as annotated methods on
 `SandboxService` in `proto/kit/sandbox/v1/client.proto`. The shared compiler
-validates their portable operation metadata and option types. The Go lifecycle
-emitter derives public handle methods, typed dispatch, timeouts, metadata
-replacement, terminal updates, and capability discovery from that service. A
-new operation using an existing outcome shape therefore does not require adding
-its name to the Go emitter.
+validates their portable operation metadata and option types. Handwritten
+runtime code owns public handle methods, typed dispatch, timeouts, metadata
+replacement, terminal updates, and capability discovery from that service.
 
 The model resolves shared validation references, shared mapping fields,
 conversion vocabulary, policy relationships, and error kinds/protocol codes.
@@ -128,12 +125,11 @@ collections. Context enrichment avoids an extra wrapper when details already mat
 
 `specs/contracts.yaml` identifies the shared metadata, error, and origin
 declarations and the copy depth, visited-node, and payload-byte limits.
-Error and metadata-copy signatures come from `specs/api.yaml`. `types_gen/runtime.go` emits their behavior bodies
-into `.errors.runtime.gen.go` and `.clone.runtime.gen.go`. Schema `Clone`
-methods are separate: templates declare them, and `*.copy.gen.go` copies fields
-directly, preserving numeric types and owned collections. Metadata has explicit
-signed and unsigned alternatives instead of protobuf Struct's double-only
-numeric representation.
+Portable messages come from standard protobuf generation into contract packages;
+SDK runtimes alias them and keep handwritten clone helpers (for example Go
+`clone.go` and TypeScript metadata helpers). Metadata has explicit signed and
+unsigned alternatives instead of protobuf Struct's double-only numeric
+representation.
 
 `specs/errors.yaml` declares ordered cause rules, fallback classification, context
 reuse, detail preservation, and provider classification precedence. Version 1

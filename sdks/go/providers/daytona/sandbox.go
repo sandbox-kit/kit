@@ -34,8 +34,10 @@ func (*backend) SandboxCapabilities(info *sandbox.SandboxInfo) []sandbox.Lifecyc
 		return nil
 	}
 	gpu := false
-	if count, ok := info.GetProviderMetadata()["gpu_count"].(int64); ok {
-		gpu = count > 0
+	if metadata, err := sandbox.MetadataObjectAsMap(info.GetProviderMetadata()); err == nil {
+		if count, ok := metadata["gpu_count"].(int64); ok {
+			gpu = count > 0
+		}
 	}
 	isolation := info.GetIsolation()
 	if !gpu && isolation != nil && (isolation.Kind == sandbox.IsolationKindLinuxVM || isolation.GetProviderKind() == "windows") {
@@ -74,7 +76,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 			Kind:      sandbox.ErrorKindInvalidResponse,
 			Provider:  "daytona",
 			Operation: "create",
-			Field:     sandbox.InfoFieldID,
+			Field:     sandbox.InfoFieldId,
 			Message:   "sandbox-kit daytona: SDK returned no sandbox",
 		}, nil)
 	}
@@ -110,7 +112,7 @@ func daytonaSandboxInfo(instance *daytona.Sandbox) (sandbox.SandboxInfo, error) 
 	if err != nil {
 		return info, err
 	}
-	if resources.CPUCores != nil {
+	if resources.CpuCores != nil {
 		info.Resources = &resources
 		info.Origins["resources"] = sandbox.ValueOriginProvider
 	}
@@ -180,7 +182,11 @@ func daytonaSandboxInfo(instance *daytona.Sandbox) (sandbox.SandboxInfo, error) 
 	metadata["auto_archive_interval_minutes"] = int64(instance.AutoArchiveInterval)
 	metadata["auto_delete_interval_minutes"] = int64(instance.AutoDeleteInterval)
 	if len(metadata) > 0 {
-		info.ProviderMetadata = metadata
+		object, err := sandbox.MetadataObjectFromMap(metadata)
+		if err != nil {
+			return info, err
+		}
+		info.ProviderMetadata = object
 		info.Origins[sandbox.InfoFieldProviderMetadata] = sandbox.ValueOriginProvider
 	}
 	return info, nil
@@ -386,20 +392,20 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 			}, nil)
 		}
 		config.Egress = 0
-		if config.OutboundCIDRs != nil {
-			if len(config.OutboundCIDRs.Entries) == 0 {
+		if config.OutboundCidrs != nil {
+			if len(config.OutboundCidrs.Entries) == 0 {
 				return plan, sandbox.NewError(sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindUnsupported,
 					Provider:  "daytona",
 					Operation: "create",
-					Field:     sandbox.CreateFieldNetworkOutboundCIDRs,
+					Field:     sandbox.CreateFieldNetworkOutboundCidrs,
 					Message:   "sandbox-kit daytona: empty CIDR allowlist mapping is not verified",
 				}, nil)
 			}
-			value := strings.Join(config.OutboundCIDRs.Entries, ",")
+			value := strings.Join(config.OutboundCidrs.Entries, ",")
 			base.NetworkAllowList = &value
 		}
-		config.OutboundCIDRs = nil
+		config.OutboundCidrs = nil
 		if config.OutboundDomains != nil {
 			if len(config.OutboundDomains.Entries) == 0 {
 				return plan, sandbox.NewError(sandbox.ErrorInfo{
@@ -415,8 +421,8 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		}
 		config.OutboundDomains = nil
 		base.LinkedSandbox = config.GetLinkedSandbox()
-		base.OutboundProxyUrl = config.OutboundProxyURL
-		config.LinkedSandbox, config.OutboundProxyURL = nil, nil
+		base.OutboundProxyUrl = config.OutboundProxyUrl
+		config.LinkedSandbox, config.OutboundProxyUrl = nil, nil
 		if err := sandbox.RejectUnmapped("daytona network", &config); err != nil {
 			return plan, err
 		}
@@ -427,7 +433,7 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		base.Ephemeral = config.GetEphemeral()
 		config.Ephemeral = nil
 		if config.MaximumLifetime != nil {
-			minutes, err := durationMinutes(*config.MaximumLifetime, true)
+			minutes, err := durationMinutes(config.MaximumLifetime.AsDuration(), true)
 			if err != nil {
 				return plan, err
 			}
@@ -448,12 +454,12 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	}
 	if request.Provisioning != nil {
 		config := *request.Provisioning
-		if config.Timeout != nil && *config.Timeout > 0 {
-			plan.options = append(plan.options, options.WithTimeout(*config.Timeout))
+		if timeout := sandbox.OptionalDuration(config.Timeout); timeout != nil && *timeout > 0 {
+			plan.options = append(plan.options, options.WithTimeout(*timeout))
 		}
 		config.Timeout = nil
 		if config.QueueTimeout != nil {
-			minutes, err := durationMinutes(*config.QueueTimeout, false)
+			minutes, err := durationMinutes(config.QueueTimeout.AsDuration(), false)
 			if err != nil {
 				return plan, err
 			}
@@ -501,7 +507,7 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 		}, nil)
 	}
 	if source.GetImage() != nil {
-		params := types.ImageParams{SandboxBaseParams: base, Image: source.Image.Reference}
+		params := types.ImageParams{SandboxBaseParams: base, Image: source.GetImage().Reference}
 		if request.Resources != nil {
 			resources, remaining, err := mapResources(request.Resources)
 			if err != nil {

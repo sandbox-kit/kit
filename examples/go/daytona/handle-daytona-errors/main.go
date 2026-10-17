@@ -49,7 +49,7 @@ func run() (result error) {
 
 	// Invalid CPU demonstrates how an application handles configuration errors.
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
-		Resources: &sandbox.Resources{CPUCores: sandbox.Value(-1.0)},
+		Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)},
 	})
 	if err != nil {
 		handleError(os.Stdout, err)

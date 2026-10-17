@@ -21,6 +21,7 @@ import (
 	sdk "github.com/modal-labs/modal-client/go"
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"google.golang.org/protobuf/proto"
 )
 
 var _ sandbox.SandboxAttacher = (*backend)(nil)
@@ -89,7 +90,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 			Kind:      sandbox.ErrorKindInvalidResponse,
 			Provider:  "modal",
 			Operation: "create",
-			Field:     sandbox.InfoFieldID,
+			Field:     sandbox.InfoFieldId,
 			Message:   "sandbox-kit modal: SDK returned no sandbox",
 		}, nil)
 	}
@@ -106,10 +107,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	info.State = sandbox.SandboxStateRunning
 	info.Labels = plan.params.Tags
 	if request.Isolation != nil {
-		info.Isolation, err = request.Isolation.Clone()
-		if err != nil {
-			return nil, err
-		}
+		info.Isolation = proto.Clone(request.Isolation).(*sandbox.IsolationConfig)
 		info.Origins[sandbox.InfoFieldIsolation] = sandbox.ValueOriginRequest
 	}
 	if info.Name != nil {
@@ -202,8 +200,8 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 		config := *request.Runtime
 		plan.params.Workdir = config.GetWorkingDirectory()
 		plan.params.Command = config.Entrypoint
-		plan.params.PTY = config.GetPTY()
-		config.WorkingDirectory, config.Entrypoint, config.PTY = nil, nil, nil
+		plan.params.PTY = config.GetPty()
+		config.WorkingDirectory, config.Entrypoint, config.Pty = nil, nil, nil
 		if err := sandbox.RejectUnmapped("modal runtime (language must come from image)", &config); err != nil {
 			return plan, err
 		}
@@ -273,27 +271,27 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 			}, nil)
 		}
 		config.Egress = 0
-		if config.OutboundCIDRs != nil {
-			plan.params.OutboundCIDRAllowlist = &sdk.Allowlist{Entries: config.OutboundCIDRs.Entries}
+		if config.OutboundCidrs != nil {
+			plan.params.OutboundCIDRAllowlist = &sdk.Allowlist{Entries: config.OutboundCidrs.Entries}
 		}
-		config.OutboundCIDRs = nil
+		config.OutboundCidrs = nil
 		if config.OutboundDomains != nil {
 			plan.params.OutboundDomainAllowlist = &sdk.Allowlist{Entries: config.OutboundDomains.Entries}
 		}
 		config.OutboundDomains = nil
-		if config.InboundCIDRs != nil {
-			if len(config.InboundCIDRs.Entries) == 0 {
+		if config.InboundCidrs != nil {
+			if len(config.InboundCidrs.Entries) == 0 {
 				return plan, sandbox.NewError(sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindUnsupported,
 					Provider:  "modal",
 					Operation: "create",
-					Field:     sandbox.CreateFieldNetworkInboundCIDRs,
+					Field:     sandbox.CreateFieldNetworkInboundCidrs,
 					Message:   "sandbox-kit modal: empty inbound deny-all cannot be represented by native allow-all",
 				}, nil)
 			}
-			plan.params.InboundCIDRAllowlist = config.InboundCIDRs.Entries
+			plan.params.InboundCIDRAllowlist = config.InboundCidrs.Entries
 		}
-		config.InboundCIDRs = nil
+		config.InboundCidrs = nil
 		plan.params.I6PN = config.GetPrivateNetwork()
 		plan.params.CustomDomain = config.GetCustomDomain()
 		config.PrivateNetwork, config.CustomDomain = nil, nil
@@ -403,10 +401,10 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 	}
 	if request.Readiness != nil {
 		var err error
-		if request.Readiness.TCPPort != nil {
-			plan.params.ReadinessProbe, err = sdk.NewTCPProbe(int(*request.Readiness.TCPPort), nil)
-		} else {
-			plan.params.ReadinessProbe, err = sdk.NewExecProbe(request.Readiness.Command.Argv, nil)
+		if request.Readiness.GetTcpPort() != 0 {
+			plan.params.ReadinessProbe, err = sdk.NewTCPProbe(int(request.Readiness.GetTcpPort()), nil)
+		} else if command := request.Readiness.GetCommand(); command != nil {
+			plan.params.ReadinessProbe, err = sdk.NewExecProbe(command.Argv, nil)
 		}
 		if err != nil {
 			return plan, err
@@ -419,7 +417,8 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 		switch config.WaitFor {
 		case sandbox.WaitConditionDefault, sandbox.WaitConditionScheduled:
 		case sandbox.WaitConditionReady:
-			if request.Provisioning.Timeout == nil || *request.Provisioning.Timeout <= 0 {
+			timeout := sandbox.OptionalDuration(request.Provisioning.Timeout)
+			if timeout == nil || *timeout <= 0 {
 				return plan, sandbox.NewError(sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "modal",
@@ -428,7 +427,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 					Message:   "sandbox-kit modal: readiness waiting requires a positive creation timeout",
 				}, nil)
 			}
-			plan.readyTimeout = *request.Provisioning.Timeout
+			plan.readyTimeout = *timeout
 			if plan.params.ReadinessProbe == nil {
 				return plan, sandbox.NewError(sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,

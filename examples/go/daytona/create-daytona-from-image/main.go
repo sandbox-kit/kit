@@ -34,11 +34,11 @@ func run() (result error) {
 		}
 	}()
 	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"}},
+		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"}}},
 		Resources: &sandbox.Resources{
-			CPUCores:  sandbox.Value(1.0),
-			MemoryMiB: sandbox.Value(uint64(1024)),
-			DiskMiB:   sandbox.Value(uint64(3072)),
+			CpuCores:  sandbox.Value(1.0),
+			MemoryMib: sandbox.Value(uint64(1024)),
+			DiskMib:   sandbox.Value(uint64(3072)),
 		},
 	})
 	if err != nil {
