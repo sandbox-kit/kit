@@ -105,16 +105,20 @@ runtime code owns public handle methods, typed dispatch, timeouts, metadata
 replacement, terminal updates, and capability discovery from that service.
 
 The model resolves shared validation references, shared mapping fields,
-conversion vocabulary, policy relationships, and error kinds/protocol codes.
-Language-specific SDK member checks and generated validator syntax remain in
-the native emitters. Handwritten provider orchestration is still required where
-noted below.
+conversion vocabulary, and policy relationships. Language-specific SDK member
+checks and generated validator syntax remain in the native emitters. Handwritten
+provider orchestration and error classification are still required where noted
+below.
 
 ## Response and error contracts
 
-Go emitters build error expressions through `internal/go/error_gen`; TypeScript
-emitters use `internal/typescript/error_gen`. Each language's schema package
-resolves field paths against full protobuf identities.
+Protobuf owns portable `ErrorInfo` and `ErrorKind`. SDK runtimes alias those
+types and handwrite wrappers (`NewError` / `WithErrorContext` in Go,
+`sandboxError` in TypeScript) plus per-provider classification mappers.
+
+Validation and mapping emitters still build `NewError` / `sandboxError` call
+sites through `internal/go/error_gen` and `internal/typescript/error_gen`. Each
+language's schema package resolves field paths against full protobuf identities.
 Generated `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
 field paths used by mappings and errors. Nested mapping sources can declare
 `error_path`; unknown paths fail generation.
@@ -131,34 +135,10 @@ SDK runtimes alias them and keep handwritten clone helpers (for example Go
 unsigned alternatives instead of protobuf Struct's double-only numeric
 representation.
 
-`specs/errors.yaml` declares ordered cause rules, fallback classification, context
-reuse, detail preservation, and provider classification precedence. Version 1
-supports `canceled` and `deadline_exceeded` cause matches. Go emitters translate
-these into `errors.Is` checks; the first matching cause overrides the supplied
-kind. An invalid kind falls back to `unknown`.
-
-Provider classification follows existing shared error, native type, HTTP status,
-gRPC code, then fallback. Version 1 requires this order and detail preservation;
-unsupported policies fail generation. `reuse_matching_context` controls whether
-an error with matching context is returned unchanged.
-
-Provider `error_statuses` and `error_grpc` map protocol numbers to semantic kinds.
-Modal `error_rules` separates portable classifications from native bindings:
-
-```yaml
-error_rules:
-  timeout_error: timeout
-errors:
-  go:
-    types:
-      - { import: github.com/modal-labs/modal-client/go, name: TimeoutError, rule: timeout_error }
-```
-
-Another language binds the same rule to its native SDK type. Native type names,
-imports, pointer matching, and field members belong in `errors.<language>`.
-Generation rejects unknown kinds, missing rules, invalid protocol codes, and
-missing member bindings. Response groups declare `origin: provider|request` for mapped
-metadata; unavailable fields receive no fabricated values.
+Provider error classification is not generated: Modal and Daytona mappers live
+in handwritten `errors.go` / `errors.ts`. Response groups declare
+`origin: provider|request` for mapped metadata; unavailable fields receive no
+fabricated values.
 
 See [responses and errors](responses-and-errors.md) for the public contract,
 native cause preservation, and copy restrictions.
@@ -312,8 +292,8 @@ readiness, and remaining provider semantics. Bindings alone do not produce a
 complete integration. Generated TypeScript `provider.gen.ts` files own the
 provider/backend identity bases, `provider.config.gen.ts` composes native client
 configuration and retained state, `provider.checks.gen.ts` enforces portable
-provider checks, `provider.errors.gen.ts` classifies native errors, and
-`provider.mappings.gen.ts` contains compiled YAML mapping groups. None of these
+provider checks, and `provider.mappings.gen.ts` contains compiled YAML mapping
+groups. Handwritten `errors.ts` classifies native provider errors. None of these
 files are embedded source templates.
 
 Lifecycle option and result types come from protobuf contracts. Handle methods,

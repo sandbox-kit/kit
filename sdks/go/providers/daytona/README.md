@@ -114,9 +114,9 @@ Tests use a fake HTTP transport and generated checks without cloud provisioning.
 configuration assembly, field/policy conversions, and validation.
 `sandbox.go` retains remaining creation orchestration.
 
-Common error behavior comes from [shared error policy](../../../../specs/errors.yaml).
-Provider YAML declares classifications and native bindings; generated errors
-preserve the original SDK cause. See [responses and errors](../../../../docs/responses-and-errors.md).
+Error classification is handwritten in `errors.go` and preserves the original
+SDK cause. Shared payloads use protobuf `ErrorInfo` / `ErrorKind`. See
+[responses and errors](../../../../docs/responses-and-errors.md).
 
 See [generation](../../../../docs/code-generation.md) and
 [reference verification](../../../../docs/provider-verification.md).

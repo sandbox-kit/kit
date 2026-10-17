@@ -12,7 +12,7 @@ import {
   type TerminateOptions,
 } from "@sandbox-kit/sandbox";
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
-import { mapModalError } from "./provider.errors.gen.js";
+import { mapModalError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 import { captureProviderState, type ProviderState } from "./provider.config.gen.js";
 

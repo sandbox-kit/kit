@@ -14,7 +14,7 @@ import { App, InvalidError, Proxy, type Image, type Sandbox as ModalSandbox, typ
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
 import { ModalProvider } from "./modal.js";
 import { captureProviderState } from "./provider.config.gen.js";
-import { mapModalError } from "./provider.errors.gen.js";
+import { mapModalError } from "./errors.js";
 
 describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {

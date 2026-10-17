@@ -13,7 +13,7 @@ import { describe, expect, it } from "vitest";
 
 import { DaytonaProvider } from "./daytona.js";
 import { mapClientConfig, mapCreateRequest, type DaytonaCreateParams } from "./mappings.js";
-import { mapDaytonaError } from "./provider.errors.gen.js";
+import { mapDaytonaError } from "./errors.js";
 
 describe("Daytona mappings", () => {
   it("maps API-key client configuration without exposing the provider", () => {

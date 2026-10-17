@@ -125,18 +125,12 @@ type RuntimeBinding struct {
 	Cleanup     Cleanup      `yaml:"cleanup"`
 }
 type Provider struct {
-	ErrorRules      map[string]string         `yaml:"error_rules"`
-	ErrorCodes      map[string]string         `yaml:"error_codes"`
-	ErrorStatusZero string                    `yaml:"error_status_zero"`
-	ErrorStatuses   map[int]string            `yaml:"error_statuses"`
-	ErrorGRPC       map[int]string            `yaml:"error_grpc"`
-	Errors          map[string]ErrorBinding   `yaml:"errors"`
-	Checks          []Check                   `yaml:"checks"`
-	Client          *ClientMapping            `yaml:"client"`
-	Runtime         map[string]RuntimeBinding `yaml:"runtime"`
-	Version         int                       `yaml:"version"`
-	Provider        string                    `yaml:"provider"`
-	Groups          []Group                   `yaml:"groups"`
+	Checks   []Check                   `yaml:"checks"`
+	Client   *ClientMapping            `yaml:"client"`
+	Runtime  map[string]RuntimeBinding `yaml:"runtime"`
+	Version  int                       `yaml:"version"`
+	Provider string                    `yaml:"provider"`
+	Groups   []Group                   `yaml:"groups"`
 }
 
 type Targets struct {
@@ -178,16 +172,6 @@ func LoadTargets(root string) (Targets, error) {
 	return targets, nil
 }
 
-type ErrorBinding struct {
-	Types  []ErrorType `yaml:"types"`
-	Target Binding     `yaml:"target"`
-}
-type ErrorType struct {
-	Import  string `yaml:"import"`
-	Name    string `yaml:"name"`
-	Pointer bool   `yaml:"pointer"`
-	Rule    string `yaml:"rule"`
-}
 type Check struct {
 	AllowEmpty        bool     `yaml:"allow_empty"`
 	ExclusivePolicies []string `yaml:"exclusive_policies"`
@@ -273,14 +257,13 @@ func LoadClient(root string) (Client, error) {
 }
 
 type Contracts struct {
-	Errors          ErrorPolicy `yaml:"-"`
-	Version         int         `yaml:"version"`
-	CopyMaxDepth    int         `yaml:"copy_max_depth"`
-	CopyMaxNodes    int         `yaml:"copy_max_nodes"`
-	CopyMaxBytes    int         `yaml:"copy_max_bytes"`
-	MetadataMessage string      `yaml:"metadata_message"`
-	ErrorMessage    string      `yaml:"error_message"`
-	OriginEnum      string      `yaml:"origin_enum"`
+	Version         int    `yaml:"version"`
+	CopyMaxDepth    int    `yaml:"copy_max_depth"`
+	CopyMaxNodes    int    `yaml:"copy_max_nodes"`
+	CopyMaxBytes    int    `yaml:"copy_max_bytes"`
+	MetadataMessage string `yaml:"metadata_message"`
+	ErrorMessage    string `yaml:"error_message"`
+	OriginEnum      string `yaml:"origin_enum"`
 }
 
 func LoadContracts(root string) (Contracts, error) {
@@ -288,9 +271,6 @@ func LoadContracts(root string) (Contracts, error) {
 	err := decode(filepath.Join(root, "contracts.yaml"), &c)
 	if err == nil && (c.Version != 1 || c.CopyMaxDepth < 1 || c.CopyMaxDepth > 256 || c.CopyMaxNodes < 1 || c.CopyMaxBytes < 1 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo" || c.OriginEnum != "ValueOrigin") {
 		err = fmt.Errorf("invalid response/error contracts spec")
-	}
-	if err == nil {
-		c.Errors, err = LoadErrorPolicy(root)
 	}
 	return c, err
 }
