@@ -20,7 +20,7 @@ import {
 import type { Duration } from "@sandbox-kit/sandbox";
 
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
-import { mapDaytonaError } from "./provider.errors.gen.js";
+import { mapDaytonaError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {

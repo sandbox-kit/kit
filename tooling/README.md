@@ -82,9 +82,9 @@ its `go.sum`, then run `sandbox-kit test go` again.
 ## Compilation and emission
 
 The plugin compiles the supplied protobuf descriptors and YAML once per plugin invocation into `internal/model/`.
-The model resolves schema identities, client methods, field paths, mappings, and
-error classifications without Go syntax or SDK dependencies. Provider bindings
-remain attached to the specifications for selection by each language emitter.
+The model resolves schema identities, client methods, field paths, and mappings
+without Go syntax or SDK dependencies. Provider bindings remain attached to the
+specifications for selection by each language emitter.
 
 Portable public types come from protobuf contracts. `specs/templates.yaml` declares reusable
 signatures and field-path rules for descriptor-driven helpers.
@@ -102,15 +102,14 @@ duplicating schema resolution or semantic classification.
 
 ## Layout
 
-`internal/go/error_gen/` owns shared error-expression emission.
-`internal/go/schema/` resolves descriptor-backed paths. The type emitter also
-generates public path constants and response provenance validation.
+`internal/go/error_gen/` owns shared error-expression emission for validation
+and mapping call sites. `internal/go/schema/` resolves descriptor-backed paths.
+The type emitter also generates public path constants and response provenance
+validation.
 
-Response/error generation reads `specs/contracts.yaml` and `specs/errors.yaml`.
-The latter declares cause classification, context reuse, detail preservation,
-and classification precedence. Unsupported policy alternatives fail generation.
-Provider error classifiers come from portable protocol rules and native SDK
-bindings. Runtime facades and metadata clone helpers stay handwritten.
+`specs/contracts.yaml` identifies portable metadata, error, and origin messages
+plus copy limits. Provider error classification is handwritten in each SDK;
+runtime facades and metadata clone helpers stay handwritten.
 
 | Directory                              | Responsibility                                                                          |
 | -------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -125,7 +124,7 @@ bindings. Runtime facades and metadata clone helpers stay handwritten.
 | `internal/go/schema/`                  | Descriptor resolution and canonical field paths                                         |
 | `internal/go/validation_gen/`          | Shared validation and enum checks                                                       |
 | `internal/go/mapping_gen/`             | Field conversions and policy mappings                                                   |
-| `internal/go/provider_gen/`            | Provider checks, config assembly, and error classification                              |
+| `internal/go/provider_gen/`            | Provider checks and config assembly                                                     |
 | `internal/go/naming/`                  | Go field and enum naming                                                                |
 | `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives                                |
 | `internal/typescript/error_gen/`       | Shared TypeScript error construction                                                    |

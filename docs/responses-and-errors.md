@@ -4,8 +4,8 @@ Protobuf defines `SandboxInfo`, `ValueOrigin`, `ErrorInfo`, and `ErrorKind`.
 Validation failures include an optional stable `rule` identifier so applications
 do not need to parse human-readable messages. Examples include `finite`,
 `nonblank`, `exclusive_minimum`, `known_enum`, and cross-field operation names.
-YAML declares provider classification and response mappings. Generators emit
-native Go and TypeScript types, owned copies, error helpers, and provider mappings.
+Error wrappers, cause chaining, and provider classification are handwritten per
+language. YAML still declares response mappings and validation used by generators.
 
 ## Response presence and origin
 
@@ -40,7 +40,7 @@ current name/labels are request-derived. Daytona maps SDK-reported metadata.
 ## Handle errors in an application
 
 Initialization, creation, lifecycle operations, and cleanup expose `*sandbox.Error`.
-Its generated `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`, `Rule`,
+Its protobuf `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`, `Rule`,
 and `Message`. Optional `StatusCode`, `ProviderCode`, and `ProviderSource`
 retain native machine details when available.
 
@@ -104,7 +104,7 @@ their original cause; no speculative retry classification is added.
 ## Constructing errors
 
 Applications normally receive errors from the client. Custom integrations can
-construct a common error with a generated details object and a runtime cause:
+construct a common error with a protobuf `ErrorInfo` and a runtime cause:
 
 ```go
 err := sandbox.NewError(sandbox.ErrorInfo{
@@ -116,27 +116,24 @@ err := sandbox.NewError(sandbox.ErrorInfo{
 }, cause)
 ```
 
-The constructor owns a copy of the details, including optional pointers.
-The native cause stays separate from the serializable contract.
-Context enrichment reuses an error when its provider/operation already match.
-It creates an owned copy only when context needs to change.
+`NewError` and `WithErrorContext` are handwritten. The constructor owns a copy
+of the details, including optional pointers. The native cause stays separate
+from the serializable contract. Cancellation and deadline causes override the
+supplied kind (`canceled` / `timeout`). Context enrichment reuses an error when
+its provider/operation already match and copies only when context must change.
 
-## Error policy sources
+## Classification
 
-[Shared error policy](../specs/errors.yaml) declares cancellation/deadline
-classification, unknown fallback, context reuse, detail preservation, and
-provider classification precedence. Ordered cause rules take priority over the
-supplied kind: cancellation becomes `canceled`, deadline expiry becomes `timeout`.
+Classification is handwritten in each language and provider so native SDK type
+names, `errors.As` / `instanceof`, gRPC codes, and HTTP status maps stay local:
 
-Provider YAML contains protocol mappings and portable rules. Modal binds its
-portable `error_rules` to native SDK types through language-specific bindings;
-Daytona binds native status/code/source members the same way. Go and TypeScript
-emitters implement their native matching, owned details, and cause chaining.
+- Precedence: existing shared error, then native type, then protocol status/code,
+  then unknown.
+- Modal: native Modal error types, then gRPC status codes.
+- Daytona: `DaytonaError` provider codes, then HTTP statuses.
 
-Version 1 requires existing shared errors to take priority over native types,
-then HTTP statuses, gRPC codes, and fallback. Unsupported policy alternatives
-fail generation. See [generation](code-generation.md#response-and-error-contracts)
-for the specification vocabulary.
+See [generation](code-generation.md#response-and-error-contracts) for how
+validation/mapping emitters still construct `NewError` call sites.
 
 ## Exact metadata copying
 

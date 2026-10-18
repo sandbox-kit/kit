@@ -44,8 +44,10 @@ data:
 
 - supported capabilities and unsupported intent;
 - field-level mapping to an official provider SDK;
-- validation and representation rules;
-- provider-native error classification.
+- validation and representation rules.
+
+Error payloads live in protobuf (`ErrorInfo` / `ErrorKind`). Wrappers, cause
+chaining, and provider-native classification are handwritten per language.
 
 It must not prescribe method signatures, constructors, response shapes,
 visibility, or operation sequences.  A future mapping/validation compiler may

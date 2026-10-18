@@ -5,7 +5,7 @@ SDK runtimes alias those generated contract types and keep constructors,
 facades, and orchestration handwritten.
 
 YAML no longer declares a parallel public API surface. Remaining specs describe
-provider rules, validation, mappings, errors, templates, and language profiles:
+provider rules, validation, mappings, templates, and language profiles:
 
 | Spec | Role |
 | --- | --- |
@@ -14,7 +14,10 @@ provider rules, validation, mappings, errors, templates, and language profiles:
 | `specs/behaviors.yaml` | Behavior compatibility checks before emission |
 | `specs/languages/<language>.yaml` | Native representation and output conventions |
 | `specs/providers/*.yaml` | Provider mappings, checks, and bindings |
-| `specs/validation.yaml` / `specs/errors.yaml` / `specs/contracts.yaml` | Shared validation, error policy, and contract limits |
+| `specs/validation.yaml` / `specs/contracts.yaml` | Shared validation and contract limits |
+
+Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
+provider classification are handwritten per language.
 
 ## Language profiles
 
@@ -28,6 +31,7 @@ callers).
 
 - `Client` / `Sandbox` facades and lifecycle dispatch
 - Provider selection, native SDK initialization, and cleanup
+- Error wrappers, cause chaining, and provider-native error classification
 - Metadata clone helpers and request materialization at language boundaries
 - Provider orchestration that the mapping vocabulary cannot express
 

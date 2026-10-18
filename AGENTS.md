@@ -47,7 +47,9 @@ representations rather than silently losing type or presence semantics.
 
 Shared validation, provider checks, configuration assembly, and expressible
 conversions belong in specs and generators. Native symbols and SDK type/member
-bindings belong in the target language's binding section.
+bindings belong in the target language's binding section. Portable error
+payloads (`ErrorInfo` / `ErrorKind`) live in protobuf; error wrappers, cause
+chaining, and provider classification are handwritten per language.
 
 - Keep semantic rules independent of target-language code.
 - Translate validator tags in the Go emitter.

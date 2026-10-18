@@ -4,46 +4,9 @@ import (
 	"fmt"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/reflect/protoreflect"
-	"sort"
 	"strings"
 )
 
-// Kind preserves the contract enum identity; emitters derive native identifiers.
-type Kind struct {
-	Name   protoreflect.FullName
-	Number protoreflect.EnumNumber
-}
-
-func (s *Schema) ErrorKind(name string) (Kind, error) {
-	m, err := s.Message("ErrorInfo")
-	if err != nil {
-		return Kind{}, err
-	}
-	field := m.Fields().ByName("kind")
-	if field == nil || field.Enum() == nil {
-		return Kind{}, fmt.Errorf("ErrorInfo.kind must be an enum")
-	}
-	value := field.Enum().Values().ByName(protoreflect.Name("ERROR_KIND_" + strings.ToUpper(name)))
-	if value == nil {
-		return Kind{}, fmt.Errorf("unknown error kind %s", name)
-	}
-	return Kind{Name: value.FullName(), Number: value.Number()}, nil
-}
-
-// ErrorCase is portable classification. Native rule IDs are bound separately.
-type ErrorCase struct {
-	Code     int
-	CodeText string
-	Rule     string
-	Kind     Kind
-}
-type ErrorPlan struct {
-	Native  []ErrorCase
-	Codes   []ErrorCase
-	HTTP    []ErrorCase
-	GRPC    []ErrorCase
-	Default *Kind
-}
 type Mapping struct {
 	Rule      spec.Mapping
 	Shared    FieldPath
@@ -56,7 +19,6 @@ type Group struct {
 type Provider struct {
 	Rules  spec.Provider
 	Groups []Group
-	Errors ErrorPlan
 }
 
 func CompileProvider(schema *Schema, rules spec.Provider) (Provider, error) {
@@ -76,68 +38,6 @@ func CompileProvider(schema *Schema, rules spec.Provider) (Provider, error) {
 				if variable == "" || strings.ContainsAny(variable, "=\x00") {
 					return result, fmt.Errorf("invalid environment variable")
 				}
-			}
-		}
-	}
-	ruleNames := make([]string, 0, len(rules.ErrorRules))
-	for rule := range rules.ErrorRules {
-		ruleNames = append(ruleNames, rule)
-	}
-	sort.Strings(ruleNames)
-	for _, rule := range ruleNames {
-		kind, err := schema.ErrorKind(rules.ErrorRules[rule])
-		if err != nil {
-			return result, err
-		}
-		result.Errors.Native = append(result.Errors.Native, ErrorCase{Rule: rule, Kind: kind})
-	}
-	for _, input := range []struct {
-		rules    map[int]string
-		target   *[]ErrorCase
-		min, max int
-	}{{rules.ErrorStatuses, &result.Errors.HTTP, 100, 599}, {rules.ErrorGRPC, &result.Errors.GRPC, 1, 16}} {
-		codes := make([]int, 0, len(input.rules))
-		for code := range input.rules {
-			codes = append(codes, code)
-		}
-		sort.Ints(codes)
-		for _, code := range codes {
-			if code < input.min || code > input.max {
-				return result, fmt.Errorf("invalid protocol error code %d", code)
-			}
-			kind, err := schema.ErrorKind(input.rules[code])
-			if err != nil {
-				return result, err
-			}
-			*input.target = append(*input.target, ErrorCase{Code: code, Kind: kind})
-		}
-	}
-	codeNames := make([]string, 0, len(rules.ErrorCodes))
-	for code := range rules.ErrorCodes {
-		codeNames = append(codeNames, code)
-	}
-	sort.Strings(codeNames)
-	for _, code := range codeNames {
-		if code == "" {
-			return result, fmt.Errorf("empty provider error code")
-		}
-		kind, err := schema.ErrorKind(rules.ErrorCodes[code])
-		if err != nil {
-			return result, err
-		}
-		result.Errors.Codes = append(result.Errors.Codes, ErrorCase{CodeText: code, Kind: kind})
-	}
-	if rules.ErrorStatusZero != "" {
-		kind, err := schema.ErrorKind(rules.ErrorStatusZero)
-		if err != nil {
-			return result, err
-		}
-		result.Errors.Default = &kind
-	}
-	for _, binding := range rules.Errors {
-		for _, native := range binding.Types {
-			if _, ok := rules.ErrorRules[native.Rule]; !ok {
-				return result, fmt.Errorf("missing portable error rule %s", native.Rule)
 			}
 		}
 	}

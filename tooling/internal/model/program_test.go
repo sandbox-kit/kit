@@ -59,29 +59,23 @@ func TestPortablePathIdentityAndPresence(t *testing.T) {
 
 func TestPortableProviderCompilation(t *testing.T) {
 	s := NewSchema([]protoreflect.FileDescriptor{fixture(t)})
-	rules := spec.Provider{Provider: "test", ErrorRules: map[string]string{"credentials": "authentication"}, ErrorStatuses: map[int]string{403: "authentication", 401: "authentication"},
-		Errors: map[string]spec.ErrorBinding{"go": {Types: []spec.ErrorType{{Name: "GoCredentialError", Rule: "credentials"}}}, "typescript": {Types: []spec.ErrorType{{Name: "JavaScriptCredentialError", Rule: "credentials"}}}},
+	rules := spec.Provider{Provider: "test",
 		Groups: []spec.Group{{Name: "resources", Direction: "request", Source: spec.Type{Name: "Resources"}, Target: spec.Type{Name: "NativeResources", Bindings: map[string]spec.Binding{"go": {Name: "Resources"}}}, Fields: []spec.Mapping{{From: "cpu_cores", To: "cpu", Transform: "whole"}}}},
 	}
 	compiled, err := CompileProvider(s, rules)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if compiled.Errors.HTTP[0].Code != 401 || compiled.Errors.Native[0].Kind.Number != 3 {
-		t.Fatal("classification identity or ordering lost")
-	}
 	mapping := compiled.Groups[0].Fields[0]
 	if mapping.ErrorPath != "resources.cpu_cores" || mapping.Shared.Fields[0].Kind() != protoreflect.DoubleKind {
 		t.Fatal("mapping was not resolved")
 	}
-	// Changing a language binding cannot alter the semantic plan.
-	rules.Errors["typescript"] = spec.ErrorBinding{Types: []spec.ErrorType{{Name: "DifferentNativeName", Rule: "credentials"}}}
 	other, err := CompileProvider(s, rules)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(compiled.Errors, other.Errors) {
-		t.Fatal("language binding changed semantic classification")
+	if !reflect.DeepEqual(compiled.Groups, other.Groups) {
+		t.Fatal("provider compilation was not deterministic")
 	}
 	rules.Groups[0].Fields[0].Transform = "arbitrary_code"
 	if _, err := CompileProvider(s, rules); err == nil {
@@ -95,8 +89,7 @@ func TestCompileResolvesSpecsBeforeEmission(t *testing.T) {
 		"generation.yaml": "version: 1\nshared: [diagnostic_paths, field_paths, validation]\nclient: [diagnostic_paths, field_paths]\nprovider: [checks, mappings]\n",
 		"validation.yaml": "version: 1\nmessages:\n  Resources:\n    fields:\n      cpu_cores: {finite: true}\n",
 		"client.yaml":     "version: 1\nconfig_message: Config\nrepresentation:\n  version: 1\n  messages: {}\nvalidation:\n  version: 1\n  messages:\n    Config:\n      fields:\n        endpoint: {nonblank: true}\n",
-		"contracts.yaml":  "version: 1\ncopy_max_depth: 64\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n",
-		"errors.yaml":     "version: 1\nfallback_kind: unknown\ncause_rules: []\nexisting_error: {reuse_matching_context: true, preserve_details: true}\nclassification_precedence: [existing_error, native_type, http_status, grpc_code, fallback]\n",
+		"contracts.yaml": "version: 1\ncopy_max_depth: 64\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n",
 	}
 	generation, readErr := os.ReadFile(filepath.Join("..", "..", "..", "specs", "generation.yaml"))
 	if readErr != nil {

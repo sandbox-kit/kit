@@ -1,4 +1,6 @@
 // Native Daytona error translation is handwritten.
+// Classification order: existing *sandbox.Error, canceled/deadline causes,
+// DaytonaError code then HTTP status, then unknown.
 // mapProviderError classifies a native SDK error into a shared kind and keeps
 // the original cause.
 //
