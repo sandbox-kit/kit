@@ -169,3 +169,6 @@
 {"type":"turn_ended","status":"success"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Sunday, Oct 18, 2026, 1:38 PM (UTC+5:30)</timestamp>\n<user_query>\ncool commit it\n</user_query>"}]}}
 {"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"cd /Users/nabhag/OpenSource/kit && git status && echo '====' && git diff --stat && echo '====' && git log -5 --oneline && echo '====' && git diff --stat --cached && echo '====' && git status -u --short | head -80","description":"Inspect git status, diff, recent commits"}}]}}
+{"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"cd /Users/nabhag/OpenSource/kit && git add -A && git commit -m \"$(cat <<'EOF'\nHandwrite provider field mappings and drop the mapping emitters.\n\nPromote Modal/Daytona mapping and config helpers into SDK sources, clear Kit emit phases/targets, and remove the remaining custom emitter packages so handwritten SDKs are authoritative.\nEOF\n)\" && git status -sb && git log -1 --oneline","description":"Stage all changes and create commit"}}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Committed as `6e7a449` — *Handwrite provider field mappings and drop the mapping emitters.*"}]}}
+{"type":"turn_ended","status":"success"}
