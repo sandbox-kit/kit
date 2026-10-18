@@ -1,0 +1,97 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M56ZGTNSJEYPNQBXA7M7RZWZ",
+  "session_id": "0d476f72-31cd-4976-b361-21f3d9232924",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-18T07:44:48.684116Z",
+  "branch": "feat/shared-val-proto",
+  "checkpoints_count": 10,
+  "save_step_count": 4,
+  "files_touched": [
+    ".gitignore",
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/go/sandbox/create_validation_test.go",
+    "sdks/go/sandbox/errors.go",
+    "sdks/go/sandbox/tests/contracts_test.go",
+    "sdks/go/sandbox/validation_fields.go",
+    "specs/behaviors.yaml",
+    "specs/generation.yaml",
+    "specs/targets.yaml",
+    "specs/templates.yaml",
+    "specs/validation.yaml",
+    "tooling/README.md",
+    "tooling/internal/go/generate.go",
+    "tooling/internal/model/behaviors_test.go",
+    "tooling/internal/model/templates.go",
+    "tooling/internal/spec/generation.go",
+    "tooling/internal/spec/generation_test.go"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "419a80be23af",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 60757,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3708928,
+    "output_tokens": 14017,
+    "api_call_count": 3
+  },
+  "session_metrics": {
+    "turn_count": 10
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-18T07:44:48.659476Z",
+    "agent_lines": 2277,
+    "agent_removed": 0,
+    "human_added": 12,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 2289,
+    "total_lines_changed": 2289,
+    "agent_percentage": 99.47575360419397,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}
