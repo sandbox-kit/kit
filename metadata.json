@@ -1,0 +1,57 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M57029PXD9YB4S5M0AV4ZB7N",
+  "strategy": "manual-commit",
+  "branch": "feat/shared-val-proto",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "sdks/go/providers/daytona/provider.validation.gen.go",
+    "sdks/go/providers/daytona/provider_checks.go",
+    "sdks/go/providers/modal/provider.validation.gen.go",
+    "sdks/go/providers/modal/provider_checks.go",
+    "sdks/typescript/providers/daytona/src/mappings.ts",
+    "sdks/typescript/providers/daytona/src/provider.checks.gen.ts",
+    "sdks/typescript/providers/daytona/src/provider_checks.ts",
+    "sdks/typescript/providers/modal/src/mappings.ts",
+    "sdks/typescript/providers/modal/src/provider.checks.gen.ts",
+    "sdks/typescript/providers/modal/src/provider_checks.ts",
+    "specs/behaviors.yaml",
+    "specs/generation.yaml",
+    "specs/providers/daytona.yaml",
+    "specs/providers/modal.yaml",
+    "specs/templates.yaml",
+    "tooling/README.md",
+    "tooling/internal/go/generate.go",
+    "tooling/internal/go/provider_gen/checks.go",
+    "tooling/internal/go/provider_gen/checks_test.go",
+    "tooling/internal/go/provider_gen/schema.go",
+    "tooling/internal/model/behaviors_test.go",
+    "tooling/internal/model/templates.go",
+    "tooling/internal/spec/generation.go",
+    "tooling/internal/spec/generation_test.go",
+    "tooling/internal/typescript/generate.go",
+    "tooling/internal/typescript/provider_gen/checks.go",
+    "tooling/internal/typescript/provider_gen/checks_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 14097,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2399616,
+    "output_tokens": 7631,
+    "api_call_count": 1
+  }
+}

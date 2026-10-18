@@ -1,0 +1,45 @@
+in last chat whcih I archieve there were step 3 to step 5 step which was left. can u see which were they ?
+
+---
+
+I had removed everything for step 3 which was implemented as I felt it didn't do it right. 
+
+https://protovalidate.com/about/
+
+here's is docs of protovalidate lemme know how u will do it.
+
+---
+
+can u explian with or without raw protoc. we dont use buf can u explian more.
+
+---
+
+should we have proto generate with buf first what do u think ?
+
+---
+
+do as per your suggestion
+
+---
+
+instead of vendor Ig we should just write validation handwritten for now. once we do everythin else we will convert this to protovalidate.
+
+---
+
+can u first delete this .gomodcache its just keep on coming.
+
+---
+
+again came fix the root cause
+
+---
+
+cool now instead of using protovalidate we have to have handwritten validation continue for that
+
+---
+
+can u check all the changes which are currently done are as per step 3. + no protovalidate
+
+---
+
+cool now can we start with step 4. after commit of this changes
