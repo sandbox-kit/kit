@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M56WH0946Y4TDKVRM91RVH7G",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 12,
+  "files_touched": [
+    "AGENTS.md",
+    "README.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "proto/kit/codegen/v1/options.proto",
+    "proto/kit/providers/daytona/v1/provider.proto",
+    "proto/kit/providers/modal/v1/provider.proto",
+    "proto/kit/sandbox/v1/client.proto",
+    "proto/kit/sandbox/v1/sandbox.proto",
+    "sdks/go/contracts/internal/codegen/v1/options.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/typescript/contracts/src/kit/codegen/v1/options_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts",
+    "specs/behaviors.yaml",
+    "specs/generation.yaml",
+    "tooling/README.md",
+    "tooling/internal/gen/codegen/v1/options.pb.go",
+    "tooling/internal/model/behaviors_test.go",
+    "tooling/internal/model/program.go",
+    "tooling/internal/spec/generation.go",
+    "tooling/internal/spec/generation_test.go",
+    "tooling/internal/typescript/generate.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 239176,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 8627456,
+    "output_tokens": 43409,
+    "api_call_count": 9
+  }
+}
