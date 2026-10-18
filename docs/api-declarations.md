@@ -9,12 +9,12 @@ provider rules, validation, mappings, templates, and language profiles:
 
 | Spec                                             | Role                                                           |
 | ------------------------------------------------ | -------------------------------------------------------------- |
-| `specs/generation.yaml`                          | Remaining Kit emission phases (validation, checks, mappings)   |
+| `specs/generation.yaml`                          | Remaining Kit emission phases (checks, mappings)               |
 | `specs/templates.yaml`                           | Helper signatures; field-path naming for handwritten constants |
 | `specs/behaviors.yaml`                           | Signature checks for helper templates still emitted            |
 | `specs/languages/<language>.yaml`                | Native representation and output conventions                   |
 | `specs/providers/*.yaml`                         | Provider mappings, checks, and bindings                        |
-| `specs/validation.yaml` / `specs/contracts.yaml` | Shared validation and contract limits                          |
+| `specs/validation.yaml` / `specs/contracts.yaml` | Portable create-validation inventory and contract limits       |
 
 Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
 provider classification are handwritten per language.

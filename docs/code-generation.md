@@ -51,7 +51,7 @@ YAML or import protobuf messages.
 | `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
 | `proto/kit/providers/`            | Thin provider descriptor entrypoints for remaining Kit emitters            |
 | `specs/targets.yaml`              | Language/provider output modules and source descriptors                    |
-| `specs/validation.yaml`           | Portable validation rules                                                  |
+| `specs/validation.yaml`           | Portable create-validation inventory (handwritten in the Go SDK today)     |
 | `specs/providers/<provider>.yaml` | Provider capability, validation, mapping, and error-classification rules   |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
@@ -67,8 +67,8 @@ sequencing.
 
 ## Generation plan
 
-`specs/generation.yaml` selects remaining Kit emission phases (shared
-validation, provider checks and mappings). Path/error helpers and Client/Sandbox
+`specs/generation.yaml` selects remaining Kit emission phases (provider checks
+and mappings). Shared create validation, path/error helpers, and Client/Sandbox
 method bodies are handwritten. The Go dispatcher consumes this plan rather than
 loading specifications independently for each emitter. It rejects missing or
 duplicate phases.

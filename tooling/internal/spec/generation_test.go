@@ -13,8 +13,9 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, old, new string }{
-		{"unknown phase", "shared: [validation]", "shared: [arbitrary_code]"},
-		{"missing phase", "shared: [validation]", "shared: []"},
+		{"unknown shared phase", "shared: []", "shared: [validation]"},
+		{"unknown provider phase", "provider: [checks, mappings]", "provider: [checks, mappings, arbitrary_code]"},
+		{"missing provider phase", "provider: [checks, mappings]", "provider: [checks]"},
 		{"duplicate phase", "provider: [checks, mappings]", "provider: [checks, mappings, checks]"},
 		{"client phases removed", "provider: [checks, mappings]", "client: [validation]\nprovider: [checks, mappings]"},
 	} {
@@ -35,8 +36,8 @@ func TestGenerationLoadsPhasePlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plan.Shared) != 1 || plan.Shared[0] != "validation" {
-		t.Fatalf("shared phases = %#v", plan.Shared)
+	if len(plan.Shared) != 0 {
+		t.Fatalf("shared phases should be empty, got %#v", plan.Shared)
 	}
 	if len(plan.Client) != 0 {
 		t.Fatalf("client phases should be empty, got %#v", plan.Client)

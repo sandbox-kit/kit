@@ -8,7 +8,6 @@ import (
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	mappinggen "github.com/sandbox-kit/kit/tooling/internal/go/mapping_gen"
 	providergen "github.com/sandbox-kit/kit/tooling/internal/go/provider_gen"
-	validationgen "github.com/sandbox-kit/kit/tooling/internal/go/validation_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -26,13 +25,11 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 		return err
 	}
 	var phases []string
-	rules := spec.Validation{}
-	root := "CreateOptions"
 	var provider model.Provider
 	switch {
 	case file.Desc.Path() == "kit/sandbox/v1/sandbox.proto":
-		phases = program.Generation.Shared
-		rules = program.Validation
+		// Shared create validation is handwritten; no shared emission phases remain.
+		return nil
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Client):
 		// Client path/error helpers are handwritten; no emission phases remain.
 		return nil
@@ -46,8 +43,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	for _, phase := range phases {
 		var err error
 		switch phase {
-		case "validation":
-			err = validationgen.Generate(plugin, file, rules, root, program.Templates, profile)
 		case "checks":
 			err = providergen.GenerateChecks(plugin, file, provider.Rules, program.Templates, profile)
 		case "mappings":

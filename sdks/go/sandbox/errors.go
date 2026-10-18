@@ -14,10 +14,8 @@ package sandbox
 import (
 	context "context"
 	errors "errors"
-	v10 "github.com/go-playground/validator/v10"
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	"google.golang.org/protobuf/proto"
-	strings "strings"
 )
 
 // ErrorInfo and ErrorKind are the generated portable protobuf contracts.
@@ -131,47 +129,3 @@ func WithErrorContext(err error, provider string, operation string) error {
 	return NewError(ErrorInfo{Kind: ErrorKindUnknown, Provider: provider, Operation: operation, Message: err.Error()}, err)
 }
 
-// validationError wraps a validator failure as ErrorKindInvalidArgument and
-// records the first invalid field path.
-func validationError(err error) error {
-	field := ""
-	rule := ""
-	var fields v10.ValidationErrors
-	if errors.As(err, &fields) && len(fields) > 0 {
-		field = validationPath(fields[0].StructNamespace())
-		rule = fields[0].Tag()
-		switch rule {
-		case "gt":
-			rule = "exclusive_minimum"
-		case "gte":
-			rule = "minimum"
-		case "lte":
-			rule = "maximum"
-		case "min":
-			rule = "min_items"
-		}
-	}
-	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Field: field, Rule: Value(rule), Message: "sandbox-kit: invalid configuration"}, err)
-}
-
-// validationPath converts a validator namespace such as Config.Auth.APIKey
-// into the canonical path auth.api_key.
-func validationPath(namespace string) string {
-	parts := strings.Split(namespace, ".")
-	if len(parts) > 1 {
-		parts = parts[1:]
-	}
-	for i, part := range parts {
-		base, suffix := part, ""
-		if index := strings.IndexByte(part, '['); index >= 0 {
-			base, suffix = part[:index], part[index:]
-		}
-		if native, ok := validationFieldNames[base]; ok {
-			parts[i] = native + suffix
-		}
-		if native, ok := configValidationFieldNames[base]; ok {
-			parts[i] = native + suffix
-		}
-	}
-	return strings.Join(parts, ".")
-}

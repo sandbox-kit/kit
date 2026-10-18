@@ -1,6 +1,6 @@
 # Signature requirements for helper templates still consumed by Kit emitters.
-# Client/handle/provider orchestration behaviors are handwritten and are not
-# checked here.
+# Client/handle/provider orchestration and shared create validation are
+# handwritten and are not checked here.
 version: 1
 signatures:
   provider_checks:
@@ -40,22 +40,4 @@ signatures:
       - type:
           ref: target
     fallible: true
-    cancellable: false
-  validation:
-    owner: function
-    params:
-      - id: request
-        type:
-          ref: subject
-          nullable: true
-          reference: true
-    fallible: true
-    cancellable: false
-  validator_factory:
-    owner: function
-    results:
-      - type:
-          ref: validator
-          reference: true
-    fallible: false
     cancellable: false

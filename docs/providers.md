@@ -38,10 +38,11 @@ Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`)
 and service metadata. Runtime constructors, client facades, provider
 orchestration, and error classification stay handwritten.
 `specs/behaviors.yaml` checks helper-template signatures before emission. Other
-YAML declares validation, configuration assembly, field conversions, provider
-checks, and native bindings. The shared compiler resolves these inputs into a
-language-neutral model. Go and TypeScript emitters consume the compiled mappings;
-`specs/generation.yaml` declares remaining generation phases (validation, checks,
+YAML declares provider validation, configuration assembly, field conversions,
+provider checks, and native bindings. Shared create validation is handwritten in
+the SDK. The shared compiler resolves these inputs into a language-neutral model.
+Go and TypeScript emitters consume the compiled mappings;
+`specs/generation.yaml` declares remaining generation phases (checks,
 mappings).
 
 Provider `sandbox.go` files and provider-named TypeScript files retain

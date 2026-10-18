@@ -53,7 +53,7 @@ they come from contract packages plus handwritten aliases such as
 
 | File                                 | Purpose                                                |
 | ------------------------------------ | ------------------------------------------------------ |
-| `*.validation.gen.go`                | Shared request validation                              |
+| `create_validation.go`               | Handwritten shared CreateOptions validation            |
 | `validation_fields.go`               | Handwritten Go↔protobuf field-name maps for validators |
 | `field_paths.go` / `config_paths.go` | Handwritten canonical field-path constants             |
 | `provider.mappings.gen.go`           | Request and metadata field conversions                 |

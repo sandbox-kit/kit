@@ -3,28 +3,6 @@ version: 1
 # field_paths remains so mapping/check emitters can reference handwritten
 # CreateField*/ConfigField*/InfoField* constants by canonical path.
 callables:
-  validator_factory:
-    declaration:
-      id: validator_factory
-      name: "new{subject}Validator"
-      doc: "builds the validator used by Validate{subject}."
-      behavior: validator_factory
-      results: [{ type: { ref: validator, reference: true } }]
-  validation:
-    declaration:
-      id: validation
-      name: "Validate{subject}"
-      doc: "rejects {subject} values the shared contract cannot represent. A nil request is treated as omitted configuration. Account quotas stay with the provider."
-      behavior: validation
-      params:
-        [
-          {
-            id: request,
-            name: request,
-            type: { ref: subject, reference: true, nullable: true },
-          },
-        ]
-      fallible: true
   request_mapping:
     declaration:
       id: request_mapping
@@ -78,6 +56,3 @@ field_paths:
     CreateOptions: CreateField
     Config: ConfigField
     SandboxInfo: InfoField
-  native_leaves: [kit.sandbox.v1.MetadataObject]
-  native_namespaces: [google.protobuf.]
-  excluded_origins: [origins]

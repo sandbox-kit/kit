@@ -27,7 +27,7 @@ func LoadGeneration(root string) (Generation, error) {
 		allowed  []string
 		required bool
 	}{
-		{"shared", result.Shared, []string{"validation"}, true},
+		{"shared", result.Shared, nil, false},
 		{"client", result.Client, nil, false},
 		{"provider", result.Provider, []string{"checks", "mappings"}, true},
 	}
@@ -36,7 +36,7 @@ func LoadGeneration(root string) (Generation, error) {
 			return result, fmt.Errorf("%s: missing generation phase", role.name)
 		}
 		if !role.required && len(role.phases) != 0 {
-			return result, fmt.Errorf("%s: path helpers are handwritten; no client emission phases remain", role.name)
+			return result, fmt.Errorf("%s: no emission phases remain; shared create validation and client helpers are handwritten", role.name)
 		}
 		seen := map[string]bool{}
 		for _, phase := range role.phases {

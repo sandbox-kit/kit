@@ -21,7 +21,7 @@ func CompileTemplates(raw spec.Templates) (Templates, error) {
 	if raw.Version != 1 || len(raw.Callables) == 0 {
 		return result, fmt.Errorf("unsupported or empty declaration templates")
 	}
-	for _, name := range []string{"validator_factory", "validation", "request_mapping", "response_mapping", "provider_checks"} {
+	for _, name := range []string{"request_mapping", "response_mapping", "provider_checks"} {
 		if _, ok := raw.Callables[name]; !ok {
 			return result, fmt.Errorf("missing declaration template %s", name)
 		}

@@ -7,7 +7,6 @@ import (
 	"math"
 	"testing"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	"google.golang.org/protobuf/proto"
 )
@@ -126,9 +125,8 @@ func TestLocalErrorDetailsAndOriginalValidator(t *testing.T) {
 	client, _ := newTestClient(&creationBackend{})
 	_, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)}})
 	var detail *sandbox.Error
-	var original validator.ValidationErrors
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != "resources.cpu_cores" || detail.Provider != "test" || detail.Operation != "create" || !errors.As(err, &original) {
-		t.Fatalf("missing shared/native validation details: %v", err)
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != "resources.cpu_cores" || detail.Provider != "test" || detail.Operation != "create" || detail.GetRule() != "exclusive_minimum" {
+		t.Fatalf("missing shared validation details: %v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()

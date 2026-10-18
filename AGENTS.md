@@ -34,27 +34,29 @@ native SDK; the public client owns cleanup through `Close`.
 ## Generation and validation
 
 Compile portable specifications and descriptor references into the shared model
-before language emission. Keep remaining emission phases in `specs/generation.yaml` (shared validation,
-provider checks/mappings — not path helpers or Client/Sandbox choreography).
-Shared data contracts live in `proto/` and are emitted by standard protobuf
-plugins into language contract packages; SDK runtimes alias those types by hand
-rather than regenerating parallel structs. Put native representation rules in
+before language emission. Keep remaining emission phases in `specs/generation.yaml`
+(provider checks/mappings — not shared create validation, path helpers, or
+Client/Sandbox choreography). Shared create validation is handwritten in the SDK
+(`ValidateCreateOptions`); `specs/validation.yaml` is the portable inventory to
+keep in sync until those rules move onto protobuf (Protovalidate). Shared data
+contracts live in `proto/` and are emitted by standard protobuf plugins into
+language contract packages; SDK runtimes alias those types by hand rather than
+regenerating parallel structs. Put native representation rules in
 `specs/languages/<language>.yaml`. Keep helper declaration rules and field-path
 naming for handwritten constants in `specs/templates.yaml`. Check helper-template
 behavior compatibility against `specs/behaviors.yaml` before emission. Keep
 language capability and filename convention checks in their backends. Emitters
-own native syntax for validation, mappings, and provider checks; reject
-unsupported representations rather than silently losing type or presence
-semantics.
+own native syntax for mappings and provider checks; reject unsupported
+representationsations rather than silently losing type or presence semantics.
 
-Shared validation, provider checks, configuration assembly, and expressible
-conversions belong in specs and generators. Native symbols and SDK type/member
-bindings belong in the target language's binding section. Portable error
-payloads (`ErrorInfo` / `ErrorKind`) live in protobuf; error wrappers, cause
-chaining, and provider classification are handwritten per language.
+Provider checks, configuration assembly, and expressible conversions belong in
+specs and generators. Shared create validation and native symbols/SDK
+type/member bindings belong in handwritten SDK code or the target language's
+binding section. Portable error payloads (`ErrorInfo` / `ErrorKind`) live in
+protobuf; error wrappers, cause chaining, and provider classification are
+handwritten per language.
 
-- Keep semantic rules independent of target-language code.
-- Translate validator tags in the Go emitter.
+- Keep semantic rules independent of target-language code where they still emit.
 - Add vocabulary operations with semantic tests; do not embed raw code in YAML.
 - Document SDK orchestration that remains handwritten.
 - Compare references with the pinned SDK version. Resolve conflicting docs

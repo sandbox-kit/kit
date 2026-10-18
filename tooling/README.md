@@ -92,9 +92,10 @@ descriptor-driven helpers. `specs/behaviors.yaml` checks those helper signatures
 before emission. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
 control native representation and output conventions. Templates retain structured
 type bindings; body emitters resolve explicit symbols instead of renaming text.
-`specs/generation.yaml` declares remaining output phases (paths, validation,
-checks, mappings). Annotated `SandboxService` methods describe the portable
-operation graph; public Client/Sandbox methods are handwritten.
+`specs/generation.yaml` declares remaining output phases (checks, mappings).
+Shared create validation is handwritten in the Go SDK. Annotated
+`SandboxService` methods describe the portable operation graph; public
+Client/Sandbox methods are handwritten.
 `internal/go/generate.go` and `internal/typescript/generate.go` dispatch the
 compiled program to focused native emitters. Adding another language requires an
 emitter for that vocabulary and native SDK bindings; it does not require
@@ -102,9 +103,9 @@ duplicating schema resolution or semantic classification.
 
 ## Layout
 
-`internal/go/error_gen/` owns shared error-expression emission for validation
-and mapping call sites. `internal/go/schema/` resolves descriptor-backed paths
-so remaining emitters can reference handwritten field-path constants.
+`internal/go/error_gen/` owns shared error-expression emission for mapping and
+check call sites. `internal/go/schema/` resolves descriptor-backed paths so
+remaining emitters can reference handwritten field-path constants.
 
 `specs/contracts.yaml` identifies portable metadata, error, and origin messages
 plus copy limits. Provider error classification is handwritten in each SDK;
@@ -120,7 +121,6 @@ runtime facades and metadata clone helpers stay handwritten.
 | `internal/go/declaration_gen/`         | Declaration primitives                                   |
 | `internal/go/error_gen/`               | Consistent shared error expressions                      |
 | `internal/go/schema/`                  | Descriptor resolution and canonical field paths          |
-| `internal/go/validation_gen/`          | Shared validation and enum checks                        |
 | `internal/go/mapping_gen/`             | Field conversions and policy mappings                    |
 | `internal/go/provider_gen/`            | Provider checks and config assembly                      |
 | `internal/go/naming/`                  | Go field and enum naming                                 |
