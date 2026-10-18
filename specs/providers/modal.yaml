@@ -1,5 +1,7 @@
 version: 1
 provider: modal
+# Provider create checks are handwritten in sdks/*/providers/modal (provider_checks).
+# Keep this list in sync with those implementations; it is not emitted.
 checks:
   - { path: resources.cpu_cores, minimum: 0.125 }
   - { path: resources.memory_mib, minimum: 128 }
@@ -7,7 +9,11 @@ checks:
   - { path: placement.cloud, allowed: [aws, gcp, oci, auto] }
   - { path: network.outbound_cidrs.entries, format: cidr, allow_empty: true }
   - { path: network.inbound_cidrs.entries, format: cidr }
-  - { path: network.outbound_domains.entries, format: domain, allow_empty: true }
+  - {
+      path: network.outbound_domains.entries,
+      format: domain,
+      allow_empty: true,
+    }
   - { path: environment, format: env_name }
 client:
   target:
@@ -18,13 +24,20 @@ client:
         name: ClientParams
         fields: { oauth: OAuthCredentials }
         objects:
-          oauth: { import: github.com/modal-labs/modal-client/go, name: OAuthCredentialsParams }
+          oauth:
+            {
+              import: github.com/modal-labs/modal-client/go,
+              name: OAuthCredentialsParams,
+            }
       typescript:
         import: modal
         name: ModalClientParams
   managed: [provider, timeout]
   retained: [region]
-  rejected: { endpoint: "Endpoint cannot be configured through this SDK's public client constructor" }
+  rejected:
+    {
+      endpoint: "Endpoint cannot be configured through this SDK's public client constructor",
+    }
   scope: { field: scope, group: mapClientScope, retained: [app_name] }
   auth:
     - { field: token_pair, group: mapTokenPairCredentials }
@@ -66,6 +79,8 @@ runtime:
           doc: "is the captured default region preference. Omission uses the provider default.",
         }
     cleanup: { method: close, accepts_context: false, returns_error: false }
+# Mapping groups are handwritten in sdks/*/providers/modal (provider_mappings).
+# Keep this inventory in sync with those implementations; it is not emitted.
 groups:
   - name: mapSandboxIdentity
     direction: response
@@ -127,19 +142,48 @@ groups:
         go:
           import: github.com/modal-labs/modal-client/go
           name: SandboxCreateParams
-          fields: { cpu: CPU, cpu_limit: CPULimit, memory: MemoryMiB, memory_limit: MemoryLimitMiB }
+          fields:
+            {
+              cpu: CPU,
+              cpu_limit: CPULimit,
+              memory: MemoryMiB,
+              memory_limit: MemoryLimitMiB,
+            }
         typescript:
           import: modal
           name: SandboxCreateParams
-          fields: { cpu: cpu, cpu_limit: cpuLimit, memory: memoryMiB, memory_limit: memoryLimitMiB }
+          fields:
+            {
+              cpu: cpu,
+              cpu_limit: cpuLimit,
+              memory: memoryMiB,
+              memory_limit: memoryLimitMiB,
+            }
           representations:
             cpu: {}
             cpu_limit: {}
     fields:
-      - { from: cpu_cores, to: cpu, transform: scaled_integer, factor: 1000, maximum: 4294967295 }
-      - { from: cpu_limit_cores, to: cpu_limit, transform: scaled_integer, factor: 1000, maximum: 4294967295 }
+      - {
+          from: cpu_cores,
+          to: cpu,
+          transform: scaled_integer,
+          factor: 1000,
+          maximum: 4294967295,
+        }
+      - {
+          from: cpu_limit_cores,
+          to: cpu_limit,
+          transform: scaled_integer,
+          factor: 1000,
+          maximum: 4294967295,
+        }
       - { from: memory_mib, to: memory, maximum: 2147483647, cast: integer }
-      - { from: memory_limit_mib, to: memory_limit, maximum: 2147483647, cast: integer }
+      - {
+          from: memory_limit_mib,
+          to: memory_limit,
+          maximum: 2147483647,
+          cast: integer,
+        }
   - name: mapLifetimeDuration
     direction: request
     source: { name: LifetimePolicy }
@@ -157,7 +201,12 @@ groups:
           representations:
             timeout: { maximum: 86400000 }
     fields:
-      - { from: maximum_lifetime, to: timeout, transform: duration_seconds, maximum: 86400 }
+      - {
+          from: maximum_lifetime,
+          to: timeout,
+          transform: duration_seconds,
+          maximum: 86400,
+        }
   - name: mapIdleDuration
     error_path: lifetime.idle_terminate
     direction: request
@@ -176,7 +225,12 @@ groups:
           representations:
             timeout: { maximum: 4294967295000 }
     fields:
-      - { from: after, to: timeout, transform: duration_seconds, maximum: 4294967295 }
+      - {
+          from: after,
+          to: timeout,
+          transform: duration_seconds,
+          maximum: 4294967295,
+        }
   - name: mapTokenPairCredentials
     direction: request
     source: { name: TokenPairCredentials }
@@ -203,7 +257,13 @@ groups:
         go:
           import: github.com/modal-labs/modal-client/go
           name: OAuthCredentialsParams
-          fields: { refresh_token: RefreshToken, client_id: ClientID, client_secret: ClientSecret, jwt_key: JWTKey }
+          fields:
+            {
+              refresh_token: RefreshToken,
+              client_id: ClientID,
+              client_secret: ClientSecret,
+              jwt_key: JWTKey,
+            }
         typescript:
           import: modal
           name: ModalClientParams

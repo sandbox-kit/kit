@@ -1,0 +1,37 @@
+// Client configuration composition for the native SDK constructor.
+// Kept in sync with specs/providers/daytona.yaml client: rules (not emitted).
+
+import type { DaytonaConfig as NativeClientConfig } from "@daytona/sdk";
+import { ErrorKind, sandboxError, validateConfig, type Config } from "@sandbox-kit/sandbox";
+import { mapAPIKeyCredentials, mapBearerAuth, mapClientSettings, mapScope } from "./provider_mappings.js";
+
+export type Environment = Readonly<Record<string, string | undefined>>;
+
+export function mapGeneratedClientConfig(config: Config, environment: Environment = environmentVariables()): NativeClientConfig {
+  let source = config;
+  if (source.endpoint === undefined) source = { ...source, endpoint: environment.DAYTONA_API_URL ?? environment.DAYTONA_SERVER_URL ?? "https://app.daytona.io/api" };
+  validateConfig(source, "daytona", "initialize");
+  const target: NativeClientConfig = mapClientSettings(source, "initialize");
+  if (source.scope !== undefined) {
+    const mapped = mapScope(source.scope, "initialize");
+    Object.assign(target, mapped);
+    if (source.scope.appName !== undefined) unsupported("scope.appName", "unsupported client configuration field");
+    if (source.scope.environment !== undefined) unsupported("scope.environment", "unsupported client configuration field");
+    if (source.scope.projectId !== undefined) unsupported("scope.projectId", "unsupported client configuration field");
+  }
+  const credentials = source.auth?.credentials;
+  if (credentials?.case === "apiKey") {
+    const mapped = mapAPIKeyCredentials(credentials.value, "initialize");
+    Object.assign(target, mapped);
+  } else if (credentials?.case === "bearerToken") {
+    const mapped = mapBearerAuth(credentials.value, "initialize");
+    Object.assign(target, mapped);
+  } else if (credentials?.case !== undefined) {
+    unsupported("auth", "unsupported authentication mode");
+  }
+  return target;
+}
+
+function environmentVariables(): Environment { return (globalThis as { readonly process?: { readonly env?: Environment } }).process?.env ?? {}; }
+
+function unsupported(field: string, message: string): never { throw sandboxError({ kind: ErrorKind.Unsupported, provider: "daytona", operation: "initialize", field, message: "sandbox-kit daytona: " + message }); }

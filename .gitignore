@@ -1,5 +1,8 @@
 .DS_Store
 
+# Never keep a repo-local Go module cache.
+.gomodcache/
+
 # Local credentials; only blank templates belong in Git.
 .env
 .env.*

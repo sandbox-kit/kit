@@ -1,8 +1,14 @@
 version: 1
+# Portable CreateOptions rules. Enforced by handwritten ValidateCreateOptions in
+# sdks/go/sandbox/create_validation.go (not emitted). Keep this inventory in sync
+# with that implementation.
 messages:
   SandboxSource:
     constraints:
-      - { op: at_most_one, fields: [provider_default, image, snapshot, warm_pool] }
+      - {
+          op: at_most_one,
+          fields: [provider_default, image, snapshot, warm_pool],
+        }
   ImageSource:
     fields:
       reference: { nonblank: true, format: image_reference }
@@ -52,13 +58,29 @@ messages:
       linked_sandbox: { nonblank: true }
       proxy_reference: { nonblank: true }
     constraints:
-      - { op: requires_any, fields: [outbound_cidrs, outbound_domains], when: { field: egress, equals: 3 } }
+      - {
+          op: requires_any,
+          fields: [outbound_cidrs, outbound_domains],
+          when: { field: egress, equals: 3 },
+        }
       - {
           op: forbids,
-          fields: [outbound_cidrs, outbound_domains, private_network, linked_sandbox, inbound_cidrs, ports],
+          fields:
+            [
+              outbound_cidrs,
+              outbound_domains,
+              private_network,
+              linked_sandbox,
+              inbound_cidrs,
+              ports,
+            ],
           when: { field: egress, equals: 2 },
         }
-      - { op: forbids, fields: [outbound_cidrs, outbound_domains], when: { field: egress, equals: 1 } }
+      - {
+          op: forbids,
+          fields: [outbound_cidrs, outbound_domains],
+          when: { field: egress, equals: 1 },
+        }
   PortBinding:
     fields:
       port: { minimum: 1, maximum: 65535 }

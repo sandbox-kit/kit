@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestGeneratedValidationRules(t *testing.T) {
+func TestCreateValidationRules(t *testing.T) {
 	cases := []struct {
 		name   string
 		config *CreateOptions

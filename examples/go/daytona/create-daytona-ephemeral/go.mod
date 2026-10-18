@@ -28,16 +28,12 @@ require (
 	github.com/daytona/clients/api-client-go v0.222.0 // indirect
 	github.com/daytona/clients/sdk-go v0.222.0 // indirect
 	github.com/daytona/clients/toolbox-api-client-go v0.222.0 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-playground/locales v0.14.1 // indirect
-	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.30.5 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
-	github.com/leodido/go-urn v1.5.0 // indirect
+	github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.46.0 // indirect
@@ -48,7 +44,6 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
 	go.opentelemetry.io/otel/trace v1.46.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.11.0 // indirect
-	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
@@ -61,3 +56,5 @@ require (
 replace github.com/sandbox-kit/kit/sdks/go/sandbox => ../../../../sdks/go/sandbox
 
 replace github.com/sandbox-kit/kit/sdks/go/providers/daytona => ../../../../sdks/go/providers/daytona
+
+replace github.com/sandbox-kit/kit/sdks/go/contracts => ../../../../sdks/go/contracts

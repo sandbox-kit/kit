@@ -232,26 +232,22 @@ Requires Go 1.26.9 or newer. From `tooling/`:
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit test go
-GOWORK=off go run ./cmd/sandbox-kit generate go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
 GOWORK=off go run ./cmd/sandbox-kit test typescript
-GOWORK=off go run ./cmd/sandbox-kit generate typescript
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
 ```
 
-Generation also requires `protoc`. Verification tests the SDK, tooling, providers,
-and every example module. Example tests use dummy credentials and local
-servers; they create no cloud resources. Each module is checked independently
-with `GOWORK=off`. See [tooling setup](tooling/README.md) for workspace synchronization
-and dependency checksum updates.
+Contract generation requires `protoc`. Verification tests the SDK, tooling,
+providers, and every example module. Example tests use dummy credentials and
+local servers; they create no cloud resources. Each module is checked
+independently with `GOWORK=off`. See [tooling setup](tooling/README.md) for
+workspace synchronization and dependency checksum updates.
 
-Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
-Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves
-these inputs before language emission. Portable public types come from protobuf
-contracts with handwritten SDK aliases. Helper-template checks live in
-`specs/behaviors.yaml`, and remaining generation phases in
-`specs/generation.yaml`. Each language profile supplies native representation and
-file suffixes. Runtime modules live in `sdks/<language>/`.
-Update examples and docs with public changes, regenerate affected output, and
-verify before submitting. See [tooling](tooling/README.md) and
+Put contracts in `proto/`, portable rule inventories in `specs/`, and the
+developer CLI in `tooling/`. Portable public types come from protobuf contracts
+with handwritten SDK aliases. Runtime modules live in `sdks/<language>/`.
+Update examples and docs with public changes, regenerate contracts when `proto/`
+changes, and verify before submitting. See [tooling](tooling/README.md) and
 [repository instructions](AGENTS.md).
 
 ## License

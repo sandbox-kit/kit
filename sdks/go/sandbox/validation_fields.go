@@ -6,6 +6,30 @@
 //	path := validationPath("CreateOptions.Resources.CPUCores")
 package sandbox
 
+import "strings"
+
+// validationPath converts a Go struct namespace such as Config.Auth.APIKey into
+// the canonical path auth.api_key.
+func validationPath(namespace string) string {
+	parts := strings.Split(namespace, ".")
+	if len(parts) > 1 {
+		parts = parts[1:]
+	}
+	for i, part := range parts {
+		base, suffix := part, ""
+		if index := strings.IndexByte(part, '['); index >= 0 {
+			base, suffix = part[:index], part[index:]
+		}
+		if native, ok := validationFieldNames[base]; ok {
+			parts[i] = native + suffix
+		}
+		if native, ok := configValidationFieldNames[base]; ok {
+			parts[i] = native + suffix
+		}
+	}
+	return strings.Join(parts, ".")
+}
+
 var validationFieldNames = map[string]string{
 	"After":                "after",
 	"Argv":                 "argv",

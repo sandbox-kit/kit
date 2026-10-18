@@ -1,10 +1,10 @@
 # Modal provider for Sandbox Kit
 
-The provider adapts the official `modal@0.11.0` SDK to the generated Sandbox Kit
-TypeScript contracts. Configuration and portable field mappings are generated
-from protobuf plus `specs/providers/modal.yaml`; `src/modal.ts` contains SDK call
-ordering and `src/mappings.ts` contains only the remaining composition that
-cannot be expressed as portable field mappings.
+The provider adapts the official `modal@0.11.0` SDK to the Sandbox Kit
+TypeScript contracts. Checks and portable field mappings are handwritten in
+`provider_checks.ts`, `provider_mappings.ts`, and `provider_config.ts`, kept in
+sync with `specs/providers/modal.yaml`. `src/modal.ts` owns SDK call ordering;
+`src/mappings.ts` owns remaining composition that those helpers do not cover.
 
 ```ts
 import { modal } from "@sandbox-kit/provider-modal";
@@ -12,7 +12,9 @@ import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider: modal(),
-  auth: { credentials: { case: "tokenPair", value: { id: "...", secret: "..." } } },
+  auth: {
+    credentials: { case: "tokenPair", value: { id: "...", secret: "..." } },
+  },
   scope: { appName: "my-app", environment: "main" },
 });
 ```

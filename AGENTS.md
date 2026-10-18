@@ -2,28 +2,27 @@
 
 ## Contracts and modules
 
-- Keep shared contracts in `proto/`, portable rules in versioned YAML under
-  `specs/`, and runtime SDKs in `sdks/<language>/`.
-- Implement all generators in the single Go module under `tooling/`.
-  Put language emitters in `tooling/internal/<language>/` and shared semantic
-  compilation in `tooling/internal/model/`.
-- Keep contracts independent of language runtime dependencies. Each emitter owns
-  native constructor conventions and names.
+- Keep shared contracts in `proto/`, portable rule inventories in versioned YAML
+  under `specs/`, and runtime SDKs in `sdks/<language>/`.
+- Keep the developer CLI and YAML inventory loaders in the Go module under
+  `tooling/`. Kit custom emitters are retired; SDK helpers are handwritten.
+- Keep contracts independent of language runtime dependencies. Each provider
+  owns native constructor conventions and names.
 - Keep the public SDK, optional providers, and future harness integrations in
   separate modules. Each provider depends on its official SDK.
 
 ## Public API and provider ownership
 
-Applications construct `sandbox.NewClient` with the generated `sandbox.Config`
-and select a provider through `Config.Provider`. The provider initializes its
-native SDK; the public client owns cleanup through `Close`.
+Applications construct `sandbox.NewClient` with `sandbox.Config` and select a
+provider through `Config.Provider`. The provider initializes its native SDK; the
+public client owns cleanup through `Close`.
 
 - Keep initialized native SDK clients private.
 - Implement a unified interface over existing SDKs; do not expose a generic raw
   SDK accessor or require application callbacks for standard mappings.
 - Use typed integration code. Do not invoke SDK methods through reflection.
-- Expose shared request/response types as generated native language types.
-  Protobuf remains a schema input.
+- Expose shared request/response types as native language types from protobuf
+  contracts plus handwritten aliases. Protobuf remains a schema input.
 - Creation returns a sandbox handle. Implement lifecycle methods on that handle
   separately from creation configuration.
 - Preserve field presence, units, source kinds, and provider defaults.
@@ -33,33 +32,26 @@ native SDK; the public client owns cleanup through `Close`.
 
 ## Generation and validation
 
-Compile portable specifications and descriptor references into the shared model
-before language emission. Keep remaining emission phases in `specs/generation.yaml` (shared validation,
-provider checks/mappings — not path helpers or Client/Sandbox choreography).
+Kit custom emitters are retired. Shared create validation
+(`ValidateCreateOptions`), provider checks (`validateProviderCreate`), field
+mappings, configuration assembly, path helpers, and Client/Sandbox choreography
+are handwritten in `sdks/`. `specs/validation.yaml`, `specs/client.yaml`,
+`specs/contracts.yaml`, and each provider's `checks:` / `groups:` remain
+inventories to keep in sync with handwritten code.
+
 Shared data contracts live in `proto/` and are emitted by standard protobuf
 plugins into language contract packages; SDK runtimes alias those types by hand
-rather than regenerating parallel structs. Put native representation rules in
-`specs/languages/<language>.yaml`. Keep helper declaration rules and field-path
-naming for handwritten constants in `specs/templates.yaml`. Check helper-template
-behavior compatibility against `specs/behaviors.yaml` before emission. Keep
-language capability and filename convention checks in their backends. Emitters
-own native syntax for validation, mappings, and provider checks; reject
-unsupported representations rather than silently losing type or presence
-semantics.
+rather than regenerating parallel structs. Portable error payloads (`ErrorInfo` /
+`ErrorKind`) live in protobuf; error wrappers, cause chaining, and provider
+classification are handwritten per language.
 
-Shared validation, provider checks, configuration assembly, and expressible
-conversions belong in specs and generators. Native symbols and SDK type/member
-bindings belong in the target language's binding section. Portable error
-payloads (`ErrorInfo` / `ErrorKind`) live in protobuf; error wrappers, cause
-chaining, and provider classification are handwritten per language.
-
-- Keep semantic rules independent of target-language code.
-- Translate validator tags in the Go emitter.
-- Add vocabulary operations with semantic tests; do not embed raw code in YAML.
+- Keep portable rules in YAML as inventories; implement behavior in SDK code.
 - Document SDK orchestration that remains handwritten.
 - Compare references with the pinned SDK version. Resolve conflicting docs
   explicitly rather than guessing semantics.
-- Edit schemas/specs/emitters and regenerate; never hand-edit `.gen.go` files.
+- Edit `proto/` and regenerate contract packages with
+  `sandbox-kit generate contracts-go` / `contracts-typescript`; never hand-edit
+  protobuf-plugin output.
 - Follow [naming conventions](docs/naming.md), preserve numeric enum values,
   and preserve explicit serialized names.
 
