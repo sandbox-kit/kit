@@ -731,10 +731,10 @@ type CreateOptions struct {
 	Lifetime *LifetimePolicy `protobuf:"bytes,11,opt,name=lifetime,proto3" json:"lifetime,omitempty"`
 	// sets the creation deadline, queue timeout, and wait condition. JSON name is "creation".
 	Provisioning  *ProvisioningOptions `protobuf:"bytes,12,opt,name=provisioning,json=creation,proto3" json:"provisioning,omitempty"`
-	Readiness     *ReadinessProbe      `protobuf:"bytes,14,opt,name=readiness,proto3" json:"readiness,omitempty"`
-	Observability *ObservabilityConfig `protobuf:"bytes,15,opt,name=observability,proto3" json:"observability,omitempty"`
+	Readiness     *ReadinessProbe      `protobuf:"bytes,13,opt,name=readiness,proto3" json:"readiness,omitempty"`
+	Observability *ObservabilityConfig `protobuf:"bytes,14,opt,name=observability,proto3" json:"observability,omitempty"`
 	// holds provider-specific declarative options. It is never an SDK object or an auth credential.
-	ProviderOptions *MetadataObject `protobuf:"bytes,16,opt,name=provider_options,json=providerOptions,proto3" json:"provider_options,omitempty"`
+	ProviderOptions *MetadataObject `protobuf:"bytes,15,opt,name=provider_options,json=providerOptions,proto3" json:"provider_options,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3176,7 +3176,7 @@ var File_kit_sandbox_v1_sandbox_proto protoreflect.FileDescriptor
 
 const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\n" +
-	"\x1ckit/sandbox/v1/sandbox.proto\x12\x0ekit.sandbox.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc4\b\n" +
+	"\x1ckit/sandbox/v1/sandbox.proto\x12\x0ekit.sandbox.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xac\b\n" +
 	"\rCreateOptions\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tH\x00R\x04name\x88\x01\x01\x125\n" +
 	"\x06source\x18\x02 \x01(\v2\x1d.kit.sandbox.v1.SandboxSourceR\x06source\x127\n" +
@@ -3191,16 +3191,16 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	" \x01(\v2\x1e.kit.sandbox.v1.SecurityConfigR\bsecurity\x12:\n" +
 	"\blifetime\x18\v \x01(\v2\x1e.kit.sandbox.v1.LifetimePolicyR\blifetime\x12C\n" +
 	"\fprovisioning\x18\f \x01(\v2#.kit.sandbox.v1.ProvisioningOptionsR\bcreation\x12<\n" +
-	"\treadiness\x18\x0e \x01(\v2\x1e.kit.sandbox.v1.ReadinessProbeR\treadiness\x12I\n" +
-	"\robservability\x18\x0f \x01(\v2#.kit.sandbox.v1.ObservabilityConfigR\robservability\x12I\n" +
-	"\x10provider_options\x18\x10 \x01(\v2\x1e.kit.sandbox.v1.MetadataObjectR\x0fproviderOptions\x1a>\n" +
+	"\treadiness\x18\r \x01(\v2\x1e.kit.sandbox.v1.ReadinessProbeR\treadiness\x12I\n" +
+	"\robservability\x18\x0e \x01(\v2#.kit.sandbox.v1.ObservabilityConfigR\robservability\x12I\n" +
+	"\x10provider_options\x18\x0f \x01(\v2\x1e.kit.sandbox.v1.MetadataObjectR\x0fproviderOptions\x1a>\n" +
 	"\x10EnvironmentEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\a\n" +
-	"\x05_nameJ\x04\b\r\x10\x0eR\x10provider_context\"\x9d\x02\n" +
+	"\x05_name\"\x9d\x02\n" +
 	"\rSandboxSource\x12R\n" +
 	"\x10provider_default\x18\x01 \x01(\v2%.kit.sandbox.v1.ProviderDefaultSourceH\x00R\x0fproviderDefault\x123\n" +
 	"\x05image\x18\x02 \x01(\v2\x1b.kit.sandbox.v1.ImageSourceH\x00R\x05image\x12<\n" +

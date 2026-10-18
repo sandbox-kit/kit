@@ -246,10 +246,10 @@ and dependency checksum updates.
 Put contracts in `proto/`, portable rules in `specs/`, and all generators in the
 Go module under `tooling/`. A shared compiler in `tooling/internal/model/` resolves
 these inputs before language emission. Portable public types come from protobuf
-contracts with handwritten SDK aliases. Behavior checks live in
-`specs/behaviors.yaml`, and generation phases in `specs/generation.yaml`. Each
-language profile supplies native representation and file suffixes. Runtime
-modules live in `sdks/<language>/`.
+contracts with handwritten SDK aliases. Helper-template checks live in
+`specs/behaviors.yaml`, and remaining generation phases in
+`specs/generation.yaml`. Each language profile supplies native representation and
+file suffixes. Runtime modules live in `sdks/<language>/`.
 Update examples and docs with public changes, regenerate affected output, and
 verify before submitting. See [tooling](tooling/README.md) and
 [repository instructions](AGENTS.md).

@@ -30,9 +30,9 @@ type ClientDeclaration struct {
 	// The protobuf service that defines the complete local SDK surface.
 	// Despite being expressed as a protobuf service, this is a descriptor input
 	// for native SDK generation; Kit does not deploy a gRPC endpoint.
-	CreationService string `protobuf:"bytes,4,opt,name=creation_service,json=creationService,proto3" json:"creation_service,omitempty"`
+	CreationService string `protobuf:"bytes,1,opt,name=creation_service,json=creationService,proto3" json:"creation_service,omitempty"`
 	// Native initialization settings; runtime provider factories are attached by emitters.
-	ConfigMessage string `protobuf:"bytes,5,opt,name=config_message,json=configMessage,proto3" json:"config_message,omitempty"`
+	ConfigMessage string `protobuf:"bytes,2,opt,name=config_message,json=configMessage,proto3" json:"config_message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,11 +205,11 @@ func (x *OperationDeclaration) GetAdapterMethod() string {
 	return ""
 }
 
-// ProviderDeclaration generates a typed, optionally installed provider integration.
+// ProviderDeclaration identifies a provider integration entrypoint.
+// Native SDK import paths and client types live in specs/providers/*.yaml.
 type ProviderDeclaration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProviderName  string                 `protobuf:"bytes,1,opt,name=provider_name,json=providerName,proto3" json:"provider_name,omitempty"`
-	Sdks          map[string]*TargetSDK  `protobuf:"bytes,7,rep,name=sdks,proto3" json:"sdks,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -251,65 +251,6 @@ func (x *ProviderDeclaration) GetProviderName() string {
 	return ""
 }
 
-func (x *ProviderDeclaration) GetSdks() map[string]*TargetSDK {
-	if x != nil {
-		return x.Sdks
-	}
-	return nil
-}
-
-type TargetSDK struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ImportPath    string                 `protobuf:"bytes,1,opt,name=import_path,json=importPath,proto3" json:"import_path,omitempty"`
-	ClientType    string                 `protobuf:"bytes,2,opt,name=client_type,json=clientType,proto3" json:"client_type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TargetSDK) Reset() {
-	*x = TargetSDK{}
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TargetSDK) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TargetSDK) ProtoMessage() {}
-
-func (x *TargetSDK) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_codegen_v1_options_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TargetSDK.ProtoReflect.Descriptor instead.
-func (*TargetSDK) Descriptor() ([]byte, []int) {
-	return file_kit_codegen_v1_options_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *TargetSDK) GetImportPath() string {
-	if x != nil {
-		return x.ImportPath
-	}
-	return ""
-}
-
-func (x *TargetSDK) GetClientType() string {
-	if x != nil {
-		return x.ClientType
-	}
-	return ""
-}
-
 var file_kit_codegen_v1_options_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.FileOptions)(nil),
@@ -328,19 +269,11 @@ var file_kit_codegen_v1_options_proto_extTypes = []protoimpl.ExtensionInfo{
 		Filename:      "kit/codegen/v1/options.proto",
 	},
 	{
-		ExtendedType:  (*descriptorpb.FileOptions)(nil),
-		ExtensionType: (*bool)(nil),
-		Field:         51003,
-		Name:          "kit.codegen.v1.native_types",
-		Tag:           "varint,51003,opt,name=native_types",
-		Filename:      "kit/codegen/v1/options.proto",
-	},
-	{
 		ExtendedType:  (*descriptorpb.MethodOptions)(nil),
 		ExtensionType: (*OperationDeclaration)(nil),
-		Field:         51004,
+		Field:         51002,
 		Name:          "kit.codegen.v1.operation",
-		Tag:           "bytes,51004,opt,name=operation",
+		Tag:           "bytes,51002,opt,name=operation",
 		Filename:      "kit/codegen/v1/options.proto",
 	},
 }
@@ -351,28 +284,25 @@ var (
 	E_Client = &file_kit_codegen_v1_options_proto_extTypes[0]
 	// optional kit.codegen.v1.ProviderDeclaration provider = 51001;
 	E_Provider = &file_kit_codegen_v1_options_proto_extTypes[1]
-	// Generate ordinary target-language data types from this shared schema.
-	//
-	// optional bool native_types = 51003;
-	E_NativeTypes = &file_kit_codegen_v1_options_proto_extTypes[2]
 )
 
 // Extension fields to descriptorpb.MethodOptions.
 var (
-	// Native SDK operation metadata. This replaces the lifecycle YAML registry.
+	// Native SDK operation metadata. Public Client/Sandbox methods are handwritten;
+	// these annotations still describe the portable operation graph on SandboxService.
 	//
-	// optional kit.codegen.v1.OperationDeclaration operation = 51004;
-	E_Operation = &file_kit_codegen_v1_options_proto_extTypes[3]
+	// optional kit.codegen.v1.OperationDeclaration operation = 51002;
+	E_Operation = &file_kit_codegen_v1_options_proto_extTypes[2]
 )
 
 var File_kit_codegen_v1_options_proto protoreflect.FileDescriptor
 
 const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"\n" +
-	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"\xc6\x01\n" +
+	"\x1ckit/codegen/v1/options.proto\x12\x0ekit.codegen.v1\x1a google/protobuf/descriptor.proto\"e\n" +
 	"\x11ClientDeclaration\x12)\n" +
-	"\x10creation_service\x18\x04 \x01(\tR\x0fcreationService\x12%\n" +
-	"\x0econfig_message\x18\x05 \x01(\tR\rconfigMessageJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04R\x04nameR\x11backend_interfaceR\ago_nameR\x15go_provider_interfaceR\x14go_provider_accessor\"\xb6\x02\n" +
+	"\x10creation_service\x18\x01 \x01(\tR\x0fcreationService\x12%\n" +
+	"\x0econfig_message\x18\x02 \x01(\tR\rconfigMessage\"\xb6\x02\n" +
 	"\x14OperationDeclaration\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
 	"\n" +
@@ -384,22 +314,12 @@ const file_kit_codegen_v1_options_proto_rawDesc = "" +
 	"\x0eterminal_state\x18\x06 \x01(\tR\rterminalState\x12\x18\n" +
 	"\atimeout\x18\a \x01(\bR\atimeout\x12+\n" +
 	"\x11adapter_interface\x18\b \x01(\tR\x10adapterInterface\x12%\n" +
-	"\x0eadapter_method\x18\t \x01(\tR\radapterMethod\"\xd9\x02\n" +
+	"\x0eadapter_method\x18\t \x01(\tR\radapterMethod\":\n" +
 	"\x13ProviderDeclaration\x12#\n" +
-	"\rprovider_name\x18\x01 \x01(\tR\fproviderName\x12A\n" +
-	"\x04sdks\x18\a \x03(\v2-.kit.codegen.v1.ProviderDeclaration.SdksEntryR\x04sdks\x1aR\n" +
-	"\tSdksEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12/\n" +
-	"\x05value\x18\x02 \x01(\v2\x19.kit.codegen.v1.TargetSDKR\x05value:\x028\x01J\x04\b\x02\x10\x03J\x04\b\x03\x10\x04J\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\b\x10\tR\x04nameR\ago_nameR\x0ego_constructorR\rgo_sdk_importR\x12go_sdk_client_typeR\x0fgo_sdk_accessorR\x0fcreation_fields\"M\n" +
-	"\tTargetSDK\x12\x1f\n" +
-	"\vimport_path\x18\x01 \x01(\tR\n" +
-	"importPath\x12\x1f\n" +
-	"\vclient_type\x18\x02 \x01(\tR\n" +
-	"clientType:Y\n" +
+	"\rprovider_name\x18\x01 \x01(\tR\fproviderName:Y\n" +
 	"\x06client\x12\x1c.google.protobuf.FileOptions\x18\xb8\x8e\x03 \x01(\v2!.kit.codegen.v1.ClientDeclarationR\x06client:_\n" +
-	"\bprovider\x12\x1c.google.protobuf.FileOptions\x18\xb9\x8e\x03 \x01(\v2#.kit.codegen.v1.ProviderDeclarationR\bprovider:A\n" +
-	"\fnative_types\x12\x1c.google.protobuf.FileOptions\x18\xbb\x8e\x03 \x01(\bR\vnativeTypes:d\n" +
-	"\toperation\x12\x1e.google.protobuf.MethodOptions\x18\xbc\x8e\x03 \x01(\v2$.kit.codegen.v1.OperationDeclarationR\toperationBFZDgithub.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1b\x06proto3"
+	"\bprovider\x12\x1c.google.protobuf.FileOptions\x18\xb9\x8e\x03 \x01(\v2#.kit.codegen.v1.ProviderDeclarationR\bprovider:d\n" +
+	"\toperation\x12\x1e.google.protobuf.MethodOptions\x18\xba\x8e\x03 \x01(\v2$.kit.codegen.v1.OperationDeclarationR\toperationBFZDgithub.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;codegenv1b\x06proto3"
 
 var (
 	file_kit_codegen_v1_options_proto_rawDescOnce sync.Once
@@ -413,31 +333,26 @@ func file_kit_codegen_v1_options_proto_rawDescGZIP() []byte {
 	return file_kit_codegen_v1_options_proto_rawDescData
 }
 
-var file_kit_codegen_v1_options_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_kit_codegen_v1_options_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_kit_codegen_v1_options_proto_goTypes = []any{
 	(*ClientDeclaration)(nil),          // 0: kit.codegen.v1.ClientDeclaration
 	(*OperationDeclaration)(nil),       // 1: kit.codegen.v1.OperationDeclaration
 	(*ProviderDeclaration)(nil),        // 2: kit.codegen.v1.ProviderDeclaration
-	(*TargetSDK)(nil),                  // 3: kit.codegen.v1.TargetSDK
-	nil,                                // 4: kit.codegen.v1.ProviderDeclaration.SdksEntry
-	(*descriptorpb.FileOptions)(nil),   // 5: google.protobuf.FileOptions
-	(*descriptorpb.MethodOptions)(nil), // 6: google.protobuf.MethodOptions
+	(*descriptorpb.FileOptions)(nil),   // 3: google.protobuf.FileOptions
+	(*descriptorpb.MethodOptions)(nil), // 4: google.protobuf.MethodOptions
 }
 var file_kit_codegen_v1_options_proto_depIdxs = []int32{
-	4, // 0: kit.codegen.v1.ProviderDeclaration.sdks:type_name -> kit.codegen.v1.ProviderDeclaration.SdksEntry
-	3, // 1: kit.codegen.v1.ProviderDeclaration.SdksEntry.value:type_name -> kit.codegen.v1.TargetSDK
-	5, // 2: kit.codegen.v1.client:extendee -> google.protobuf.FileOptions
-	5, // 3: kit.codegen.v1.provider:extendee -> google.protobuf.FileOptions
-	5, // 4: kit.codegen.v1.native_types:extendee -> google.protobuf.FileOptions
-	6, // 5: kit.codegen.v1.operation:extendee -> google.protobuf.MethodOptions
-	0, // 6: kit.codegen.v1.client:type_name -> kit.codegen.v1.ClientDeclaration
-	2, // 7: kit.codegen.v1.provider:type_name -> kit.codegen.v1.ProviderDeclaration
-	1, // 8: kit.codegen.v1.operation:type_name -> kit.codegen.v1.OperationDeclaration
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	6, // [6:9] is the sub-list for extension type_name
-	2, // [2:6] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 0: kit.codegen.v1.client:extendee -> google.protobuf.FileOptions
+	3, // 1: kit.codegen.v1.provider:extendee -> google.protobuf.FileOptions
+	4, // 2: kit.codegen.v1.operation:extendee -> google.protobuf.MethodOptions
+	0, // 3: kit.codegen.v1.client:type_name -> kit.codegen.v1.ClientDeclaration
+	2, // 4: kit.codegen.v1.provider:type_name -> kit.codegen.v1.ProviderDeclaration
+	1, // 5: kit.codegen.v1.operation:type_name -> kit.codegen.v1.OperationDeclaration
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	3, // [3:6] is the sub-list for extension type_name
+	0, // [0:3] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_kit_codegen_v1_options_proto_init() }
@@ -451,8 +366,8 @@ func file_kit_codegen_v1_options_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kit_codegen_v1_options_proto_rawDesc), len(file_kit_codegen_v1_options_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
-			NumExtensions: 4,
+			NumMessages:   3,
+			NumExtensions: 3,
 			NumServices:   0,
 		},
 		GoTypes:           file_kit_codegen_v1_options_proto_goTypes,

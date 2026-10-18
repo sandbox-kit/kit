@@ -35,8 +35,8 @@ sdks/go/sandbox/            Public SDK module
 sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
-proto/kit/providers/        Provider declarations
-specs/                     Portable API, behavior, and mapping rules
+proto/kit/providers/        Thin provider descriptor entrypoints
+specs/                     Portable validation, mapping, and emit rules
 tooling/internal/model/    Language-neutral compiled generation model
 tooling/internal/go/       Go phase dispatcher and emitters
 examples/go/<provider>/      One folder per provider, one module per example

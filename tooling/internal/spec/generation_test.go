@@ -16,9 +16,6 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		{"unknown phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, arbitrary_code]"},
 		{"missing phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, validation]"},
 		{"duplicate phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, field_paths]"},
-		{"unknown instruction", "require_provider_name", "execute_go_expression"},
-		{"missing instruction", "    - require_backend\n", ""},
-		{"dependency ordering", "    - prepare_request\n    - resolve_deadline", "    - resolve_deadline\n    - prepare_request"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -32,13 +29,12 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 	}
 }
 
-func TestGenerationAcceptsNewLifecycleOperationByShape(t *testing.T) {
+func TestGenerationLoadsPhasePlan(t *testing.T) {
 	plan, err := LoadGeneration(filepath.Join("..", "..", "..", "specs"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan.Operations["resume"] = []string{"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"}
-	if err := ValidateOperations(plan.Operations); err != nil {
-		t.Fatalf("new lifecycle operation required generator name changes: %v", err)
+	if len(plan.Shared) == 0 || len(plan.Client) == 0 || len(plan.Provider) == 0 {
+		t.Fatal("expected shared, client, and provider phases")
 	}
 }

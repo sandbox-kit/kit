@@ -46,14 +46,13 @@ YAML or import protobuf messages.
 
 ## Inputs
 
-| Input                             | Defines                                                                 |
-| --------------------------------- | ----------------------------------------------------------------------- |
+| Input                             | Defines                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------- |
 | `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
-| `proto/kit/sandbox/internal/`     | Internal-only portable DTOs                                             |
-| `proto/kit/providers/`            | Provider contract declarations                                          |
-| `specs/targets.yaml`              | Language/provider output modules and source descriptors                 |
-| `specs/validation.yaml`           | Portable validation rules                                               |
-| `specs/providers/<provider>.yaml` | Provider capability, validation, mapping, and error-classification rules |
+| `proto/kit/providers/`            | Thin provider descriptor entrypoints for remaining Kit emitters            |
+| `specs/targets.yaml`              | Language/provider output modules and source descriptors                    |
+| `specs/validation.yaml`           | Portable validation rules                                                  |
+| `specs/providers/<provider>.yaml` | Provider capability, validation, mapping, and error-classification rules   |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -62,41 +61,22 @@ inside the language's bindings.
 ## API declarations
 
 Public data signatures and service request/response shapes belong in protobuf.
-Private portable data belongs in the internal protobuf package. Runtime objects
-and behavior are handwritten in each language. YAML must not declare types,
-constructors, methods, result shapes, visibility, or operation sequencing.
+Runtime objects and behavior are handwritten in each language. YAML must not
+declare types, constructors, methods, result shapes, visibility, or operation
+sequencing.
 
-## Generation plan and client operations
+## Generation plan
 
 `specs/generation.yaml` selects semantic output phases for shared contracts,
-clients, and providers. The Go dispatcher consumes this plan rather than loading
-specifications independently for each emitter.
+clients, and providers (paths, validation, checks, mappings). The Go dispatcher
+consumes this plan rather than loading specifications independently for each
+emitter. It rejects missing or duplicate phases. Client and handle method bodies
+are handwritten; operation choreography is not declared in YAML.
 
-Client operation instructions also live in this file:
-
-```yaml
-operations:
-  create:
-    - require_context
-    - require_client
-    - prepare_request
-    - resolve_deadline
-    - invoke_creation
-    - return_handle
-```
-
-The compiler verifies the version 1 vocabulary and required ordering. It rejects
-missing/duplicate phases, unknown instructions, and unsafe operation sequences.
-Initialization validates configuration before initializing the provider; creation
-prepares an owned request before applying deadlines and invoking the backend.
-Cleanup releases SDK resources without deleting sandboxes. The target manifest
-drives provider/language outputs, so adding a provider does not require editing
-the generation command's source list.
-
-These are semantic instructions, not arbitrary expressions or YAML code snippets.
-Client and handle method names live in handwritten runtime code shaped by
-`SandboxService` metadata. Output suffixes come from the language profile.
-Provider mapping and validation emitters consume the portable rules below.
+The target manifest drives provider/language outputs, so adding a provider does
+not require editing the generation command's source list. Output suffixes come
+from the language profile. Provider mapping and validation emitters consume the
+portable rules below.
 
 Handle lifecycle operations are registered once as annotated methods on
 `SandboxService` in `proto/kit/sandbox/v1/client.proto`. The shared compiler
@@ -220,7 +200,14 @@ groups:
           name: Resources
           fields: { memory: Memory }
     fields:
-      - { from: memory_mib, to: memory, transform: divide_exactly, factor: 1024, maximum: 2147483647, cast: integer }
+      - {
+          from: memory_mib,
+          to: memory,
+          transform: divide_exactly,
+          factor: 1024,
+          maximum: 2147483647,
+          cast: integer,
+        }
 ```
 
 Shared types resolve against descriptors. Logical native fields resolve through

@@ -34,16 +34,17 @@ native SDK; the public client owns cleanup through `Close`.
 ## Generation and validation
 
 Compile portable specifications and descriptor references into the shared model
-before language emission. Keep generation phases and client-operation instructions
-in `specs/generation.yaml`. Shared data contracts live in `proto/` and are emitted
-by standard protobuf plugins into language contract packages; SDK runtimes alias
-those types by hand rather than regenerating parallel structs. Put native
-representation rules in `specs/languages/<language>.yaml`. Keep reusable
-descriptor-driven declarations and field-path rules in `specs/templates.yaml`.
-Check behavior compatibility against `specs/behaviors.yaml` before emission. Keep
-language capability and filename convention checks in their backends. Emitters own
-native syntax for validation, mappings, and provider checks; reject unsupported
-representations rather than silently losing type or presence semantics.
+before language emission. Keep remaining emission phases in
+`specs/generation.yaml` (not client/handle operation choreography). Shared data
+contracts live in `proto/` and are emitted by standard protobuf plugins into
+language contract packages; SDK runtimes alias those types by hand rather than
+regenerating parallel structs. Put native representation rules in
+`specs/languages/<language>.yaml`. Keep helper declaration and field-path rules
+in `specs/templates.yaml`. Check helper-template behavior compatibility against
+`specs/behaviors.yaml` before emission. Keep language capability and filename
+convention checks in their backends. Emitters own native syntax for validation,
+mappings, and provider checks; reject unsupported representations rather than
+silently losing type or presence semantics.
 
 Shared validation, provider checks, configuration assembly, and expressible
 conversions belong in specs and generators. Native symbols and SDK type/member

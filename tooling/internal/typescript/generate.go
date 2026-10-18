@@ -56,10 +56,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			if providerName != "" {
 				phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
 			}
-		case "configuration":
-			if providerName != "" {
-				phaseErr = providergen.GenerateConfig(plugin, file, program.Providers[providerName].Rules, program.Schema)
-			}
 		case "diagnostic_paths", "field_paths", "validation":
 			// Shared/client TypeScript validation and path tables are not emitted yet;
 			// Go owns those helpers. Phases remain listed so omissions stay explicit.

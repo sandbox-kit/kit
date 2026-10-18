@@ -1088,27 +1088,28 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x127\n" +
 	"\aoptions\x18\x02 \x01(\v2\x1d.kit.sandbox.v1.DeleteOptionsR\aoptions2\xbc\f\n" +
 	"\x0eSandboxService\x12{\n" +
-	"\x06Create\x12\x1d.kit.sandbox.v1.CreateOptions\x1a\x1c.kit.sandbox.v1.CreateResult\"4\xe2\xf3\x180\n" +
+	"\x06Create\x12\x1d.kit.sandbox.v1.CreateOptions\x1a\x1c.kit.sandbox.v1.CreateResult\"4\xd2\xf3\x180\n" +
 	"\x06create*\rcreate_handleB\x0fsandbox_creatorJ\x06create\x12\x83\x01\n" +
-	"\x03Get\x12!.kit.sandbox.v1.GetSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"<\xe2\xf3\x188\n" +
+	"\x03Get\x12!.kit.sandbox.v1.GetSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"<\xd2\xf3\x188\n" +
 	"\x03get*\rcreate_handleB\x11sandbox_refresherJ\x0frefresh_sandbox\x12\x8a\x01\n" +
-	"\x06Attach\x12$.kit.sandbox.v1.AttachSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"=\xe2\xf3\x189\n" +
+	"\x06Attach\x12$.kit.sandbox.v1.AttachSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"=\xd2\xf3\x189\n" +
 	"\x06attach*\rcreate_handleB\x10sandbox_attacherJ\x0eattach_sandbox\x12\x9a\x01\n" +
-	"\aRefresh\x12%.kit.sandbox.v1.RefreshSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"K\xe2\xf3\x18G\n" +
+	"\aRefresh\x12%.kit.sandbox.v1.RefreshSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"K\xd2\xf3\x18G\n" +
 	"\arefresh\x12\arefresh\x18\x01*\rupdate_handleB\x11sandbox_refresherJ\x0frefresh_sandbox\x12\x9e\x01\n" +
-	"\x05Start\x12#.kit.sandbox.v1.StartSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"S\xe2\xf3\x18O\n" +
+	"\x05Start\x12#.kit.sandbox.v1.StartSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"S\xd2\xf3\x18O\n" +
 	"\x05start\x12\x05start\x18\x01\"\fStartOptions*\rupdate_handle8\x01B\x0fsandbox_starterJ\rstart_sandbox\x12\x98\x01\n" +
-	"\x04Stop\x12\".kit.sandbox.v1.StopSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"O\xe2\xf3\x18K\n" +
+	"\x04Stop\x12\".kit.sandbox.v1.StopSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"O\xd2\xf3\x18K\n" +
 	"\x04stop\x12\x04stop\x18\x01\"\vStopOptions*\rupdate_handle8\x01B\x0fsandbox_stopperJ\fstop_sandbox\x12\x9d\x01\n" +
-	"\x05Pause\x12#.kit.sandbox.v1.PauseSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"R\xe2\xf3\x18N\n" +
+	"\x05Pause\x12#.kit.sandbox.v1.PauseSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"R\xd2\xf3\x18N\n" +
 	"\x05pause\x12\x05pause\x18\x01\"\fPauseOptions*\rupdate_handle8\x01B\x0esandbox_pauserJ\rpause_sandbox\x12\xc2\x01\n" +
-	"\tTerminate\x12'.kit.sandbox.v1.TerminateSandboxRequest\x1a\x1a.kit.sandbox.v1.ExitResult\"p\xe2\xf3\x18l\n" +
+	"\tTerminate\x12'.kit.sandbox.v1.TerminateSandboxRequest\x1a\x1a.kit.sandbox.v1.ExitResult\"p\xd2\xf3\x18l\n" +
 	"\tterminate\x12\tterminate\x18\x01\"\x10TerminateOptions*\vexit_result2\n" +
 	"terminated8\x01B\x12sandbox_terminatorJ\x11terminate_sandbox\x12\xab\x01\n" +
-	"\aArchive\x12%.kit.sandbox.v1.ArchiveSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"\\\xe2\xf3\x18X\n" +
+	"\aArchive\x12%.kit.sandbox.v1.ArchiveSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"\\\xd2\xf3\x18X\n" +
 	"\aarchive\x12\aarchive\x18\x01\"\x0eArchiveOptions*\rupdate_handle8\x01B\x10sandbox_archiverJ\x0farchive_sandbox\x12\xad\x01\n" +
-	"\x06Delete\x12$.kit.sandbox.v1.DeleteSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"`\xe2\xf3\x18\\\n" +
-	"\x06delete\x12\x06delete\x18\x01\"\rDeleteOptions*\rupdate_handle2\adeleted8\x01B\x0fsandbox_deleterJ\x0edelete_sandboxBT\xc2\xf3\x18\x18\"\x0eSandboxService*\x06Config\xd8\xf3\x18\x01Z2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
+	"\x06Delete\x12$.kit.sandbox.v1.DeleteSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"`\xd2\xf3\x18\\\n" +
+	"\x06delete\x12\x06delete\x18\x01\"\rDeleteOptions*\rupdate_handle2\adeleted8\x01B\x0fsandbox_deleterJ\x0edelete_sandboxBP\xc2\xf3\x18\x18\n" +
+	"\x0eSandboxService\x12\x06ConfigZ2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
 
 var (
 	file_kit_sandbox_v1_client_proto_rawDescOnce sync.Once
