@@ -3,7 +3,7 @@
   "checkpoint_id": "01M570WX8H1XBV4SJE351QEHZW",
   "strategy": "manual-commit",
   "branch": "feat/shared-val-proto",
-  "checkpoints_count": 3,
+  "checkpoints_count": 13,
   "files_touched": [
     "AGENTS.md",
     "docs/api-declarations.md",
@@ -169,6 +169,13 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
