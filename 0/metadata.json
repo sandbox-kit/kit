@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M56WH88153T8G5X1211JX4E8",
+  "session_id": "812468b8-9074-47f8-885d-d7067316fc7a",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-18T06:52:37.028605Z",
+  "branch": "main",
+  "checkpoints_count": 12,
+  "save_step_count": 1,
+  "files_touched": [
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "sdks/go/sandbox/config_paths.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/validation_fields.go",
+    "specs/behaviors.yaml",
+    "specs/generation.yaml",
+    "specs/targets.yaml",
+    "specs/templates.yaml",
+    "tooling/README.md",
+    "tooling/internal/commands/commands_test.go",
+    "tooling/internal/go/generate.go",
+    "tooling/internal/model/program_test.go",
+    "tooling/internal/model/templates.go",
+    "tooling/internal/spec/generation.go",
+    "tooling/internal/spec/generation_test.go",
+    "tooling/internal/typescript/generate.go"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "342c58df084c",
+  "compact_transcript_start": 0,
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-18T06:52:36.992967Z",
+    "agent_lines": 915,
+    "agent_removed": 163,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 915,
+    "total_lines_changed": 2007,
+    "agent_percentage": 53.71200797209765,
+    "metric_version": 2
+  }
+}

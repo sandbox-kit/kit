@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M56WH88153T8G5X1211JX4E8",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 12,
+  "files_touched": [
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "sdks/go/sandbox/config_paths.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/validation_fields.go",
+    "specs/behaviors.yaml",
+    "specs/generation.yaml",
+    "specs/targets.yaml",
+    "specs/templates.yaml",
+    "tooling/README.md",
+    "tooling/internal/commands/commands_test.go",
+    "tooling/internal/go/generate.go",
+    "tooling/internal/model/program_test.go",
+    "tooling/internal/model/templates.go",
+    "tooling/internal/spec/generation.go",
+    "tooling/internal/spec/generation_test.go",
+    "tooling/internal/typescript/generate.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
