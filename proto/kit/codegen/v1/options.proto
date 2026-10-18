@@ -10,19 +10,12 @@ option go_package = "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1;
 // These annotations are build-time metadata; SDK clients and credentials are
 // ordinary language objects and are never serialized into these messages.
 message ClientDeclaration {
-  // Retired runtime declaration name fields; public names live in handwritten SDKs.
-  reserved 1, 2;
-  reserved "name", "backend_interface";
-  reserved "go_name", "go_provider_interface";
-  // Removed the accessor that exposed a provider-specific public API.
-  reserved 3;
-  reserved "go_provider_accessor";
   // The protobuf service that defines the complete local SDK surface.
   // Despite being expressed as a protobuf service, this is a descriptor input
   // for native SDK generation; Kit does not deploy a gRPC endpoint.
-  string creation_service = 4;
+  string creation_service = 1;
   // Native initialization settings; runtime provider factories are attached by emitters.
-  string config_message = 5;
+  string config_message = 2;
 }
 
 // OperationDeclaration binds a unary service method to the generated native
@@ -53,41 +46,19 @@ message OperationDeclaration {
   string adapter_method = 9;
 }
 
-// ProviderDeclaration generates a typed, optionally installed provider integration.
+// ProviderDeclaration identifies a provider integration entrypoint.
+// Native SDK import paths and client types live in specs/providers/*.yaml.
 message ProviderDeclaration {
   string provider_name = 1;
-  // Retired runtime declaration name fields; public names live in handwritten SDKs.
-  reserved 2;
-  reserved "name";
-  // Constructor naming belongs to the language generator (New in Go).
-  reserved 3;
-  reserved "go_name", "go_constructor";
-  // Retired SDK binding fields; language bindings now live in sdks.
-  reserved 4, 5;
-  reserved "go_sdk_import", "go_sdk_client_type";
-  // The SDK client is an internal implementation detail of the adapter.
-  reserved 6;
-  reserved "go_sdk_accessor";
-  map<string, TargetSDK> sdks = 7;
-  reserved 8;
-  reserved "creation_fields";
-}
-message TargetSDK {
-  string import_path = 1;
-  string client_type = 2;
 }
 
 extend google.protobuf.FileOptions {
   ClientDeclaration client = 51000;
   ProviderDeclaration provider = 51001;
-  // Generate ordinary target-language data types from this shared schema.
-  bool native_types = 51003;
 }
 
 extend google.protobuf.MethodOptions {
-  // Native SDK operation metadata. This replaces the lifecycle YAML registry.
-  OperationDeclaration operation = 51004;
+  // Native SDK operation metadata. Public Client/Sandbox methods are handwritten;
+  // these annotations still describe the portable operation graph on SandboxService.
+  OperationDeclaration operation = 51002;
 }
-
-// Extension number 51002 belonged to the removed SDK-binding initialization
-// generator. Keep it retired if these annotations are extended later.

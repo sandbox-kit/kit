@@ -7,14 +7,14 @@ facades, and orchestration handwritten.
 YAML no longer declares a parallel public API surface. Remaining specs describe
 provider rules, validation, mappings, templates, and language profiles:
 
-| Spec | Role |
-| --- | --- |
-| `specs/generation.yaml` | Semantic generation phases and client operation vocabulary |
-| `specs/templates.yaml` | Reusable descriptor-driven helper signatures and field-path rules |
-| `specs/behaviors.yaml` | Behavior compatibility checks before emission |
-| `specs/languages/<language>.yaml` | Native representation and output conventions |
-| `specs/providers/*.yaml` | Provider mappings, checks, and bindings |
-| `specs/validation.yaml` / `specs/contracts.yaml` | Shared validation and contract limits |
+| Spec                                             | Role                                                           |
+| ------------------------------------------------ | -------------------------------------------------------------- |
+| `specs/generation.yaml`                          | Remaining Kit emission phases (validation, checks, mappings)   |
+| `specs/templates.yaml`                           | Helper signatures; field-path naming for handwritten constants |
+| `specs/behaviors.yaml`                           | Signature checks for helper templates still emitted            |
+| `specs/languages/<language>.yaml`                | Native representation and output conventions                   |
+| `specs/providers/*.yaml`                         | Provider mappings, checks, and bindings                        |
+| `specs/validation.yaml` / `specs/contracts.yaml` | Shared validation and contract limits                          |
 
 Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
 provider classification are handwritten per language.

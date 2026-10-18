@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"testing"
+
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
 )
 
 func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
@@ -16,21 +17,21 @@ func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
 		t.Fatal(err)
 	}
 	return contracts, spec.Callable{
-		ID: "create", Name: "Create", Behavior: "create", Cancellable: true, Fallible: true,
-		Params: []spec.APISlot{{ID: "request", Name: "request", Type: spec.TypeRef{Ref: "schema.CreateOptions", Reference: true, Nullable: true}}},
-		Results: []spec.APISlot{{ID: "instance", Name: "instance", Type: spec.TypeRef{Ref: "sandbox_handle", Reference: true}}},
+		ID: "validation", Name: "ValidateCreateOptions", Behavior: "validation", Fallible: true,
+		Params: []spec.APISlot{{ID: "request", Name: "request", Type: spec.TypeRef{Ref: "subject", Reference: true, Nullable: true}}},
 	}
 }
+
 func TestBehaviorContractsPermitNativeNames(t *testing.T) {
 	b, c := behaviorFixture(t)
-	c.Name = "Launch"
-	c.Receiver = "self"
+	c.Name = "ValidateOptions"
 	c.Params = append([]spec.APISlot{}, c.Params...)
 	c.Params[0].Name = "options"
-	if err := b.Validate(c, true); err != nil {
+	if err := b.Validate(c, false); err != nil {
 		t.Fatal(err)
 	}
 }
+
 func TestBehaviorContractsRejectIncompatibleDeclarations(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -40,8 +41,6 @@ func TestBehaviorContractsRejectIncompatibleDeclarations(t *testing.T) {
 		{"wrong type", func(c *spec.Callable) { c.Params[0].Type = spec.TypeRef{Builtin: "string"} }},
 		{"wrong ID", func(c *spec.Callable) { c.Params[0].ID = "unrelated" }},
 		{"missing failure", func(c *spec.Callable) { c.Fallible = false }},
-		{"missing cancellation", func(c *spec.Callable) { c.Cancellable = false }},
-		{"wrong output", func(c *spec.Callable) { c.Results[0].Type = spec.TypeRef{Builtin: "boolean"} }},
 		{"extra parameter", func(c *spec.Callable) {
 			c.Params = append(c.Params, spec.APISlot{ID: "extra", Name: "extra", Type: spec.TypeRef{Builtin: "string"}})
 		}},
@@ -50,7 +49,7 @@ func TestBehaviorContractsRejectIncompatibleDeclarations(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			b, c := behaviorFixture(t)
 			tc.edit(&c)
-			if err := b.Validate(c, true); err == nil {
+			if err := b.Validate(c, false); err == nil {
 				t.Fatal("incompatible behavior accepted")
 			}
 		})

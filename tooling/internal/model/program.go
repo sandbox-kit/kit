@@ -51,7 +51,6 @@ type Client struct {
 	Create            protoreflect.MethodDescriptor
 	Lifecycle         Lifecycle
 	ServiceOperations []ServiceOperation
-	Operations        map[string][]string
 }
 
 type ServiceOperation struct {
@@ -186,7 +185,6 @@ func Compile(root string, files []protoreflect.FileDescriptor) (*Program, error)
 			if err != nil {
 				return nil, err
 			}
-			client.Operations = result.Generation.Operations
 			for _, operation := range client.Lifecycle.Operations {
 				if operation.Options != "" {
 					if _, lookupErr := result.Schema.Message(operation.Options); lookupErr != nil {

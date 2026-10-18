@@ -39,12 +39,10 @@ message CreateOptions {
   LifetimePolicy lifetime = 11;
   // sets the creation deadline, queue timeout, and wait condition. JSON name is "creation".
   ProvisioningOptions provisioning = 12 [json_name = "creation"];
-  reserved 13;
-  reserved "provider_context";
-  ReadinessProbe readiness = 14;
-  ObservabilityConfig observability = 15;
+  ReadinessProbe readiness = 13;
+  ObservabilityConfig observability = 14;
   // holds provider-specific declarative options. It is never an SDK object or an auth credential.
-  MetadataObject provider_options = 16;
+  MetadataObject provider_options = 15;
 }
 
 // is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.

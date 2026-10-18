@@ -35,8 +35,8 @@ sdks/go/sandbox/            Public SDK module
 sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
-proto/kit/providers/        Provider declarations
-specs/                     Portable API, behavior, and mapping rules
+proto/kit/providers/        Thin provider descriptor entrypoints
+specs/                     Portable validation, mapping, and emit rules
 tooling/internal/model/    Language-neutral compiled generation model
 tooling/internal/go/       Go phase dispatcher and emitters
 examples/go/<provider>/      One folder per provider, one module per example
@@ -51,16 +51,16 @@ Emitter directories use the `*_gen` suffix. Kit-generated helpers end in `.gen.g
 they come from contract packages plus handwritten aliases such as
 `sandbox_data_contracts.go` / `sandbox_data_contracts.ts`.
 
-| File                         | Purpose                                            |
-| ---------------------------- | -------------------------------------------------- |
-| `*.validation.gen.go`        | Shared request validation                          |
-| `*.errors.gen.go`            | Diagnostic field names and provider classification |
-| `*.paths.gen.go`             | Canonical field-path constants                     |
-| `provider.mappings.gen.go`   | Request and metadata field conversions             |
-| `provider.validation.gen.go` | Provider-specific create checks                    |
-| `provider.config.gen.ts`     | Native SDK configuration assembly                  |
-| `provider.checks.gen.ts`     | Provider-specific create checks                    |
-| `provider.mappings.gen.ts`   | Request and metadata field conversions             |
+| File                                 | Purpose                                                |
+| ------------------------------------ | ------------------------------------------------------ |
+| `*.validation.gen.go`                | Shared request validation                              |
+| `validation_fields.go`               | Handwritten Go↔protobuf field-name maps for validators |
+| `field_paths.go` / `config_paths.go` | Handwritten canonical field-path constants             |
+| `provider.mappings.gen.go`           | Request and metadata field conversions                 |
+| `provider.validation.gen.go`         | Provider-specific create checks                        |
+| `provider.config.gen.ts`             | Native SDK configuration assembly                      |
+| `provider.checks.gen.ts`             | Provider-specific create checks                        |
+| `provider.mappings.gen.ts`           | Request and metadata field conversions                 |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Change the schema, spec, or emitter when changing

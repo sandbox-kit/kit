@@ -8,7 +8,6 @@ import (
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	mappinggen "github.com/sandbox-kit/kit/tooling/internal/go/mapping_gen"
 	providergen "github.com/sandbox-kit/kit/tooling/internal/go/provider_gen"
-	typesgen "github.com/sandbox-kit/kit/tooling/internal/go/types_gen"
 	validationgen "github.com/sandbox-kit/kit/tooling/internal/go/validation_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
@@ -35,9 +34,8 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 		phases = program.Generation.Shared
 		rules = program.Validation
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Client):
-		phases = program.Generation.Client
-		rules = program.Client.Validation
-		root = program.Client.ConfigMessage
+		// Client path/error helpers are handwritten; no emission phases remain.
+		return nil
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Provider):
 		declaration := proto.GetExtension(file.Desc.Options(), codegen.E_Provider).(*codegen.ProviderDeclaration)
 		provider = program.Providers[declaration.ProviderName]
@@ -48,10 +46,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	for _, phase := range phases {
 		var err error
 		switch phase {
-		case "diagnostic_paths":
-			err = typesgen.GenerateErrorPaths(plugin, file)
-		case "field_paths":
-			err = typesgen.GeneratePaths(plugin, file, program.Templates, profile)
 		case "validation":
 			err = validationgen.Generate(plugin, file, rules, root, program.Templates, profile)
 		case "checks":

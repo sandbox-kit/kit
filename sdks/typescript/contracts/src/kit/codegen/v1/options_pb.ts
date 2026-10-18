@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kit/codegen/v1/options.proto.
  */
 export const file_kit_codegen_v1_options: GenFile = /*@__PURE__*/
-  fileDesc("ChxraXQvY29kZWdlbi92MS9vcHRpb25zLnByb3RvEg5raXQuY29kZWdlbi52MSKmAQoRQ2xpZW50RGVjbGFyYXRpb24SGAoQY3JlYXRpb25fc2VydmljZRgEIAEoCRIWCg5jb25maWdfbWVzc2FnZRgFIAEoCUoECAEQAkoECAIQA0oECAMQBFIEbmFtZVIRYmFja2VuZF9pbnRlcmZhY2VSB2dvX25hbWVSFWdvX3Byb3ZpZGVyX2ludGVyZmFjZVIUZ29fcHJvdmlkZXJfYWNjZXNzb3IizAEKFE9wZXJhdGlvbkRlY2xhcmF0aW9uEgoKAmlkGAEgASgJEhIKCmNhcGFiaWxpdHkYAiABKAkSDgoGaGFuZGxlGAMgASgIEhcKD29wdGlvbnNfbWVzc2FnZRgEIAEoCRIPCgdvdXRjb21lGAUgASgJEhYKDnRlcm1pbmFsX3N0YXRlGAYgASgJEg8KB3RpbWVvdXQYByABKAgSGQoRYWRhcHRlcl9pbnRlcmZhY2UYCCABKAkSFgoOYWRhcHRlcl9tZXRob2QYCSABKAkiuQIKE1Byb3ZpZGVyRGVjbGFyYXRpb24SFQoNcHJvdmlkZXJfbmFtZRgBIAEoCRI7CgRzZGtzGAcgAygLMi0ua2l0LmNvZGVnZW4udjEuUHJvdmlkZXJEZWNsYXJhdGlvbi5TZGtzRW50cnkaRgoJU2Rrc0VudHJ5EgsKA2tleRgBIAEoCRIoCgV2YWx1ZRgCIAEoCzIZLmtpdC5jb2RlZ2VuLnYxLlRhcmdldFNESzoCOAFKBAgCEANKBAgDEARKBAgEEAVKBAgFEAZKBAgGEAdKBAgIEAlSBG5hbWVSB2dvX25hbWVSDmdvX2NvbnN0cnVjdG9yUg1nb19zZGtfaW1wb3J0UhJnb19zZGtfY2xpZW50X3R5cGVSD2dvX3Nka19hY2Nlc3NvclIPY3JlYXRpb25fZmllbGRzIjUKCVRhcmdldFNESxITCgtpbXBvcnRfcGF0aBgBIAEoCRITCgtjbGllbnRfdHlwZRgCIAEoCTpZCgZjbGllbnQSHC5nb29nbGUucHJvdG9idWYuRmlsZU9wdGlvbnMYuI4DIAEoCzIhLmtpdC5jb2RlZ2VuLnYxLkNsaWVudERlY2xhcmF0aW9uUgZjbGllbnQ6XwoIcHJvdmlkZXISHC5nb29nbGUucHJvdG9idWYuRmlsZU9wdGlvbnMYuY4DIAEoCzIjLmtpdC5jb2RlZ2VuLnYxLlByb3ZpZGVyRGVjbGFyYXRpb25SCHByb3ZpZGVyOkEKDG5hdGl2ZV90eXBlcxIcLmdvb2dsZS5wcm90b2J1Zi5GaWxlT3B0aW9ucxi7jgMgASgIUgtuYXRpdmVUeXBlczpkCglvcGVyYXRpb24SHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxi8jgMgASgLMiQua2l0LmNvZGVnZW4udjEuT3BlcmF0aW9uRGVjbGFyYXRpb25SCW9wZXJhdGlvbkJGWkRnaXRodWIuY29tL3NhbmRib3gta2l0L2tpdC90b29saW5nL2ludGVybmFsL2dlbi9jb2RlZ2VuL3YxO2NvZGVnZW52MWIGcHJvdG8z", [file_google_protobuf_descriptor]);
+  fileDesc("ChxraXQvY29kZWdlbi92MS9vcHRpb25zLnByb3RvEg5raXQuY29kZWdlbi52MSJFChFDbGllbnREZWNsYXJhdGlvbhIYChBjcmVhdGlvbl9zZXJ2aWNlGAEgASgJEhYKDmNvbmZpZ19tZXNzYWdlGAIgASgJIswBChRPcGVyYXRpb25EZWNsYXJhdGlvbhIKCgJpZBgBIAEoCRISCgpjYXBhYmlsaXR5GAIgASgJEg4KBmhhbmRsZRgDIAEoCBIXCg9vcHRpb25zX21lc3NhZ2UYBCABKAkSDwoHb3V0Y29tZRgFIAEoCRIWCg50ZXJtaW5hbF9zdGF0ZRgGIAEoCRIPCgd0aW1lb3V0GAcgASgIEhkKEWFkYXB0ZXJfaW50ZXJmYWNlGAggASgJEhYKDmFkYXB0ZXJfbWV0aG9kGAkgASgJIiwKE1Byb3ZpZGVyRGVjbGFyYXRpb24SFQoNcHJvdmlkZXJfbmFtZRgBIAEoCTpZCgZjbGllbnQSHC5nb29nbGUucHJvdG9idWYuRmlsZU9wdGlvbnMYuI4DIAEoCzIhLmtpdC5jb2RlZ2VuLnYxLkNsaWVudERlY2xhcmF0aW9uUgZjbGllbnQ6XwoIcHJvdmlkZXISHC5nb29nbGUucHJvdG9idWYuRmlsZU9wdGlvbnMYuY4DIAEoCzIjLmtpdC5jb2RlZ2VuLnYxLlByb3ZpZGVyRGVjbGFyYXRpb25SCHByb3ZpZGVyOmQKCW9wZXJhdGlvbhIeLmdvb2dsZS5wcm90b2J1Zi5NZXRob2RPcHRpb25zGLqOAyABKAsyJC5raXQuY29kZWdlbi52MS5PcGVyYXRpb25EZWNsYXJhdGlvblIJb3BlcmF0aW9uQkZaRGdpdGh1Yi5jb20vc2FuZGJveC1raXQva2l0L3Rvb2xpbmcvaW50ZXJuYWwvZ2VuL2NvZGVnZW4vdjE7Y29kZWdlbnYxYgZwcm90bzM", [file_google_protobuf_descriptor]);
 
 /**
  * ClientDeclaration describes a local SDK client, not an RPC service.
@@ -27,14 +27,14 @@ export type ClientDeclaration = Message<"kit.codegen.v1.ClientDeclaration"> & {
    * Despite being expressed as a protobuf service, this is a descriptor input
    * for native SDK generation; Kit does not deploy a gRPC endpoint.
    *
-   * @generated from field: string creation_service = 4;
+   * @generated from field: string creation_service = 1;
    */
   creationService: string;
 
   /**
    * Native initialization settings; runtime provider factories are attached by emitters.
    *
-   * @generated from field: string config_message = 5;
+   * @generated from field: string config_message = 2;
    */
   configMessage: string;
 };
@@ -130,7 +130,8 @@ export const OperationDeclarationSchema: GenMessage<OperationDeclaration> = /*@_
   messageDesc(file_kit_codegen_v1_options, 1);
 
 /**
- * ProviderDeclaration generates a typed, optionally installed provider integration.
+ * ProviderDeclaration identifies a provider integration entrypoint.
+ * Native SDK import paths and client types live in specs/providers/*.yaml.
  *
  * @generated from message kit.codegen.v1.ProviderDeclaration
  */
@@ -139,11 +140,6 @@ export type ProviderDeclaration = Message<"kit.codegen.v1.ProviderDeclaration"> 
    * @generated from field: string provider_name = 1;
    */
   providerName: string;
-
-  /**
-   * @generated from field: map<string, kit.codegen.v1.TargetSDK> sdks = 7;
-   */
-  sdks: { [key: string]: TargetSDK };
 };
 
 /**
@@ -152,28 +148,6 @@ export type ProviderDeclaration = Message<"kit.codegen.v1.ProviderDeclaration"> 
  */
 export const ProviderDeclarationSchema: GenMessage<ProviderDeclaration> = /*@__PURE__*/
   messageDesc(file_kit_codegen_v1_options, 2);
-
-/**
- * @generated from message kit.codegen.v1.TargetSDK
- */
-export type TargetSDK = Message<"kit.codegen.v1.TargetSDK"> & {
-  /**
-   * @generated from field: string import_path = 1;
-   */
-  importPath: string;
-
-  /**
-   * @generated from field: string client_type = 2;
-   */
-  clientType: string;
-};
-
-/**
- * Describes the message kit.codegen.v1.TargetSDK.
- * Use `create(TargetSDKSchema)` to create a new message.
- */
-export const TargetSDKSchema: GenMessage<TargetSDK> = /*@__PURE__*/
-  messageDesc(file_kit_codegen_v1_options, 3);
 
 /**
  * @generated from extension: kit.codegen.v1.ClientDeclaration client = 51000;
@@ -188,18 +162,11 @@ export const provider: GenExtension<FileOptions, ProviderDeclaration> = /*@__PUR
   extDesc(file_kit_codegen_v1_options, 1);
 
 /**
- * Generate ordinary target-language data types from this shared schema.
+ * Native SDK operation metadata. Public Client/Sandbox methods are handwritten;
+ * these annotations still describe the portable operation graph on SandboxService.
  *
- * @generated from extension: bool native_types = 51003;
- */
-export const native_types: GenExtension<FileOptions, boolean> = /*@__PURE__*/
-  extDesc(file_kit_codegen_v1_options, 2);
-
-/**
- * Native SDK operation metadata. This replaces the lifecycle YAML registry.
- *
- * @generated from extension: kit.codegen.v1.OperationDeclaration operation = 51004;
+ * @generated from extension: kit.codegen.v1.OperationDeclaration operation = 51002;
  */
 export const operation: GenExtension<MethodOptions, OperationDeclaration> = /*@__PURE__*/
-  extDesc(file_kit_codegen_v1_options, 3);
+  extDesc(file_kit_codegen_v1_options, 2);
 

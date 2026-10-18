@@ -13,12 +13,10 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, old, new string }{
-		{"unknown phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, arbitrary_code]"},
-		{"missing phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, validation]"},
-		{"duplicate phase", "shared: [diagnostic_paths, field_paths, validation]", "shared: [diagnostic_paths, field_paths, field_paths]"},
-		{"unknown instruction", "require_provider_name", "execute_go_expression"},
-		{"missing instruction", "    - require_backend\n", ""},
-		{"dependency ordering", "    - prepare_request\n    - resolve_deadline", "    - resolve_deadline\n    - prepare_request"},
+		{"unknown phase", "shared: [validation]", "shared: [arbitrary_code]"},
+		{"missing phase", "shared: [validation]", "shared: []"},
+		{"duplicate phase", "provider: [checks, mappings]", "provider: [checks, mappings, checks]"},
+		{"client phases removed", "provider: [checks, mappings]", "client: [validation]\nprovider: [checks, mappings]"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -32,13 +30,18 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 	}
 }
 
-func TestGenerationAcceptsNewLifecycleOperationByShape(t *testing.T) {
+func TestGenerationLoadsPhasePlan(t *testing.T) {
 	plan, err := LoadGeneration(filepath.Join("..", "..", "..", "specs"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan.Operations["resume"] = []string{"require_context", "require_handle", "resolve_deadline", "require_capability", "invoke_capability", "update_handle"}
-	if err := ValidateOperations(plan.Operations); err != nil {
-		t.Fatalf("new lifecycle operation required generator name changes: %v", err)
+	if len(plan.Shared) != 1 || plan.Shared[0] != "validation" {
+		t.Fatalf("shared phases = %#v", plan.Shared)
+	}
+	if len(plan.Client) != 0 {
+		t.Fatalf("client phases should be empty, got %#v", plan.Client)
+	}
+	if len(plan.Provider) != 2 {
+		t.Fatalf("provider phases = %#v", plan.Provider)
 	}
 }

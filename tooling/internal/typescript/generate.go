@@ -27,9 +27,11 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	providerName := ""
 	switch {
 	case file.Desc.Path() == "kit/sandbox/v1/sandbox.proto":
-		phases = program.Generation.Shared
+		// Shared Go owns validation helpers; TypeScript has no shared emission yet.
+		return nil
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Client):
-		phases = program.Generation.Client
+		// Client helpers are handwritten; no TypeScript emission phases remain.
+		return nil
 	case proto.HasExtension(file.Desc.Options(), codegen.E_Provider):
 		declaration := proto.GetExtension(file.Desc.Options(), codegen.E_Provider).(*codegen.ProviderDeclaration)
 		if strings.TrimSpace(declaration.ProviderName) == "" {
@@ -53,16 +55,7 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 				phaseErr = fmt.Errorf("unsupported TypeScript provider %s", providerName)
 			}
 		case "checks":
-			if providerName != "" {
-				phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
-			}
-		case "configuration":
-			if providerName != "" {
-				phaseErr = providergen.GenerateConfig(plugin, file, program.Providers[providerName].Rules, program.Schema)
-			}
-		case "diagnostic_paths", "field_paths", "validation":
-			// Shared/client TypeScript validation and path tables are not emitted yet;
-			// Go owns those helpers. Phases remain listed so omissions stay explicit.
+			phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
 		default:
 			return fmt.Errorf("%s: unsupported TypeScript emission phase %s", file.Desc.Path(), phase)
 		}
