@@ -7,8 +7,8 @@ messages, enums, reflection metadata, and service declarations; handwritten SDK
 code owns client, handle, provider, and error behavior.
 
 Portable create/config/info types come from standard protobuf contracts plus
-handwritten SDK aliases. Kit emitters now own narrow helpers only: validation,
-paths, provider checks, and field mappings.
+handwritten SDK aliases. Shared create validation, provider checks, and path
+helpers are handwritten. Kit emitters now own field mappings.
 
 ## Generate and verify
 
@@ -67,11 +67,11 @@ sequencing.
 
 ## Generation plan
 
-`specs/generation.yaml` selects remaining Kit emission phases (provider checks
-and mappings). Shared create validation, path/error helpers, and Client/Sandbox
-method bodies are handwritten. The Go dispatcher consumes this plan rather than
-loading specifications independently for each emitter. It rejects missing or
-duplicate phases.
+`specs/generation.yaml` selects remaining Kit emission phases (provider
+mappings). Shared create validation, provider checks, path/error helpers, and
+Client/Sandbox method bodies are handwritten. The Go dispatcher consumes this
+plan rather than loading specifications independently for each emitter. It
+rejects missing or duplicate phases.
 
 The target manifest drives provider/language outputs, so adding a provider does
 not require editing the generation command's source list. Output suffixes come
@@ -162,7 +162,10 @@ fields use `omitnil`; repeated Go message validation rejects nil elements.
 
 ## Provider checks
 
-Provider `checks` validate common creation fields using schema paths:
+Provider `checks` in `specs/providers/<provider>.yaml` inventory create-time
+policy the integration enforces. Implementations are handwritten
+(`provider_checks.go` / `provider_checks.ts`) and run before native creation
+calls. Keep the YAML list and handwritten code in sync; checks are not emitted.
 
 ```yaml
 checks:
@@ -172,18 +175,10 @@ checks:
   - { path: network.outbound_cidrs.entries, format: cidr }
 ```
 
-Supported formats are `absolute_path`, `http_url`, `cidr`, `domain`, and
-`env_name`. Checks support repeated strings, repeated-message paths, and
-environment-map keys. `allow_empty` preserves documented sentinel behavior for
-supported formats.
-
-Policy relationships use `exclusive_policies` and `forbid_policy_with`.
-Current relationships reject simultaneous positive stop/pause delays and
-incompatible ephemeral/immediate-delete combinations.
-
-The emitter validates paths, types, formats, and bounds. Generated checks run
-before native creation calls. Dynamic account quotas, permissions, and capacity
-remain provider-enforced.
+Supported formats include `absolute_path`, `http_url`, `cidr`, `domain`, and
+`env_name`. Policy relationships use `exclusive_policies` and
+`forbid_policy_with`. Dynamic account quotas, permissions, and capacity remain
+provider-enforced.
 
 ## Typed field mappings
 
@@ -278,10 +273,10 @@ provider integration files (`sandbox.go` in Go and the provider-named `.ts` plus
 readiness, and remaining provider semantics. Bindings alone do not produce a
 complete integration. Generated TypeScript `provider.gen.ts` files own the
 provider/backend identity bases, `provider.config.gen.ts` composes native client
-configuration and retained state, `provider.checks.gen.ts` enforces portable
-provider checks, and `provider.mappings.gen.ts` contains compiled YAML mapping
-groups. Handwritten `errors.ts` classifies native provider errors. None of these
-files are embedded source templates.
+configuration and retained state, and `provider.mappings.gen.ts` contains
+compiled YAML mapping groups. Handwritten `provider_checks.ts` enforces provider
+create checks; handwritten `errors.ts` classifies native provider errors. None
+of these files are embedded source templates.
 
 Lifecycle option and result types come from protobuf contracts. Handle methods,
 typed provider dispatch, capability discovery, storage, and close coordination

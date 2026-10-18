@@ -30,7 +30,7 @@ import {
   mapResources as generatedMapResources,
   mapSandboxInfo as generatedMapSandboxInfo,
 } from "./provider.mappings.gen.js";
-import { validateProviderCreate } from "./provider.checks.gen.js";
+import { validateProviderCreate } from "./provider_checks.js";
 import { mapGeneratedClientConfig, type Environment } from "./provider.config.gen.js";
 
 export type DaytonaCreateParams = CreateSandboxFromImageParams | CreateSandboxFromSnapshotParams;

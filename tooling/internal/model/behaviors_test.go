@@ -17,14 +17,15 @@ func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
 		t.Fatal(err)
 	}
 	return contracts, spec.Callable{
-		ID: "provider_checks", Name: "validateProviderCreate", Behavior: "provider_checks", Fallible: true,
-		Params: []spec.APISlot{{ID: "request", Name: "request", Type: spec.TypeRef{Ref: "request", Reference: true, Nullable: true}}},
+		ID: "request_mapping", Name: "mapCreate", Behavior: "request_mapping", Fallible: true,
+		Params:  []spec.APISlot{{ID: "source", Name: "source", Type: spec.TypeRef{Ref: "source", Reference: true, Nullable: true}}},
+		Results: []spec.APISlot{{Type: spec.TypeRef{Ref: "target"}}, {Type: spec.TypeRef{Ref: "source"}}},
 	}
 }
 
 func TestBehaviorContractsPermitNativeNames(t *testing.T) {
 	b, c := behaviorFixture(t)
-	c.Name = "ValidateProvider"
+	c.Name = "MapRequest"
 	c.Params = append([]spec.APISlot{}, c.Params...)
 	c.Params[0].Name = "options"
 	if err := b.Validate(c, false); err != nil {

@@ -51,16 +51,15 @@ Emitter directories use the `*_gen` suffix. Kit-generated helpers end in `.gen.g
 they come from contract packages plus handwritten aliases such as
 `sandbox_data_contracts.go` / `sandbox_data_contracts.ts`.
 
-| File                                 | Purpose                                                |
-| ------------------------------------ | ------------------------------------------------------ |
-| `create_validation.go`               | Handwritten shared CreateOptions validation            |
-| `validation_fields.go`               | Handwritten Go↔protobuf field-name maps for validators |
-| `field_paths.go` / `config_paths.go` | Handwritten canonical field-path constants             |
-| `provider.mappings.gen.go`           | Request and metadata field conversions                 |
-| `provider.validation.gen.go`         | Provider-specific create checks                        |
-| `provider.config.gen.ts`             | Native SDK configuration assembly                      |
-| `provider.checks.gen.ts`             | Provider-specific create checks                        |
-| `provider.mappings.gen.ts`           | Request and metadata field conversions                 |
+| File                                        | Purpose                                                |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `create_validation.go`                      | Handwritten shared CreateOptions validation            |
+| `validation_fields.go`                      | Handwritten Go↔protobuf field-name maps for validators |
+| `field_paths.go` / `config_paths.go`        | Handwritten canonical field-path constants             |
+| `provider.mappings.gen.go`                  | Request and metadata field conversions                 |
+| `provider_checks.go` / `provider_checks.ts` | Handwritten provider-specific create checks            |
+| `provider.config.gen.ts`                    | Native SDK configuration assembly                      |
+| `provider.mappings.gen.ts`                  | Request and metadata field conversions                 |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Change the schema, spec, or emitter when changing

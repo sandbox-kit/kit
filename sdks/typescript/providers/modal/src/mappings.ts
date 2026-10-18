@@ -29,7 +29,7 @@ import {
   mapResources as generatedMapResources,
   mapSandboxIdentity as generatedMapSandboxIdentity,
 } from "./provider.mappings.gen.js";
-import { validateProviderCreate } from "./provider.checks.gen.js";
+import { validateProviderCreate } from "./provider_checks.js";
 import { mapGeneratedClientConfig } from "./provider.config.gen.js";
 import type { ProviderState } from "./provider.config.gen.js";
 

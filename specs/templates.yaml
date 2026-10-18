@@ -1,6 +1,6 @@
 version: 1
 # Types and names in braces are descriptor/mapping bindings, not source code.
-# field_paths remains so mapping/check emitters can reference handwritten
+# field_paths remains so mapping emitters can reference handwritten
 # CreateField*/ConfigField*/InfoField* constants by canonical path.
 callables:
   request_mapping:
@@ -34,21 +34,6 @@ callables:
           },
         ]
       results: [{ type: { ref: target } }]
-      fallible: true
-  provider_checks:
-    declaration:
-      id: provider_checks
-      name: validateProviderCreate
-      doc: "rejects creation settings this provider cannot honor. It runs before the native create call."
-      behavior: provider_checks
-      params:
-        [
-          {
-            id: request,
-            name: request,
-            type: { ref: request, reference: true, nullable: true },
-          },
-        ]
       fallible: true
 field_paths:
   name: "{prefix}{fields}"

@@ -92,8 +92,8 @@ descriptor-driven helpers. `specs/behaviors.yaml` checks those helper signatures
 before emission. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
 control native representation and output conventions. Templates retain structured
 type bindings; body emitters resolve explicit symbols instead of renaming text.
-`specs/generation.yaml` declares remaining output phases (checks, mappings).
-Shared create validation is handwritten in the Go SDK. Annotated
+`specs/generation.yaml` declares remaining output phases (mappings). Shared
+create validation and provider checks are handwritten in the SDKs. Annotated
 `SandboxService` methods describe the portable operation graph; public
 Client/Sandbox methods are handwritten.
 `internal/go/generate.go` and `internal/typescript/generate.go` dispatch the
@@ -122,13 +122,12 @@ runtime facades and metadata clone helpers stay handwritten.
 | `internal/go/error_gen/`               | Consistent shared error expressions                      |
 | `internal/go/schema/`                  | Descriptor resolution and canonical field paths          |
 | `internal/go/mapping_gen/`             | Field conversions and policy mappings                    |
-| `internal/go/provider_gen/`            | Provider checks and config assembly                      |
 | `internal/go/naming/`                  | Go field and enum naming                                 |
 | `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives |
 | `internal/typescript/error_gen/`       | Shared TypeScript error construction                     |
 | `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings        |
 | `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions            |
-| `internal/typescript/provider_gen/`    | Provider checks, config assembly, and related helpers    |
+| `internal/typescript/provider_gen/`    | Provider config assembly helpers (when used)             |
 | `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                   |
 | `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation   |
 | `internal/gen/`                        | Generated annotation bindings                            |

@@ -9,7 +9,6 @@ import (
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/typescript/declaration_gen"
-	providergen "github.com/sandbox-kit/kit/tooling/internal/typescript/provider_gen"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
 )
@@ -54,8 +53,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 			default:
 				phaseErr = fmt.Errorf("unsupported TypeScript provider %s", providerName)
 			}
-		case "checks":
-			phaseErr = providergen.GenerateChecks(plugin, file, program.Providers[providerName].Rules, program.Schema)
 		default:
 			return fmt.Errorf("%s: unsupported TypeScript emission phase %s", file.Desc.Path(), phase)
 		}

@@ -14,10 +14,10 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 	}
 	for _, tc := range []struct{ name, old, new string }{
 		{"unknown shared phase", "shared: []", "shared: [validation]"},
-		{"unknown provider phase", "provider: [checks, mappings]", "provider: [checks, mappings, arbitrary_code]"},
-		{"missing provider phase", "provider: [checks, mappings]", "provider: [checks]"},
-		{"duplicate phase", "provider: [checks, mappings]", "provider: [checks, mappings, checks]"},
-		{"client phases removed", "provider: [checks, mappings]", "client: [validation]\nprovider: [checks, mappings]"},
+		{"unknown provider phase", "provider: [mappings]", "provider: [mappings, checks]"},
+		{"missing provider phase", "provider: [mappings]", "provider: []"},
+		{"duplicate phase", "provider: [mappings]", "provider: [mappings, mappings]"},
+		{"client phases removed", "provider: [mappings]", "client: [validation]\nprovider: [mappings]"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -42,7 +42,7 @@ func TestGenerationLoadsPhasePlan(t *testing.T) {
 	if len(plan.Client) != 0 {
 		t.Fatalf("client phases should be empty, got %#v", plan.Client)
 	}
-	if len(plan.Provider) != 2 {
+	if len(plan.Provider) != 1 || plan.Provider[0] != "mappings" {
 		t.Fatalf("provider phases = %#v", plan.Provider)
 	}
 }

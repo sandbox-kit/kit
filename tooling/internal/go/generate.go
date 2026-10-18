@@ -7,7 +7,6 @@ import (
 	codegen "github.com/sandbox-kit/kit/tooling/internal/gen/codegen/v1"
 	declarationgen "github.com/sandbox-kit/kit/tooling/internal/go/declaration_gen"
 	mappinggen "github.com/sandbox-kit/kit/tooling/internal/go/mapping_gen"
-	providergen "github.com/sandbox-kit/kit/tooling/internal/go/provider_gen"
 	"github.com/sandbox-kit/kit/tooling/internal/model"
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -43,8 +42,6 @@ func Generate(plugin *protogen.Plugin, file *protogen.File, program *model.Progr
 	for _, phase := range phases {
 		var err error
 		switch phase {
-		case "checks":
-			err = providergen.GenerateChecks(plugin, file, provider.Rules, program.Templates, profile)
 		case "mappings":
 			err = mappinggen.Generate(plugin, file, provider, program.Templates, profile)
 		default:

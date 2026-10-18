@@ -1,6 +1,7 @@
 version: 1
 # Semantic generation phases still owned by Kit emitters. Path/error helpers,
-# shared create validation, and Client/Sandbox method bodies are handwritten.
-# Portable types come from standard protobuf contracts plus handwritten aliases.
+# shared create validation, provider checks, and Client/Sandbox method bodies
+# are handwritten. Portable types come from standard protobuf contracts plus
+# handwritten aliases.
 shared: []
-provider: [checks, mappings]
+provider: [mappings]
