@@ -103,37 +103,35 @@ duplicating schema resolution or semantic classification.
 ## Layout
 
 `internal/go/error_gen/` owns shared error-expression emission for validation
-and mapping call sites. `internal/go/schema/` resolves descriptor-backed paths.
-The type emitter also generates public path constants and response provenance
-validation.
+and mapping call sites. `internal/go/schema/` resolves descriptor-backed paths
+so remaining emitters can reference handwritten field-path constants.
 
 `specs/contracts.yaml` identifies portable metadata, error, and origin messages
 plus copy limits. Provider error classification is handwritten in each SDK;
 runtime facades and metadata clone helpers stay handwritten.
 
-| Directory                              | Responsibility                                                                 |
-| -------------------------------------- | ------------------------------------------------------------------------------ |
-| `cmd/sandbox-kit/`                     | Developer CLI                                                                  |
-| `cmd/protoc-gen-kit-go/`               | Protobuf output plugin                                                         |
-| `internal/model/`                      | Language-neutral descriptor and semantic compilation                           |
-| `internal/go/`                         | Go phase dispatcher and native language emitters                               |
-| `internal/spec/`                       | Strict YAML loader and portable rule types                                     |
-| `internal/go/declaration_gen/`         | Declaration primitives                                                         |
-| `internal/go/types_gen/`               | Paths, diagnostic field names, and related helpers (not portable public types) |
-| `internal/go/error_gen/`               | Consistent shared error expressions                                            |
-| `internal/go/schema/`                  | Descriptor resolution and canonical field paths                                |
-| `internal/go/validation_gen/`          | Shared validation and enum checks                                              |
-| `internal/go/mapping_gen/`             | Field conversions and policy mappings                                          |
-| `internal/go/provider_gen/`            | Provider checks and config assembly                                            |
-| `internal/go/naming/`                  | Go field and enum naming                                                       |
-| `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives                       |
-| `internal/typescript/error_gen/`       | Shared TypeScript error construction                                           |
-| `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings                              |
-| `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions                                  |
-| `internal/typescript/provider_gen/`    | Provider checks, config assembly, and related helpers                          |
-| `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                                         |
-| `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation                         |
-| `internal/gen/`                        | Generated annotation bindings                                                  |
+| Directory                              | Responsibility                                           |
+| -------------------------------------- | -------------------------------------------------------- |
+| `cmd/sandbox-kit/`                     | Developer CLI                                            |
+| `cmd/protoc-gen-kit-go/`               | Protobuf output plugin                                   |
+| `internal/model/`                      | Language-neutral descriptor and semantic compilation     |
+| `internal/go/`                         | Go phase dispatcher and native language emitters         |
+| `internal/spec/`                       | Strict YAML loader and portable rule types               |
+| `internal/go/declaration_gen/`         | Declaration primitives                                   |
+| `internal/go/error_gen/`               | Consistent shared error expressions                      |
+| `internal/go/schema/`                  | Descriptor resolution and canonical field paths          |
+| `internal/go/validation_gen/`          | Shared validation and enum checks                        |
+| `internal/go/mapping_gen/`             | Field conversions and policy mappings                    |
+| `internal/go/provider_gen/`            | Provider checks and config assembly                      |
+| `internal/go/naming/`                  | Go field and enum naming                                 |
+| `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives |
+| `internal/typescript/error_gen/`       | Shared TypeScript error construction                     |
+| `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings        |
+| `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions            |
+| `internal/typescript/provider_gen/`    | Provider checks, config assembly, and related helpers    |
+| `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                   |
+| `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation   |
+| `internal/gen/`                        | Generated annotation bindings                            |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
 and `sdks/typescript/`, ending in `.gen.go` and `.gen.ts` respectively.

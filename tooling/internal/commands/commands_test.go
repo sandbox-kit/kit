@@ -43,13 +43,10 @@ languages:
   go:
     targets:
       - {source: shared.proto, output: sdks/go/sandbox, module: example.com/sandbox}
-      - {source: client.proto, output: sdks/go/sandbox, module: example.com/sandbox}
       - {source: modal.proto, output: sdks/go/providers/modal, module: example.com/modal, provider: modal}
       - {source: daytona.proto, output: sdks/go/providers/daytona, module: example.com/daytona, provider: daytona}
   typescript:
     targets:
-      - {source: shared.proto, output: sdks/typescript/sandbox/src, module: '@example/sandbox'}
-      - {source: client.proto, output: sdks/typescript/sandbox/src, module: '@example/sandbox'}
       - {source: modal.proto, output: sdks/typescript/providers/modal/src, module: '@example/modal', provider: modal}
       - {source: daytona.proto, output: sdks/typescript/providers/daytona/src, module: '@example/daytona', provider: daytona}
 `
@@ -73,8 +70,8 @@ func TestTypeScriptGenerationUsesDeclaredTargets(t *testing.T) {
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if len(runner.steps) != 5 {
-		t.Fatalf("expected plugin build and four SDK generations, got %d", len(runner.steps))
+	if len(runner.steps) != 3 {
+		t.Fatalf("expected plugin build and two provider generations, got %d", len(runner.steps))
 	}
 	if runner.steps[0].name != "custom-go" || runner.steps[1].name != "custom-protoc" {
 		t.Fatal("TypeScript generation did not use configured executables")
@@ -108,8 +105,8 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 			if len(runner.steps) == 0 || runner.steps[0].name != "custom-go" {
 				t.Fatal("generation did not use the configured executable")
 			}
-			if !failure && len(runner.steps) != 7 {
-				t.Fatalf("expected bootstrap and four SDK generations, got %d steps", len(runner.steps))
+			if !failure && len(runner.steps) != 6 {
+				t.Fatalf("expected bootstrap and three SDK generations, got %d steps", len(runner.steps))
 			}
 			toolsDir := filepath.Dir(runner.steps[0].args[2])
 			relative, err := filepath.Rel(repo, toolsDir)

@@ -22,17 +22,21 @@ func LoadGeneration(root string) (Generation, error) {
 		return result, fmt.Errorf("unsupported generation version %d", result.Version)
 	}
 	roles := []struct {
-		name    string
-		phases  []string
-		allowed []string
+		name     string
+		phases   []string
+		allowed  []string
+		required bool
 	}{
-		{"shared", result.Shared, []string{"diagnostic_paths", "field_paths", "validation"}},
-		{"client", result.Client, []string{"diagnostic_paths", "field_paths"}},
-		{"provider", result.Provider, []string{"checks", "mappings"}},
+		{"shared", result.Shared, []string{"validation"}, true},
+		{"client", result.Client, nil, false},
+		{"provider", result.Provider, []string{"checks", "mappings"}, true},
 	}
 	for _, role := range roles {
-		if len(role.phases) != len(role.allowed) {
+		if role.required && len(role.phases) != len(role.allowed) {
 			return result, fmt.Errorf("%s: missing generation phase", role.name)
+		}
+		if !role.required && len(role.phases) != 0 {
+			return result, fmt.Errorf("%s: path helpers are handwritten; no client emission phases remain", role.name)
 		}
 		seen := map[string]bool{}
 		for _, phase := range role.phases {

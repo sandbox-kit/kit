@@ -2,9 +2,10 @@ package model
 
 import (
 	"fmt"
-	"github.com/sandbox-kit/kit/tooling/internal/spec"
 	"regexp"
 	"strings"
+
+	"github.com/sandbox-kit/kit/tooling/internal/spec"
 )
 
 // Templates are declaration patterns instantiated from descriptors and mappings.
@@ -20,7 +21,7 @@ func CompileTemplates(raw spec.Templates) (Templates, error) {
 	if raw.Version != 1 || len(raw.Callables) == 0 {
 		return result, fmt.Errorf("unsupported or empty declaration templates")
 	}
-	for _, name := range []string{"validator_factory", "validation", "request_mapping", "response_mapping", "provider_checks", "response_presence", "response_origins"} {
+	for _, name := range []string{"validator_factory", "validation", "request_mapping", "response_mapping", "provider_checks"} {
 		if _, ok := raw.Callables[name]; !ok {
 			return result, fmt.Errorf("missing declaration template %s", name)
 		}

@@ -67,11 +67,11 @@ sequencing.
 
 ## Generation plan
 
-`specs/generation.yaml` selects semantic output phases for shared contracts,
-clients, and providers (paths, validation, checks, mappings). The Go dispatcher
-consumes this plan rather than loading specifications independently for each
-emitter. It rejects missing or duplicate phases. Client and handle method bodies
-are handwritten; operation choreography is not declared in YAML.
+`specs/generation.yaml` selects remaining Kit emission phases (shared
+validation, provider checks and mappings). Path/error helpers and Client/Sandbox
+method bodies are handwritten. The Go dispatcher consumes this plan rather than
+loading specifications independently for each emitter. It rejects missing or
+duplicate phases.
 
 The target manifest drives provider/language outputs, so adding a provider does
 not require editing the generation command's source list. Output suffixes come

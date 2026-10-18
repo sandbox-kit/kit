@@ -41,34 +41,6 @@ signatures:
           ref: target
     fallible: true
     cancellable: false
-  response_origins:
-    owner: function
-    params:
-      - id: info
-        type:
-          ref: response
-          reference: true
-      - id: operation
-        type:
-          builtin: string
-    fallible: true
-    cancellable: false
-  response_presence:
-    owner: function
-    params:
-      - id: info
-        type:
-          ref: response
-          nullable: true
-          reference: true
-      - id: path
-        type:
-          builtin: string
-    results:
-      - type:
-          builtin: boolean
-    fallible: false
-    cancellable: false
   validation:
     owner: function
     params:

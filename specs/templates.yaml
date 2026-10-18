@@ -1,5 +1,7 @@
 version: 1
 # Types and names in braces are descriptor/mapping bindings, not source code.
+# field_paths remains so mapping/check emitters can reference handwritten
+# CreateField*/ConfigField*/InfoField* constants by canonical path.
 callables:
   validator_factory:
     declaration:
@@ -14,7 +16,14 @@ callables:
       name: "Validate{subject}"
       doc: "rejects {subject} values the shared contract cannot represent. A nil request is treated as omitted configuration. Account quotas stay with the provider."
       behavior: validation
-      params: [{ id: request, name: request, type: { ref: subject, reference: true, nullable: true } }]
+      params:
+        [
+          {
+            id: request,
+            name: request,
+            type: { ref: subject, reference: true, nullable: true },
+          },
+        ]
       fallible: true
   request_mapping:
     declaration:
@@ -22,7 +31,14 @@ callables:
       name: "{mapping}"
       doc: "maps supplied fields for {mapping} into the native request and returns the fields that were not mapped."
       behavior: request_mapping
-      params: [{ id: source, name: source, type: { ref: source, reference: true, nullable: true } }]
+      params:
+        [
+          {
+            id: source,
+            name: source,
+            type: { ref: source, reference: true, nullable: true },
+          },
+        ]
       results: [{ type: { ref: target } }, { type: { ref: source } }]
       fallible: true
   response_mapping:
@@ -31,7 +47,14 @@ callables:
       name: "{mapping}"
       doc: "maps native fields for {mapping} into shared metadata. It does not invent values the SDK omitted."
       behavior: response_mapping
-      params: [{ id: source, name: source, type: { ref: source, reference: true, nullable: true } }]
+      params:
+        [
+          {
+            id: source,
+            name: source,
+            type: { ref: source, reference: true, nullable: true },
+          },
+        ]
       results: [{ type: { ref: target } }]
       fallible: true
   provider_checks:
@@ -40,27 +63,14 @@ callables:
       name: validateProviderCreate
       doc: "rejects creation settings this provider cannot honor. It runs before the native create call."
       behavior: provider_checks
-      params: [{ id: request, name: request, type: { ref: request, reference: true, nullable: true } }]
-      fallible: true
-  response_presence:
-    declaration:
-      id: response_presence
-      name: responseFieldPresent
-      doc: "reports whether path names a field that is present on the sandbox metadata."
-      behavior: response_presence
       params:
-        - { id: info, name: info, type: { ref: response, reference: true, nullable: true } }
-        - { id: path, name: path, type: { builtin: string } }
-      results: [{ type: { builtin: boolean } }]
-  response_origins:
-    declaration:
-      id: response_origins
-      name: validateResponseOrigins
-      doc: "checks that every origin names a known field that is actually present. A missing origin means the source is unknown."
-      behavior: response_origins
-      params:
-        - { id: info, name: info, type: { ref: response, reference: true } }
-        - { id: operation, name: operation, type: { builtin: string } }
+        [
+          {
+            id: request,
+            name: request,
+            type: { ref: request, reference: true, nullable: true },
+          },
+        ]
       fallible: true
 field_paths:
   name: "{prefix}{fields}"

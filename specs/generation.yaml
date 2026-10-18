@@ -1,7 +1,6 @@
 version: 1
-# Semantic generation phases still owned by Kit emitters. Client/handle method
-# bodies are handwritten; this file does not describe operation choreography.
+# Semantic generation phases still owned by Kit emitters. Path/error helpers and
+# Client/Sandbox method bodies are handwritten.
 # Portable types come from standard protobuf contracts plus handwritten aliases.
-shared: [diagnostic_paths, field_paths, validation]
-client: [diagnostic_paths, field_paths]
+shared: [validation]
 provider: [checks, mappings]

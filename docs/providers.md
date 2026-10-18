@@ -41,7 +41,8 @@ orchestration, and error classification stay handwritten.
 YAML declares validation, configuration assembly, field conversions, provider
 checks, and native bindings. The shared compiler resolves these inputs into a
 language-neutral model. Go and TypeScript emitters consume the compiled mappings;
-`specs/generation.yaml` declares remaining generation phases.
+`specs/generation.yaml` declares remaining generation phases (validation, checks,
+mappings).
 
 Provider `sandbox.go` files and provider-named TypeScript files retain
 orchestration that the current vocabulary cannot express: app/image/secret
