@@ -12,8 +12,11 @@ type Behaviors struct {
 
 func CompileBehaviors(raw spec.Behaviors) (Behaviors, error) {
 	result := Behaviors{Signatures: raw.Signatures}
-	if raw.Version != 1 || len(raw.Signatures) == 0 {
-		return result, fmt.Errorf("unsupported or empty behavior contracts")
+	if raw.Version != 1 {
+		return result, fmt.Errorf("unsupported behavior contracts version %d", raw.Version)
+	}
+	if result.Signatures == nil {
+		result.Signatures = map[string]spec.BehaviorSignature{}
 	}
 	for id, signature := range raw.Signatures {
 		if !declarationIdentifier.MatchString(id) {

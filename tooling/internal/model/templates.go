@@ -18,13 +18,11 @@ var templateToken = regexp.MustCompile(`\{([a-z_]+)\}`)
 
 func CompileTemplates(raw spec.Templates) (Templates, error) {
 	result := Templates{Callables: raw.Callables, FieldPaths: raw.FieldPaths}
-	if raw.Version != 1 || len(raw.Callables) == 0 {
-		return result, fmt.Errorf("unsupported or empty declaration templates")
+	if raw.Version != 1 {
+		return result, fmt.Errorf("unsupported declaration templates version %d", raw.Version)
 	}
-	for _, name := range []string{"request_mapping", "response_mapping"} {
-		if _, ok := raw.Callables[name]; !ok {
-			return result, fmt.Errorf("missing declaration template %s", name)
-		}
+	if result.Callables == nil {
+		result.Callables = map[string]spec.DeclarationTemplate{}
 	}
 	for id, t := range raw.Callables {
 		if !declarationIdentifier.MatchString(id) {

@@ -28,10 +28,10 @@ import {
   mapLifetimeDuration as generatedMapLifetimeDuration,
   mapResources as generatedMapResources,
   mapSandboxIdentity as generatedMapSandboxIdentity,
-} from "./provider.mappings.gen.js";
+} from "./provider_mappings.js";
 import { validateProviderCreate } from "./provider_checks.js";
-import { mapGeneratedClientConfig } from "./provider.config.gen.js";
-import type { ProviderState } from "./provider.config.gen.js";
+import { mapGeneratedClientConfig } from "./provider_config.js";
+import type { ProviderState } from "./provider_config.js";
 
 export interface ModalCreatePlan {
   readonly app: string;

@@ -22,34 +22,16 @@ func LoadGeneration(root string) (Generation, error) {
 		return result, fmt.Errorf("unsupported generation version %d", result.Version)
 	}
 	roles := []struct {
-		name     string
-		phases   []string
-		allowed  []string
-		required bool
+		name   string
+		phases []string
 	}{
-		{"shared", result.Shared, nil, false},
-		{"client", result.Client, nil, false},
-		{"provider", result.Provider, []string{"mappings"}, true},
+		{"shared", result.Shared},
+		{"client", result.Client},
+		{"provider", result.Provider},
 	}
 	for _, role := range roles {
-		if role.required && len(role.phases) != len(role.allowed) {
-			return result, fmt.Errorf("%s: missing generation phase", role.name)
-		}
-		if !role.required && len(role.phases) != 0 {
-			return result, fmt.Errorf("%s: no emission phases remain; shared create validation, provider checks, and client helpers are handwritten", role.name)
-		}
-		seen := map[string]bool{}
-		for _, phase := range role.phases {
-			valid := false
-			for _, allowed := range role.allowed {
-				if phase == allowed {
-					valid = true
-				}
-			}
-			if !valid || seen[phase] {
-				return result, fmt.Errorf("%s: unknown or duplicate phase %q", role.name, phase)
-			}
-			seen[phase] = true
+		if len(role.phases) != 0 {
+			return result, fmt.Errorf("%s: no emission phases remain; validation, checks, mappings, and helpers are handwritten", role.name)
 		}
 	}
 	return result, nil

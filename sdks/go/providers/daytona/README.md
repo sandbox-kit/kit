@@ -109,10 +109,10 @@ From this directory:
 GOWORK=off go test ./...
 ```
 
-Tests use a fake HTTP transport and generated checks without cloud provisioning.
-[Provider YAML](../../../../specs/providers/daytona.yaml) generates construction,
-configuration assembly, field/policy conversions, and validation.
-`sandbox.go` retains remaining creation orchestration.
+Tests use a fake HTTP transport without cloud provisioning.
+[Provider YAML](../../../../specs/providers/daytona.yaml) inventories checks and
+mapping groups implemented in `provider_checks.go` and `provider_mappings.go`.
+`sandbox.go` owns remaining creation orchestration.
 
 Error classification is handwritten in `errors.go` and preserves the original
 SDK cause. Shared payloads use protobuf `ErrorInfo` / `ErrorKind`. See

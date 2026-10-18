@@ -13,11 +13,9 @@ func TestGenerationRejectsUnsupportedOrUnsafePlans(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct{ name, old, new string }{
-		{"unknown shared phase", "shared: []", "shared: [validation]"},
-		{"unknown provider phase", "provider: [mappings]", "provider: [mappings, checks]"},
-		{"missing provider phase", "provider: [mappings]", "provider: []"},
-		{"duplicate phase", "provider: [mappings]", "provider: [mappings, mappings]"},
-		{"client phases removed", "provider: [mappings]", "client: [validation]\nprovider: [mappings]"},
+		{"shared phase rejected", "shared: []", "shared: [validation]"},
+		{"provider phase rejected", "provider: []", "provider: [mappings]"},
+		{"client phase rejected", "provider: []", "client: [validation]\nprovider: []"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			root := t.TempDir()
@@ -36,13 +34,7 @@ func TestGenerationLoadsPhasePlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(plan.Shared) != 0 {
-		t.Fatalf("shared phases should be empty, got %#v", plan.Shared)
-	}
-	if len(plan.Client) != 0 {
-		t.Fatalf("client phases should be empty, got %#v", plan.Client)
-	}
-	if len(plan.Provider) != 1 || plan.Provider[0] != "mappings" {
-		t.Fatalf("provider phases = %#v", plan.Provider)
+	if len(plan.Shared) != 0 || len(plan.Client) != 0 || len(plan.Provider) != 0 {
+		t.Fatalf("expected empty phases, got shared=%#v client=%#v provider=%#v", plan.Shared, plan.Client, plan.Provider)
 	}
 }

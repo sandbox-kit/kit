@@ -158,9 +158,10 @@ func LoadTargets(root string) (Targets, error) {
 		return targets, fmt.Errorf("invalid generation targets")
 	}
 	for language, group := range targets.Languages {
-		if language == "" || len(group.Targets) == 0 {
+		if language == "" {
 			return targets, fmt.Errorf("invalid generation targets for %q", language)
 		}
+		// Empty targets are allowed: Kit emitters are retired and SDKs are handwritten.
 		seen := map[string]bool{}
 		for _, target := range group.Targets {
 			if target.Source == "" || target.Output == "" || target.Module == "" || filepath.IsAbs(target.Source) || filepath.IsAbs(target.Output) || seen[target.Source] {

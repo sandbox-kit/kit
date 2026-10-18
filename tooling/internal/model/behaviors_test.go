@@ -1,18 +1,44 @@
 package model
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 )
 
-func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
-	t.Helper()
-	raw, err := spec.LoadBehaviors("../../../specs")
+func TestBehaviorsLoadEmptySignatures(t *testing.T) {
+	raw, err := spec.LoadBehaviors(filepath.Join("..", "..", "..", "specs"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	contracts, err := CompileBehaviors(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(contracts.Signatures) != 0 {
+		t.Fatalf("expected empty signatures, got %#v", contracts.Signatures)
+	}
+}
+
+func behaviorFixture(t *testing.T) (Behaviors, spec.Callable) {
+	t.Helper()
+	contracts, err := CompileBehaviors(spec.Behaviors{
+		Version: 1,
+		Signatures: map[string]spec.BehaviorSignature{
+			"request_mapping": {
+				Owner:    "function",
+				Fallible: true,
+				Params: []spec.BehaviorSlot{
+					{ID: "source", Type: spec.TypeRef{Ref: "source", Reference: true, Nullable: true}},
+				},
+				Results: []spec.BehaviorSlot{
+					{Type: spec.TypeRef{Ref: "target"}},
+					{Type: spec.TypeRef{Ref: "source"}},
+				},
+			},
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

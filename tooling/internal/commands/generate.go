@@ -117,8 +117,6 @@ func generateTypeScript(cmd *cobra.Command, root string, config *settings, runne
 		}
 	}()
 
-	plugin := filepath.Join(toolsDir, "protoc-gen-kit-typescript")
-	steps := []step{{filepath.Join(root, "tooling"), config.goBinary, []string{"build", "-o", plugin, "./cmd/protoc-gen-kit-typescript"}}}
 	targets, err := spec.LoadTargets(filepath.Join(root, "specs"))
 	if err != nil {
 		return err
@@ -127,6 +125,12 @@ func generateTypeScript(cmd *cobra.Command, root string, config *settings, runne
 	if !ok {
 		return fmt.Errorf("generation target manifest has no TypeScript targets")
 	}
+	if len(group.Targets) == 0 {
+		_, err = fmt.Fprintln(cmd.OutOrStdout(), "No TypeScript Kit emit targets; handwritten SDK sources are authoritative.")
+		return err
+	}
+	plugin := filepath.Join(toolsDir, "protoc-gen-kit-typescript")
+	steps := []step{{filepath.Join(root, "tooling"), config.goBinary, []string{"build", "-o", plugin, "./cmd/protoc-gen-kit-typescript"}}}
 	for _, target := range group.Targets {
 		steps = append(steps, step{root, config.protoc, []string{
 			"-I", filepath.Join(root, "proto"), "--plugin=protoc-gen-kit-typescript=" + plugin,
@@ -154,6 +158,18 @@ func generateGo(cmd *cobra.Command, root string, config *settings, runner runner
 		}
 	}()
 
+	targets, err := spec.LoadTargets(filepath.Join(root, "specs"))
+	if err != nil {
+		return err
+	}
+	goTargets, ok := targets.Languages["go"]
+	if !ok {
+		return fmt.Errorf("generation target manifest has no Go targets")
+	}
+	if len(goTargets.Targets) == 0 {
+		_, err = fmt.Fprintln(cmd.OutOrStdout(), "No Go Kit emit targets; handwritten SDK sources are authoritative.")
+		return err
+	}
 	toolingDir := filepath.Join(root, "tooling")
 	goPlugin := filepath.Join(toolsDir, "protoc-gen-go")
 	kitPlugin := filepath.Join(toolsDir, "protoc-gen-kit-go")
@@ -165,14 +181,6 @@ func generateGo(cmd *cobra.Command, root string, config *settings, runner runner
 			"kit/codegen/v1/options.proto",
 		}},
 		{toolingDir, config.goBinary, []string{"build", "-o", kitPlugin, "./cmd/protoc-gen-kit-go"}},
-	}
-	targets, err := spec.LoadTargets(filepath.Join(root, "specs"))
-	if err != nil {
-		return err
-	}
-	goTargets, ok := targets.Languages["go"]
-	if !ok {
-		return fmt.Errorf("generation target manifest has no Go targets")
 	}
 	for _, target := range goTargets.Targets {
 		steps = append(steps, step{root, config.protoc, []string{

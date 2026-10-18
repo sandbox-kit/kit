@@ -20,11 +20,11 @@ The native Daytona SDK resolves credentials from its environment when `auth` is
 omitted. Closing the client releases local Daytona SDK resources and does not
 delete the cloud sandbox.
 
-Configuration, validation, and portable field mappings are generated from the
-protobuf contracts and `specs/providers/daytona.yaml`. `src/daytona.ts` owns only
-typed Daytona SDK call ordering and lifecycle orchestration; `src/mappings.ts`
-owns the remaining provider-specific composition that the portable mapping
-vocabulary cannot express.
+Checks and portable field mappings are handwritten in `provider_checks.ts`,
+`provider_mappings.ts`, and `provider_config.ts`, kept in sync with
+`specs/providers/daytona.yaml`. `src/daytona.ts` owns typed Daytona SDK call
+ordering and lifecycle orchestration; `src/mappings.ts` owns remaining
+provider-specific composition those helpers do not cover.
 
 ## Dependency audit
 

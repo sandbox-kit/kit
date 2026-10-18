@@ -1,22 +1,8 @@
 version: 1
+# Kit provider/language emit targets are empty: mappings and checks are
+# handwritten in sdks/. Contract generation still uses proto/ directly.
 languages:
   go:
-    targets:
-      - source: kit/providers/modal/v1/provider.proto
-        output: sdks/go/providers/modal
-        module: github.com/sandbox-kit/kit/sdks/go/providers/modal
-        provider: modal
-      - source: kit/providers/daytona/v1/provider.proto
-        output: sdks/go/providers/daytona
-        module: github.com/sandbox-kit/kit/sdks/go/providers/daytona
-        provider: daytona
+    targets: []
   typescript:
-    targets:
-      - source: kit/providers/modal/v1/provider.proto
-        output: sdks/typescript/providers/modal/src
-        module: "@sandbox-kit/provider-modal"
-        provider: modal
-      - source: kit/providers/daytona/v1/provider.proto
-        output: sdks/typescript/providers/daytona/src
-        module: "@sandbox-kit/provider-daytona"
-        provider: daytona
+    targets: []

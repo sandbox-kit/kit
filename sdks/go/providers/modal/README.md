@@ -98,10 +98,10 @@ From this directory:
 GOWORK=off go test ./...
 ```
 
-Tests use native SDK doubles and generated mapping checks without cloud
-provisioning. [Provider YAML](../../../../specs/providers/modal.yaml) generates
-configuration assembly, SDK construction, state capture, validation, and field
-conversions. `sandbox.go` contains remaining creation orchestration.
+Tests use native SDK doubles without cloud provisioning.
+[Provider YAML](../../../../specs/providers/modal.yaml) inventories checks and
+mapping groups implemented in `provider_checks.go` and `provider_mappings.go`.
+`sandbox.go` owns remaining creation orchestration.
 
 Error classification is handwritten in `errors.go` and preserves the original
 SDK cause. Shared payloads use protobuf `ErrorInfo` / `ErrorKind`. See

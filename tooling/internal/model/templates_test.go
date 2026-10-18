@@ -8,10 +8,45 @@ import (
 	"github.com/sandbox-kit/kit/tooling/internal/spec"
 )
 
-func TestTemplateBindingAndValidation(t *testing.T) {
+func TestTemplatesLoadEmptyCallablesAndFieldPaths(t *testing.T) {
 	raw, err := spec.LoadTemplates(filepath.Join("..", "..", "..", "specs"))
 	if err != nil {
 		t.Fatal(err)
+	}
+	templates, err := CompileTemplates(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(templates.Callables) != 0 {
+		t.Fatalf("expected empty callables, got %#v", templates.Callables)
+	}
+	if templates.FieldPaths.Name != "{prefix}{fields}" || templates.FieldPaths.Roots["CreateOptions"] != "CreateField" {
+		t.Fatalf("field-path inventory lost: %#v", templates.FieldPaths)
+	}
+}
+
+func TestTemplateBindingAndValidation(t *testing.T) {
+	raw := spec.Templates{
+		Version: 1,
+		Callables: map[string]spec.DeclarationTemplate{
+			"request_mapping": {
+				Declaration: spec.Callable{
+					ID: "request_mapping", Name: "{mapping}", Behavior: "request_mapping", Fallible: true,
+					Doc: "maps {mapping}",
+					Params: []spec.APISlot{
+						{ID: "source", Name: "source", Type: spec.TypeRef{Ref: "source", Reference: true, Nullable: true}},
+					},
+					Results: []spec.APISlot{
+						{Type: spec.TypeRef{Ref: "target"}},
+						{Type: spec.TypeRef{Ref: "source"}},
+					},
+				},
+			},
+		},
+		FieldPaths: spec.FieldPathTemplates{
+			Name:  "{prefix}{fields}",
+			Roots: map[string]string{"CreateOptions": "CreateField"},
+		},
 	}
 	templates, err := CompileTemplates(raw)
 	if err != nil {

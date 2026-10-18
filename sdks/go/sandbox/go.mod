@@ -6,3 +6,5 @@ require (
 	github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0
 	google.golang.org/protobuf v1.36.12
 )
+
+replace github.com/sandbox-kit/kit/sdks/go/contracts => ../contracts

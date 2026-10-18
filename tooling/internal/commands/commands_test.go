@@ -83,6 +83,40 @@ func TestTypeScriptGenerationUsesDeclaredTargets(t *testing.T) {
 	}
 }
 
+func TestGenerationSkipsEmptyTargets(t *testing.T) {
+	repo := repositoryFixture(t)
+	empty := `version: 1
+languages:
+  go:
+    targets: []
+  typescript:
+    targets: []
+`
+	if err := os.WriteFile(filepath.Join(repo, "specs", "targets.yaml"), []byte(empty), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{
+		{"generate", "go", "--repo", repo},
+		{"generate", "typescript", "--repo", repo},
+	} {
+		runner := &recordingRunner{}
+		command := newRootCommand(runner)
+		out := &bytes.Buffer{}
+		command.SetOut(out)
+		command.SetErr(io.Discard)
+		command.SetArgs(args)
+		if err := command.ExecuteContext(context.Background()); err != nil {
+			t.Fatalf("%v: %v", args, err)
+		}
+		if len(runner.steps) != 0 {
+			t.Fatalf("%v executed tools with empty targets: %#v", args, runner.steps)
+		}
+		if !strings.Contains(out.String(), "handwritten SDK sources are authoritative") {
+			t.Fatalf("%v missing empty-target message: %q", args, out.String())
+		}
+	}
+}
+
 func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 	for _, failure := range []bool{false, true} {
 		t.Run(map[bool]string{false: "success", true: "build failure"}[failure], func(t *testing.T) {

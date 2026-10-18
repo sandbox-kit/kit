@@ -1,40 +1,8 @@
 version: 1
-# Types and names in braces are descriptor/mapping bindings, not source code.
-# field_paths remains so mapping emitters can reference handwritten
-# CreateField*/ConfigField*/InfoField* constants by canonical path.
-callables:
-  request_mapping:
-    declaration:
-      id: request_mapping
-      name: "{mapping}"
-      doc: "maps supplied fields for {mapping} into the native request and returns the fields that were not mapped."
-      behavior: request_mapping
-      params:
-        [
-          {
-            id: source,
-            name: source,
-            type: { ref: source, reference: true, nullable: true },
-          },
-        ]
-      results: [{ type: { ref: target } }, { type: { ref: source } }]
-      fallible: true
-  response_mapping:
-    declaration:
-      id: response_mapping
-      name: "{mapping}"
-      doc: "maps native fields for {mapping} into shared metadata. It does not invent values the SDK omitted."
-      behavior: response_mapping
-      params:
-        [
-          {
-            id: source,
-            name: source,
-            type: { ref: source, reference: true, nullable: true },
-          },
-        ]
-      results: [{ type: { ref: target } }]
-      fallible: true
+# Helper templates for Kit emitters are retired. field_paths remains as the
+# naming convention for handwritten CreateField*/ConfigField*/InfoField*
+# constants.
+callables: {}
 field_paths:
   name: "{prefix}{fields}"
   roots:

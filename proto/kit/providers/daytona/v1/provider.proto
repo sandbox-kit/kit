@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package kit.providers.daytona.v1;
-
-import "kit/codegen/v1/options.proto";
-import public "kit/sandbox/v1/client.proto";
-
-option go_package = "github.com/sandbox-kit/kit/sdks/go/providers/daytona;daytona";
-option (kit.codegen.v1.provider) = {provider_name: "daytona"};

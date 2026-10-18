@@ -4,17 +4,17 @@ Public portable types and service metadata live in protobuf under `proto/`.
 SDK runtimes alias those generated contract types and keep constructors,
 facades, and orchestration handwritten.
 
-YAML no longer declares a parallel public API surface. Remaining specs describe
+YAML no longer declares a parallel public API surface. Remaining specs inventory
 provider rules, validation, mappings, templates, and language profiles:
 
-| Spec                                             | Role                                                           |
-| ------------------------------------------------ | -------------------------------------------------------------- |
-| `specs/generation.yaml`                          | Remaining Kit emission phases (mappings)                       |
-| `specs/templates.yaml`                           | Helper signatures; field-path naming for handwritten constants |
-| `specs/behaviors.yaml`                           | Signature checks for helper templates still emitted            |
-| `specs/languages/<language>.yaml`                | Native representation and output conventions                   |
-| `specs/providers/*.yaml`                         | Provider mappings, checks, and bindings                        |
-| `specs/validation.yaml` / `specs/contracts.yaml` | Portable create-validation inventory and contract limits       |
+| Spec                                             | Role                                                      |
+| ------------------------------------------------ | --------------------------------------------------------- |
+| `specs/generation.yaml`                          | Empty Kit emission phases (non-empty values are rejected) |
+| `specs/templates.yaml`                           | Field-path naming for handwritten constants               |
+| `specs/behaviors.yaml`                           | Retired helper-template signature inventory (empty)       |
+| `specs/languages/<language>.yaml`                | Native representation and output conventions              |
+| `specs/providers/*.yaml`                         | Provider mapping/check inventories and bindings           |
+| `specs/validation.yaml` / `specs/contracts.yaml` | Portable create-validation inventory and contract limits  |
 
 Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
 provider classification are handwritten per language.
@@ -36,5 +36,5 @@ callers).
 - Provider orchestration that the mapping vocabulary cannot express
 
 See [Protobuf SDK boundary](protobuf-sdk-boundary.md) and
-[code generation](code-generation.md) for the full split between contracts,
-generated helpers, and handwritten runtime code.
+[code generation](code-generation.md) for the full split between contracts and
+handwritten runtime code.

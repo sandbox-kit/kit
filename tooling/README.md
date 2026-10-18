@@ -1,8 +1,8 @@
 # SDK generation tooling
 
-This Go module contains the Cobra CLI and the Go and TypeScript SDK generators.
-Applications using Sandbox Kit do not depend on it. Language emitters are
-implemented in Go over one compiled semantic model.
+This Go module contains the Cobra CLI and retired Kit custom emitters.
+Applications using Sandbox Kit do not depend on it. Standard protobuf plugins
+still emit contract packages; provider/shared SDK helpers are handwritten.
 
 ## Run the CLI
 
@@ -45,10 +45,9 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 `test proto` checks canonical formatting, lint, and compilation with Buf. Pass
 `--against` to add a breaking-change comparison against a Git or Buf input.
 
-`generate go` rebuilds annotation bindings and emits shared native types,
-validation, client/provider contracts, SDK constructors, state capture,
-configuration assembly, field mappings, owned copies, common errors, field-path
-constants, and response-origin validation.
+`generate go` and `generate typescript` currently find empty Kit emit targets and
+leave handwritten SDK sources authoritative. Use `generate contracts-go` /
+`contracts-typescript` to refresh protobuf contract packages.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
 Go example module registered by the command. Example tests use dummy credentials
@@ -57,14 +56,9 @@ reporting, validation, or request mapping, and lifecycle examples use local
 provider doubles. Dedicated error examples test local rejection and error-kind
 handling.
 
-`generate typescript` emits shared contracts, the public client, provider
-identities, lifecycle dispatch, and typed Daytona and Modal mappings. Its
-lifecycle surface is compiled from annotated `SandboxService` protobuf methods;
-reusable source-block emission keeps handwritten SDK orchestration separate from
-the generated contract.
-`test typescript` builds and tests the shared package and both providers, discovers
-every TypeScript example containing a `package.json`, and builds each example
-without making provider calls.
+`test typescript` builds and tests the shared package and both providers,
+discovers every TypeScript example containing a `package.json`, and builds each
+example without making provider calls.
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Generation uses an external temporary directory and cleans up
@@ -79,79 +73,32 @@ confirm Go 1.26.9 or newer; restart the editor's Go language server after upgrad
 After using it, run `GOWORK=off go mod tidy` inside each affected module to update
 its `go.sum`, then run `sandbox-kit test go` again.
 
-## Compilation and emission
+## Compilation model
 
-The plugin compiles the supplied protobuf descriptors and YAML once per plugin invocation into `internal/model/`.
-The model resolves schema identities, client methods, field paths, and mappings
-without Go syntax or SDK dependencies. Provider bindings remain attached to the
-specifications for selection by each language emitter.
-
-Portable public types come from protobuf contracts. `specs/templates.yaml`
-declares reusable signatures and field-path rules for the remaining
-descriptor-driven helpers. `specs/behaviors.yaml` checks those helper signatures
-before emission. `specs/languages/go.yaml` and `specs/languages/typescript.yaml`
-control native representation and output conventions. Templates retain structured
-type bindings; body emitters resolve explicit symbols instead of renaming text.
-`specs/generation.yaml` declares remaining output phases (mappings). Shared
-create validation and provider checks are handwritten in the SDKs. Annotated
-`SandboxService` methods describe the portable operation graph; public
-Client/Sandbox methods are handwritten.
-`internal/go/generate.go` and `internal/typescript/generate.go` dispatch the
-compiled program to focused native emitters. Adding another language requires an
-emitter for that vocabulary and native SDK bindings; it does not require
-duplicating schema resolution or semantic classification.
+The retired Kit plugins still compile protobuf descriptors and YAML inventories
+into `internal/model/` when invoked. With empty `specs/targets.yaml`, the CLI
+does not build or run those plugins. Portable public types come from protobuf
+contracts. `specs/templates.yaml` keeps field-path naming for handwritten
+constants; helper callables and `specs/behaviors.yaml` signatures are empty.
+`specs/generation.yaml` rejects any non-empty emission phase.
 
 ## Layout
 
-`internal/go/error_gen/` owns shared error-expression emission for mapping and
-check call sites. `internal/go/schema/` resolves descriptor-backed paths so
-remaining emitters can reference handwritten field-path constants.
-
-`specs/contracts.yaml` identifies portable metadata, error, and origin messages
-plus copy limits. Provider error classification is handwritten in each SDK;
-runtime facades and metadata clone helpers stay handwritten.
-
-| Directory                              | Responsibility                                           |
-| -------------------------------------- | -------------------------------------------------------- |
-| `cmd/sandbox-kit/`                     | Developer CLI                                            |
-| `cmd/protoc-gen-kit-go/`               | Protobuf output plugin                                   |
-| `internal/model/`                      | Language-neutral descriptor and semantic compilation     |
-| `internal/go/`                         | Go phase dispatcher and native language emitters         |
-| `internal/spec/`                       | Strict YAML loader and portable rule types               |
-| `internal/go/declaration_gen/`         | Declaration primitives                                   |
-| `internal/go/error_gen/`               | Consistent shared error expressions                      |
-| `internal/go/schema/`                  | Descriptor resolution and canonical field paths          |
-| `internal/go/mapping_gen/`             | Field conversions and policy mappings                    |
-| `internal/go/naming/`                  | Go field and enum naming                                 |
-| `internal/typescript/declaration_gen/` | TypeScript output conventions and declaration primitives |
-| `internal/typescript/error_gen/`       | Shared TypeScript error construction                     |
-| `internal/typescript/mapping_gen/`     | Compiled field, unit, policy, and origin mappings        |
-| `internal/typescript/naming/`          | Protobuf-to-TypeScript identifier conventions            |
-| `internal/typescript/provider_gen/`    | Provider config assembly helpers (when used)             |
-| `internal/typescript/schema/`          | Descriptor-to-TypeScript type lowering                   |
-| `internal/typescript/validation_gen/`  | TypeScript representation and provider-rule validation   |
-| `internal/gen/`                        | Generated annotation bindings                            |
+| Directory                        | Responsibility                                       |
+| -------------------------------- | ---------------------------------------------------- |
+| `cmd/sandbox-kit/`               | Developer CLI                                        |
+| `cmd/protoc-gen-kit-go/`         | Retired Kit Go emit plugin (no-op)                   |
+| `cmd/protoc-gen-kit-typescript/` | Retired Kit TypeScript emit plugin (no-op)           |
+| `internal/model/`                | Language-neutral descriptor and semantic compilation |
+| `internal/go/`                   | Go Kit emit dispatcher (no-op)                       |
+| `internal/typescript/`           | TypeScript Kit emit dispatcher (no-op)               |
+| `internal/spec/`                 | Strict YAML loader and portable rule types           |
+| `internal/gen/`                  | Generated annotation bindings                        |
 
 Inputs live in root `proto/` and `specs/`. Runtime output lives in `sdks/go/`
-and `sdks/typescript/`, ending in `.gen.go` and `.gen.ts` respectively.
-Protobuf provides descriptors for generation; it does not add a Kit network
-service or public runtime message dependency.
+and `sdks/typescript/`. Protobuf provides descriptors for tooling; it does not
+add a Kit network service or public runtime message dependency.
 
-See [API declarations](../docs/api-declarations.md) and [generation specifications](../docs/code-generation.md) for the vocabulary,
+See [API declarations](../docs/api-declarations.md) and
+[generation specifications](../docs/code-generation.md) for the vocabulary,
 validation semantics, and extension workflow.
-
-## Go declaration emitter structure
-
-`internal/go/declaration_gen/` separates native concerns:
-
-- `emitter.go`: emitter construction and common validation.
-- `profile.go`: Go capabilities and output conventions.
-- `types.go`: native type representation.
-- `signatures.go`: receivers, parameters, results, and generics.
-- `declarations.go`: objects, interfaces, aliases, enums, and callbacks.
-- `symbols.go`: explicit parameter, result, receiver, field, and local references.
-- `templates.go`: backend emission of bound declaration templates.
-
-Shared behavior compatibility is checked in `internal/model/behaviors.go`.
-The shared profile loader permits other language extensions and representation
-choices; a backend decides which ones it supports.

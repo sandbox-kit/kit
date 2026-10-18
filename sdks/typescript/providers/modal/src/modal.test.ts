@@ -13,7 +13,7 @@ import {
 import { App, InvalidError, Proxy, type Image, type Sandbox as ModalSandbox, type SandboxCreateParams } from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
 import { ModalProvider } from "./modal.js";
-import { captureProviderState } from "./provider.config.gen.js";
+import { captureProviderState } from "./provider_config.js";
 import { mapModalError } from "./errors.js";
 
 describe("Modal mappings", () => {

@@ -14,7 +14,7 @@ import {
 import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
 import { mapModalError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
-import { captureProviderState, type ProviderState } from "./provider.config.gen.js";
+import { captureProviderState, type ProviderState } from "./provider_config.js";
 
 interface NativeModal {
   readonly apps: Pick<ModalClient["apps"], "fromName">;

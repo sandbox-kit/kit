@@ -35,51 +35,47 @@ sdks/go/sandbox/            Public SDK module
 sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
-proto/kit/providers/        Thin provider descriptor entrypoints
-specs/                     Portable validation, mapping, and emit rules
+specs/                     Portable validation and mapping inventories
 tooling/internal/model/    Language-neutral compiled generation model
-tooling/internal/go/       Go phase dispatcher and emitters
+tooling/internal/go/       Retired Go Kit emit dispatcher (no-op)
 examples/go/<provider>/      One folder per provider, one module per example
 sdks/typescript/sandbox/     Public TypeScript SDK package
 sdks/typescript/providers/   Optional TypeScript provider packages
-tooling/internal/typescript/ TypeScript phase dispatcher and emitters
+tooling/internal/typescript/ Retired TypeScript Kit emit dispatcher (no-op)
 examples/typescript/<provider>/ One package per example
 ```
 
-Emitter directories use the `*_gen` suffix. Kit-generated helpers end in `.gen.go`
-(or `.gen.ts`). Portable messages and enums are not re-emitted by kit generators;
-they come from contract packages plus handwritten aliases such as
-`sandbox_data_contracts.go` / `sandbox_data_contracts.ts`.
+Portable messages and enums come from standard protobuf contract packages plus
+handwritten aliases such as `sandbox_data_contracts.go` /
+`sandbox_data_contracts.ts`. Kit custom emitters no longer write SDK helpers.
 
-| File                                        | Purpose                                                |
-| ------------------------------------------- | ------------------------------------------------------ |
-| `create_validation.go`                      | Handwritten shared CreateOptions validation            |
-| `validation_fields.go`                      | Handwritten Go↔protobuf field-name maps for validators |
-| `field_paths.go` / `config_paths.go`        | Handwritten canonical field-path constants             |
-| `provider.mappings.gen.go`                  | Request and metadata field conversions                 |
-| `provider_checks.go` / `provider_checks.ts` | Handwritten provider-specific create checks            |
-| `provider.config.gen.ts`                    | Native SDK configuration assembly                      |
-| `provider.mappings.gen.ts`                  | Request and metadata field conversions                 |
+| File                                            | Purpose                                        |
+| ----------------------------------------------- | ---------------------------------------------- |
+| `create_validation.go`                          | Shared CreateOptions validation                |
+| `validation_fields.go`                          | Go↔protobuf field-name maps for validators     |
+| `field_paths.go` / `config_paths.go`            | Canonical field-path constants                 |
+| `provider_mappings.go` / `provider_mappings.ts` | Request and metadata field conversions         |
+| `provider_checks.go` / `provider_checks.ts`     | Provider-specific create checks                |
+| `provider_config.ts`                            | Native SDK configuration assembly (TypeScript) |
 
 Handwritten runtime and provider files own client/orchestration behavior and
-metadata clone helpers. Change the schema, spec, or emitter when changing
-generated helpers.
+metadata clone helpers. Keep YAML inventories aligned when changing those files.
 
 ## Language conventions
 
-Field paths have generated names such as `CreateFieldResourcesCPUCores`,
+Field-path constants use names such as `CreateFieldResourcesCPUCores`,
 `ConfigFieldScopeAppName`, and `InfoFieldResources`. Their values retain
 canonical protobuf field names, including nested paths.
 
-Protobuf and YAML use snake_case semantic field names. The Go emitter produces
-names such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
+Protobuf and YAML use snake_case semantic field names. Go SDK types use names
+such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
 Enums use typed constants such as `IsolationKindLinuxVM` and `PolicyModeDisabled`.
 Native SDK members use the names from their pinned bindings.
 
-The TypeScript emitter uses camelCase fields, discriminated unions for exclusive
-alternatives, interfaces for named object contracts, type aliases for unions,
-and generated files ending in `.gen.ts`. Preserve numeric enum values and
-explicit serialized names in every language: the Go fields `Scope` and
-`Provisioning` serialize as `context` and `creation`.
+TypeScript SDK types use camelCase fields, discriminated unions for exclusive
+alternatives, interfaces for named object contracts, and type aliases for
+unions. Preserve numeric enum values and explicit serialized names in every
+language: the Go fields `Scope` and `Provisioning` serialize as `context` and
+`creation`.
 
 See [provider architecture](providers.md) and [generation rules](code-generation.md).
