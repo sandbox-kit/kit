@@ -3,7 +3,7 @@
   "checkpoint_id": "01M56ZGTNSJEYPNQBXA7M7RZWZ",
   "strategy": "manual-commit",
   "branch": "feat/shared-val-proto",
-  "checkpoints_count": 10,
+  "checkpoints_count": 20,
   "files_touched": [
     ".gitignore",
     "AGENTS.md",
@@ -14,6 +14,8 @@
     "sdks/go/sandbox/create_validation.go",
     "sdks/go/sandbox/create_validation_test.go",
     "sdks/go/sandbox/errors.go",
+    "sdks/go/sandbox/go.mod",
+    "sdks/go/sandbox/go.sum",
     "sdks/go/sandbox/tests/contracts_test.go",
     "sdks/go/sandbox/validation_fields.go",
     "specs/behaviors.yaml",
@@ -23,6 +25,7 @@
     "specs/validation.yaml",
     "tooling/README.md",
     "tooling/internal/go/generate.go",
+    "tooling/internal/go/validation_gen/tags.go",
     "tooling/internal/model/behaviors_test.go",
     "tooling/internal/model/templates.go",
     "tooling/internal/spec/generation.go",
@@ -35,6 +38,13 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
