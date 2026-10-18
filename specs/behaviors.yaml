@@ -1,4 +1,0 @@
-# Behavior contracts for Kit helper templates are retired; SDK orchestration
-# and mappings are handwritten.
-version: 1
-signatures: {}

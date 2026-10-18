@@ -1,8 +1,0 @@
-version: 1
-# Kit provider/language emit targets are empty: mappings and checks are
-# handwritten in sdks/. Contract generation still uses proto/ directly.
-languages:
-  go:
-    targets: []
-  typescript:
-    targets: []

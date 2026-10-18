@@ -1,4 +1,5 @@
-// Package spec loads language-neutral generation rules. It has no Go runtime SDK dependencies.
+// Package spec loads portable YAML inventories for validation, contracts, and
+// provider rules. It has no Go runtime SDK dependencies.
 package spec
 
 import (
@@ -30,7 +31,7 @@ type Field struct {
 	MinItems         *int     `yaml:"min_items"`
 }
 
-// Representation contains non-validation policies for generated native fields.
+// Representation contains non-validation policies for native fields.
 // These rules affect exposure and serialization, not whether a value is valid.
 type RepresentationPolicy struct {
 	Version  int                              `yaml:"version"`
@@ -131,46 +132,6 @@ type Provider struct {
 	Version  int                       `yaml:"version"`
 	Provider string                    `yaml:"provider"`
 	Groups   []Group                   `yaml:"groups"`
-}
-
-type Targets struct {
-	Version   int                        `yaml:"version"`
-	Languages map[string]LanguageTargets `yaml:"languages"`
-}
-
-type LanguageTargets struct {
-	Targets []GenerationTarget `yaml:"targets"`
-}
-
-type GenerationTarget struct {
-	Source   string `yaml:"source"`
-	Output   string `yaml:"output"`
-	Module   string `yaml:"module"`
-	Provider string `yaml:"provider"`
-}
-
-func LoadTargets(root string) (Targets, error) {
-	var targets Targets
-	if err := decode(filepath.Join(root, "targets.yaml"), &targets); err != nil {
-		return targets, err
-	}
-	if targets.Version != 1 || len(targets.Languages) == 0 {
-		return targets, fmt.Errorf("invalid generation targets")
-	}
-	for language, group := range targets.Languages {
-		if language == "" {
-			return targets, fmt.Errorf("invalid generation targets for %q", language)
-		}
-		// Empty targets are allowed: Kit emitters are retired and SDKs are handwritten.
-		seen := map[string]bool{}
-		for _, target := range group.Targets {
-			if target.Source == "" || target.Output == "" || target.Module == "" || filepath.IsAbs(target.Source) || filepath.IsAbs(target.Output) || seen[target.Source] {
-				return targets, fmt.Errorf("invalid or duplicate %s target %q", language, target.Source)
-			}
-			seen[target.Source] = true
-		}
-	}
-	return targets, nil
 }
 
 type Check struct {

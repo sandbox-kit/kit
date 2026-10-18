@@ -8,16 +8,13 @@ code owns client, handle, provider, validation, checks, mappings, and error
 behavior.
 
 Portable create/config/info types come from standard protobuf contracts plus
-handwritten SDK aliases. Kit custom emitters are retired: `generate go` /
-`generate typescript` report empty Kit emit targets and leave SDK sources
-unchanged.
+handwritten SDK aliases. Kit custom emitters are retired.
 
 ## Generate and verify
 
 The repository is a Buf v2 module rooted at `proto/`. Buf checks schema
 formatting, lint, compilation, and compatibility. Contract packages are produced
-with the Kit CLI; `specs/targets.yaml` remains the Kit emit target manifest and
-is empty while custom emitters stay retired.
+with the Kit CLI.
 
 From `tooling/`, check the protobuf module:
 
@@ -33,15 +30,13 @@ renaming established enum defaults or the local `SandboxService` declaration.
 From `tooling/`:
 
 ```sh
-GOWORK=off go run ./cmd/sandbox-kit generate go
 GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
 GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
 GOWORK=off go run ./cmd/sandbox-kit test go
-GOWORK=off go run ./cmd/sandbox-kit generate typescript
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
-Generation requires `protoc`. Temporary binaries are cleaned up.
+Contract generation requires `protoc`. Temporary binaries are cleaned up.
 
 Contract packages are committed under `sdks/<language>/contracts/`. Edit
 `proto/`, then regenerate contracts. SDK applications use native types and do
@@ -52,8 +47,9 @@ not load YAML or import protobuf messages at runtime.
 | Input                             | Defines                                                                    |
 | --------------------------------- | -------------------------------------------------------------------------- |
 | `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
-| `specs/targets.yaml`              | Language/provider Kit emit targets (empty while emitters are retired)      |
 | `specs/validation.yaml`           | Portable create-validation inventory (handwritten in the Go SDK)           |
+| `specs/client.yaml`               | Config validation and representation inventory                             |
+| `specs/contracts.yaml`            | Metadata/error contract limits                                             |
 | `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories  |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
@@ -67,18 +63,6 @@ Runtime objects and behavior are handwritten in each language. YAML must not
 declare types, constructors, methods, result shapes, visibility, or operation
 sequencing.
 
-## Generation plan
-
-`specs/generation.yaml` keeps empty `shared` / `client` / `provider` phase lists.
-Loading any non-empty phase fails: validation, checks, mappings, and helpers are
-handwritten. The shared model still compiles descriptors and YAML inventories for
-tooling tests and future contract work.
-
-Handle lifecycle operations are registered once as annotated methods on
-`SandboxService` in `proto/kit/sandbox/v1/client.proto`. Handwritten runtime code
-owns public handle methods, typed dispatch, timeouts, metadata replacement,
-terminal updates, and capability discovery from that service.
-
 ## Response and error contracts
 
 Protobuf owns portable `ErrorInfo` and `ErrorKind`. SDK runtimes alias those
@@ -86,20 +70,13 @@ types and handwrite wrappers (`NewError` / `WithErrorContext` in Go,
 `sandboxError` in TypeScript) plus per-provider classification mappers.
 
 Handwritten `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
-field paths used by validation, mappings, and errors. Nested mapping sources can
-declare `error_path` in the YAML inventory; implementations must stay aligned.
-
-Response origin checks reject unknown keys and absent values, while accepting
-explicit zero/false and empty collections. Context enrichment avoids an extra
-wrapper when details already match.
+field paths used by validation, mappings, and errors.
 
 `specs/contracts.yaml` identifies the shared metadata, error, and origin
 declarations and the copy depth, visited-node, and payload-byte limits.
 Portable messages come from standard protobuf generation into contract packages;
 SDK runtimes alias them and keep handwritten clone helpers (for example Go
-`clone.go` and TypeScript metadata helpers). Metadata has explicit signed and
-unsigned alternatives instead of protobuf Struct's double-only numeric
-representation.
+`clone.go` and TypeScript metadata helpers).
 
 Provider error classification is not generated: Modal and Daytona mappers live
 in handwritten `errors.go` / `errors.ts`. Response groups declare
@@ -193,10 +170,9 @@ groups:
 
 Mapping groups are handwritten in `provider_mappings.go` /
 `provider_mappings.ts`. The YAML `groups:` list is an inventory: keep it aligned
-with the implementations. Shared types resolve against descriptors. Logical
-native fields resolve through `bindings.go.fields`. Request helpers return the
-mapped native value and a copy with mapped fields cleared. Providers reject
-remaining unsupported intent. Response helpers return shared native structs.
+with the implementations. Request helpers return the mapped native value and a
+copy with mapped fields cleared. Providers reject remaining unsupported intent.
+Response helpers return shared native structs.
 
 | Transform          | Semantics                                                                            |
 | ------------------ | ------------------------------------------------------------------------------------ |
@@ -257,26 +233,13 @@ SDK orchestration that the inventory cannot express stays in handwritten
 provider integration files (`sandbox.go` in Go and the provider-named `.ts`
 plus `mappings.ts` files in TypeScript): lookup sequences, source selection,
 readiness, and remaining provider semantics. Handwritten
-`provider_mappings` / `provider_config` own compiled field conversions and
-native client configuration; handwritten `provider_checks` enforces create
-checks; handwritten `errors` classifies native provider errors.
+`provider_mappings` / `provider_config` own field conversions and native client
+configuration; handwritten `provider_checks` enforces create checks; handwritten
+`errors` classifies native provider errors.
 
 Lifecycle option and result types come from protobuf contracts. Handle methods,
 typed provider dispatch, capability discovery, storage, and close coordination
 remain handwritten runtime code shaped by annotated `SandboxService` methods.
-Optional capabilities prevent a provider from advertising operations it cannot
-implement; Daytona resolves additional class-dependent capabilities from current
-metadata.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).
-
-Client mappings can declare `environment` resolution rules with a schema field,
-ordered environment-variable names, and a default. Implementations resolve
-omitted values into a private configuration copy before validation and SDK
-construction. Daytona uses this to validate native endpoint environment
-fallbacks.
-
-The portable `secure_endpoint` format requires remote HTTPS and permits HTTP
-only for local loopback testing; `image_reference` declares supported registry
-reference syntax.

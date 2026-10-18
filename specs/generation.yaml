@@ -1,6 +1,0 @@
-version: 1
-# Kit custom emitters are retired. Shared create validation, provider checks,
-# mappings, path helpers, and Client/Sandbox method bodies are handwritten.
-# Portable types come from standard protobuf contracts plus handwritten aliases.
-shared: []
-provider: []

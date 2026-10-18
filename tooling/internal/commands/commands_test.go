@@ -38,86 +38,10 @@ func repositoryFixture(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
-	targets := `version: 1
-languages:
-  go:
-    targets:
-      - {source: shared.proto, output: sdks/go/sandbox, module: example.com/sandbox}
-      - {source: modal.proto, output: sdks/go/providers/modal, module: example.com/modal, provider: modal}
-      - {source: daytona.proto, output: sdks/go/providers/daytona, module: example.com/daytona, provider: daytona}
-  typescript:
-    targets:
-      - {source: modal.proto, output: sdks/typescript/providers/modal/src, module: '@example/modal', provider: modal}
-      - {source: daytona.proto, output: sdks/typescript/providers/daytona/src, module: '@example/daytona', provider: daytona}
-`
-	path := filepath.Join(root, "specs", "targets.yaml")
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte(targets), 0o644); err != nil {
-		t.Fatal(err)
-	}
 	return root
 }
 
-func TestTypeScriptGenerationUsesDeclaredTargets(t *testing.T) {
-	repo := repositoryFixture(t)
-	runner := &recordingRunner{}
-	command := newRootCommand(runner)
-	command.SetOut(io.Discard)
-	command.SetErr(io.Discard)
-	command.SetArgs([]string{"generate", "typescript", "--repo", repo, "--go-binary", "custom-go", "--protoc", "custom-protoc"})
-	if err := command.ExecuteContext(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if len(runner.steps) != 3 {
-		t.Fatalf("expected plugin build and two provider generations, got %d", len(runner.steps))
-	}
-	if runner.steps[0].name != "custom-go" || runner.steps[1].name != "custom-protoc" {
-		t.Fatal("TypeScript generation did not use configured executables")
-	}
-	for _, task := range runner.steps[1:] {
-		if !strings.HasPrefix(task.args[2], "--plugin=protoc-gen-kit-typescript=") {
-			t.Fatalf("missing TypeScript plugin binding: %#v", task.args)
-		}
-	}
-}
-
-func TestGenerationSkipsEmptyTargets(t *testing.T) {
-	repo := repositoryFixture(t)
-	empty := `version: 1
-languages:
-  go:
-    targets: []
-  typescript:
-    targets: []
-`
-	if err := os.WriteFile(filepath.Join(repo, "specs", "targets.yaml"), []byte(empty), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	for _, args := range [][]string{
-		{"generate", "go", "--repo", repo},
-		{"generate", "typescript", "--repo", repo},
-	} {
-		runner := &recordingRunner{}
-		command := newRootCommand(runner)
-		out := &bytes.Buffer{}
-		command.SetOut(out)
-		command.SetErr(io.Discard)
-		command.SetArgs(args)
-		if err := command.ExecuteContext(context.Background()); err != nil {
-			t.Fatalf("%v: %v", args, err)
-		}
-		if len(runner.steps) != 0 {
-			t.Fatalf("%v executed tools with empty targets: %#v", args, runner.steps)
-		}
-		if !strings.Contains(out.String(), "handwritten SDK sources are authoritative") {
-			t.Fatalf("%v missing empty-target message: %q", args, out.String())
-		}
-	}
-}
-
-func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
+func TestGoContractsGenerationUsesConfiguredExecutables(t *testing.T) {
 	for _, failure := range []bool{false, true} {
 		t.Run(map[bool]string{false: "success", true: "build failure"}[failure], func(t *testing.T) {
 			repo := repositoryFixture(t)
@@ -128,7 +52,7 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 			command := newRootCommand(runner)
 			command.SetOut(io.Discard)
 			command.SetErr(io.Discard)
-			command.SetArgs([]string{"generate", "go", "--repo", repo, "--go-binary", "custom-go", "--protoc", "custom-protoc"})
+			command.SetArgs([]string{"generate", "contracts-go", "--repo", repo, "--go-binary", "custom-go", "--protoc", "custom-protoc"})
 			err := command.ExecuteContext(context.Background())
 			if failure && !errors.Is(err, runner.err) {
 				t.Fatalf("expected build failure, got %v", err)
@@ -139,8 +63,13 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 			if len(runner.steps) == 0 || runner.steps[0].name != "custom-go" {
 				t.Fatal("generation did not use the configured executable")
 			}
-			if !failure && len(runner.steps) != 6 {
-				t.Fatalf("expected bootstrap and three SDK generations, got %d steps", len(runner.steps))
+			if !failure {
+				if len(runner.steps) != 2 {
+					t.Fatalf("expected plugin build and protoc, got %d steps", len(runner.steps))
+				}
+				if runner.steps[1].name != "custom-protoc" {
+					t.Fatal("contracts generation did not use configured protoc")
+				}
 			}
 			toolsDir := filepath.Dir(runner.steps[0].args[2])
 			relative, err := filepath.Rel(repo, toolsDir)
@@ -154,6 +83,24 @@ func TestGenerationUsesAndCleansExternalTempDirectory(t *testing.T) {
 				t.Fatal("generation created a repository-local work folder")
 			}
 		})
+	}
+}
+
+func TestTypeScriptContractsGenerationUsesNpm(t *testing.T) {
+	repo := repositoryFixture(t)
+	runner := &recordingRunner{}
+	command := newRootCommand(runner)
+	command.SetOut(io.Discard)
+	command.SetErr(io.Discard)
+	command.SetArgs([]string{"generate", "contracts-typescript", "--repo", repo, "--npm-binary", "custom-npm"})
+	if err := command.ExecuteContext(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if len(runner.steps) != 1 || runner.steps[0].name != "custom-npm" {
+		t.Fatalf("expected npm generate, got %#v", runner.steps)
+	}
+	if strings.Join(runner.steps[0].args, " ") != "run generate" {
+		t.Fatalf("unexpected npm args: %#v", runner.steps[0].args)
 	}
 }
 
@@ -233,7 +180,7 @@ func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 }
 
 func TestHelpAndInvalidArgumentsDoNotExecuteTools(t *testing.T) {
-	for _, args := range [][]string{{"--help"}, {"generate", "go", "extra"}} {
+	for _, args := range [][]string{{"--help"}, {"generate", "contracts-go", "extra"}} {
 		runner := &recordingRunner{}
 		command := newRootCommand(runner)
 		command.SetOut(&bytes.Buffer{})

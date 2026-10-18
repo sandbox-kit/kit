@@ -133,7 +133,7 @@ names, `errors.As` / `instanceof`, gRPC codes, and HTTP status maps stay local:
 - Daytona: `DaytonaError` provider codes, then HTTP statuses.
 
 See [generation](code-generation.md#response-and-error-contracts) for how
-validation/mapping emitters still construct `NewError` call sites.
+handwritten validation and mappings construct `NewError` call sites.
 
 ## Exact metadata copying
 

@@ -4,9 +4,8 @@
 
 - Keep shared contracts in `proto/`, portable rule inventories in versioned YAML
   under `specs/`, and runtime SDKs in `sdks/<language>/`.
-- Keep developer CLI and shared semantic compilation in the Go module under
-  `tooling/` (`tooling/internal/model/`). Kit custom emitters are retired;
-  SDK helpers are handwritten.
+- Keep the developer CLI and YAML inventory loaders in the Go module under
+  `tooling/`. Kit custom emitters are retired; SDK helpers are handwritten.
 - Keep contracts independent of language runtime dependencies. Each provider
   owns native constructor conventions and names.
 - Keep the public SDK, optional providers, and future harness integrations in
@@ -36,11 +35,9 @@ public client owns cleanup through `Close`.
 Kit custom emitters are retired. Shared create validation
 (`ValidateCreateOptions`), provider checks (`validateProviderCreate`), field
 mappings, configuration assembly, path helpers, and Client/Sandbox choreography
-are handwritten in `sdks/`. `specs/generation.yaml` and `specs/targets.yaml`
-keep empty phase/target lists so accidental reintroduction fails loudly.
-`specs/validation.yaml`, each provider's `checks:` / `groups:`, and
-`specs/templates.yaml` field-path roots remain inventories to keep in sync with
-handwritten code.
+are handwritten in `sdks/`. `specs/validation.yaml`, `specs/client.yaml`,
+`specs/contracts.yaml`, and each provider's `checks:` / `groups:` remain
+inventories to keep in sync with handwritten code.
 
 Shared data contracts live in `proto/` and are emitted by standard protobuf
 plugins into language contract packages; SDK runtimes alias those types by hand

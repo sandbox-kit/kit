@@ -16,7 +16,7 @@ var imageReferencePattern = regexp.MustCompile(`^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*
 // stay with the provider.
 //
 // Portable rules are handwritten here and inventoried in specs/validation.yaml.
-// They can move onto protobuf (Protovalidate) after remaining emitters are gone.
+// They can move onto protobuf (Protovalidate) later if licensing allows.
 func ValidateCreateOptions(request *CreateOptions) error {
 	if request == nil {
 		return nil

@@ -20,10 +20,9 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Public handle           | `Sandbox`             | Identity, copied metadata, and lifecycle methods     |
 
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
-the SDK runtime. Descriptor-driven getter, validation, mapping, and origin
-signatures come from `specs/templates.yaml`. `specs/languages/go.yaml` owns Go
-representation and output suffixes. Protobuf annotations identify source
-contracts and provider SDK bindings.
+the SDK runtime. Field-path constants use prefixes such as `CreateField`,
+`ConfigField`, and `InfoField`. Protobuf annotations identify source contracts
+and operation metadata.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses `sandbox.NewClient(sandbox.Config{...})`.
@@ -36,12 +35,10 @@ sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
 proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
-tooling/internal/model/    Language-neutral compiled generation model
-tooling/internal/go/       Retired Go Kit emit dispatcher (no-op)
+tooling/                   Developer CLI and YAML inventory loaders
 examples/go/<provider>/      One folder per provider, one module per example
 sdks/typescript/sandbox/     Public TypeScript SDK package
 sdks/typescript/providers/   Optional TypeScript provider packages
-tooling/internal/typescript/ Retired TypeScript Kit emit dispatcher (no-op)
 examples/typescript/<provider>/ One package per example
 ```
 
