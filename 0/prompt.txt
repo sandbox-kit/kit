@@ -63,3 +63,7 @@ cool commit it
 ---
 
 the code which is obsolete and doesn't requrire lets rmove that
+
+---
+
+commit and push
