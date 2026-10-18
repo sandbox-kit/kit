@@ -1,0 +1,79 @@
+what does the client.yml do ?
+
+---
+
+every yaml spec we have is either used for validation or mapping rn right ?
+
+---
+
+is there any proto which can be removed as we have done lot of migration
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+our goal previously was to have shared contracts, 
+Whether its user facing or internal in protobufs. then hand write lot of code orchestratin everything we have class, object, interface types, etc from protobuf. we are moving away from generators.
+
+---
+
+yes go ahead
+
+---
+
+whats logical to remove first from generators. 
+
+so we have validations, mapping and we have written litreally generators for it. then we have i think also request response mapping still in yml 
+client validation still being generated and to support all this we have generation .yml templates .yml is helper in genertion of methods, etc. 
+
+for validation we might have to think whether to use protovalidate as different providers has differnet validation for their fields. 
+
+mapping I am think we have a really good spec which write all the mappings of fields including all the metadata around how to generate those. but very lean instead of g.P(..) . 
+
+can u tell what should i do ? think deep
+
+---
+
+start with 1 yes
+
+---
+
+what does this reserverd 4 to 8
+
+reserved 3 in proto does ?
+
+---
+
+I mean we haven't published any can't we just assume we had never added that earlier ? and make the code which was generated matching that semantics ?
+
+---
+
+yes do it
+
+---
+
+lets do 2 now
+
+---
+
+can u make two commits one for each step u have done.
+
+---
+
+oops had to do that two commits after creating a branch from main u commited on main
+
+---
+
+now can we do step 3 lemme know what u will do here first ?
+
+---
+
+I have to add oother providers than modal and daytona can u check other sandbox provider sdks and lemme know if protovalidate should be used
+
+---
+
+go ahead.

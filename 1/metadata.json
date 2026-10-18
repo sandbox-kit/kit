@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M571DXZH8BXYW40W9FRVMQV1",
+  "session_id": "812468b8-9074-47f8-885d-d7067316fc7a",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-18T08:18:12.073977Z",
+  "branch": "feat/shared-val-proto",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "README.md",
+    "tooling/cmd/protoc-gen-kit-go/main.go",
+    "tooling/cmd/protoc-gen-kit-typescript/main.go",
+    "tooling/internal/model/program.go",
+    "tooling/internal/model/program_test.go"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "43472a84c454",
+  "checkpoint_transcript_start": 174,
+  "transcript_lines_at_start": 174,
+  "compact_transcript_start": 57,
+  "session_metrics": {
+    "turn_count": 22,
+    "context_tokens": 232719,
+    "context_window_size": 256000
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-18T08:18:12.041572Z",
+    "agent_lines": 12,
+    "agent_removed": 420,
+    "human_added": 103,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 115,
+    "total_lines_changed": 2887,
+    "agent_percentage": 14.96363006581226,
+    "metric_version": 2
+  }
+}
