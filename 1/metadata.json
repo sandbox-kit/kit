@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M57029PXD9YB4S5M0AV4ZB7N",
+  "session_id": "812468b8-9074-47f8-885d-d7067316fc7a",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-18T07:54:26.094602Z",
+  "branch": "feat/shared-val-proto",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "tooling/internal/typescript/generate.go"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "43472a84c454",
+  "checkpoint_transcript_start": 174,
+  "transcript_lines_at_start": 174,
+  "compact_transcript_start": 57,
+  "session_metrics": {
+    "turn_count": 22,
+    "context_tokens": 232719,
+    "context_window_size": 256000
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-18T07:54:26.040213Z",
+    "agent_lines": 0,
+    "agent_removed": 3,
+    "human_added": 1799,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 1799,
+    "total_lines_changed": 1892,
+    "agent_percentage": 0.15856236786469344,
+    "metric_version": 2
+  }
+}
