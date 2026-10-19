@@ -1,0 +1,46 @@
+yes do commit and push
+
+---
+
+is there anything which must still be migrate to protovalidate ?
+
+---
+
+tbh I also don't like somethin 
+case value in typescript and also in go similarly we have somethin which is not very very widely used. 
+
++ there are some grpc specific fields still exposed to users. 
+
+type $typename and many other which shouldn't be accesible to users. 
+
+Wjhat should be do ?
+
+---
+
+lets do it ? before that should we have client config in protovalidate or should we do this first ?
+
+---
+
+lets just implement phase 1
+
+---
+
+can u check everythin works after this ? 
+
+and if there is obsolete code which is no longer required we have removed it.
+
+---
+
+I meant is there anything in tooling which should be removed now ?
+
+---
+
+why secure endpoint is still hand written ?
+
+---
+
+cool commit the changes and push it
+
+---
+
+if any readme, .md is outdated plz udpate it.
