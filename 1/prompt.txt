@@ -1,17 +1,1 @@
-cool nice. can u create a branch 
-
-and can u commit the changes.
-
----
-
-push to this branch
-
----
-
-comment say (unknown) of protoc version but regardless we don't use it anymore ain't we should remove that comment ?
-
----
-
-can u make the examples more better. 
-
-I mean there are function imports and types whcih we can use it better in examples.
+yes do commit and push

@@ -153,3 +153,6 @@
 {"type":"turn_ended","status":"success"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Monday, Oct 19, 2026, 12:09 PM (UTC+5:30)</timestamp>\n<user_query>\nyes do commit and push\n</user_query>"}]}}
 {"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"cd /Users/nabhag/OpenSource/kit && git status && git branch --show-current && git log -5 --oneline --format='%s' && git diff --stat | tail -40","description":"Check status, branch, and diff stats before commit"}}]}}
+{"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"cd /Users/nabhag/OpenSource/kit && git add examples/ && git commit -m \"$(cat <<'EOF'\nTighten example imports and type create options explicitly.\n\nDrop unused TypeScript sandbox imports and helpers, type create payloads with\nCreateOptionsInput, and tidy Go example modules for Protovalidate dependencies.\nEOF\n)\" && git push && git status && git log -2 --oneline","description":"Commit example cleanup and push branch","required_permissions":["all"]}}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Committed and pushed to **`feat/buf-protovalidate`**:\n\n**`9a03990`** — Tighten example imports and type create options explicitly."}]}}
+{"type":"turn_ended","status":"success"}
