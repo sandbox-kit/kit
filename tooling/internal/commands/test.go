@@ -34,6 +34,7 @@ var typescriptTestModules = []struct {
 	path string
 	test bool
 }{
+	{"sdks/typescript/contracts", false},
 	{"sdks/typescript/sandbox", true},
 	{"sdks/typescript/providers/daytona", true},
 	{"sdks/typescript/providers/modal", true},

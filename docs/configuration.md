@@ -99,6 +99,7 @@ Native SDK and validator errors remain accessible through the cause chain.
 See [responses and errors](responses-and-errors.md).
 
 Configuration types and contracts come from
-[`client.proto`](../proto/kit/sandbox/v1/client.proto),
+[`client.proto`](../proto/kit/sandbox/v1/client.proto) (Protovalidate options;
+`secure_endpoint` stays handwritten),
 [client rules](../specs/client.yaml), and provider YAML.
 See [examples](../examples/go/README.md) and [generation](code-generation.md).

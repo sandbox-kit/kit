@@ -13,6 +13,7 @@ var stableRuleIDs = map[string]string{
 	"enum.defined_only":             "known_enum",
 	"duration.gte":                  "minimum",
 	"oneof.required":                "exactly_one",
+	"auth_credentials_required":     "exactly_one",
 	"cpu_limit":                     "limit",
 	"memory_limit":                  "limit",
 	"cpu_requires_positive":         "requires_positive",
@@ -121,6 +122,10 @@ func protovalidateMessageFieldHint(ruleID string) string {
 		return "after"
 	case "oneof.required":
 		return "tcp_port,command"
+	case "auth_credentials_required":
+		return "api_key,token_pair,bearer_token,oauth_refresh"
+	case "exactly_one":
+		return "client_secret,jwt_key"
 	default:
 		return ""
 	}

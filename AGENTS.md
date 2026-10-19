@@ -38,9 +38,10 @@ public client owns cleanup through `Close`.
 
 ## Generation and validation
 
-Kit custom emitters are retired. Shared create validation is declared as
-Protovalidate options on `proto/` messages and evaluated by language
-Protovalidate libraries inside `ValidateCreateOptions`. Provider checks
+Kit custom emitters are retired. Shared create and client-config validation is
+declared as Protovalidate options on `proto/` messages and evaluated by language
+Protovalidate libraries inside `ValidateCreateOptions` / `ValidateConfig`. The
+`secure_endpoint` config check stays handwritten. Provider checks
 (`validateProviderCreate`), field mappings, configuration assembly, path
 helpers, and Client/Sandbox choreography remain handwritten in `sdks/`.
 `specs/validation.yaml`, `specs/client.yaml`, `specs/contracts.yaml`, and each
@@ -53,8 +54,8 @@ than regenerating parallel structs. Portable error payloads (`ErrorInfo` /
 `ErrorKind`) live in protobuf; error wrappers, cause chaining, and provider
 classification are handwritten per language.
 
-- Keep portable create rules in `.proto` (Protovalidate); keep YAML as a human
-  inventory aligned with those annotations.
+- Keep portable create and client-config rules in `.proto` (Protovalidate); keep
+  YAML as a human inventory aligned with those annotations.
 - Document SDK orchestration that remains handwritten.
 - Compare references with the pinned SDK version. Resolve conflicting docs
   explicitly rather than guessing semantics.

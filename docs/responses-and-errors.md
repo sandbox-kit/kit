@@ -134,8 +134,8 @@ names, `errors.As` / `instanceof`, gRPC codes, and HTTP status maps stay local:
 - Daytona: `DaytonaError` provider codes, then HTTP statuses.
 
 See [generation](code-generation.md#response-and-error-contracts) for how
-Protovalidate create checks, handwritten config validation, and mappings
-construct `NewError` call sites.
+Protovalidate create/config checks (plus handwritten `secure_endpoint`), and
+mappings construct `NewError` call sites.
 
 ## Exact metadata copying
 

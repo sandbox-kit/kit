@@ -52,12 +52,13 @@ import {
   type TerminateOptions,
 } from "./sandbox_data_contracts.js";
 
-const createOptionsValidator = createValidator({ failFast: true });
+const contractValidator = createValidator({ failFast: true });
 
 const stableRuleIDs: Record<string, string> = {
   "enum.defined_only": "known_enum",
   "duration.gte": "minimum",
   "oneof.required": "exactly_one",
+  auth_credentials_required: "exactly_one",
   cpu_limit: "limit",
   memory_limit: "limit",
   cpu_requires_positive: "requires_positive",
@@ -221,9 +222,6 @@ function validationError(
     message: "sandbox-kit: " + message,
   });
 }
-function joinValidationPath(parent: string, field: string): string {
-  return parent ? parent + "." + field : field;
-}
 function validSecureEndpoint(value: string): boolean {
   try {
     const url = new URL(value);
@@ -247,7 +245,7 @@ export function validateCreateOptions(
   provider = "",
   operation = "create",
 ): void {
-  const result = createOptionsValidator.validate(
+  const result = contractValidator.validate(
     CreateOptionsSchema,
     value as MessageShape<typeof CreateOptionsSchema>,
   );
@@ -301,278 +299,13 @@ function messageFieldHint(ruleID: string): string {
       return "after";
     case "oneof.required":
       return "tcp_port,command";
+    case "auth_credentials_required":
+      return "api_key,token_pair,bearer_token,oauth_refresh";
+    case "exactly_one":
+      return "client_secret,jwt_key";
     default:
       return "";
   }
-}
-
-function validateAPIKeyCredentialsValue(
-  value: APIKeyCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.key !== undefined && !value.key.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "key"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateAuthConfigValue(
-  value: AuthConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  const credentials = value.credentials;
-  if (credentials === undefined || credentials.case === undefined) {
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "apiKey,tokenPair,bearerToken,oauthRefresh"),
-      "exactly_one",
-      "requires exactly one value",
-    );
-  }
-  if (credentials.case === "apiKey")
-    validateAPIKeyCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "apiKey"),
-    );
-  if (credentials.case === "tokenPair")
-    validateTokenPairCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "tokenPair"),
-    );
-  if (credentials.case === "bearerToken")
-    validateBearerTokenCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "bearerToken"),
-    );
-  if (credentials.case === "oauthRefresh")
-    validateOAuthCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "oauthRefresh"),
-    );
-}
-
-function validateBearerTokenCredentialsValue(
-  value: BearerTokenCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.token !== undefined && !value.token.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "token"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateConfigValue(
-  value: Config | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.endpoint !== undefined && !value.endpoint.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "endpoint"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.endpoint !== undefined && !validSecureEndpoint(value.endpoint))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "endpoint"),
-      "secure_endpoint",
-      "must use HTTPS except for loopback HTTP development endpoints",
-    );
-  if (value.region !== undefined && !value.region.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "region"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.timeout !== undefined) {
-    let timeoutMs: number;
-    try {
-      timeoutMs = durationMs(value.timeout);
-    } catch {
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "timeout"),
-        "finite",
-        "must be a non-negative protobuf duration",
-      );
-    }
-    if (!Number.isFinite(timeoutMs) || timeoutMs < 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "timeout"),
-        "minimum",
-        "must be at least 0",
-      );
-  }
-  validateAuthConfigValue(
-    value.auth,
-    provider,
-    operation,
-    joinValidationPath(path, "auth"),
-  );
-  validateScopeValue(
-    value.scope,
-    provider,
-    operation,
-    joinValidationPath(path, "scope"),
-  );
-}
-
-function validateOAuthCredentialsValue(
-  value: OAuthCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.clientId !== undefined && !value.clientId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "clientId"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.clientSecret !== undefined && !value.clientSecret.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "clientSecret"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.jwtKey !== undefined && !value.jwtKey.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "jwtKey"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.refreshToken !== undefined && !value.refreshToken.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "refreshToken"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (true) {
-    const count0 = [
-      value.clientSecret !== undefined,
-      value.jwtKey !== undefined,
-    ].filter(Boolean).length;
-    if (count0 !== 1)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "clientSecret,jwtKey"),
-        "exactly_one",
-        "requires exactly one value",
-      );
-  }
-}
-
-function validateScopeValue(
-  value: Scope | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.appName !== undefined && !value.appName.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "appName"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.environment !== undefined && !value.environment.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "environment"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.organizationId !== undefined && !value.organizationId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "organizationId"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.projectId !== undefined && !value.projectId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "projectId"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateTokenPairCredentialsValue(
-  value: TokenPairCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.id !== undefined && !value.id.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "id"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.secret !== undefined && !value.secret.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "secret"),
-      "nonblank",
-      "must not be blank",
-    );
 }
 
 export function validateConfig(
@@ -580,7 +313,51 @@ export function validateConfig(
   provider = "",
   operation = "create",
 ): void {
-  validateConfigValue(value as Config, provider, operation, "");
+  const message = create(
+    ConfigSchema,
+    value as MessageInitShape<typeof ConfigSchema>,
+  );
+  const result = contractValidator.validate(ConfigSchema, message);
+  if (result.kind === "error") {
+    throw sandboxError(
+      {
+        kind: ErrorKind.InvalidArgument,
+        provider,
+        operation,
+        field: "",
+        message: "sandbox-kit: invalid configuration",
+      },
+      result.error,
+    );
+  }
+  if (result.kind === "invalid") {
+    const violation = result.violations[0]!;
+    const ruleID = violation.ruleId;
+    let field = pathToString(violation.field);
+    const rule = stableRuleIDs[ruleID] ?? ruleID;
+    if (!field) {
+      field = messageFieldHint(ruleID);
+    }
+    validationError(
+      provider,
+      operation,
+      field,
+      rule,
+      violation.message || "invalid configuration",
+    );
+  }
+  if (
+    message.endpoint !== undefined &&
+    !validSecureEndpoint(message.endpoint)
+  ) {
+    validationError(
+      provider,
+      operation,
+      "endpoint",
+      "secure_endpoint",
+      "must use HTTPS except for loopback HTTP development endpoints",
+    );
+  }
 }
 
 function clone<T>(value: T): T {

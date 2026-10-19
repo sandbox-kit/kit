@@ -5,8 +5,9 @@ The target architecture is documented in
 truth for portable data and operation contracts. Buf (`buf generate`) emits
 messages, enums, reflection metadata, and service declarations via standard
 plugins; handwritten SDK code owns client, handle, provider, checks, mappings,
-and error behavior. Shared create validation is Protovalidate options on those
-messages, evaluated by language Protovalidate libraries.
+and error behavior. Shared create and client-config validation is Protovalidate
+options on those messages, evaluated by language Protovalidate libraries
+(`secure_endpoint` stays handwritten).
 
 Portable create/config/info types come from standard protobuf contracts plus
 handwritten SDK aliases. Kit custom emitters are retired.
@@ -40,6 +41,9 @@ GOWORK=off go run ./cmd/sandbox-kit test typescript
 
 Contract generation requires the Buf CLI. Both generate commands run
 `buf generate` for the plugins declared in `buf.gen.yaml`.
+`contracts-typescript` also runs `npm run build` in
+`sdks/typescript/contracts` so `@sandbox-kit/contracts` exports compiled
+descriptors (including Protovalidate options) from `dist/`.
 
 Contract packages are committed under `sdks/<language>/contracts/`. Edit
 `proto/`, then regenerate contracts. SDK applications use native types and do
@@ -47,13 +51,13 @@ not load YAML or import protobuf messages at runtime.
 
 ## Inputs
 
-| Input                             | Defines                                                                       |
-| --------------------------------- | ----------------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts    |
-| `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto) |
-| `specs/client.yaml`               | Config validation and representation inventory                                |
-| `specs/contracts.yaml`            | Metadata/error contract limits                                                |
-| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories     |
+| Input                             | Defines                                                                            |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts         |
+| `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
+| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
+| `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
+| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories          |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package kit.sandbox.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/duration.proto";
 import "kit/codegen/v1/options.proto";
 import "kit/sandbox/v1/sandbox.proto";
@@ -24,18 +25,38 @@ message Config {
   // is one credential alternative. Nil lets the native SDK resolve its own environment or profile.
   AuthConfig auth = 1;
   // is the provider API URL where the integration supports an override.
-  optional string endpoint = 2;
+  // HTTPS is required except for loopback HTTP; that secure_endpoint check stays handwritten.
+  optional string endpoint = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is a region or target preference.
-  optional string region = 3;
+  optional string region = 3 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the app, environment, organization, or project scope. JSON name is "context".
   Scope scope = 4 [json_name = "context"];
   // is the default Kit operation deadline. An explicit creation timeout overrides it.
   // Nil and explicit zero add no Kit deadline.
-  google.protobuf.Duration timeout = 5;
+  google.protobuf.Duration timeout = 5 [(buf.validate.field).duration.gte = {}];
 }
-// holds exactly one credential alternative.
+// holds exactly one credential alternative. When AuthConfig itself is set, one
+// credential alternative is required. Omitting Config.auth still lets the
+// provider SDK resolve credentials from the environment or a profile.
 message AuthConfig {
-  // is the selected credential. Leaving it unset uses the provider SDK's environment or profile resolution.
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "auth_credentials_required"
+        message: "auth credentials are required when auth is supplied"
+        expression: "has(this.api_key) || has(this.token_pair) || has(this.bearer_token) || has(this.oauth_refresh)"
+      }
+    ]
+  };
+  // is the selected credential.
   oneof credentials {
     APIKeyCredentials api_key = 1;
     TokenPairCredentials token_pair = 2;
@@ -46,41 +67,98 @@ message AuthConfig {
 // is an API-key credential. Daytona uses Key.
 message APIKeyCredentials {
   // is the secret API key. It is excluded from generated JSON.
-  string key = 1;
+  string key = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // is a token-id and token-secret pair. Modal uses both fields.
 message TokenPairCredentials {
   // is the token identifier.
-  string id = 1;
+  string id = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the token secret. It is excluded from generated JSON.
-  string secret = 2;
+  string secret = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // is a bearer or JWT credential. Daytona also requires an organization.
 message BearerTokenCredentials {
   // is the bearer token. It is excluded from generated JSON.
-  string token = 1;
+  string token = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
 message OAuthCredentials {
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "exactly_one"
+        message: "requires exactly one of client_secret, jwt_key"
+        expression: "has(this.client_secret) != has(this.jwt_key)"
+      }
+    ]
+  };
   // is the refresh token. It is excluded from generated JSON.
-  string refresh_token = 1;
+  string refresh_token = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the OAuth client identifier.
-  string client_id = 2;
+  string client_id = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is one client secret. Do not set this together with JWTKey.
-  optional string client_secret = 3;
+  optional string client_secret = 3 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is one JWT signing key. Do not set this together with ClientSecret.
-  optional string jwt_key = 4;
+  optional string jwt_key = 4 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // names the provider scope. Each provider accepts a subset of these fields.
 message Scope {
   // is the Modal app name. The app must already exist.
-  optional string app_name = 1;
+  optional string app_name = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the Modal environment. The example default is "main".
-  optional string environment = 2;
+  optional string environment = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
-  optional string organization_id = 3;
+  optional string organization_id = 3 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is reserved for providers that scope work to a project. Current providers reject it when supplied.
-  optional string project_id = 4;
+  optional string project_id = 4 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 
 // Describes the complete local SDK contract for generation. No gRPC service is

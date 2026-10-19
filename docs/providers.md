@@ -7,7 +7,7 @@ core `sandbox` module and only the optional provider modules they need.
 
 | Artifact                                                | Role                                                                                                                                                              |
 | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Core client (`@sandbox-kit/sandbox`, `sdks/go/sandbox`) | Portable API, shared types, Protovalidate create rules, Client/Sandbox choreography. New providers plug into this module; it must not embed a specific cloud SDK. |
+| Core client (`@sandbox-kit/sandbox`, `sdks/go/sandbox`) | Portable API, shared types, Protovalidate create/config rules, Client/Sandbox choreography. New providers plug into this module; it must not embed a specific cloud SDK. |
 | Each provider package (per language)                    | Independently versioned and published. Owns native SDK construction, capability checks, and field mappings for one backend.                                       |
 
 Add providers by shipping a new language-specific module that implements the
@@ -45,8 +45,8 @@ private; standard operations require no application mapping callbacks.
 ## Generation boundary
 
 Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`),
-service metadata, and Protovalidate create rules. Runtime constructors, client
-facades, provider orchestration, config validation, checks, mappings, and error
+service metadata, and Protovalidate create/config rules. Runtime constructors,
+client facades, provider orchestration, checks, mappings, and error
 classification stay handwritten. Provider YAML inventories describe checks,
 mapping groups, configuration assembly, and native bindings for humans to keep
 aligned with SDK code.

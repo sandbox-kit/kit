@@ -42,28 +42,49 @@ func repositoryFixture(t *testing.T) string {
 }
 
 func TestContractsGenerationUsesBuf(t *testing.T) {
-	for _, language := range []string{"contracts-go", "contracts-typescript"} {
-		t.Run(language, func(t *testing.T) {
-			repo := repositoryFixture(t)
-			runner := &recordingRunner{}
-			command := newRootCommand(runner)
-			command.SetOut(io.Discard)
-			command.SetErr(io.Discard)
-			command.SetArgs([]string{"generate", language, "--repo", repo, "--buf", "custom-buf"})
-			if err := command.ExecuteContext(context.Background()); err != nil {
-				t.Fatal(err)
-			}
-			if len(runner.steps) != 1 || runner.steps[0].name != "custom-buf" {
-				t.Fatalf("expected buf generate, got %#v", runner.steps)
-			}
-			if strings.Join(runner.steps[0].args, " ") != "generate" {
-				t.Fatalf("unexpected buf args: %#v", runner.steps[0].args)
-			}
-			if _, err := os.Stat(filepath.Join(repo, "work")); !os.IsNotExist(err) {
-				t.Fatal("generation created a repository-local work folder")
-			}
-		})
-	}
+	t.Run("contracts-go", func(t *testing.T) {
+		repo := repositoryFixture(t)
+		runner := &recordingRunner{}
+		command := newRootCommand(runner)
+		command.SetOut(io.Discard)
+		command.SetErr(io.Discard)
+		command.SetArgs([]string{"generate", "contracts-go", "--repo", repo, "--buf", "custom-buf"})
+		if err := command.ExecuteContext(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+		if len(runner.steps) != 1 || runner.steps[0].name != "custom-buf" {
+			t.Fatalf("expected buf generate, got %#v", runner.steps)
+		}
+		if strings.Join(runner.steps[0].args, " ") != "generate" {
+			t.Fatalf("unexpected buf args: %#v", runner.steps[0].args)
+		}
+		if _, err := os.Stat(filepath.Join(repo, "work")); !os.IsNotExist(err) {
+			t.Fatal("generation created a repository-local work folder")
+		}
+	})
+	t.Run("contracts-typescript", func(t *testing.T) {
+		repo := repositoryFixture(t)
+		runner := &recordingRunner{}
+		command := newRootCommand(runner)
+		command.SetOut(io.Discard)
+		command.SetErr(io.Discard)
+		command.SetArgs([]string{"generate", "contracts-typescript", "--repo", repo, "--buf", "custom-buf", "--npm-binary", "custom-npm"})
+		if err := command.ExecuteContext(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+		if len(runner.steps) != 2 {
+			t.Fatalf("expected buf generate then npm build, got %#v", runner.steps)
+		}
+		if runner.steps[0].name != "custom-buf" || strings.Join(runner.steps[0].args, " ") != "generate" {
+			t.Fatalf("unexpected buf step: %#v", runner.steps[0])
+		}
+		if runner.steps[1].name != "custom-npm" || strings.Join(runner.steps[1].args, " ") != "run build" {
+			t.Fatalf("unexpected npm step: %#v", runner.steps[1])
+		}
+		if _, err := os.Stat(filepath.Join(repo, "work")); !os.IsNotExist(err) {
+			t.Fatal("generation created a repository-local work folder")
+		}
+	})
 }
 
 func TestContractsGenerationSurfacesBufFailure(t *testing.T) {
@@ -140,7 +161,7 @@ func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if len(runner.steps) != 8 {
+	if len(runner.steps) != 9 {
 		t.Fatalf("unexpected TypeScript verification steps: %#v", runner.steps)
 	}
 	for _, task := range runner.steps {
@@ -148,7 +169,7 @@ func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 			t.Fatalf("TypeScript verification did not use configured npm: %#v", runner.steps)
 		}
 	}
-	if strings.Join(runner.steps[0].args, " ") != "run build" || strings.Join(runner.steps[1].args, " ") != "test" || strings.Join(runner.steps[7].args, " ") != "run build" {
+	if strings.Join(runner.steps[0].args, " ") != "run build" || strings.Join(runner.steps[1].args, " ") != "run build" || strings.Join(runner.steps[2].args, " ") != "test" || strings.Join(runner.steps[8].args, " ") != "run build" {
 		t.Fatalf("TypeScript verification order is incorrect: %#v", runner.steps)
 	}
 }
