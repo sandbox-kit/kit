@@ -3,10 +3,25 @@
   "checkpoint_id": "01M59G2Z778FXENV41YYWF1W7F",
   "strategy": "manual-commit",
   "branch": "feat/buf-protovalidate",
-  "checkpoints_count": 1,
+  "checkpoints_count": 10,
   "files_touched": [
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/configuration.md",
+    "docs/protobuf-sdk-boundary.md",
+    "docs/providers.md",
+    "docs/responses-and-errors.md",
+    "proto/kit/sandbox/v1/client.proto",
+    "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
     "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "sdks/typescript/sandbox/src/client.ts",
     "specs/client.yaml",
+    "tooling/internal/commands/commands_test.go",
+    "tooling/internal/commands/generate.go",
     "tooling/internal/commands/test.go"
   ],
   "sessions": [
@@ -16,6 +31,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 89875,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 4729984,
+    "output_tokens": 29810,
+    "api_call_count": 5
+  }
 }
