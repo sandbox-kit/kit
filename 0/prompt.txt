@@ -1,0 +1,200 @@
+yes do commit and push
+
+---
+
+is there anything which must still be migrate to protovalidate ?
+
+---
+
+tbh I also don't like somethin 
+case value in typescript and also in go similarly we have somethin which is not very very widely used. 
+
++ there are some grpc specific fields still exposed to users. 
+
+type $typename and many other which shouldn't be accesible to users. 
+
+Wjhat should be do ?
+
+---
+
+lets do it ? before that should we have client config in protovalidate or should we do this first ?
+
+---
+
+lets just implement phase 1
+
+---
+
+can u check everythin works after this ? 
+
+and if there is obsolete code which is no longer required we have removed it.
+
+---
+
+I meant is there anything in tooling which should be removed now ?
+
+---
+
+why secure endpoint is still hand written ?
+
+---
+
+cool commit the changes and push it
+
+---
+
+if any readme, .md is outdated plz udpate it.
+
+---
+
+commit and push
+
+---
+
+now lets create a branch and then implement other phase as we planned.
+
+---
+
+ig constructors are too much abstraction. which also does things which are basically not ideal like doesn't feel very native. 
+
+what if we build type from generated types, we just expose which make more sense to do instead of having build constructor ?
+
+what do u think about this ?
+
+---
+
+do that changes. should I remove everything u have implement ehre for u or u will remove ?
+
+---
+
+I removed those changes now think of implementing them from what code we have to save lot of tokens.
+
+---
+
+there are still lot of things which are showing grpc fields. 
+
+like sandbox.NetworkConfig 
+
+sandbox.APIKeyCredentials too 
+
+lot of them we must fix those too.
+
+---
+
+ig we are not using best of what we have ? 
+
+if we had to write public types by hand why would we use protobuf ? 
+
+we are not using typesciprt generics really well here ? 
+
+what do u think ?
+
+---
+
+can we have buf generate to not include the fields like typename, state , etc and all  ?  that would make this really well ? 
+
++ case value stuff ?
+
+---
+
+do sdk folks use proto for user facing ?
+
+---
+
+but ig also state and all is not accessbiel to user regardless ?
+
+---
+
+The actual public-API pain is oneofs / presence / WKT / method noise — and in TS, $typeName + { case, value }
+
+can u explain
+
+---
+
+we are writing lot of this, ain't buf generate have somethin which generates the way we want ?
+
+---
+
+we want to build software factory is having that plugin will help ?
+
+---
+
+we want to build software factory is having that plugin will help ? from factory i mean automating with ai agents
+
+---
+
+lets do it ?
+
+---
+
+we will do this for every user facing types, interface, class object, struct, fields right ?
+
+---
+
+cool lets start implementing
+
+---
+
+should I delete the code which is currenlty written ? that would save tokens and u can fresh start from this branch head
+
+---
+
+okay it will help u now make changes
+
+---
+
+I think we over complicated it. 
+
+
+can't we just whatever methods, its params, types, interfaces, structs is generated. 
+
+we extend / implement use inheritance kind of things to achieve our goal ? 
+
+instead of all this ?
+
+---
+
+ig custom generator is really bad idea revert it
+
+---
+
+what u mean ?
+
+---
+
+go with option A
+
+---
+
+@sdks/typescript/sandbox/src/client.ts:116-121 can we make this type get the auth directly can u check ?
+
+---
+
+client.ts (116-121) can we make this type get the auth directly can u check ? 
+without writing AuthInput
+
+---
+
+can we do this for others in this ? 
+
+so we don't write public types by hand and use this kinda replacement ?
+
+---
+
+lets do it ? for typescript
+
+---
+
+can u stage in git all the changes of typescript related sdk
+
+---
+
+what all things in typescript sdk still expose protobuf fields which are nto still usual ?
+
+---
+
+give me all examples of this where it lacks.
+
+---
+
+can u make changes for this and just stage it we know we are doing this for typescript sdk only.
