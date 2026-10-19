@@ -1,3 +1,4 @@
+import type { RemapFields } from "./input_remap.js";
 import type { StripProto } from "./strip_proto.js";
 
 type Simplify<T> = { [K in keyof T]: T[K] } & {};
@@ -20,15 +21,16 @@ export type FlattenOneof<T extends ProtoOneof> = Simplify<{
  * as exclusive keys on the public input (e.g. `source.kind` → `source.image`).
  *
  * `Oneofs` maps each remapped field to the oneof union to flatten.
- * Extra remaps (plain metadata maps, ms durations) stay at the call site.
+ * Further public remaps (allowlists, ms durations, plain maps) compose outside.
  */
 export type StripAndFlatten<
   T,
   Oneofs extends {
     [K in keyof Oneofs]: K extends keyof T ? ProtoOneof : never;
   },
-> = Simplify<
-  Omit<StripProto<T>, keyof Oneofs & string> & {
-    [K in keyof Oneofs & string]?: FlattenOneof<Oneofs[K]>;
+> = RemapFields<
+  StripProto<T>,
+  {
+    [K in keyof Oneofs & string]: FlattenOneof<Oneofs[K]>;
   }
 >;

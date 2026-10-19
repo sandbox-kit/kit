@@ -20,6 +20,11 @@ import {
 } from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
 import { ModalProvider } from "./modal.js";
+import {
+  mapIdleDuration,
+  mapLifetimeDuration,
+  mapResources,
+} from "./provider_mappings.js";
 import { captureProviderState } from "./provider_config.js";
 import { mapModalError } from "./errors.js";
 
@@ -157,6 +162,42 @@ describe("Modal mappings", () => {
         verbose: true,
       },
     });
+  });
+
+  it("rejects CPU values that are not millis-representable", () => {
+    expect(mapResources({ cpuCores: 0.5 })).toMatchObject({ cpu: 0.5 });
+    expect(() => mapResources({ cpuCores: 1.0005 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "resources.cpu_cores",
+      }),
+    );
+    expect(() => mapResources({ cpuLimitCores: 0.0001 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "resources.cpu_limit_cores",
+      }),
+    );
+  });
+
+  it("rejects lifetime and idle durations that are not whole seconds", () => {
+    expect(
+      mapLifetimeDuration({ maximumLifetime: durationFromMs(60_000) }),
+    ).toMatchObject({ timeoutMs: 60_000 });
+    expect(() =>
+      mapLifetimeDuration({ maximumLifetime: durationFromMs(1_500) }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "lifetime.maximum_lifetime",
+      }),
+    );
+    expect(() => mapIdleDuration({ after: durationFromMs(500) })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "lifetime.idle_terminate.after",
+      }),
+    );
   });
 
   it("classifies native errors from the provider specification", () => {

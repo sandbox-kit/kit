@@ -1,4 +1,7 @@
-/** Plain JSON-like values accepted for public metadata / providerOptions maps. */
+/**
+ * Plain JSON-like values accepted for public metadata / providerOptions maps.
+ * Nested objects use an interface so IDEs do not expand the recursive union.
+ */
 export type MetadataPlain =
   | null
   | boolean
@@ -7,4 +10,9 @@ export type MetadataPlain =
   | bigint
   | Uint8Array
   | MetadataPlain[]
-  | { [key: string]: MetadataPlain };
+  | MetadataPlainObject;
+
+/** Nested object branch of {@link MetadataPlain}. */
+export interface MetadataPlainObject {
+  [key: string]: MetadataPlain;
+}

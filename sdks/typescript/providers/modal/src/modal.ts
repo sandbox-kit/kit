@@ -1,4 +1,8 @@
-import { ModalClient, type ModalClientParams, type Sandbox as ModalSandbox } from "modal";
+import {
+  ModalClient,
+  type ModalClientParams,
+  type Sandbox as ModalSandbox,
+} from "modal";
 import {
   LifecycleCapability,
   type Backend,
@@ -11,7 +15,11 @@ import {
   type SandboxInfo,
   type TerminateOptions,
 } from "@sandbox-kit/sandbox";
-import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
+import {
+  mapClientConfig,
+  mapCreateRequest,
+  mapSandboxInfo,
+} from "./mappings.js";
 import { mapModalError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 import { captureProviderState, type ProviderState } from "./provider_config.js";
@@ -28,12 +36,18 @@ type NativeFactory = (config: ModalClientParams) => NativeModal;
 
 /** @internal Exported for adapter boundary tests, but not from the package root. */
 export class ModalProvider extends ProviderBase {
-  constructor(private readonly nativeFactory: NativeFactory = (config) => new ModalClient(config)) {
+  constructor(
+    private readonly nativeFactory: NativeFactory = (config) =>
+      new ModalClient(config),
+  ) {
     super();
   }
   initialize(config: Config): Backend {
     try {
-      return new ModalBackend(this.nativeFactory(mapClientConfig(config)), captureProviderState(config));
+      return new ModalBackend(
+        this.nativeFactory(mapClientConfig(config)),
+        captureProviderState(config),
+      );
     } catch (error) {
       throw mapModalError(error, "initialize");
     }
@@ -48,16 +62,24 @@ class ModalBackend extends BackendBase implements Backend {
     super();
   }
 
-  async create(request: CreateOptions, _options: OperationOptions): Promise<CreateResult> {
+  async create(
+    request: CreateOptions,
+    options: OperationOptions,
+  ): Promise<CreateResult> {
     try {
+      options.signal?.throwIfAborted();
       const plan = mapCreateRequest(request, this.config);
       const app = await this.native.apps.fromName(plan.app, {
-        ...(plan.environment === undefined ? {} : { environment: plan.environment }),
+        ...(plan.environment === undefined
+          ? {}
+          : { environment: plan.environment }),
       });
       const secrets = await Promise.all(
         plan.secretNames.map((name) =>
           this.native.secrets.fromName(name, {
-            ...(plan.environment === undefined ? {} : { environment: plan.environment }),
+            ...(plan.environment === undefined
+              ? {}
+              : { environment: plan.environment }),
           }),
         ),
       );
@@ -65,7 +87,9 @@ class ModalBackend extends BackendBase implements Backend {
         plan.proxyName === undefined
           ? undefined
           : await this.native.proxies.fromName(plan.proxyName, {
-              ...(plan.environment === undefined ? {} : { environment: plan.environment }),
+              ...(plan.environment === undefined
+                ? {}
+                : { environment: plan.environment }),
             });
       const image = this.native.images.fromRegistry(plan.image);
       const sandbox = await this.native.sandboxes.create(app, image, {
@@ -73,7 +97,10 @@ class ModalBackend extends BackendBase implements Backend {
         ...(secrets.length === 0 ? {} : { secrets }),
         ...(proxy === undefined ? {} : { proxy }),
       });
-      if (plan.waitUntilReady) await sandbox.waitUntilReady(plan.readyTimeoutMs);
+      if (plan.waitUntilReady) {
+        const readyTimeoutMs = plan.readyTimeoutMs ?? options.timeout;
+        await sandbox.waitUntilReady(readyTimeoutMs);
+      }
       return { sandbox: mapSandboxInfo(sandbox, request) };
     } catch (error) {
       throw mapModalError(error, "create");
@@ -95,7 +122,8 @@ class ModalBackend extends BackendBase implements Backend {
   async terminate(id: string, request: TerminateOptions): Promise<ExitResult> {
     try {
       const sandbox = await this.native.sandboxes.fromId(id);
-      if (request.wait === true) return { exitCode: await sandbox.terminate({ wait: true }) };
+      if (request.wait === true)
+        return { exitCode: await sandbox.terminate({ wait: true }) };
       await sandbox.terminate();
       return {};
     } catch (error) {

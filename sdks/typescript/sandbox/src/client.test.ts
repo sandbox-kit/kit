@@ -272,6 +272,33 @@ describe("Public facade materialization", () => {
     expect(durationMs(wire.lifetime!.idleStop!.after!)).toBe(60_000);
   });
 
+  it("wraps string-array allowlists and providerDefault into wire shapes", () => {
+    const wire = materializeCreateOptions({
+      source: { providerDefault: true },
+      network: {
+        outboundCidrs: ["192.0.2.0/24"],
+        outboundDomains: ["example.com"],
+        inboundCidrs: [],
+      },
+      environment: { PATH: "/usr/bin" },
+      labels: { team: "kit" },
+    });
+
+    expect(wire.source?.kind).toMatchObject({
+      case: "providerDefault",
+      value: {},
+    });
+    expect(wire.network?.outboundCidrs).toMatchObject({
+      entries: ["192.0.2.0/24"],
+    });
+    expect(wire.network?.outboundDomains).toMatchObject({
+      entries: ["example.com"],
+    });
+    expect(wire.network?.inboundCidrs).toMatchObject({ entries: [] });
+    expect(wire.environment).toEqual({ PATH: "/usr/bin" });
+    expect(wire.labels).toEqual({ team: "kit" });
+  });
+
   it("flattens auth credentials and converts client timeout milliseconds", () => {
     const wire = materializeClientConfig({
       auth: { tokenPair: { id: "id", secret: "secret" } },
@@ -301,6 +328,20 @@ describe("Public facade materialization", () => {
     expect(backend.lastCreateRequest?.provisioning?.timeout).toBeDefined();
     expect(durationMs(backend.lastCreateRequest!.provisioning!.timeout!)).toBe(
       5_000,
+    );
+  });
+
+  it("writes the resolved create timeout into provisioning for providers", async () => {
+    const { client, backend } = fixture();
+
+    await client.create(
+      { source: { image: { reference: "node:24" } } },
+      { timeout: 15_000 },
+    );
+
+    expect(backend.lastCreateRequest?.provisioning?.timeout).toBeDefined();
+    expect(durationMs(backend.lastCreateRequest!.provisioning!.timeout!)).toBe(
+      15_000,
     );
   });
 });

@@ -2,6 +2,12 @@
 // These aliases keep the SDK entrypoint concise while ensuring one representation.
 
 import type { DurationFieldsToMs } from "./duration_ms.js";
+import type {
+  EmptyMarkersAsTrue,
+  FlattenAllowlistFields,
+  PlainStringMapFields,
+  RemapFields,
+} from "./input_remap.js";
 import type { StripProto } from "./strip_proto.js";
 import {
   EgressMode as ProtoEgressMode,
@@ -98,23 +104,33 @@ export type MetadataList = StripProto<ProtoMetadataList>;
 export type MetadataObject = StripProto<ProtoMetadataObject>;
 
 /**
- * Public create request: StripProto + flattened source/readiness oneofs.
- * Duration fields are millisecond numbers; providerOptions is a plain map.
+ * Public create request, composed from reusable input transforms:
+ * strip + flatten oneofs → plain maps / allowlists / empty markers → ms durations.
  */
 export type CreateOptionsInput = DurationFieldsToMs<
-  Omit<
-    StripAndFlatten<
-      ProtoCreateOptions,
-      {
-        source: NonNullable<ProtoSandboxSource["kind"]>;
-        readiness: NonNullable<ProtoReadinessProbe["check"]>;
-      }
-    >,
-    "providerOptions"
-  > & {
-    providerOptions?: Record<string, MetadataPlain>;
-  }
+  EmptyMarkersAsTrue<
+    FlattenAllowlistFields<
+      PlainStringMapFields<
+        RemapFields<
+          StripAndFlatten<
+            ProtoCreateOptions,
+            {
+              source: NonNullable<ProtoSandboxSource["kind"]>;
+              readiness: NonNullable<ProtoReadinessProbe["check"]>;
+            }
+          >,
+          { providerOptions: Record<string, MetadataPlain> }
+        >
+      >
+    >
+  >
 >;
+
+/**
+ * Public network create input (allowlists are plain `string[]`).
+ * Derived from {@link CreateOptionsInput}; present empty arrays mean deny-all.
+ */
+export type NetworkConfigInput = NonNullable<CreateOptionsInput["network"]>;
 
 /** Public create source: set exactly one variant (no protobuf `{ case, value }`). */
 export type SandboxSourceInput = NonNullable<CreateOptionsInput["source"]>;

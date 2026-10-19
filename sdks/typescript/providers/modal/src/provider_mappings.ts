@@ -2,12 +2,32 @@
 // Inventoried in specs/providers/modal.yaml groups; kept in sync by hand (not emitted).
 
 import { durationMs } from "@bufbuild/protobuf/wkt";
-import { ErrorKind, PolicyMode, ValueOrigin, sandboxError, type AutomaticAction, type CreateOptions, type LifetimePolicy, type OAuthCredentials, type Resources, type SandboxInfo, type Scope, type TokenPairCredentials } from "@sandbox-kit/sandbox";
-import type { ModalClientParams as NativeModalClientParams, Sandbox as NativeSandbox, SandboxCreateParams as NativeSandboxCreateParams } from "modal";
+import {
+  ErrorKind,
+  PolicyMode,
+  ValueOrigin,
+  sandboxError,
+  type AutomaticAction,
+  type CreateOptions,
+  type LifetimePolicy,
+  type OAuthCredentials,
+  type Resources,
+  type SandboxInfo,
+  type Scope,
+  type TokenPairCredentials,
+} from "@sandbox-kit/sandbox";
+import type {
+  ModalClientParams as NativeModalClientParams,
+  Sandbox as NativeSandbox,
+  SandboxCreateParams as NativeSandboxCreateParams,
+} from "modal";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
-export function mapSandboxIdentity(source: NativeSandbox | undefined, operation: string = "create"): Partial<SandboxInfo> {
+export function mapSandboxIdentity(
+  source: NativeSandbox | undefined,
+  operation: string = "create",
+): Partial<SandboxInfo> {
   const target: Mutable<Partial<SandboxInfo>> = {};
   if (source === undefined) return target;
   const origins: Record<string, ValueOrigin> = {};
@@ -23,7 +43,10 @@ export function mapSandboxIdentity(source: NativeSandbox | undefined, operation:
   return target;
 }
 
-export function mapClientScope(source: Scope | undefined, operation: string = "initialize"): NativeModalClientParams {
+export function mapClientScope(
+  source: Scope | undefined,
+  operation: string = "initialize",
+): NativeModalClientParams {
   const target: Mutable<NativeModalClientParams> = {};
   if (source === undefined) return target;
   {
@@ -35,7 +58,10 @@ export function mapClientScope(source: Scope | undefined, operation: string = "i
   return target;
 }
 
-export function mapCommonCreateFields(source: CreateOptions | undefined, operation: string = "create"): NativeSandboxCreateParams {
+export function mapCommonCreateFields(
+  source: CreateOptions | undefined,
+  operation: string = "create",
+): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
   if (source === undefined) return target;
   {
@@ -59,65 +85,147 @@ export function mapCommonCreateFields(source: CreateOptions | undefined, operati
   return target;
 }
 
-export function mapResources(source: Resources | undefined, operation: string = "create"): NativeSandboxCreateParams {
+export function mapResources(
+  source: Resources | undefined,
+  operation: string = "create",
+): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
   if (source === undefined) return target;
   {
     if (source.cpuCores !== undefined) {
-      const value = source.cpuCores;
-      target.cpu = value;
+      target.cpu = scaledCpuCores(
+        source.cpuCores,
+        "resources.cpu_cores",
+        operation,
+      );
     }
   }
   {
     if (source.cpuLimitCores !== undefined) {
-      const value = source.cpuLimitCores;
-      target.cpuLimit = value;
+      target.cpuLimit = scaledCpuCores(
+        source.cpuLimitCores,
+        "resources.cpu_limit_cores",
+        operation,
+      );
     }
   }
   {
     if (source.memoryMib !== undefined) {
       const value = source.memoryMib;
-      if (value > 2147483647n) mappingError(ErrorKind.InvalidArgument, "resources.memory_mib", "memory_mib cannot be represented", operation);
+      if (value > 2147483647n)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          "resources.memory_mib",
+          "memory_mib cannot be represented",
+          operation,
+        );
       target.memoryMiB = Number(value);
     }
   }
   {
     if (source.memoryLimitMib !== undefined) {
       const value = source.memoryLimitMib;
-      if (value > 2147483647n) mappingError(ErrorKind.InvalidArgument, "resources.memory_limit_mib", "memory_limit_mib cannot be represented", operation);
+      if (value > 2147483647n)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          "resources.memory_limit_mib",
+          "memory_limit_mib cannot be represented",
+          operation,
+        );
       target.memoryLimitMiB = Number(value);
     }
   }
   return target;
 }
 
-export function mapLifetimeDuration(source: LifetimePolicy | undefined, operation: string = "create"): NativeSandboxCreateParams {
+export function mapLifetimeDuration(
+  source: LifetimePolicy | undefined,
+  operation: string = "create",
+): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
   if (source === undefined) return target;
   {
     if (source.maximumLifetime !== undefined) {
-      const value = durationMs(source.maximumLifetime);
-      if (value > 86400000) mappingError(ErrorKind.InvalidArgument, "lifetime.maximum_lifetime", "maximum_lifetime cannot be represented", operation);
-      target.timeoutMs = value;
+      target.timeoutMs = durationSecondsMs(
+        durationMs(source.maximumLifetime),
+        "lifetime.maximum_lifetime",
+        86_400,
+        operation,
+      );
     }
   }
   return target;
 }
 
-export function mapIdleDuration(source: AutomaticAction | undefined, operation: string = "create"): NativeSandboxCreateParams {
+export function mapIdleDuration(
+  source: AutomaticAction | undefined,
+  operation: string = "create",
+): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
   if (source === undefined) return target;
   {
     if (source.after !== undefined) {
-      const value = durationMs(source.after);
-      if (value > 4294967295000) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_terminate.after", "after cannot be represented", operation);
-      target.idleTimeoutMs = value;
+      target.idleTimeoutMs = durationSecondsMs(
+        durationMs(source.after),
+        "lifetime.idle_terminate.after",
+        4_294_967_295,
+        operation,
+      );
     }
   }
   return target;
 }
 
-export function mapTokenPairCredentials(source: TokenPairCredentials | undefined, operation: string = "initialize"): NativeModalClientParams {
+/** Modal CPU fields are millis-scaled: value must equal round(value*1000)/1000. */
+function scaledCpuCores(
+  value: number,
+  field: string,
+  operation: string,
+): number {
+  const scaled = Math.round(value * 1000);
+  if (
+    !Number.isFinite(value) ||
+    value < 0 ||
+    value !== scaled / 1000 ||
+    scaled > 4_294_967_295
+  ) {
+    mappingError(
+      ErrorKind.InvalidArgument,
+      field,
+      field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
+      operation,
+    );
+  }
+  return value * 1000 < scaled ? scaled / 1000 : value;
+}
+
+/** Modal lifetime/idle timeouts are whole seconds expressed as milliseconds. */
+function durationSecondsMs(
+  value: number,
+  field: string,
+  maximumSeconds: number,
+  operation: string,
+): number {
+  if (
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    value % 1000 !== 0 ||
+    value / 1000 > maximumSeconds
+  ) {
+    mappingError(
+      ErrorKind.InvalidArgument,
+      field,
+      field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
+      operation,
+    );
+  }
+  return value;
+}
+
+export function mapTokenPairCredentials(
+  source: TokenPairCredentials | undefined,
+  operation: string = "initialize",
+): NativeModalClientParams {
   const target: Mutable<NativeModalClientParams> = {};
   if (source === undefined) return target;
   {
@@ -131,7 +239,10 @@ export function mapTokenPairCredentials(source: TokenPairCredentials | undefined
   return target;
 }
 
-export function mapOAuthAuth(source: OAuthCredentials | undefined, operation: string = "create"): NativeModalClientParams {
+export function mapOAuthAuth(
+  source: OAuthCredentials | undefined,
+  operation: string = "create",
+): NativeModalClientParams {
   const target: Mutable<NativeModalClientParams> = {};
   if (source === undefined) return target;
   {
@@ -157,6 +268,17 @@ export function mapOAuthAuth(source: OAuthCredentials | undefined, operation: st
   return target;
 }
 
-function mappingError(kind: ErrorKind, field: string, message: string, operation: string): never {
-  throw sandboxError({ kind, provider: "modal", operation, field, message: "sandbox-kit modal: " + message });
+function mappingError(
+  kind: ErrorKind,
+  field: string,
+  message: string,
+  operation: string,
+): never {
+  throw sandboxError({
+    kind,
+    provider: "modal",
+    operation,
+    field,
+    message: "sandbox-kit modal: " + message,
+  });
 }

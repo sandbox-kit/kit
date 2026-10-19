@@ -47,8 +47,8 @@ import {
   type ExitResult,
   type ImageSource,
   type LifecycleCapability,
+  type NetworkConfigInput,
   type PauseOptions,
-  type ProviderDefaultSource,
   type ReadinessProbe,
   type ReadinessProbeInput,
   type SandboxInfo,
@@ -60,7 +60,11 @@ import {
   type TerminateOptions,
   type WarmPoolSource,
 } from "./sandbox_data_contracts.js";
-import { materializeDurationFields } from "./duration_ms.js";
+import {
+  materializeDurationFields,
+  type DurationFieldsToMs,
+} from "./duration_ms.js";
+import type { RemapFields } from "./input_remap.js";
 import { metadataObjectFromMap } from "./metadata_object.js";
 import type { FlattenOneof } from "./oneof_input.js";
 import { protoEnum } from "./proto_enum.js";
@@ -110,12 +114,11 @@ export type Scope = StripProto<
 export type AuthInput = FlattenOneof<NonNullable<AuthConfig["credentials"]>>;
 
 /** Plain-object client configuration accepted at construction time. */
-export type ConfigInput = StripProto<
-  Omit<MessageInitShape<typeof ConfigSchema>, "auth" | "timeout"> & {
-    auth?: AuthInput;
-    /** Kit operation deadline in milliseconds. */
-    timeout?: number;
-  }
+export type ConfigInput = DurationFieldsToMs<
+  RemapFields<
+    StripProto<MessageInitShape<typeof ConfigSchema>>,
+    { auth: AuthInput }
+  >
 >;
 
 // Ergonomic PascalCase names over protobuf enum values; not a second contract.
@@ -843,15 +846,26 @@ export class Client implements AsyncDisposable {
       this.#timeout;
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
+      // Validate the caller request first; inject the resolved deadline afterward
+      // so operation timeouts are not re-checked as provisioning.timeout.
       validateCreateOptions(materialized, this.providerName, "create");
       scoped = operationSignal(options, timeout);
       const create = this.#backend.create;
       if (!create) unsupported(this.providerName, "create");
+      const providerRequest = clone(materialized);
+      // Modal ready-wait (and similar) read provisioning.timeout; keep it aligned
+      // with the resolved create deadline (call options → provisioning → client).
+      if (timeout !== undefined) {
+        providerRequest.provisioning = {
+          ...providerRequest.provisioning,
+          timeout: durationFromMs(timeout),
+        };
+      }
       const result = await awaitWithSignal(
         () =>
           create.call(
             this.#backend,
-            clone(materialized),
+            providerRequest,
             operationOptions(
               { ...(timeout === undefined ? {} : { timeout: timeout }) },
               scoped?.signal,
@@ -981,10 +995,13 @@ export function resolveClientConfig(value: Config | ConfigInput): Config {
 export function materializeCreateOptions(
   input: CreateOptionsInput,
 ): CreateOptions {
-  const { source, readiness, providerOptions, ...rest } = input;
+  const { source, readiness, providerOptions, network, ...rest } = input;
   const withDurations = materializeDurationFields(rest);
   return create(CreateOptionsSchema, {
     ...withDurations,
+    ...(network === undefined
+      ? {}
+      : { network: materializeNetworkConfig(network) }),
     ...(source === undefined ? {} : { source: { kind: sourceKind(source) } }),
     ...(readiness === undefined
       ? {}
@@ -995,6 +1012,23 @@ export function materializeCreateOptions(
   } as unknown as MessageInitShape<
     typeof CreateOptionsSchema
   >) as CreateOptions;
+}
+
+/** Wrap public string-array allowlists into wire StringAllowlist messages. */
+function materializeNetworkConfig(network: NetworkConfigInput) {
+  const { outboundCidrs, outboundDomains, inboundCidrs, ...rest } = network;
+  return {
+    ...rest,
+    ...(outboundCidrs === undefined
+      ? {}
+      : { outboundCidrs: { entries: outboundCidrs } }),
+    ...(outboundDomains === undefined
+      ? {}
+      : { outboundDomains: { entries: outboundDomains } }),
+    ...(inboundCidrs === undefined
+      ? {}
+      : { inboundCidrs: { entries: inboundCidrs } }),
+  };
 }
 
 function isWireConfig(value: Config | ConfigInput): value is Config {
@@ -1033,7 +1067,7 @@ function sourceKind(
   if (source.providerDefault !== undefined)
     return {
       case: "providerDefault",
-      value: source.providerDefault as ProviderDefaultSource,
+      value: {},
     };
   if (source.image !== undefined)
     return { case: "image", value: source.image as ImageSource };
