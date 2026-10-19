@@ -1,0 +1,36 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M59G2Z778FXENV41YYWF1W7F",
+  "session_id": "0d476f72-31cd-4976-b361-21f3d9232924",
+  "strategy": "manual-commit",
+  "created_at": "2026-10-19T07:12:49.502587Z",
+  "branch": "feat/buf-protovalidate",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "sdks/go/sandbox/client.go",
+    "specs/client.yaml",
+    "tooling/internal/commands/test.go"
+  ],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "f591a140a833",
+  "compact_transcript_start": 0,
+  "session_metrics": {
+    "turn_count": 17,
+    "context_tokens": 236000,
+    "context_window_size": 256000
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-10-19T07:12:49.438429Z",
+    "agent_lines": 509,
+    "agent_removed": 0,
+    "human_added": 295,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 804,
+    "total_lines_changed": 1170,
+    "agent_percentage": 43.504273504273506,
+    "metric_version": 2
+  }
+}
