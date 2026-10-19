@@ -1,0 +1,122 @@
+can u just commit it
+
+---
+
+change to sdk-public-facade branch we need to work there rn
+
+---
+
+can u generate go contracts again in this as I think changes commited in another branch made this branch contract oudated.
+
+---
+
+one ofthe things I still don't like is how duration has been really implemented in typescript sdk. 
+
+timeout: 120_000
+
+we should by default let metion duration in Ms ? 
+
+ain't thats fine ? whats the problem ? and wehy we are complicating ?
+
+---
+
+120 should mean 120ms?
+
+---
+
+can't we change
+
+timeoutMs: 120
+
+which means 120ms ?
+
+---
+
+also the sandbox.archieve and many other such methods
+
+has request / unknown fields request 
+
+its messy ? why so ?
+
+---
+
+yes do that changes too.
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+ain't we need to change proto to have timeoutMs
+
+also ?
+
+---
+
+ig so just have timeout as naming ?
+
+---
+
+cool go aehad
+
+---
+
+still in many params, $typename is exposed can u check
+
+---
+
+can u think of writnig stripproto much deeper like 
+
+so for eg we are building Networkconfig from set of types
+
+we are omitting just because we need to remove protos from child fields too> 
+
+
+can u make it so we don't even need to use Omit ? just for that ?
+
+---
+
+CreateOptionsInput still doesn't remove proto fields 
+
+like check create-modal-verbose example
+
+---
+
+ig that needs to be flattenOneOf
+
+and maybe create some generic mxingflatten & strip proto ?
+
+---
+
+can we build more generators like this ig ?
+
+the const we have exported also should be somethin like this ?
+
+EgressMode and similar to it ?
+
+---
+
+canu check the tests 
+
+u will need to change the test ig for typescript sdks
+
+it might have bcome outdated.
+
+---
+
+@sdks/typescript/sandbox/src/client.test.ts:34-37 can u chck why ?
+
+---
+
+@sdks/typescript/providers/daytona/src/daytona.test.ts:267 fix this as well ?
+
+---
+
+it still shows that not solution
+
+---
+
+and the changes u made for Native Daytona for this which was not correct should we remove and revert that ? or it was correct ?

@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5ANWQ0PSWHTXN3BAX3JWEQB",
+  "strategy": "manual-commit",
+  "branch": "feat/sdk-public-facade",
+  "checkpoints_count": 23,
+  "files_touched": [
+    "README.md",
+    "docs/configuration.md",
+    "docs/sandbox-creation.md",
+    "examples/typescript/daytona/archive-daytona-sandbox/src/main.ts",
+    "examples/typescript/modal/attach-modal-sandbox/src/main.ts",
+    "sdks/typescript/providers/daytona/package.json",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/tsconfig.build.json",
+    "sdks/typescript/providers/daytona/tsconfig.json",
+    "sdks/typescript/providers/daytona/tsconfig.test.json",
+    "sdks/typescript/providers/modal/package.json",
+    "sdks/typescript/providers/modal/src/mappings.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "sdks/typescript/providers/modal/tsconfig.build.json",
+    "sdks/typescript/providers/modal/tsconfig.json",
+    "sdks/typescript/providers/modal/tsconfig.test.json",
+    "sdks/typescript/sandbox/package.json",
+    "sdks/typescript/sandbox/src/client.test.ts",
+    "sdks/typescript/sandbox/src/client.ts",
+    "sdks/typescript/sandbox/src/duration_ms.ts",
+    "sdks/typescript/sandbox/src/metadata_object.ts",
+    "sdks/typescript/sandbox/src/oneof_input.ts",
+    "sdks/typescript/sandbox/src/proto_enum.test.ts",
+    "sdks/typescript/sandbox/src/proto_enum.ts",
+    "sdks/typescript/sandbox/src/sandbox_data_contracts.ts",
+    "sdks/typescript/sandbox/src/strip_proto.ts",
+    "sdks/typescript/sandbox/tsconfig.build.json",
+    "sdks/typescript/sandbox/tsconfig.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 386792,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 16635520,
+    "output_tokens": 112272,
+    "api_call_count": 20
+  }
+}
