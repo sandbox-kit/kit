@@ -2,8 +2,10 @@
 
 Core client package (`@sandbox-kit/sandbox`). Providers such as
 `@sandbox-kit/provider-daytona` and `@sandbox-kit/provider-modal` are published
-separately and plug into this module. Closing the client releases local provider
-SDK resources only; it does not stop or delete cloud sandboxes.
+separately and plug into this module. Shared create and client-config validation
+uses Protovalidate (`secure_endpoint` stays handwritten). Closing the client
+releases local provider SDK resources only; it does not stop or delete cloud
+sandboxes.
 
 ## Usage
 

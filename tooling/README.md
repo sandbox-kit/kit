@@ -47,15 +47,18 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 `generate contracts-go` / `contracts-typescript` run `buf generate` using the
 root `buf.gen.yaml` (Go + TypeScript plugins) and refresh contract packages
 under `sdks/<language>/contracts/`. Protovalidate options travel with the
-descriptors; SDKs evaluate them at runtime.
+descriptors; SDKs evaluate create and client-config rules at runtime
+(`secure_endpoint` stays handwritten). `contracts-typescript` also runs
+`npm run build` in `sdks/typescript/contracts` so `@sandbox-kit/contracts`
+exports compiled descriptors from `dist/`.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
 Go example module registered by the command. Example tests use dummy credentials
 and local servers; they create no cloud resources.
 
-`test typescript` builds and tests the shared package and both providers,
-discovers every TypeScript example containing a `package.json`, and builds each
-example without making provider calls.
+`test typescript` builds contracts first, then builds and tests the shared
+package and both providers, discovers every TypeScript example containing a
+`package.json`, and builds each example without making provider calls.
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Caches stay outside the checkout.

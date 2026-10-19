@@ -2,8 +2,9 @@
 
 Core client module (`github.com/sandbox-kit/kit/sdks/go/sandbox`). Provider
 modules under `sdks/go/providers/<name>` are published independently and plug
-into this package. Closing the client releases local provider SDK resources
-only; it does not stop or delete cloud sandboxes.
+into this package. Shared create and client-config validation uses Protovalidate
+(`secure_endpoint` stays handwritten). Closing the client releases local
+provider SDK resources only; it does not stop or delete cloud sandboxes.
 
 ## Usage
 

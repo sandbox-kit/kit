@@ -3,9 +3,9 @@
 A multi-provider SDK for creating and managing cloud sandboxes from one portable
 API. Install the core client and the provider you need; each provider is a
 separate package that initializes its official SDK. Go and TypeScript share
-contracts, Protovalidate create rules, error kinds, and the same Daytona /
-Modal example matrix. More providers plug into the core sandbox module without
-being bundled inside it.
+contracts, Protovalidate create and client-config rules, error kinds, and the
+same Daytona / Modal example matrix. More providers plug into the core sandbox
+module without being bundled inside it.
 
 Closing a client or handle releases local SDK resources only. It does not stop,
 terminate, archive, or delete a cloud sandbox. Execution, storage, GPU requests,

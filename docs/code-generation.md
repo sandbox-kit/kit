@@ -125,10 +125,11 @@ Conditions use `when: {field: mode, equals: 2}` or `not_equals`.
 Selection uses presence for optional values/messages, nonempty collections,
 true booleans, and nonzero/nonempty ordinary scalars.
 
-Shared create validation is handwritten in the Go SDK
-(`ValidateCreateOptions`). Keep `specs/validation.yaml` aligned with that
-implementation. Both languages preserve explicit zero/false and supply no
-defaults.
+Shared create and client-config validation is declared as Protovalidate options
+on `proto/` messages and evaluated in each SDK (`ValidateCreateOptions` /
+`ValidateConfig`). Keep `specs/validation.yaml` and `specs/client.yaml` aligned
+with those annotations. The `secure_endpoint` config check stays handwritten.
+Both languages preserve explicit zero/false and supply no defaults.
 
 ## Provider checks
 

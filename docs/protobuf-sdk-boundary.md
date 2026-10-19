@@ -56,7 +56,7 @@ are handwritten; YAML inventories stay documentation for humans.
 ## Current boundary
 
 Kit custom SDK emitters are retired. Contract packages come from Buf-driven
-standard protobuf plugins (`buf generate`). Shared create validation is declared
-with Protovalidate on portable create and client-config messages and evaluated
-in each SDK (`secure_endpoint` stays handwritten); provider checks and
+standard protobuf plugins (`buf generate`). Shared create and client-config
+validation is declared with Protovalidate on portable messages and evaluated in
+each SDK (`secure_endpoint` stays handwritten); provider checks and
 Client/Sandbox choreography stay handwritten.
