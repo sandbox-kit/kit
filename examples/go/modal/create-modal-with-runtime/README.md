@@ -1,21 +1,47 @@
-# Create a Modal sandbox with a runtime
+# Create a Modal sandbox with runtime settings
 
-Create one sandbox from `alpine:3.21`, set the working directory to `/tmp`,
-run `echo sandbox-kit`, and enable a PTY.
+Create with **working directory**, **entrypoint**, and **PTY** enabled.
+
+## What this means
+
+These fields configure the sandbox process: where it starts (`workdir`), what
+command runs (`entrypoint`), and whether a PTY is attached. See Modal
+[Sandboxes](https://modal.com/docs/guide/sandboxes) for workdir/entrypoint usage.
+
+## Edge cases
+
+- Working directory must be an absolute path.
+- Entrypoint replaces the image default command for this sandbox.
+- PTY affects interactive IO for exec sessions.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, and an existing Modal app.
-See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh
 cd examples/go/modal/create-modal-with-runtime
 cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not terminate the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/create-modal-with-runtime/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

@@ -13,7 +13,7 @@ if err != nil {
 if !instance.Supports(sandbox.LifecycleCapabilityStop) {
     return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
 }
-return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Value(time.Minute)})
+return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Minute)})
 ```
 
 An operation-specific timeout overrides `Config.Timeout`. Nil inherits the

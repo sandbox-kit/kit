@@ -1,13 +1,51 @@
-# handle-modal-errors with TypeScript
+# Handle Modal unsupported-intent errors
 
-This independent example mirrors the Go `handle-modal-errors` example through the Sandbox Kit TypeScript API.
+Attempt create with **`diskMib` set**. Modal does not allow increasing sandbox
+disk at create, so Kit returns **`ErrorKindUnsupported`** before the API call.
+
+## What this means
+
+Modal documents that Sandbox disk size cannot be increased (VM root disk is a
+fixed size). Kit rejects `diskMib` as unsupported intent and exposes portable
+error fields. See
+[sandbox resources → Disk](https://modal.com/docs/guide/sandbox-resources).
+
+## Edge cases
+
+- No sandbox should be created on this intentional failure path.
+- Good template for switching on `kind` / `field` / `operation`.
+- Kinds are not safe automatic retry signals for other failures.
+
+## Run
 
 ```sh
+cd examples/typescript/modal/handle-modal-errors
 cp .env.example .env
-# Fill in the provider credentials and any required sandbox ID.
+# Fill in the values below, then:
 npm install
 npm run build
 npm start
 ```
 
-Closing the client or sandbox handle only releases local resources unless this example explicitly invokes a lifecycle operation.
+Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Uses `await using`
+so local client cleanup runs on success or failure.
+
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
+```
+
+## Warnings
+
+- Intended to fail **locally** before a provider create call.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [go twin](../../../go/modal/handle-modal-errors/README.md)
+
+- Catalog: [examples/typescript/README.md](../../README.md)

@@ -1,9 +1,27 @@
 # Go examples
 
-Each example is an independent module with local replacements for the public
-SDK and its selected provider. Requires Go 1.26.9 or newer and this checkout.
+Independent modules with local replacements for the public SDK and one provider.
+Requires Go 1.26.9 or newer and this checkout.
 
-## Projects
+## Run one
+
+```sh
+cd examples/go/daytona/create-daytona-sandbox
+cp .env.example .env
+# Fill in the values, then:
+go run .
+```
+
+Skip copying if `.env` already exists. Programs load `.env` with `godotenv`;
+shell variables win. The SDK does not load files. Modal app setup:
+[create-modal-sandbox](modal/create-modal-sandbox/README.md).
+
+Creation programs provision real sandboxes (linked Daytona creates a parent and
+child). Lifecycle programs use the configured sandbox ID—read the guide before
+destructive stop, terminate, archive, or delete. Error-handling programs fail
+locally. Closing a client or handle is local-only.
+
+## Catalog
 
 | Project                                                                        | Required configuration                                | Local verification                              |
 | ------------------------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------- |
@@ -41,58 +59,23 @@ SDK and its selected provider. Requires Go 1.26.9 or newer and this checkout.
 | [request-modal-termination](modal/request-modal-termination/README.md)         | Modal token pair, app, environment, sandbox ID        | Compiles                                        |
 | [close-modal-handle](modal/close-modal-handle/README.md)                       | Modal token pair, app, environment, sandbox ID        | Compiles                                        |
 
-## Run with your account
-
-From the repository root, choose a project:
-
-```sh
-cd examples/go/daytona/create-daytona-sandbox
-cp .env.example .env
-# Fill in the values, then:
-go run .
-```
-
-Skip copying if `.env` already exists. Every project has its own blank template.
-Modal app setup is in the [Modal creation guide](modal/create-modal-sandbox/README.md).
-
-The programs load `.env` with `godotenv`; shell variables take precedence.
-The SDK itself does not load files. Credentials are Git-ignored.
-
-Creation programs create real sandboxes and print their IDs. Each creates one
-sandbox except `create-daytona-linked`, which creates a parent and a child.
-Lifecycle programs use the configured sandbox ID. Read each guide before running
-a destructive stop, terminate, archive, or delete operation. Error-handling
-programs exercise local failures without cloud creation. Closing a client or
-handle releases local resources without changing the sandbox.
-
 ## Verify without credentials
-
-From any example directory:
 
 ```sh
 GOWORK=off go test -v ./...
 ```
 
-The original creation examples and both error examples include handler tests.
-The resources and policies projects also use dummy credentials and local servers:
+Creation and error examples include handler tests. Resources and policies also
+use dummy credentials and local servers (Modal: numeric rejection and scope;
+Daytona: serialized policies and rejection before creation). Local tests may
+bind a port; they do not schedule real provider work.
 
-- Modal tests check numeric rejection, common error details, unsupported configuration, and copied scope.
-- Daytona tests run the example through the official SDK and inspect serialized
-  policies, common error kinds/fields, explicit zero values, and rejection before creation calls.
-
-Local tests require permission to bind a port. They do not establish real
-provider scheduling, account availability, or execution.
-
-The repository-wide `sandbox-kit test go` command includes every example module.
-Most focused creation and lifecycle projects compile without handler tests.
+Repository-wide: `sandbox-kit test go` from `tooling/`.
 
 ## Error handling
 
-The original creation examples and both error examples keep provider setup in
-`main.go` and a small application error handler in `errors.go`. The handler
-extracts `*sandbox.Error` and switches on `Kind`. The other create projects
-print the error and exit. All creation programs report client cleanup errors;
-a cleanup failure does not replace a creation failure.
+Creation and error examples keep provider setup in `main.go` and a small handler
+in `errors.go` that switches on `*sandbox.Error` `Kind`. Other create projects
+print and exit. Cleanup failures do not replace creation failures.
 
-The Modal error example handles an unsupported disk override; the Daytona error
-example handles an invalid CPU request. Tests cover switch branches and ordinary Go errors.
+Modal errors: unsupported disk. Daytona errors: invalid CPU.

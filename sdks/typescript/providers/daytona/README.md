@@ -1,5 +1,9 @@
 # Daytona provider for Sandbox Kit
 
+Optional package over `@daytona/sdk@0.224.0`. Use it through `@sandbox-kit/sandbox`.
+
+## Usage
+
 ```ts
 import { Client } from "@sandbox-kit/sandbox";
 import { daytona } from "@sandbox-kit/provider-daytona";
@@ -17,14 +21,24 @@ try {
 ```
 
 The native Daytona SDK resolves credentials from its environment when `auth` is
-omitted. Closing the client releases local Daytona SDK resources and does not
-delete the cloud sandbox.
+omitted. Closing the client releases local SDK resources only.
+
+## Examples
+
+| Example    | Project                                                                                                        |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Creation   | [create-daytona-sandbox](../../../../examples/typescript/daytona/create-daytona-sandbox/README.md)             |
+| Policies   | [create-daytona-with-policies](../../../../examples/typescript/daytona/create-daytona-with-policies/README.md) |
+| Retrieval  | [get-daytona-sandbox](../../../../examples/typescript/daytona/get-daytona-sandbox/README.md)                   |
+| Full index | [TypeScript examples](../../../../examples/typescript/README.md)                                               |
+
+## Implementation notes
 
 Checks and portable field mappings are handwritten in `provider_checks.ts`,
 `provider_mappings.ts`, and `provider_config.ts`, kept in sync with
 `specs/providers/daytona.yaml`. `src/daytona.ts` owns typed Daytona SDK call
 ordering and lifecycle orchestration; `src/mappings.ts` owns remaining
-provider-specific composition those helpers do not cover.
+provider-specific composition.
 
 ## Dependency audit
 

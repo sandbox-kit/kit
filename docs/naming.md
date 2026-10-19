@@ -25,7 +25,9 @@ the SDK runtime. Field-path constants use prefixes such as `CreateField`,
 and operation metadata.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native
-SDK client remain private. Construction uses `sandbox.NewClient(sandbox.Config{...})`.
+SDK client remain private. Construction uses
+`sandbox.NewClient(provider, &sandbox.Config{...})` in Go and
+`new Client({ provider, ... })` in TypeScript.
 
 ## Files and directories
 
@@ -60,14 +62,15 @@ metadata clone helpers. Keep YAML inventories aligned when changing those files.
 
 ## Language conventions
 
-Field-path constants use names such as `CreateFieldResourcesCPUCores`,
+Field-path constants use names such as `CreateFieldResourcesCpuCores`,
 `ConfigFieldScopeAppName`, and `InfoFieldResources`. Their values retain
 canonical protobuf field names, including nested paths.
 
-Protobuf and YAML use snake_case semantic field names. Go SDK types use names
-such as `CPUCores`, `MemoryMiB`, `OutboundCIDRs`, `TCPPort`, and `APIKey`.
-Enums use typed constants such as `IsolationKindLinuxVM` and `PolicyModeDisabled`.
-Native SDK members use the names from their pinned bindings.
+Protobuf and YAML use snake_case semantic field names. Generated Go contract
+types follow protobuf Go naming (`CpuCores`, `MemoryMib`, `OutboundCidrs`,
+`TcpPort`, `ApiKey`). Enums use typed constants such as `IsolationKindLinuxVM`
+and `PolicyModeDisabled`. Native SDK members use the names from their pinned
+bindings.
 
 TypeScript SDK types use camelCase fields, discriminated unions for exclusive
 alternatives, interfaces for named object contracts, and type aliases for

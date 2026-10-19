@@ -5,7 +5,8 @@ Validation failures include an optional stable `rule` identifier so applications
 do not need to parse human-readable messages. Examples include `finite`,
 `nonblank`, `exclusive_minimum`, `known_enum`, and cross-field operation names.
 Error wrappers, cause chaining, and provider classification are handwritten per
-language. YAML still declares response mappings and validation used by generators.
+language. YAML inventories describe response mappings and validation for humans
+to keep aligned with that handwritten code.
 
 ## Response presence and origin
 
@@ -16,7 +17,7 @@ the request.
 ```go
 info := instance.Info()
 if info.Resources != nil {
-    fmt.Println(info.Resources.GetCPUCores())
+    fmt.Println(info.Resources.GetCpuCores())
 }
 switch info.Origins[sandbox.InfoFieldName] {
 case sandbox.ValueOriginProvider:
@@ -111,7 +112,7 @@ err := sandbox.NewError(sandbox.ErrorInfo{
     Kind:      sandbox.ErrorKindUnsupported,
     Provider:  "modal",
     Operation: "create",
-    Field:     sandbox.CreateFieldResourcesDiskMiB,
+    Field:     sandbox.CreateFieldResourcesDiskMib,
     Message:   "Disk overrides are unsupported",
 }, cause)
 ```

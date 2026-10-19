@@ -18,14 +18,14 @@ sandbox lifecycle.
 
 ## Configuration fields
 
-| Field      | Purpose                                                                        |
-| ---------- | ------------------------------------------------------------------------------ |
-| `Provider` | Go: pass `modal.New()` / `daytona.New()` to `NewClient`. Not in `Config`.      |
-| `Auth`     | One explicit credential variant; omit to use SDK credential resolution         |
-| `Scope`    | App, environment, organization, or project scope                               |
-| `Endpoint` | Provider API URL, where supported                                              |
-| `Region`   | Provider target or default placement preference                                |
-| `Timeout`  | Default Kit operation deadline (`google.protobuf.Duration`; TS `duration(ms)`) |
+| Field      | Purpose                                                                   |
+| ---------- | ------------------------------------------------------------------------- |
+| `Provider` | Go: pass `modal.New()` / `daytona.New()` to `NewClient`. Not in `Config`. |
+| `Auth`     | One explicit credential variant; omit to use SDK credential resolution    |
+| `Scope`    | App, environment, organization, or project scope                          |
+| `Endpoint` | Provider API URL, where supported                                         |
+| `Region`   | Provider target or default placement preference                           |
+| `Timeout`  | Default Kit operation deadline (Go `sandbox.Duration`; TS `duration(ms)`) |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional

@@ -1,10 +1,13 @@
 # Sandbox Kit for TypeScript
 
-The public client owns the selected provider SDK. Close it explicitly when the
-application is finished. Closing the client releases local SDK resources; it
-does not stop or delete cloud sandboxes.
+Public client for Sandbox Kit. Closing the client releases local provider SDK
+resources only; it does not stop or delete cloud sandboxes.
+
+## Usage
 
 ```ts
+import { Client } from "@sandbox-kit/sandbox";
+
 const client = new Client(config);
 
 try {
@@ -15,14 +18,25 @@ try {
 }
 ```
 
-TypeScript 5.2 or newer with the `ESNext.Disposable` library and runtimes that
-support explicit resource management may use `await using` as an
-optional convenience:
+With TypeScript 5.2+, `ESNext.Disposable`, and a runtime that supports explicit
+resource management:
 
 ```ts
 await using client = new Client(config);
 const sandbox = await client.create();
 ```
 
-The second form invokes `client[Symbol.asyncDispose]()` automatically at the end
-of the scope. Both forms have identical cleanup semantics.
+Both forms have identical cleanup semantics.
+`client[Symbol.asyncDispose]()` runs automatically at the end of an `await using`
+scope.
+
+## Examples
+
+| Language   | Index                                                         |
+| ---------- | ------------------------------------------------------------- |
+| TypeScript | [examples/typescript](../../../examples/typescript/README.md) |
+| Go         | [examples/go](../../../examples/go/README.md)                 |
+
+Install a provider package such as `@sandbox-kit/provider-daytona` or
+`@sandbox-kit/provider-modal` beside this client. See the
+[root README](../../../README.md) for a full create snippet.

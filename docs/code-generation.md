@@ -199,7 +199,8 @@ A provider's `client` spec inventories how mapping groups compose:
 - `settings` maps top-level configuration.
 - `scope` maps scope fields.
 - `auth` declares supported credential alternatives.
-- `managed` permits Kit-owned provider selection and timeout fields.
+- `managed` marks Kit-owned configuration such as timeout that is not mapped
+  into the native client.
 - `retained` requires a matching backend state capture.
 - `rejected` describes unsupported supplied configuration.
 - `destination` attaches a mapped object using the native field and declared

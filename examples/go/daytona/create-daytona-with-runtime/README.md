@@ -1,32 +1,50 @@
-# Create a Daytona sandbox with runtime settings
+# Create a Daytona sandbox with language settings
 
-Create one Daytona container from `daytona-small` with Python selected as the
-Daytona toolbox language and `daytona` as the sandbox user.
+Create from `daytona-small` with toolbox **`language=python`** and
+**`user=daytona`**, then print the resolved isolation kind.
 
-Daytona maps `Runtime.Language` and `Runtime.User` during creation. Supported
-toolbox languages are `python`, `javascript`, and `typescript`. Runtime version,
-working directory, entrypoint, and PTY are not currently mapped and fail before
-the provider call instead of being ignored.
+## What this means
 
-The snapshot determines the isolation class. `daytona-small` creates a
-container; a VM snapshot such as `daytona-vm-small` creates a Linux VM. Setting
-`Isolation.Kind` does not override the snapshot class.
+Daytona's `language` selects the programming-language runtime used for direct
+code execution in the sandbox (`python`, `typescript`, or `javascript`). If
+omitted, Daytona defaults to Python. `user` sets the OS user. See
+[sandboxes → languages](https://www.daytona.io/docs/en/sandboxes/).
+
+These settings configure the toolbox on top of the snapshot; they do not replace
+the snapshot's sandbox class.
+
+## Edge cases
+
+- Unsupported language strings fail local validation.
+- Printed isolation kind is provider-reported metadata after create.
+- Entrypoint/workdir-style process control is not what Daytona `language` means.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-with-runtime
 cp .env.example .env
-# Set DAYTONA_API_KEY, then:
+# Fill in the values below, then:
 go run .
 ```
 
-The example constructs its own client with `sandbox.NewClient`. Optional
-`DAYTONA_API_URL` and `DAYTONA_TARGET` values select the Daytona endpoint and
-target. Closing the client does not stop or delete the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/create-daytona-with-runtime/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

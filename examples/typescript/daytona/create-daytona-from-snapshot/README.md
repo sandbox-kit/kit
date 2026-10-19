@@ -1,13 +1,55 @@
-# create-daytona-from-snapshot with TypeScript
+# Create a Daytona sandbox from a snapshot
 
-This independent example mirrors the Go `create-daytona-from-snapshot` example through the Sandbox Kit TypeScript API.
+Create one sandbox from the stock **`daytona-small`** snapshot
+(`source.snapshot.reference`).
+
+## What this means
+
+Snapshots are named boot images. Daytona documents stock sizes such as
+`daytona-small` (1 vCPU / 1 GiB / 3 GiB, container class). Any number of sandboxes
+can start from the same snapshot. See
+[snapshots](https://www.daytona.io/docs/en/snapshots/) and the snapshot table in
+[sandboxes](https://www.daytona.io/docs/en/sandboxes/).
+
+Kit sends the snapshot reference string. Explicit snapshot-kind enums and
+warm-pool sources are not mapped and are rejected if supplied.
+
+## Edge cases
+
+- The snapshot name must exist for your organization/target; missing names fail
+  at the provider.
+- Resource overrides still need an image source; snapshot create inherits the
+  snapshot's CPU/memory/disk.
+- Class (and therefore later capabilities) comes from the snapshot you pick.
+
+## Run
 
 ```sh
+cd examples/typescript/daytona/create-daytona-from-snapshot
 cp .env.example .env
-# Fill in the provider credentials and any required sandbox ID.
+# Fill in the values below, then:
 npm install
 npm run build
 npm start
 ```
 
-Closing the client or sandbox handle only releases local resources unless this example explicitly invokes a lifecycle operation.
+Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Uses `await using`
+so local client cleanup runs on success or failure.
+
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
+```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [go twin](../../../go/daytona/create-daytona-from-snapshot/README.md)
+
+- Catalog: [examples/typescript/README.md](../../README.md)

@@ -1,20 +1,46 @@
 # Create a Modal gVisor sandbox
 
-Create one sandbox from `alpine:3.21` on Modal's gVisor container runtime.
+Create with **`isolation.kind = Container`** (Modal's gVisor/container runtime).
+
+## What this means
+
+Modal supports `gvisor` (container) and Linux VM runtimes. GPU sandboxes require
+the gVisor runtime. See [Sandboxes](https://modal.com/docs/guide/sandboxes) and
+[sandbox resources](https://modal.com/docs/guide/sandbox-resources).
+
+## Edge cases
+
+- Making container isolation explicit does not change terminate/attach support.
+- Account permissions can still reject a runtime.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, and an existing Modal app.
-See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh
 cd examples/go/modal/create-modal-gvisor
 cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not terminate the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/create-modal-gvisor/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

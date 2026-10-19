@@ -1,65 +1,60 @@
-# Create a Daytona sandbox with policies
+# Create a Daytona sandbox with lifetime policies
 
-Create one sandbox from the default snapshot, disable auto-pause, and request
-deletion ten minutes after stopping. This standalone module uses Sandbox Kit
-and only the Daytona provider.
+Create with **idle pause disabled** and **stopped-delete after 10 minutes**, then
+print metadata origins for `id` and `resources`.
 
-Remote `DAYTONA_API_URL` overrides require HTTPS. HTTP is accepted for localhost
-or literal loopback IPs. See [provider configuration](../../../../sdks/go/providers/daytona/README.md).
+## What this means
 
-## Run with your account
+Daytona can manage sandboxes with inactivity and stopped-time intervals:
 
-Requires Go 1.26.9 or newer and this checkout. From the repository root:
+| Policy | Effect (service guide) |
+| ------ | ---------------------- |
+| Auto-stop | Stop after N minutes idle; `0` disables (default often 15) |
+| Auto-pause | Pause VM sandboxes after idle; mutually exclusive with auto-stop |
+| Auto-archive | Archive stopped containers; `0` means max interval (30 days), not “now” |
+| Auto-delete | Delete after stopped; `0` = immediate on stop; negative disables |
+| TTL | Wall-clock destroy regardless of state |
+
+This example maps Kit `idlePause: Disabled` and `stoppedDelete: After(10m)`.
+Delays use whole minutes. See
+[automated lifecycle management](https://www.daytona.io/docs/en/sandboxes/) and
+Kit's [policy matrix](../../../../docs/sandbox-creation.md#policy-semantics)
+(Kit follows the service guide where SDK comments disagree).
+
+## Edge cases
+
+- `PolicyModeAfter` with a **zero** delay means immediate, not disabled.
+- Immediate stop/pause/archive and disabled archive/delete at create are rejected
+  by the current Kit mapping.
+- Positive stop and pause delays cannot both be set.
+- Origins: `id` is usually provider-reported; resources may be absent or allocated.
+
+## Run
 
 ```sh
 cd examples/go/daytona/create-daytona-with-policies
 cp .env.example .env
-# Fill in DAYTONA_API_KEY.
+# Fill in the values below, then:
 go run .
 ```
 
-Skip copying if `.env` already exists. Optional `DAYTONA_API_URL` and
-`DAYTONA_TARGET` override endpoint/target. Shell variables take precedence
-over `.env`, and credentials stay Git-ignored.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-The program creates a real sandbox and prints its ID. It supplies policies at
-creation; it does not call stop or delete. The deletion delay starts when the
-sandbox stops. The default snapshot determines runtime and isolation class.
-Closing the client only releases SDK resources.
+### Environment
 
-## Verify without credentials
-
-The example prints identity/resource origins and demonstrates structured common
-errors with `errors.As`. Rejected policies expose stable kinds and field paths
-before a creation request is sent. See [contracts](../../../../docs/responses-and-errors.md).
-
-```sh
-GOWORK=off go test -v ./...
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
 
-Tests use dummy credentials and a local fake Daytona API. They run the actual
-example through the public client and official SDK:
+## Warnings
 
-| Case                    | Expected behavior                                         |
-| ----------------------- | --------------------------------------------------------- |
-| Example creation        | Sends `autoPauseInterval: 0` and `autoDeleteInterval: 10` |
-| Unspecified auto-stop   | Remains absent from the request                           |
-| Disabled archive/delete | Rejected before a creation call                           |
-| Immediate stop/pause    | Rejected before a creation call                           |
-| Immediate delete        | Sends an explicit zero, rather than omitting it           |
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
 
-Tests use a temporary configuration file, not your `.env`, and require
-permission to bind a local port. They verify request mapping and rejection;
-provider scheduling and real lifecycle behavior require live verification.
+## Related
 
-See [main.go](main.go), [tests](main_test.go), and
-[creation policies](../../../../docs/sandbox-creation.md#policy-semantics).
+- [typescript twin](../../../typescript/daytona/create-daytona-with-policies/README.md)
 
-## Error handling
-
-`main.go` configures the provider and creates the sandbox. `errors.go` handles
-application errors by extracting `*sandbox.Error` and switching on its `Kind`.
-Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
-and do not replace a creation failure.
-
-See the [provider error example](../handle-daytona-errors/README.md).
+- Catalog: [examples/go/README.md](../../README.md)

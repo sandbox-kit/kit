@@ -1,22 +1,50 @@
-# Create a Modal sandbox with a managed proxy
+# Create a Modal sandbox with a network proxy
 
-Create one sandbox from `alpine:3.21` and route its outbound traffic through an
-existing Modal Proxy selected by `MODAL_PROXY_NAME`.
+Create with **`network.proxyReference`** set to an existing Modal Proxy name
+(`MODAL_PROXY_NAME`).
+
+## What this means
+
+Attaches the sandbox to a named Modal Proxy in the selected environment so
+outbound traffic can be routed through that proxy. The proxy must already exist.
+
+## Edge cases
+
+- Missing proxy → provider error at create.
+- Requires `MODAL_PROXY_NAME` in addition to token/app vars.
+- Empty egress allowlists mean deny-all when you use allowlist fields; this
+  example only sets the proxy reference.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, an existing Modal app, and an
-existing Modal Proxy in the selected environment.
-See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh
 cd examples/go/modal/create-modal-with-network
 cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not terminate the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
+
+Required: `MODAL_PROXY_NAME` (existing proxy in the environment).
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/create-modal-with-network/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

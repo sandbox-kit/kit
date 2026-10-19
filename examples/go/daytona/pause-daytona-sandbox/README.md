@@ -1,23 +1,48 @@
-# Pause a Daytona VM
+# Pause a Daytona sandbox
 
-Retrieve an existing Linux VM or Windows sandbox, check pause support, and
-request a memory-preserving pause. Containers and GPU sandboxes are rejected
-before the pause request. Choose a VM-capable snapshot, such as
-`daytona-vm-small`, when creating the sandbox.
+`Get` a sandbox, check **Pause**, then pause it.
+
+## What this means
+
+Pause is for VM sandbox classes (Linux VM / Windows): it preserves filesystem and
+memory. Container and GPU classes do not support pause—Kit rejects via
+capabilities before the API call. See Daytona's lifecycle docs under
+[sandboxes](https://www.daytona.io/docs/en/sandboxes/).
+
+## Edge cases
+
+- Using a container sandbox ID fails the capability check.
+- Inspect refreshed state after success for the resolved paused/running value.
+- Mutates the target sandbox.
 
 ## Run
 
 ```sh
 cd examples/go/daytona/pause-daytona-sandbox
 cp .env.example .env
-# Set DAYTONA_API_KEY and DAYTONA_SANDBOX_ID, then:
+# Fill in the values below, then:
 go run .
 ```
 
-The example constructs its own client with `sandbox.NewClient`. Optional
-`DAYTONA_API_URL` and `DAYTONA_TARGET` values select the Daytona endpoint and
-target. `Client.Close` does not resume, stop, or delete the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+DAYTONA_SANDBOX_ID=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- **Changes or destroys** that sandbox.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/pause-daytona-sandbox/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

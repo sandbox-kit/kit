@@ -1,65 +1,53 @@
 # Create a Modal sandbox with resources
 
-Create one sandbox with 0.5 physical CPU cores, 512 MiB memory, and a five-minute
-lifetime. This standalone module uses Sandbox Kit and only the Modal provider.
+Create with **0.5 physical CPU cores**, **512 MiB** memory, and a **5-minute
+maximum lifetime**; print whether allocated resources appear in metadata.
 
-## Run with your account
+## What this means
 
-Requires Go 1.26.9 or newer and this checkout. From the repository root:
+Modal `cpu` is physical cores (floating point); `memory` is MiB. Sandboxes can
+burst above the request when the host has spare capacity; you pay for
+`max(request, actual)`. Optional CPU/memory **limits** cap bursting. See
+[sandbox resources](https://modal.com/docs/guide/sandbox-resources) and
+[reserving CPU and memory](https://modal.com/docs/guide/resources).
+
+Kit enforces documented floors (0.125 cores, 128 MiB), 0.001-core precision, and
+a maximum lifetime up to 24 hours (whole seconds).
+
+## Edge cases
+
+- Sandbox disk size cannot be increased; VM runtime root disk is fixed (512 GiB).
+- Metadata resources are provider-reported when present—not an echo of the request.
+- Values that pass Kit can still fail Modal account maxima.
+
+## Run
 
 ```sh
 cd examples/go/modal/create-modal-with-resources
 cp .env.example .env
-# Fill in Modal credentials and the existing app name.
+# Fill in the values below, then:
 go run .
 ```
 
-Skip copying if `.env` already exists. Set `MODAL_TOKEN_ID`,
-`MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`.
-`MODAL_ENVIRONMENT` defaults to `main`. The app must exist in that environment;
-see [token and app setup](../create-modal-sandbox/README.md).
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-The program prints the sandbox ID and requested settings. It does not report
-observed resource allocation. Shell variables take precedence over `.env`,
-and credentials stay Git-ignored.
+### Environment
 
-Running creates a real sandbox. Closing the client releases SDK resources;
-the requested maximum lifetime bounds execution. Use Modal's tools for any
-additional sandbox cleanup.
-
-## Verify without credentials
-
-The example prints the identity origin and whether allocated resources were
-reported. It also demonstrates `errors.As` with `*sandbox.Error`; local numeric
-failures expose provider, operation, kind, and field. Requested resources remain
-separate from reported allocation. See [contracts](../../../../docs/responses-and-errors.md).
-
-```sh
-GOWORK=off go test -v ./...
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
 
-Tests use the public client, dummy credentials, and a local endpoint. They verify:
+## Warnings
 
-| Case                                        | Expected behavior                  |
-| ------------------------------------------- | ---------------------------------- |
-| CPU below minimum or beyond native range    | Rejected before remote requests    |
-| Fractional-second or overflowing lifetime   | Rejected before remote requests    |
-| App-name mutation after client construction | Captured scope remains independent |
-| Explicit endpoint override                  | Rejected by the Modal integration  |
-| Example options                             | Pass common validation             |
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
 
-Tests do not read your `.env` and require permission to bind a local port.
-Positive Modal provisioning requires running `go run .` with real credentials;
-local tests do not simulate it as a successful cloud operation.
+## Related
 
-See [main.go](main.go), [tests](main_test.go), and
-[creation semantics](../../../../docs/sandbox-creation.md).
+- [typescript twin](../../../typescript/modal/create-modal-with-resources/README.md)
 
-## Error handling
-
-`main.go` configures the provider and creates the sandbox. `errors.go` handles
-application errors by extracting `*sandbox.Error` and switching on its `Kind`.
-Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
-and do not replace a creation failure.
-
-See the [provider error example](../handle-modal-errors/README.md).
+- Catalog: [examples/go/README.md](../../README.md)

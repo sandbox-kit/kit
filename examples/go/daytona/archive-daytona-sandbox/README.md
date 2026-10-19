@@ -1,24 +1,49 @@
-# Archive a Daytona container
+# Archive a Daytona sandbox
 
-Retrieve one existing Daytona sandbox, check its resolved capabilities, and
-archive its retained filesystem. Archive is available for non-GPU containers;
-Linux VMs, Windows sandboxes, and GPU sandboxes are rejected before the archive
-request.
+`Get` a sandbox, check **Archive**, then archive retained container filesystem
+state.
+
+## What this means
+
+Archive moves a stopped container sandbox's filesystem to object storage
+(Daytona auto-archive defaults to 7 days stopped, max 30 days). VM/GPU classes
+do not support archive. See
+[persistence](https://www.daytona.io/docs/en/persistence/).
+
+## Edge cases
+
+- Wrong class → unsupported before the call.
+- Archive is not delete; recovery rules are Daytona-specific afterward.
+- Mutates the target sandbox.
 
 ## Run
 
 ```sh
 cd examples/go/daytona/archive-daytona-sandbox
 cp .env.example .env
-# Set DAYTONA_API_KEY and DAYTONA_SANDBOX_ID, then:
+# Fill in the values below, then:
 go run .
 ```
 
-The example constructs its own client with `sandbox.NewClient`. Optional
-`DAYTONA_API_URL` and `DAYTONA_TARGET` values select the Daytona endpoint and
-target. The sandbox class comes from the snapshot or image used at creation.
-Closing the client does not stop, archive, or delete the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+DAYTONA_SANDBOX_ID=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- **Changes or destroys** that sandbox.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/archive-daytona-sandbox/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

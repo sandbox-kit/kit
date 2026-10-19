@@ -1,10 +1,10 @@
-# SDK generation tooling
+# Developer tooling
 
-This Go module contains the Cobra developer CLI. Applications using Sandbox Kit
-do not depend on it. Standard protobuf plugins emit contract packages; provider
-and shared SDK helpers are handwritten under `sdks/`.
+Cobra CLI for regenerating protobuf contracts and verifying SDK modules.
+Applications using Sandbox Kit do not depend on it. Provider and shared SDK
+helpers are handwritten under `sdks/`.
 
-## Run the CLI
+## Usage
 
 Requires Go 1.26.9 or newer. Contract generation requires `protoc`; protobuf
 verification requires the Buf CLI.

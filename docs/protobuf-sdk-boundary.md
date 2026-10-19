@@ -53,7 +53,7 @@ It must not prescribe method signatures, constructors, response shapes,
 visibility, or operation sequences. Validation, mappings, and SDK control flow
 are handwritten; YAML inventories stay documentation for humans.
 
-## Migration rule
+## Current boundary
 
-Kit custom SDK emitters are retired. New work uses standard protobuf contract
-output plus handwritten runtime code.
+Kit custom SDK emitters are retired. Contract packages come from standard
+protobuf plugins; runtime behavior stays handwritten.

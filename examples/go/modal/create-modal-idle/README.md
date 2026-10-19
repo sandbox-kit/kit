@@ -1,21 +1,48 @@
-# Create a Modal sandbox with an idle timeout
+# Create a Modal sandbox with idle termination
 
-Create one sandbox from `alpine:3.21` that terminates after 60 idle seconds.
+Create with **`idleTerminate` after 60 seconds** of inactivity.
+
+## What this means
+
+Modal idle timeouts automatically terminate a sandbox after inactivity (no
+active exec/tunnels/etc., per Modal's idle rules). Separate from the maximum
+lifetime `timeout`. See
+[Sandboxes → Idle Timeouts](https://modal.com/docs/guide/sandboxes).
+
+## Edge cases
+
+- Delay must be a positive whole number of seconds when using `After`.
+- The sandbox may disappear soon after create if it goes idle—expected.
+- `Disabled` turns idle terminate off; zero delay is not “disabled.”
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, and an existing Modal app.
-See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh
 cd examples/go/modal/create-modal-idle
 cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not terminate the sandbox. The idle policy does, once
-the sandbox has been idle for 60 seconds.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/create-modal-idle/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

@@ -1,21 +1,46 @@
-# Create a Modal sandbox with environment and tags
+# Create a Modal sandbox with labels and environment
 
-Create one sandbox from `alpine:3.21` with `SANDBOX_KIT=example` and the tag
-`example=labels`.
+Create with process **environment** variables and **labels/tags**.
+
+## What this means
+
+Environment variables are injected into the sandbox process. Labels/tags help
+organize sandboxes in the Modal UI and APIs. Kit validates environment key syntax
+when mapping.
+
+## Edge cases
+
+- Do not put secrets in labels or example env values committed to git.
+- Origins on name/labels may be request-derived in returned metadata.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, and an existing Modal app.
-See [Modal creation](../create-modal-sandbox/README.md) for the token and app.
 
 ```sh
 cd examples/go/modal/create-modal-with-labels
 cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not terminate the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/create-modal-with-labels/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

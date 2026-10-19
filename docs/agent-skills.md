@@ -149,6 +149,6 @@ repository.
 ### SDK generators and framework-specific skills
 
 Low-adoption SDK generator skills and React, Node backend, OpenAPI, NestJS, and
-frontend-focused skills were excluded. This repository has its own protobuf and
-YAML-driven generator architecture, and generic generators could conflict with
-the rules in `AGENTS.md` and `specs/`.
+frontend-focused skills were excluded. This repository uses protobuf contracts,
+YAML inventories, and handwritten SDK runtime code; generic generators could
+conflict with the rules in `AGENTS.md` and `specs/`.

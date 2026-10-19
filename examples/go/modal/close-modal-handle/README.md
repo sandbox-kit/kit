@@ -1,28 +1,47 @@
-# Close a local Modal sandbox handle
+# Close a Modal sandbox handle
 
-Attach a Sandbox Kit handle to an existing Modal sandbox, then release that
-handle with `Sandbox.Close`. This is local cleanup: it does not terminate or
-otherwise change the remote sandbox.
+Attach by ID, then close the **local handle** without terminating the sandbox.
+
+## What this means
+
+Handle close only drops local SDK state. The Modal sandbox keeps running until
+idle timeout, max lifetime, entrypoint exit, or an explicit terminate.
+
+## Edge cases
+
+- Safe against sandboxes you intend to keep.
+- Closing the client afterward also does not terminate.
+- Do not use the handle after close.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, an existing Modal app, and a sandbox
-ID from that app. See [Modal creation](../create-modal-sandbox/README.md) for
-token and app setup.
 
 ```sh
 cd examples/go/modal/close-modal-handle
 cp .env.example .env
-# Fill in the token, app, environment, and sandbox ID.
+# Fill in the values below, then:
 go run .
 ```
 
-`sandbox.NewClient` selects Modal and supplies the app and environment required
-to attach. Attachment does not retrieve the sandbox's isolation class, and
-`Sandbox.Close` behaves the same for gVisor containers and Linux VMs. After the
-close, the local handle exposes no lifecycle capabilities. Use `Terminate` when
-you intend to stop the remote sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
+MODAL_SANDBOX_ID=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/close-modal-handle/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

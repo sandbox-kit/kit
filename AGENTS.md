@@ -13,8 +13,9 @@
 
 ## Public API and provider ownership
 
-Applications construct `sandbox.NewClient` with `sandbox.Config` and select a
-provider through `Config.Provider`. The provider initializes its native SDK; the
+Applications construct a client with an explicit provider selection: Go uses
+`sandbox.NewClient(provider, &sandbox.Config{...})`, and TypeScript uses
+`new Client({ provider, ... })`. The provider initializes its native SDK; the
 public client owns cleanup through `Close`.
 
 - Keep initialized native SDK clients private.

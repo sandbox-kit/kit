@@ -1,23 +1,47 @@
 # Get a Daytona sandbox
 
-Retrieve current metadata for one existing sandbox and print its portable state,
-native Daytona state, and class-aware lifecycle capabilities. The returned
-metadata distinguishes containers, Linux VMs, Windows sandboxes, and GPU-backed
-containers when Daytona supplies that information.
+Load a provider-verified handle for `DAYTONA_SANDBOX_ID` with
+`Client.Get` / `client.get` and print identity, metadata, and capabilities.
+
+## What this means
+
+`Get` performs a remote lookup and returns current Daytona metadata (state,
+class, labels, …). Use it when you already have an ID and need a fresh handle.
+Capabilities on the handle reflect the **resolved class now**.
+
+## Edge cases
+
+- Unknown or deleted IDs fail at the provider (`NotFound` or similar).
+- Class (and capabilities) can differ from what you assumed at create time.
+- Does not change the cloud sandbox.
 
 ## Run
 
 ```sh
 cd examples/go/daytona/get-daytona-sandbox
 cp .env.example .env
-# Set DAYTONA_API_KEY and DAYTONA_SANDBOX_ID, then:
+# Fill in the values below, then:
 go run .
 ```
 
-The example constructs its own client with `sandbox.NewClient`. Optional
-`DAYTONA_API_URL` and `DAYTONA_TARGET` values select the Daytona endpoint and
-target. `Get` and `Client.Close` do not change the cloud sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+DAYTONA_SANDBOX_ID=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/get-daytona-sandbox/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

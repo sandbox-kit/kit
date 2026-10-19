@@ -1,24 +1,47 @@
 # Delete a Daytona sandbox
 
-Retrieve one existing Daytona sandbox, check delete support, and wait for
-irreversible deletion. Delete applies to Daytona containers, Linux VMs, Windows
-sandboxes, and GPU sandboxes; provider permissions and current state still
-determine whether Daytona accepts the request.
+`Get` a sandbox, check **Delete**, then delete with **`wait: true`** until Daytona
+finishes removal.
+
+## What this means
+
+Delete irreversibly removes the sandbox resource. After success, Kit marks the
+handle terminal and rejects further lifecycle calls.
+
+## Edge cases
+
+- **Destructive.** The ID in `.env` will be gone.
+- `wait: false` returns earlier without proving completion; this example waits.
+- Deleting a parent also deletes linked children (cascade).
 
 ## Run
 
 ```sh
 cd examples/go/daytona/delete-daytona-sandbox
 cp .env.example .env
-# Set DAYTONA_API_KEY and DAYTONA_SANDBOX_ID, then:
+# Fill in the values below, then:
 go run .
 ```
 
-The example constructs its own client with `sandbox.NewClient`. Optional
-`DAYTONA_API_URL` and `DAYTONA_TARGET` values select the Daytona endpoint and
-target. After success, the local handle is terminal and exposes no further
-lifecycle capabilities. `Client.Close` only releases SDK resources.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+DAYTONA_SANDBOX_ID=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- **Changes or destroys** that sandbox.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/delete-daytona-sandbox/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

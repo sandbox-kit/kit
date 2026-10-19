@@ -1,22 +1,53 @@
 # Create a Daytona sandbox from a snapshot
 
-Create one sandbox from the stock `daytona-small` snapshot and print its ID.
+Create one sandbox from the stock **`daytona-small`** snapshot
+(`source.snapshot.reference`).
+
+## What this means
+
+Snapshots are named boot images. Daytona documents stock sizes such as
+`daytona-small` (1 vCPU / 1 GiB / 3 GiB, container class). Any number of sandboxes
+can start from the same snapshot. See
+[snapshots](https://www.daytona.io/docs/en/snapshots/) and the snapshot table in
+[sandboxes](https://www.daytona.io/docs/en/sandboxes/).
+
+Kit sends the snapshot reference string. Explicit snapshot-kind enums and
+warm-pool sources are not mapped and are rejected if supplied.
+
+## Edge cases
+
+- The snapshot name must exist for your organization/target; missing names fail
+  at the provider.
+- Resource overrides still need an image source; snapshot create inherits the
+  snapshot's CPU/memory/disk.
+- Class (and therefore later capabilities) comes from the snapshot you pick.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-from-snapshot
 cp .env.example .env
-# Set DAYTONA_API_KEY, then:
+# Fill in the values below, then:
 go run .
 ```
 
-`daytona-small` is a 1 vCPU container snapshot. Other stock names, such as
-`daytona-medium` and `daytona-vm-small`, use the same `Snapshot` field.
-Closing the client does not delete the sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/create-daytona-from-snapshot/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

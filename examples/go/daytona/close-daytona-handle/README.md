@@ -1,34 +1,46 @@
 # Close a Daytona sandbox handle
 
-Retrieve one Daytona sandbox, then close only its local Sandbox Kit handle.
-`Sandbox.Close` releases the handle and rejects later lifecycle calls through
-that handle. It does not stop, archive, or delete the cloud sandbox.
+`Get` a sandbox, then **`Sandbox.Close` / `sandbox.close()`** to drop the local
+handle only.
 
-The retrieved metadata still reports whether the sandbox is a container,
-Linux VM, Windows sandbox, or GPU-backed container. Handle cleanup behaves the
-same for every Daytona class because it is local rather than a provider
-lifecycle operation.
+## What this means
+
+Handle close does not stop, archive, or delete the Daytona sandbox. Client close
+likewise only releases the SDK connection.
+
+## Edge cases
+
+- Safe against a sandbox you want to keep running or stopped.
+- Do not use the handle after close (or after client close).
+- Close is idempotent and waits for in-flight ops on that handle.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/close-daytona-handle
 cp .env.example .env
-# Set DAYTONA_API_KEY and DAYTONA_SANDBOX_ID, then:
+# Fill in the values below, then:
 go run .
 ```
 
-`sandbox.NewClient` initializes the Daytona provider. The deferred
-`Client.Close` releases the private Daytona SDK client after the handle closes;
-neither close method changes the remote sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-## Verify locally
+### Environment
 
-```sh
-GOWORK=off go test ./...
+```dotenv
+DAYTONA_API_KEY=
+DAYTONA_SANDBOX_ID=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
 
-This compiles the example without contacting Daytona. Running it contacts
-Daytona to retrieve the configured sandbox.
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/close-daytona-handle/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

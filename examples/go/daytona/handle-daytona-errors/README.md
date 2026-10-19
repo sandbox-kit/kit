@@ -1,36 +1,47 @@
-# Handle Daytona errors
+# Handle Daytona create errors
 
-Initialize a Daytona client and submit one invalid CPU request. The application
-handles the error by switching on `sandboxError.Kind`. No cloud sandbox is created.
+Call create with **`cpuCores: -1`** so local validation fails with
+`ErrorKindInvalidArgument`. Prints shared error fields. No sandbox is created
+when validation rejects the request.
+
+## What this means
+
+Kit checks Daytona resource rules before calling the API (CPU must be a positive
+whole core count). Failures expose portable `kind`, `field`, `operation`, and
+`message`. Native causes remain available when an SDK error is wrapped.
+
+## Edge cases
+
+- This path usually never reaches Daytona's HTTP API.
+- Other failures can occur after provision; kinds are not safe retry signals.
+- Missing `.env` is an ordinary error in Go examples that load dotenv.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/handle-daytona-errors
 cp .env.example .env
-# Fill in your provider settings, then:
+# Fill in the values below, then:
 go run .
 ```
 
-Skip copying when `.env` already exists. Shell variables take precedence.
-The example prints `Check resources.cpu_cores: ...` for the invalid request.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-## Files
+### Environment
 
-- `main.go`: provider configuration and one creation attempt.
-- `errors.go`: application handling with `errors.As` and a switch on common kinds.
-- Tests: local validation and each switch branch, using dummy credentials.
-
-The same error kinds work for either provider. Ordinary errors, such as a missing
-`.env`, are printed normally. Client cleanup errors use the same handler.
-
-## Verify
-
-```sh
-GOWORK=off go test ./...
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
 
-Tests create no cloud resources and do not verify live authentication.
-See [response and error contracts](../../../../docs/responses-and-errors.md).
+## Warnings
+
+- Intended to fail **locally** before a provider create call.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/handle-daytona-errors/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

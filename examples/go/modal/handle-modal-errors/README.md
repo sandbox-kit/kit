@@ -1,37 +1,49 @@
-# Handle Modal errors
+# Handle Modal unsupported-intent errors
 
-Initialize a Modal client and request a 1024 MiB disk override, which Modal does not support. The application
-handles the error by switching on `sandboxError.Kind`. No cloud sandbox is created.
+Attempt create with **`diskMib` set**. Modal does not allow increasing sandbox
+disk at create, so Kit returns **`ErrorKindUnsupported`** before the API call.
+
+## What this means
+
+Modal documents that Sandbox disk size cannot be increased (VM root disk is a
+fixed size). Kit rejects `diskMib` as unsupported intent and exposes portable
+error fields. See
+[sandbox resources → Disk](https://modal.com/docs/guide/sandbox-resources).
+
+## Edge cases
+
+- No sandbox should be created on this intentional failure path.
+- Good template for switching on `kind` / `field` / `operation`.
+- Kinds are not safe automatic retry signals for other failures.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/modal/handle-modal-errors
 cp .env.example .env
-# Fill in your provider settings, then:
+# Fill in the values below, then:
 go run .
 ```
 
-Skip copying when `.env` already exists. Shell variables take precedence.
-The example prints `Check disk_mib: ...` for the unsupported request
-(`sandbox.ErrorKindUnsupported`).
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-## Files
+### Environment
 
-- `main.go`: provider configuration and one creation attempt.
-- `errors.go`: application handling with `errors.As` and a switch on common kinds.
-- Tests: local validation and each switch branch, using dummy credentials.
-
-The same error kinds work for either provider. Ordinary errors, such as a missing
-`.env`, are printed normally. Client cleanup errors use the same handler.
-
-## Verify
-
-```sh
-GOWORK=off go test ./...
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
 ```
 
-Tests create no cloud resources and do not verify live authentication.
-See [response and error contracts](../../../../docs/responses-and-errors.md).
+## Warnings
+
+- Intended to fail **locally** before a provider create call.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/handle-modal-errors/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

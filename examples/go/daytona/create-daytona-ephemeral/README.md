@@ -1,22 +1,47 @@
 # Create an ephemeral Daytona sandbox
 
-Create one sandbox from the default snapshot and mark it ephemeral. Daytona
-deletes an ephemeral sandbox when it stops.
+Create from the default snapshot with **`lifetime.ephemeral = true`**.
+
+## What this means
+
+Daytona sandboxes persist by default. An **ephemeral** sandbox is deleted as soon
+as it stops, discarding state and avoiding stopped-state disk billing. Daytona
+sets auto-delete to immediate (`0`) for ephemeral creates. See
+[persistence](https://www.daytona.io/docs/en/persistence/).
+
+## Edge cases
+
+- Stopping an ephemeral sandbox deletes it; do not expect to start it again.
+- Ephemeral conflicts with positive idle-pause, archive, or delayed-delete
+  policies—Kit rejects those combinations locally.
+- [Linked children](../create-daytona-linked/README.md) must be ephemeral.
 
 ## Run
-
-Requires Go 1.26.9 or newer and this checkout.
 
 ```sh
 cd examples/go/daytona/create-daytona-ephemeral
 cp .env.example .env
-# Set DAYTONA_API_KEY, then:
+# Fill in the values below, then:
 go run .
 ```
 
-Closing the client does not stop the sandbox. Stopping it deletes it.
-The default snapshot determines the runtime image and isolation class.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/daytona/create-daytona-ephemeral/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

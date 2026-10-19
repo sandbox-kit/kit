@@ -1,23 +1,27 @@
 # TypeScript examples
 
-These are independent Node.js projects. Each selects one provider and demonstrates
-one operation without a provider selector or command-line flags.
+Independent Node.js projects. Each selects one provider and demonstrates one
+operation. Requires Node.js 24.15.0 (or Node.js 20/22), npm 11.19.0, and this
+checkout.
 
-Requires Node.js 24.15.0 (or a supported Node.js 20/22 release), npm 11.19.0, and
-this checkout. In a selected project:
+## Run one
 
 ```sh
+cd examples/typescript/daytona/create-daytona-sandbox
 cp .env.example .env
+# Fill in DAYTONA_API_KEY, then:
 npm install
 npm run build
 npm start
 ```
 
 Creation examples provision real cloud resources. Lifecycle examples act on the
-sandbox ID in `.env`; stop, terminate, archive, and delete can change or remove
-that resource. Closing a client or sandbox handle only releases local resources.
+sandbox ID in `.env`. Closing a client or handle is local-only. Modal setup:
+[create-modal-sandbox](modal/create-modal-sandbox/README.md).
 
-## Daytona
+## Catalog
+
+### Daytona
 
 | Project                                                                        | Demonstrates                      |
 | ------------------------------------------------------------------------------ | --------------------------------- |
@@ -38,7 +42,7 @@ that resource. Closing a client or sandbox handle only releases local resources.
 | [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                   |
 | [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | local handle cleanup              |
 
-## Modal
+### Modal
 
 | Project                                                                    | Demonstrates                               |
 | -------------------------------------------------------------------------- | ------------------------------------------ |
@@ -68,5 +72,4 @@ From `tooling/`:
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
-The command discovers every TypeScript example containing a `package.json`,
-then builds it. SDK modules are built and tested first.
+Builds and tests the SDK packages first, then every example with a `package.json`.

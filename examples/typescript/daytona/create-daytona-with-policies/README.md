@@ -1,13 +1,62 @@
-# create-daytona-with-policies with TypeScript
+# Create a Daytona sandbox with lifetime policies
 
-This independent example mirrors the Go `create-daytona-with-policies` example through the Sandbox Kit TypeScript API.
+Create with **idle pause disabled** and **stopped-delete after 10 minutes**, then
+print metadata origins for `id` and `resources`.
+
+## What this means
+
+Daytona can manage sandboxes with inactivity and stopped-time intervals:
+
+| Policy | Effect (service guide) |
+| ------ | ---------------------- |
+| Auto-stop | Stop after N minutes idle; `0` disables (default often 15) |
+| Auto-pause | Pause VM sandboxes after idle; mutually exclusive with auto-stop |
+| Auto-archive | Archive stopped containers; `0` means max interval (30 days), not “now” |
+| Auto-delete | Delete after stopped; `0` = immediate on stop; negative disables |
+| TTL | Wall-clock destroy regardless of state |
+
+This example maps Kit `idlePause: Disabled` and `stoppedDelete: After(10m)`.
+Delays use whole minutes. See
+[automated lifecycle management](https://www.daytona.io/docs/en/sandboxes/) and
+Kit's [policy matrix](../../../../docs/sandbox-creation.md#policy-semantics)
+(Kit follows the service guide where SDK comments disagree).
+
+## Edge cases
+
+- `PolicyModeAfter` with a **zero** delay means immediate, not disabled.
+- Immediate stop/pause/archive and disabled archive/delete at create are rejected
+  by the current Kit mapping.
+- Positive stop and pause delays cannot both be set.
+- Origins: `id` is usually provider-reported; resources may be absent or allocated.
+
+## Run
 
 ```sh
+cd examples/typescript/daytona/create-daytona-with-policies
 cp .env.example .env
-# Fill in the provider credentials and any required sandbox ID.
+# Fill in the values below, then:
 npm install
 npm run build
 npm start
 ```
 
-Closing the client or sandbox handle only releases local resources unless this example explicitly invokes a lifecycle operation.
+Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Uses `await using`
+so local client cleanup runs on success or failure.
+
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
+```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [go twin](../../../go/daytona/create-daytona-with-policies/README.md)
+
+- Catalog: [examples/typescript/README.md](../../README.md)

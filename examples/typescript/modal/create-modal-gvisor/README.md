@@ -1,13 +1,48 @@
-# create-modal-gvisor with TypeScript
+# Create a Modal gVisor sandbox
 
-This independent example mirrors the Go `create-modal-gvisor` example through the Sandbox Kit TypeScript API.
+Create with **`isolation.kind = Container`** (Modal's gVisor/container runtime).
+
+## What this means
+
+Modal supports `gvisor` (container) and Linux VM runtimes. GPU sandboxes require
+the gVisor runtime. See [Sandboxes](https://modal.com/docs/guide/sandboxes) and
+[sandbox resources](https://modal.com/docs/guide/sandbox-resources).
+
+## Edge cases
+
+- Making container isolation explicit does not change terminate/attach support.
+- Account permissions can still reject a runtime.
+
+## Run
 
 ```sh
+cd examples/typescript/modal/create-modal-gvisor
 cp .env.example .env
-# Fill in the provider credentials and any required sandbox ID.
+# Fill in the values below, then:
 npm install
 npm run build
 npm start
 ```
 
-Closing the client or sandbox handle only releases local resources unless this example explicitly invokes a lifecycle operation.
+Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Uses `await using`
+so local client cleanup runs on success or failure.
+
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
+```
+
+## Warnings
+
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [go twin](../../../go/modal/create-modal-gvisor/README.md)
+
+- Catalog: [examples/typescript/README.md](../../README.md)

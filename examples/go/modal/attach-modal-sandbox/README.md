@@ -1,27 +1,49 @@
-# Attach to a Modal sandbox
+# Attach to a Modal sandbox by ID
 
-Construct a Sandbox Kit handle from an existing Modal sandbox ID and inspect
-its capabilities. `sandbox.NewClient` selects the Modal provider and scopes the
-handle to an existing Modal app and environment.
+Build a handle from `MODAL_SANDBOX_ID` with `Client.Attach` / `client.attach`.
+
+## What this means
+
+Modal's SDKs expose ID-based sandbox handles (for example `Sandbox.from_id` /
+equivalent). Kit's `Attach` matches that: construct a handle from an ID without
+claiming a full remote metadata refresh. You can then terminate or close the
+handle.
+
+## Edge cases
+
+- A wrong ID may only fail when you invoke an operation, not at attach time.
+- Attach is not proof the sandbox is still running.
+- Does not terminate the sandbox by itself.
 
 ## Run
-
-Requires Go 1.26.9 or newer, this checkout, an existing Modal app, and a sandbox
-ID from that app. See [Modal creation](../create-modal-sandbox/README.md) for
-token and app setup.
 
 ```sh
 cd examples/go/modal/attach-modal-sandbox
 cp .env.example .env
-# Fill in the token, app, environment, and sandbox ID.
+# Fill in the values below, then:
 go run .
 ```
 
-Attachment performs no remote lookup, so it reports no current state or
-resolved isolation class. Modal's attached handle supports termination for both
-the gVisor container and Linux VM runtimes. Closing the client does not terminate
-the remote sandbox.
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```sh
-GOWORK=off go test ./...
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
+MODAL_SANDBOX_ID=
 ```
+
+## Warnings
+
+- Needs an **existing sandbox ID** in `.env`.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+
+## Related
+
+- [typescript twin](../../../typescript/modal/attach-modal-sandbox/README.md)
+
+- Catalog: [examples/go/README.md](../../README.md)

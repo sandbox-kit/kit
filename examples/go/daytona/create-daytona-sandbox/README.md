@@ -1,74 +1,60 @@
 # Create a Daytona sandbox
 
-Authenticate with Daytona, create one sandbox from its default snapshot, and
-print its ID. This standalone Go module imports Sandbox Kit and only the
-Daytona provider.
+Create one Daytona sandbox from the account's **default snapshot** by calling
+`Create` / `create` with no options. Prints the sandbox ID and leaves the sandbox
+running.
 
-## Configure credentials
+## What this means
 
-Requires Go 1.26.9 or newer and this checkout. From the repository root:
+Daytona sandboxes are persistent by default: create boots from a snapshot (a
+prebuilt filesystem + toolbox configuration). Omitting `source` means “use the
+default snapshot for this target,” not “no image.”
 
-```sh
-cd examples/go/daytona/create-daytona-sandbox
-cp .env.example .env
-```
+The snapshot chooses the sandbox class (container, Linux VM, Windows, or GPU).
+That class decides which lifecycle operations later succeed (`Stop`, `Pause`,
+`Archive`, and so on). See Daytona's
+[sandbox guide](https://www.daytona.io/docs/en/sandboxes/) and
+[snapshots](https://www.daytona.io/docs/en/snapshots/).
 
-Skip copying if you already have `.env`. Set an API key from your dashboard:
+Closing the Kit client only drops the local SDK connection. Daytona keeps the
+sandbox until you stop/delete it or a lifetime policy fires.
 
-```dotenv
-DAYTONA_API_KEY=your_api_key
-```
+## Edge cases
 
-Optional `DAYTONA_API_URL` and `DAYTONA_TARGET` values map to
-`Config.Endpoint` and `Config.Region`. Remote endpoints require HTTPS; HTTP is
-accepted for localhost or literal loopback IPs. When the URL is omitted,
-`DAYTONA_SERVER_URL` is the fallback, followed by `https://app.daytona.io/api`.
-See [.env.example](.env.example) and
-[provider configuration](../../../../sdks/go/providers/daytona/README.md).
+- Default snapshot resources are inherited. CPU/memory/disk overrides require an
+  **image** source ([from-image](../create-daytona-from-image/README.md)).
+- Non-default `isolation.kind` values are rejected; class comes from the snapshot.
+- Optional `DAYTONA_API_URL` / `DAYTONA_TARGET` select endpoint and region. When
+  the URL is omitted, Kit tries `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then
+  `https://app.daytona.io/api`. Remote endpoints need HTTPS.
+- A create error is not proof that no sandbox was provisioned.
 
 ## Run
 
 ```sh
+cd examples/go/daytona/create-daytona-sandbox
+cp .env.example .env
+# Fill in the values below, then:
 go run .
 ```
 
-Expected output:
+Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Local check: `GOWORK=off go test ./...`.
 
-```text
-Daytona sandbox created: <sandbox-id>
+### Environment
+
+```dotenv
+DAYTONA_API_KEY=
+# Optional: DAYTONA_API_URL=, DAYTONA_TARGET=
 ```
 
-[main.go](main.go) loads `.env`, constructs the common client, and calls
-`client.Create(ctx, nil)`. It propagates creation and SDK cleanup errors.
-Shell variables take precedence over file values. The SDK itself does not load
-`.env`.
+## Warnings
 
-The program provisions one real sandbox. Client cleanup does not stop/delete it;
-use Daytona's tools for sandbox cleanup. Credentials stay in ignored `.env`.
+- Creates a **real** cloud sandbox when the request succeeds.
+- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
 
-## Verify locally
+## Related
 
-```sh
-GOWORK=off go test ./...
-```
+- [typescript twin](../../../typescript/daytona/create-daytona-sandbox/README.md)
 
-This compiles the example and tests its error-kind handler without running cloud creation.
-For creation policies and SDK request tests, see
-[create-daytona-with-policies](../create-daytona-with-policies/README.md).
-
-The example leaves policies at provider defaults. Explicit zero semantics differ
-by action; see [creation policies](../../../../docs/sandbox-creation.md#policy-semantics).
-The default snapshot determines the sandbox's container or VM class. Daytona
-does not use `Isolation.Kind` to replace that snapshot choice. See the
-[runtime example](../create-daytona-with-runtime/README.md) for explicit toolbox
-language/user settings. Execution and lifecycle operations are outside this
-example.
-
-## Error handling
-
-`main.go` configures the provider and creates the sandbox. `errors.go` handles
-application errors by extracting `*sandbox.Error` and switching on its `Kind`.
-Ordinary `.env` errors are printed normally. Cleanup errors use the same handler
-and do not replace a creation failure.
-
-See the [provider error example](../handle-daytona-errors/README.md).
+- Catalog: [examples/go/README.md](../../README.md)
