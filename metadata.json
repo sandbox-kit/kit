@@ -3,10 +3,16 @@
   "checkpoint_id": "01M59A8159XC2B0MA3RGCW8WE0",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 7,
   "files_touched": [
+    "AGENTS.md",
+    "README.md",
     "docs/agent-skills.md",
+    "docs/code-generation.md",
     "docs/configuration.md",
+    "docs/naming.md",
+    "docs/protobuf-sdk-boundary.md",
+    "docs/responses-and-errors.md",
     "docs/sandbox-creation.md",
     "docs/sandbox-lifecycle.md",
     "docs/sdk-generation.png",
@@ -80,7 +86,12 @@
     "examples/typescript/modal/handle-modal-errors/README.md",
     "examples/typescript/modal/request-modal-termination/README.md",
     "examples/typescript/modal/terminate-modal-sandbox/README.md",
-    "sdks/typescript/sandbox/README.md"
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/modal/README.md",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/sandbox/README.md",
+    "tooling/README.md"
   ],
   "sessions": [
     {
@@ -89,6 +100,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 196098,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5542080,
+    "output_tokens": 58196,
+    "api_call_count": 6
+  }
 }
