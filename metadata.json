@@ -3,7 +3,7 @@
   "checkpoint_id": "01M5AHHHX3HG0X3ET72A6X7QKW",
   "strategy": "manual-commit",
   "branch": "feat/sdk-public-facade-go",
-  "checkpoints_count": 2,
+  "checkpoints_count": 4,
   "files_touched": [
     "README.md",
     "docs/configuration.md",
@@ -44,6 +44,7 @@
     "examples/go/modal/handle-modal-errors/main_test.go",
     "examples/go/modal/request-modal-termination/main.go",
     "examples/go/modal/terminate-modal-sandbox/main.go",
+    "examples/typescript/daytona/archive-daytona-sandbox/src/main.ts",
     "sdks/go/providers/daytona/README.md",
     "sdks/go/providers/daytona/allowed_values_test.go",
     "sdks/go/providers/daytona/client.go",
@@ -87,13 +88,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 44939,
+    "input_tokens": 64231,
     "cache_creation_tokens": 0,
-    "cache_read_tokens": 228992,
-    "output_tokens": 688,
-    "api_call_count": 2
+    "cache_read_tokens": 275328,
+    "output_tokens": 973,
+    "api_call_count": 3
   }
 }
