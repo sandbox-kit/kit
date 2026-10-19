@@ -2,11 +2,9 @@ import { daytona } from "@sandbox-kit/provider-daytona";
 import {
   Client,
   LifecycleCapability,
-  PolicyMode,
-  SandboxError,
+  duration,
   type ClientConfig,
   type Sandbox,
-  duration,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -29,7 +27,7 @@ function clientConfig(): ClientConfig {
 
 function assertCapability(
   sandbox: Sandbox,
-  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
+  capability: LifecycleCapability,
 ): void {
   if (!sandbox.supports(capability)) {
     throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);

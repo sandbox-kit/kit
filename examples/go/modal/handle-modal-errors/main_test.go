@@ -12,7 +12,7 @@ import (
 
 func TestDiskOverrideReturnsUnsupported(t *testing.T) {
 	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "test-only-id", Secret: "test-only-secret"}}},
+		Auth:  &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "test-only-id", Secret: "test-only-secret"}}},
 		Scope: &sandbox.Scope{AppName: sandbox.Value("test-only-app")},
 	})
 	if err != nil {

@@ -1,16 +1,9 @@
 import { modal } from "@sandbox-kit/provider-modal";
 import {
   Client,
-  EgressMode,
-  IsolationKind,
-  LifecycleCapability,
-  PolicyMode,
-  SandboxError,
-  WaitCondition,
-  type ClientConfig,
-  type Sandbox,
-  type SandboxSourceInput,
   duration,
+  type ClientConfig,
+  type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -34,15 +27,6 @@ function clientConfig(): ClientConfig {
     },
     timeout: duration(120_000),
   };
-}
-
-function assertCapability(
-  sandbox: Sandbox,
-  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
-): void {
-  if (!sandbox.supports(capability)) {
-    throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
-  }
 }
 
 const imageSource: SandboxSourceInput = {
