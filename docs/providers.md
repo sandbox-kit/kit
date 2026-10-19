@@ -1,7 +1,17 @@
 # Providers and backends
 
 Sandbox Kit calls existing provider SDKs directly. Applications install the public
-`sandbox` module and only the optional provider modules they need.
+core `sandbox` module and only the optional provider modules they need.
+
+## Publishing layout
+
+| Artifact                                                | Role                                                                                                                                                              |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Core client (`@sandbox-kit/sandbox`, `sdks/go/sandbox`) | Portable API, shared types, Protovalidate create/config rules, Client/Sandbox choreography. New providers plug into this module; it must not embed a specific cloud SDK. |
+| Each provider package (per language)                    | Independently versioned and published. Owns native SDK construction, capability checks, and field mappings for one backend.                                       |
+
+Add providers by shipping a new language-specific module that implements the
+core `Provider` / backend contracts—not by growing the core sandbox package.
 
 ## Client construction
 
@@ -34,20 +44,21 @@ private; standard operations require no application mapping callbacks.
 
 ## Generation boundary
 
-Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`)
-and service metadata. Runtime constructors, client facades, provider
-orchestration, validation, checks, mappings, and error classification stay
-handwritten. Provider YAML inventories describe checks, mapping groups,
-configuration assembly, and native bindings for humans to keep aligned with SDK
-code.
+Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`),
+service metadata, and Protovalidate create/config rules. Runtime constructors,
+client facades, provider orchestration, checks, mappings, and error
+classification stay handwritten. Provider YAML inventories describe checks,
+mapping groups, configuration assembly, and native bindings for humans to keep
+aligned with SDK code.
 
 Provider `sandbox.go` files and provider-named TypeScript files retain
 orchestration the inventories cannot express: app/image/secret lookup, source
 selection, readiness, and remaining network or policy semantics. Adding another
 language requires handwritten typed integration for those operations.
 
-Optional providers depend on their official SDKs. The public SDK depends on
-neither provider SDK. Future harness integrations will remain separate modules.
+Optional providers depend on their official SDKs. The core sandbox module
+depends on neither provider SDK. Future harness integrations will remain
+separate, independently published modules.
 
 ## Current behavior
 

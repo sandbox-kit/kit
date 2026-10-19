@@ -1,12 +1,9 @@
 import { daytona } from "@sandbox-kit/provider-daytona";
 import {
   Client,
-  LifecycleCapability,
-  PolicyMode,
-  SandboxError,
-  type ClientConfig,
-  type Sandbox,
   duration,
+  type ClientConfig,
+  type CreateOptionsInput,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -27,19 +24,12 @@ function clientConfig(): ClientConfig {
   };
 }
 
-function assertCapability(
-  sandbox: Sandbox,
-  capability: (typeof LifecycleCapability)[keyof typeof LifecycleCapability],
-): void {
-  if (!sandbox.supports(capability)) {
-    throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
-  }
-}
-
 await using client = new Client(clientConfig());
 
-const sandbox = await client.create({
+const createOptions = {
   source: { kind: { case: "image", value: { reference: "ubuntu:22.04" } } },
   resources: { cpuCores: 1, memoryMib: 1_024n, diskMib: 3_072n },
-});
+} satisfies CreateOptionsInput;
+
+const sandbox = await client.create(createOptions);
 console.log(`Daytona sandbox created from ubuntu:22.04: ${sandbox.id}`);

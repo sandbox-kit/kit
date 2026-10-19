@@ -8,6 +8,11 @@
   `tooling/`. Kit custom emitters are retired; SDK helpers are handwritten.
 - Keep contracts independent of language runtime dependencies. Each provider
   owns native constructor conventions and names.
+- Publish the core client (`sdks/<language>/sandbox`, e.g. `@sandbox-kit/sandbox`
+  / `.../sdks/go/sandbox`) as the shared module that more providers plug into.
+  Publish each provider module independently per language (e.g.
+  `@sandbox-kit/provider-daytona` and `.../providers/daytona`). Do not ship
+  providers inside the core sandbox package.
 - Keep the public SDK, optional providers, and future harness integrations in
   separate modules. Each provider depends on its official SDK.
 
@@ -33,26 +38,30 @@ public client owns cleanup through `Close`.
 
 ## Generation and validation
 
-Kit custom emitters are retired. Shared create validation
-(`ValidateCreateOptions`), provider checks (`validateProviderCreate`), field
-mappings, configuration assembly, path helpers, and Client/Sandbox choreography
-are handwritten in `sdks/`. `specs/validation.yaml`, `specs/client.yaml`,
-`specs/contracts.yaml`, and each provider's `checks:` / `groups:` remain
-inventories to keep in sync with handwritten code.
+Kit custom emitters are retired. Shared create and client-config validation is
+declared as Protovalidate options on `proto/` messages and evaluated by language
+Protovalidate libraries inside `ValidateCreateOptions` / `ValidateConfig`. The
+`secure_endpoint` config check stays handwritten. Provider checks
+(`validateProviderCreate`), field mappings, configuration assembly, path
+helpers, and Client/Sandbox choreography remain handwritten in `sdks/`.
+`specs/validation.yaml`, `specs/client.yaml`, `specs/contracts.yaml`, and each
+provider's `checks:` / `groups:` remain inventories to keep in sync with proto
+rules and handwritten code.
 
-Shared data contracts live in `proto/` and are emitted by standard protobuf
-plugins into language contract packages; SDK runtimes alias those types by hand
-rather than regenerating parallel structs. Portable error payloads (`ErrorInfo` /
+Shared data contracts live in `proto/` and are emitted by Buf (`buf generate`)
+into language contract packages; SDK runtimes alias those types by hand rather
+than regenerating parallel structs. Portable error payloads (`ErrorInfo` /
 `ErrorKind`) live in protobuf; error wrappers, cause chaining, and provider
 classification are handwritten per language.
 
-- Keep portable rules in YAML as inventories; implement behavior in SDK code.
+- Keep portable create and client-config rules in `.proto` (Protovalidate); keep
+  YAML as a human inventory aligned with those annotations.
 - Document SDK orchestration that remains handwritten.
 - Compare references with the pinned SDK version. Resolve conflicting docs
   explicitly rather than guessing semantics.
 - Edit `proto/` and regenerate contract packages with
-  `sandbox-kit generate contracts-go` / `contracts-typescript`; never hand-edit
-  protobuf-plugin output.
+  `sandbox-kit generate contracts-go` / `contracts-typescript` (`buf generate`);
+  never hand-edit protobuf-plugin output.
 - Follow [naming conventions](docs/naming.md), preserve numeric enum values,
   and preserve explicit serialized names.
 

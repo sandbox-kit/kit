@@ -22,7 +22,8 @@ provider classification are handwritten per language.
 - Provider selection, native SDK initialization, and cleanup
 - Error wrappers, cause chaining, and provider-native error classification
 - Metadata clone helpers and request materialization at language boundaries
-- Shared validation, provider checks, field mappings, and config assembly
+- Protovalidate evaluation for shared create/config rules (`secure_endpoint` stays handwritten)
+- Provider checks, field mappings, and config assembly
 - Provider orchestration that the mapping inventory cannot express
 
 See [Protobuf SDK boundary](protobuf-sdk-boundary.md) and

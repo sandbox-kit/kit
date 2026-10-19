@@ -1,6 +1,7 @@
 # Modal provider for Sandbox Kit
 
-Optional package over `modal@0.11.0`. Use it through `@sandbox-kit/sandbox`.
+Independent package over `modal@0.11.0`, published separately from the core
+`@sandbox-kit/sandbox` client. Use it through that shared API.
 
 ## Usage
 

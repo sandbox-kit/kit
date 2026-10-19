@@ -18,6 +18,8 @@ representation:
         refresh_token: { sensitive: true }
         client_secret: { sensitive: true }
         jwt_key: { sensitive: true }
+# Mirrors Protovalidate options on proto/kit/sandbox/v1/client.proto.
+# secure_endpoint stays handwritten in each SDK (HTTPS or loopback HTTP).
 validation:
   version: 1
   messages:
@@ -27,6 +29,7 @@ validation:
         region: { nonblank: true }
         timeout: { minimum: 0 }
     AuthConfig:
+      # Protovalidate rule id: auth_credentials_required (mapped to exactly_one).
       constraints:
         - { op: exactly_one, fields: [api_key, token_pair, bearer_token, oauth_refresh] }
     APIKeyCredentials:

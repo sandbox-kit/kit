@@ -2,19 +2,22 @@
 
 The target architecture is documented in
 [protobuf SDK boundary](protobuf-sdk-boundary.md). Protobuf is the one source of
-truth for portable data and operation contracts. Standard protobuf plugins emit
-messages, enums, reflection metadata, and service declarations; handwritten SDK
-code owns client, handle, provider, validation, checks, mappings, and error
-behavior.
+truth for portable data and operation contracts. Buf (`buf generate`) emits
+messages, enums, reflection metadata, and service declarations via standard
+plugins; handwritten SDK code owns client, handle, provider, checks, mappings,
+and error behavior. Shared create and client-config validation is Protovalidate
+options on those messages, evaluated by language Protovalidate libraries
+(`secure_endpoint` stays handwritten).
 
 Portable create/config/info types come from standard protobuf contracts plus
 handwritten SDK aliases. Kit custom emitters are retired.
 
 ## Generate and verify
 
-The repository is a Buf v2 module rooted at `proto/`. Buf checks schema
-formatting, lint, compilation, and compatibility. Contract packages are produced
-with the Kit CLI.
+The repository is a Buf v2 module rooted at `proto/`, with
+`buf.build/bufbuild/protovalidate` as a module dependency (see `buf.yaml` /
+`buf.lock`). Buf checks schema formatting, lint, compilation, and compatibility,
+and generates contract packages through `buf.gen.yaml`.
 
 From `tooling/`, check the protobuf module:
 
@@ -36,7 +39,11 @@ GOWORK=off go run ./cmd/sandbox-kit test go
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
-Contract generation requires `protoc`. Temporary binaries are cleaned up.
+Contract generation requires the Buf CLI. Both generate commands run
+`buf generate` for the plugins declared in `buf.gen.yaml`.
+`contracts-typescript` also runs `npm run build` in
+`sdks/typescript/contracts` so `@sandbox-kit/contracts` exports compiled
+descriptors (including Protovalidate options) from `dist/`.
 
 Contract packages are committed under `sdks/<language>/contracts/`. Edit
 `proto/`, then regenerate contracts. SDK applications use native types and do
@@ -44,13 +51,13 @@ not load YAML or import protobuf messages at runtime.
 
 ## Inputs
 
-| Input                             | Defines                                                                    |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts |
-| `specs/validation.yaml`           | Portable create-validation inventory (handwritten in the Go SDK)           |
-| `specs/client.yaml`               | Config validation and representation inventory                             |
-| `specs/contracts.yaml`            | Metadata/error contract limits                                             |
-| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories  |
+| Input                             | Defines                                                                            |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts         |
+| `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
+| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
+| `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
+| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories          |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -118,10 +125,11 @@ Conditions use `when: {field: mode, equals: 2}` or `not_equals`.
 Selection uses presence for optional values/messages, nonempty collections,
 true booleans, and nonzero/nonempty ordinary scalars.
 
-Shared create validation is handwritten in the Go SDK
-(`ValidateCreateOptions`). Keep `specs/validation.yaml` aligned with that
-implementation. Both languages preserve explicit zero/false and supply no
-defaults.
+Shared create and client-config validation is declared as Protovalidate options
+on `proto/` messages and evaluated in each SDK (`ValidateCreateOptions` /
+`ValidateConfig`). Keep `specs/validation.yaml` and `specs/client.yaml` aligned
+with those annotations. The `secure_endpoint` config check stays handwritten.
+Both languages preserve explicit zero/false and supply no defaults.
 
 ## Provider checks
 

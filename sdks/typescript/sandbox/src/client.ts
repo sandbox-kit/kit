@@ -1,12 +1,18 @@
 // Client and sandbox runtime behavior is handwritten. Portable client data
 // contracts come from standard protobuf generation.
 
-import { create, type MessageInitShape } from "@bufbuild/protobuf";
+import {
+  create,
+  type MessageInitShape,
+  type MessageShape,
+} from "@bufbuild/protobuf";
+import { pathToString } from "@bufbuild/protobuf/reflect";
 import {
   durationFromMs,
   durationMs,
   type Duration,
 } from "@bufbuild/protobuf/wkt";
+import { createValidator } from "@bufbuild/protovalidate";
 import {
   ConfigSchema,
   type APIKeyCredentials,
@@ -29,49 +35,40 @@ import {
 } from "@sandbox-kit/contracts/kit/sandbox/v1/client_pb.js";
 import { ErrorKind as ProtoErrorKind } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
 import {
-  EgressMode,
-  IsolationKind,
-  PolicyMode,
-  PortTransport,
-  SandboxState,
-  SecretInjection,
-  SnapshotKind,
-  WaitCondition,
   CreateOptionsSchema,
+  SandboxState,
   type ArchiveOptions,
-  type AutomaticAction,
-  type CommandProbe,
   type CreateOptions,
   type CreateOptionsInput,
   type CreateResult,
   type DeleteOptions,
   type ErrorInfo,
   type ExitResult,
-  type ImageSource,
-  type IsolationConfig,
   type LifecycleCapability,
-  type LifetimePolicy,
-  type NetworkConfig,
-  type ObservabilityConfig,
   type PauseOptions,
-  type Placement,
-  type PortBinding,
-  type ProviderDefaultSource,
-  type ProvisioningOptions,
-  type ReadinessProbe,
-  type Resources,
-  type RuntimeConfig,
   type SandboxInfo,
-  type SandboxSource,
-  type SecretReference,
-  type SecurityConfig,
-  type SnapshotSource,
   type StartOptions,
   type StopOptions,
-  type StringAllowlist,
   type TerminateOptions,
-  type WarmPoolSource,
 } from "./sandbox_data_contracts.js";
+
+const contractValidator = createValidator({ failFast: true });
+
+const stableRuleIDs: Record<string, string> = {
+  "enum.defined_only": "known_enum",
+  "duration.gte": "minimum",
+  "oneof.required": "exactly_one",
+  auth_credentials_required: "exactly_one",
+  cpu_limit: "limit",
+  memory_limit: "limit",
+  cpu_requires_positive: "requires_positive",
+  memory_requires_positive: "requires_positive",
+  restricted_requires_allowlist: "requires_any",
+  block_all_forbids_network: "forbids",
+  allow_all_forbids_allowlists: "forbids",
+  after_requires_duration: "requires_any",
+  after_forbids_duration: "forbids",
+};
 
 export type {
   APIKeyCredentials,
@@ -225,9 +222,6 @@ function validationError(
     message: "sandbox-kit: " + message,
   });
 }
-function joinValidationPath(parent: string, field: string): string {
-  return parent ? parent + "." + field : field;
-}
 function validSecureEndpoint(value: string): boolean {
   try {
     const url = new URL(value);
@@ -246,1152 +240,72 @@ function validSecureEndpoint(value: string): boolean {
   }
 }
 
-function knownEnum<T extends number>(
-  values: Record<string, T>,
-  value: T,
-): boolean {
-  return Object.values(values).includes(value);
-}
-
-function validateDurationValue(
-  value: Duration | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  try {
-    const ms = durationMs(value);
-    if (!Number.isFinite(ms) || ms < 0)
-      validationError(
-        provider,
-        operation,
-        path,
-        "minimum",
-        "must be a non-negative protobuf duration",
-      );
-  } catch {
-    validationError(
-      provider,
-      operation,
-      path,
-      "finite",
-      "must be a non-negative protobuf duration",
-    );
-  }
-}
-
-function validateAutomaticActionValue(
-  value: AutomaticAction | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  validateDurationValue(
-    value.after,
-    provider,
-    operation,
-    joinValidationPath(path, "after"),
-  );
-  if (value.mode !== undefined && !(value.mode >= 0))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "mode"),
-      "minimum",
-      "must be at least 0",
-    );
-  if (value.mode !== undefined && !(value.mode <= 2))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "mode"),
-      "maximum",
-      "must be at most 2",
-    );
-  if (value.mode === PolicyMode.After) {
-    const count0 = [value.after !== undefined].filter(Boolean).length;
-    if (count0 === 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "after"),
-        "requires_any",
-        "requires a value",
-      );
-  }
-  if (value.mode !== PolicyMode.After) {
-    const count1 = [value.after !== undefined].filter(Boolean).length;
-    if (count1 > 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "after"),
-        "forbids",
-        "forbids these values",
-      );
-  }
-  if (value.mode !== undefined && !knownEnum(PolicyMode, value.mode))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "mode"),
-      "known_enum",
-      "must be a known PolicyMode value",
-    );
-}
-
-function validateCommandProbeValue(
-  value: CommandProbe | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.argv !== undefined && value.argv.length < 1)
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "argv"),
-      "min_items",
-      "must contain at least 1 item(s)",
-    );
-}
-
-function validateCreateOptionsValue(
-  value: CreateOptions | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  validateSandboxSourceValue(
-    value.source,
-    provider,
-    operation,
-    joinValidationPath(path, "source"),
-  );
-  validateRuntimeConfigValue(
-    value.runtime,
-    provider,
-    operation,
-    joinValidationPath(path, "runtime"),
-  );
-  validateIsolationConfigValue(
-    value.isolation,
-    provider,
-    operation,
-    joinValidationPath(path, "isolation"),
-  );
-  validateResourcesValue(
-    value.resources,
-    provider,
-    operation,
-    joinValidationPath(path, "resources"),
-  );
-  validatePlacementValue(
-    value.placement,
-    provider,
-    operation,
-    joinValidationPath(path, "placement"),
-  );
-  validateNetworkConfigValue(
-    value.network,
-    provider,
-    operation,
-    joinValidationPath(path, "network"),
-  );
-  validateSecurityConfigValue(
-    value.security,
-    provider,
-    operation,
-    joinValidationPath(path, "security"),
-  );
-  validateLifetimePolicyValue(
-    value.lifetime,
-    provider,
-    operation,
-    joinValidationPath(path, "lifetime"),
-  );
-  validateProvisioningOptionsValue(
-    value.provisioning,
-    provider,
-    operation,
-    joinValidationPath(path, "provisioning"),
-  );
-  validateReadinessProbeValue(
-    value.readiness,
-    provider,
-    operation,
-    joinValidationPath(path, "readiness"),
-  );
-  validateObservabilityConfigValue(
-    value.observability,
-    provider,
-    operation,
-    joinValidationPath(path, "observability"),
-  );
-}
-
-function validateImageSourceValue(
-  value: ImageSource | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.reference !== undefined && !value.reference.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "reference"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (
-    value.reference !== undefined &&
-    (value.reference.length > 512 ||
-      !/^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?\/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:\/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$/.test(
-        value.reference,
-      ))
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "reference"),
-      "image_reference",
-      "must be a valid image reference",
-    );
-}
-
-function validateIsolationConfigValue(
-  value: IsolationConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.kind !== undefined && !knownEnum(IsolationKind, value.kind))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "kind"),
-      "known_enum",
-      "must be a known IsolationKind value",
-    );
-}
-
-function validateLifetimePolicyValue(
-  value: LifetimePolicy | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  validateDurationValue(
-    value.maximumLifetime,
-    provider,
-    operation,
-    joinValidationPath(path, "maximumLifetime"),
-  );
-  validateAutomaticActionValue(
-    value.idleTerminate,
-    provider,
-    operation,
-    joinValidationPath(path, "idleTerminate"),
-  );
-  validateAutomaticActionValue(
-    value.idleStop,
-    provider,
-    operation,
-    joinValidationPath(path, "idleStop"),
-  );
-  validateAutomaticActionValue(
-    value.idlePause,
-    provider,
-    operation,
-    joinValidationPath(path, "idlePause"),
-  );
-  validateAutomaticActionValue(
-    value.stoppedArchive,
-    provider,
-    operation,
-    joinValidationPath(path, "stoppedArchive"),
-  );
-  validateAutomaticActionValue(
-    value.stoppedDelete,
-    provider,
-    operation,
-    joinValidationPath(path, "stoppedDelete"),
-  );
-}
-
-function validateNetworkConfigValue(
-  value: NetworkConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.linkedSandbox !== undefined && !value.linkedSandbox.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "linkedSandbox"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.proxyReference !== undefined && !value.proxyReference.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "proxyReference"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.egress === EgressMode.Restricted) {
-    const count0 = [
-      value.outboundCidrs !== undefined,
-      value.outboundDomains !== undefined,
-    ].filter(Boolean).length;
-    if (count0 === 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "outboundCidrs,outboundDomains"),
-        "requires_any",
-        "requires a value",
-      );
-  }
-  if (value.egress === EgressMode.BlockAll) {
-    const count1 = [
-      value.outboundCidrs !== undefined,
-      value.outboundDomains !== undefined,
-      value.privateNetwork === true,
-      value.linkedSandbox !== undefined,
-      value.inboundCidrs !== undefined,
-      value.ports !== undefined && value.ports.length > 0,
-    ].filter(Boolean).length;
-    if (count1 > 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(
-          path,
-          "outboundCidrs,outboundDomains,privateNetwork,linkedSandbox,inboundCidrs,ports",
-        ),
-        "forbids",
-        "forbids these values",
-      );
-  }
-  if (value.egress === EgressMode.AllowAll) {
-    const count2 = [
-      value.outboundCidrs !== undefined,
-      value.outboundDomains !== undefined,
-    ].filter(Boolean).length;
-    if (count2 > 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "outboundCidrs,outboundDomains"),
-        "forbids",
-        "forbids these values",
-      );
-  }
-  if (value.egress !== undefined && !knownEnum(EgressMode, value.egress))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "egress"),
-      "known_enum",
-      "must be a known EgressMode value",
-    );
-  validateStringAllowlistValue(
-    value.outboundCidrs,
-    provider,
-    operation,
-    joinValidationPath(path, "outboundCidrs"),
-  );
-  validateStringAllowlistValue(
-    value.outboundDomains,
-    provider,
-    operation,
-    joinValidationPath(path, "outboundDomains"),
-  );
-  validateStringAllowlistValue(
-    value.inboundCidrs,
-    provider,
-    operation,
-    joinValidationPath(path, "inboundCidrs"),
-  );
-  for (const item of value.ports ?? [])
-    validatePortBindingValue(
-      item,
-      provider,
-      operation,
-      joinValidationPath(path, "ports") + "[]",
-    );
-}
-
-function validateObservabilityConfigValue(
-  value: ObservabilityConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.telemetryEndpoint !== undefined && !value.telemetryEndpoint.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "telemetryEndpoint"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validatePlacementValue(
-  value: Placement | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  for (const item of value.regions ?? []) {
-    if (item !== undefined && !item.trim())
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "regions") + "[]",
-        "nonblank",
-        "must not be blank",
-      );
-  }
-}
-
-function validatePortBindingValue(
-  value: PortBinding | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.port !== undefined && !(value.port >= 1))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "port"),
-      "minimum",
-      "must be at least 1",
-    );
-  if (value.port !== undefined && !(value.port <= 65535))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "port"),
-      "maximum",
-      "must be at most 65535",
-    );
-  if (
-    value.transport !== undefined &&
-    !knownEnum(PortTransport, value.transport)
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "transport"),
-      "known_enum",
-      "must be a known PortTransport value",
-    );
-}
-
-function validateProviderDefaultSourceValue(
-  value: ProviderDefaultSource | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-}
-
-function validateProvisioningOptionsValue(
-  value: ProvisioningOptions | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  validateDurationValue(
-    value.queueTimeout,
-    provider,
-    operation,
-    joinValidationPath(path, "queueTimeout"),
-  );
-  validateDurationValue(
-    value.timeout,
-    provider,
-    operation,
-    joinValidationPath(path, "timeout"),
-  );
-  if (value.waitFor !== undefined && !knownEnum(WaitCondition, value.waitFor))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "waitFor"),
-      "known_enum",
-      "must be a known WaitCondition value",
-    );
-}
-
-function validateReadinessProbeValue(
-  value: ReadinessProbe | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.check?.case === "tcpPort") {
-    const tcpPort = value.check.value;
-    if (!(tcpPort >= 1))
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "tcpPort"),
-        "minimum",
-        "must be at least 1",
-      );
-    if (!(tcpPort <= 65535))
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "tcpPort"),
-        "maximum",
-        "must be at most 65535",
-      );
-  }
-  if (true) {
-    const count0 = [
-      value.check?.case === "tcpPort",
-      value.check?.case === "command",
-    ].filter(Boolean).length;
-    if (count0 !== 1)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "tcpPort,command"),
-        "exactly_one",
-        "requires exactly one value",
-      );
-  }
-  if (value.check?.case === "command")
-    validateCommandProbeValue(
-      value.check.value,
-      provider,
-      operation,
-      joinValidationPath(path, "command"),
-    );
-}
-
-function validateResourcesValue(
-  value: Resources | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.cpuCores !== undefined && !Number.isFinite(value.cpuCores))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuCores"),
-      "finite",
-      "must be finite",
-    );
-  if (value.cpuCores !== undefined && !(value.cpuCores > 0))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuCores"),
-      "exclusive_minimum",
-      "must be greater than 0",
-    );
-  if (
-    value.cpuLimitCores !== undefined &&
-    !Number.isFinite(value.cpuLimitCores)
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuLimitCores"),
-      "finite",
-      "must be finite",
-    );
-  if (value.cpuLimitCores !== undefined && !(value.cpuLimitCores >= 0))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuLimitCores"),
-      "minimum",
-      "must be at least 0",
-    );
-  if (value.diskMib !== undefined && !(value.diskMib > 0n))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "diskMib"),
-      "exclusive_minimum",
-      "must be greater than 0",
-    );
-  if (value.memoryMib !== undefined && !(value.memoryMib > 0n))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "memoryMib"),
-      "exclusive_minimum",
-      "must be greater than 0",
-    );
-  if (
-    true &&
-    value.cpuLimitCores !== undefined &&
-    value.cpuCores !== undefined &&
-    value.cpuLimitCores > 0 &&
-    value.cpuLimitCores < value.cpuCores
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuLimitCores"),
-      "limit",
-      "must not be smaller than cpuCores",
-    );
-  if (
-    true &&
-    value.memoryLimitMib !== undefined &&
-    value.memoryMib !== undefined &&
-    value.memoryLimitMib > 0 &&
-    value.memoryLimitMib < value.memoryMib
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "memoryLimitMib"),
-      "limit",
-      "must not be smaller than memoryMib",
-    );
-  if (
-    true &&
-    value.cpuLimitCores !== undefined &&
-    value.cpuLimitCores > 0 &&
-    !(value.cpuCores !== undefined && value.cpuCores > 0)
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "cpuLimitCores"),
-      "requires_positive",
-      "requires a positive cpuCores",
-    );
-  if (
-    true &&
-    value.memoryLimitMib !== undefined &&
-    value.memoryLimitMib > 0 &&
-    !(value.memoryMib !== undefined && value.memoryMib > 0)
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "memoryLimitMib"),
-      "requires_positive",
-      "requires a positive memoryMib",
-    );
-}
-
-function validateRuntimeConfigValue(
-  value: RuntimeConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  for (const item of value.entrypoint ?? []) {
-    if (item !== undefined && !item.trim())
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "entrypoint") + "[]",
-        "nonblank",
-        "must not be blank",
-      );
-  }
-  if (value.language !== undefined && !value.language.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "language"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.user !== undefined && !value.user.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "user"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.version !== undefined && !value.version.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "version"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.workingDirectory !== undefined && !value.workingDirectory.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "workingDirectory"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateSandboxSourceValue(
-  value: SandboxSource | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (true) {
-    const count0 = [
-      value.kind?.case === "providerDefault",
-      value.kind?.case === "image",
-      value.kind?.case === "snapshot",
-      value.kind?.case === "warmPool",
-    ].filter(Boolean).length;
-    if (count0 > 1)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "providerDefault,image,snapshot,warmPool"),
-        "at_most_one",
-        "allows at most one value",
-      );
-  }
-  if (value.kind?.case === "providerDefault")
-    validateProviderDefaultSourceValue(
-      value.kind.value,
-      provider,
-      operation,
-      joinValidationPath(path, "providerDefault"),
-    );
-  if (value.kind?.case === "image")
-    validateImageSourceValue(
-      value.kind.value,
-      provider,
-      operation,
-      joinValidationPath(path, "image"),
-    );
-  if (value.kind?.case === "snapshot")
-    validateSnapshotSourceValue(
-      value.kind.value,
-      provider,
-      operation,
-      joinValidationPath(path, "snapshot"),
-    );
-  if (value.kind?.case === "warmPool")
-    validateWarmPoolSourceValue(
-      value.kind.value,
-      provider,
-      operation,
-      joinValidationPath(path, "warmPool"),
-    );
-}
-
-function validateSecretReferenceValue(
-  value: SecretReference | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (
-    value.environmentVariable !== undefined &&
-    !value.environmentVariable.trim()
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "environmentVariable"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.reference !== undefined && !value.reference.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "reference"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (
-    value.injection !== undefined &&
-    !knownEnum(SecretInjection, value.injection)
-  )
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "injection"),
-      "known_enum",
-      "must be a known SecretInjection value",
-    );
-}
-
-function validateSecurityConfigValue(
-  value: SecurityConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  for (const item of value.secrets ?? [])
-    validateSecretReferenceValue(
-      item,
-      provider,
-      operation,
-      joinValidationPath(path, "secrets") + "[]",
-    );
-}
-
-function validateSnapshotSourceValue(
-  value: SnapshotSource | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.reference !== undefined && !value.reference.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "reference"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.kind !== undefined && !knownEnum(SnapshotKind, value.kind))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "kind"),
-      "known_enum",
-      "must be a known SnapshotKind value",
-    );
-}
-
-function validateStringAllowlistValue(
-  value: StringAllowlist | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-}
-
-function validateWarmPoolSourceValue(
-  value: WarmPoolSource | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.reference !== undefined && !value.reference.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "reference"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
 export function validateCreateOptions(
   value: CreateOptions,
   provider = "",
   operation = "create",
 ): void {
-  validateCreateOptionsValue(value, provider, operation, "");
-}
-
-function validateAPIKeyCredentialsValue(
-  value: APIKeyCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.key !== undefined && !value.key.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "key"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateAuthConfigValue(
-  value: AuthConfig | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  const credentials = value.credentials;
-  if (credentials === undefined || credentials.case === undefined) {
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "apiKey,tokenPair,bearerToken,oauthRefresh"),
-      "exactly_one",
-      "requires exactly one value",
-    );
-  }
-  if (credentials.case === "apiKey")
-    validateAPIKeyCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "apiKey"),
-    );
-  if (credentials.case === "tokenPair")
-    validateTokenPairCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "tokenPair"),
-    );
-  if (credentials.case === "bearerToken")
-    validateBearerTokenCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "bearerToken"),
-    );
-  if (credentials.case === "oauthRefresh")
-    validateOAuthCredentialsValue(
-      credentials.value,
-      provider,
-      operation,
-      joinValidationPath(path, "oauthRefresh"),
-    );
-}
-
-function validateBearerTokenCredentialsValue(
-  value: BearerTokenCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.token !== undefined && !value.token.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "token"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateConfigValue(
-  value: Config | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.endpoint !== undefined && !value.endpoint.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "endpoint"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.endpoint !== undefined && !validSecureEndpoint(value.endpoint))
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "endpoint"),
-      "secure_endpoint",
-      "must use HTTPS except for loopback HTTP development endpoints",
-    );
-  if (value.region !== undefined && !value.region.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "region"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.timeout !== undefined) {
-    let timeoutMs: number;
-    try {
-      timeoutMs = durationMs(value.timeout);
-    } catch {
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "timeout"),
-        "finite",
-        "must be a non-negative protobuf duration",
-      );
-    }
-    if (!Number.isFinite(timeoutMs) || timeoutMs < 0)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "timeout"),
-        "minimum",
-        "must be at least 0",
-      );
-  }
-  validateAuthConfigValue(
-    value.auth,
-    provider,
-    operation,
-    joinValidationPath(path, "auth"),
+  const result = contractValidator.validate(
+    CreateOptionsSchema,
+    value as MessageShape<typeof CreateOptionsSchema>,
   );
-  validateScopeValue(
-    value.scope,
+  if (result.kind === "valid") {
+    return;
+  }
+  if (result.kind === "error") {
+    throw sandboxError(
+      {
+        kind: ErrorKind.InvalidArgument,
+        provider,
+        operation,
+        field: "",
+        message: "sandbox-kit: invalid configuration",
+      },
+      result.error,
+    );
+  }
+  const violation = result.violations[0]!;
+  const ruleID = violation.ruleId;
+  let field = pathToString(violation.field);
+  let rule = stableRuleIDs[ruleID] ?? ruleID;
+  if (!field) {
+    field = messageFieldHint(ruleID);
+  }
+  validationError(
     provider,
     operation,
-    joinValidationPath(path, "scope"),
+    field,
+    rule,
+    violation.message || "invalid configuration",
   );
 }
 
-function validateOAuthCredentialsValue(
-  value: OAuthCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.clientId !== undefined && !value.clientId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "clientId"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.clientSecret !== undefined && !value.clientSecret.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "clientSecret"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.jwtKey !== undefined && !value.jwtKey.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "jwtKey"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.refreshToken !== undefined && !value.refreshToken.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "refreshToken"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (true) {
-    const count0 = [
-      value.clientSecret !== undefined,
-      value.jwtKey !== undefined,
-    ].filter(Boolean).length;
-    if (count0 !== 1)
-      validationError(
-        provider,
-        operation,
-        joinValidationPath(path, "clientSecret,jwtKey"),
-        "exactly_one",
-        "requires exactly one value",
-      );
+function messageFieldHint(ruleID: string): string {
+  switch (ruleID) {
+    case "cpu_limit":
+    case "cpu_requires_positive":
+      return "resources.cpu_limit_cores";
+    case "memory_limit":
+    case "memory_requires_positive":
+      return "resources.memory_limit_mib";
+    case "restricted_requires_allowlist":
+      return "network.outbound_cidrs,outbound_domains";
+    case "block_all_forbids_network":
+      return "network.outbound_cidrs,outbound_domains,private_network,linked_sandbox,inbound_cidrs,ports";
+    case "allow_all_forbids_allowlists":
+      return "network.outbound_cidrs,outbound_domains";
+    case "after_requires_duration":
+    case "after_forbids_duration":
+      return "after";
+    case "oneof.required":
+      return "tcp_port,command";
+    case "auth_credentials_required":
+      return "api_key,token_pair,bearer_token,oauth_refresh";
+    case "exactly_one":
+      return "client_secret,jwt_key";
+    default:
+      return "";
   }
-}
-
-function validateScopeValue(
-  value: Scope | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.appName !== undefined && !value.appName.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "appName"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.environment !== undefined && !value.environment.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "environment"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.organizationId !== undefined && !value.organizationId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "organizationId"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.projectId !== undefined && !value.projectId.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "projectId"),
-      "nonblank",
-      "must not be blank",
-    );
-}
-
-function validateTokenPairCredentialsValue(
-  value: TokenPairCredentials | undefined,
-  provider: string,
-  operation: string,
-  path: string,
-): void {
-  if (value === undefined) return;
-  if (value.id !== undefined && !value.id.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "id"),
-      "nonblank",
-      "must not be blank",
-    );
-  if (value.secret !== undefined && !value.secret.trim())
-    validationError(
-      provider,
-      operation,
-      joinValidationPath(path, "secret"),
-      "nonblank",
-      "must not be blank",
-    );
 }
 
 export function validateConfig(
@@ -1399,7 +313,51 @@ export function validateConfig(
   provider = "",
   operation = "create",
 ): void {
-  validateConfigValue(value as Config, provider, operation, "");
+  const message = create(
+    ConfigSchema,
+    value as MessageInitShape<typeof ConfigSchema>,
+  );
+  const result = contractValidator.validate(ConfigSchema, message);
+  if (result.kind === "error") {
+    throw sandboxError(
+      {
+        kind: ErrorKind.InvalidArgument,
+        provider,
+        operation,
+        field: "",
+        message: "sandbox-kit: invalid configuration",
+      },
+      result.error,
+    );
+  }
+  if (result.kind === "invalid") {
+    const violation = result.violations[0]!;
+    const ruleID = violation.ruleId;
+    let field = pathToString(violation.field);
+    const rule = stableRuleIDs[ruleID] ?? ruleID;
+    if (!field) {
+      field = messageFieldHint(ruleID);
+    }
+    validationError(
+      provider,
+      operation,
+      field,
+      rule,
+      violation.message || "invalid configuration",
+    );
+  }
+  if (
+    message.endpoint !== undefined &&
+    !validSecureEndpoint(message.endpoint)
+  ) {
+    validationError(
+      provider,
+      operation,
+      "endpoint",
+      "secure_endpoint",
+      "must use HTTPS except for loopback HTTP development endpoints",
+    );
+  }
 }
 
 function clone<T>(value: T): T {
@@ -1985,7 +943,7 @@ export function materializeClientConfig(input: ConfigInput): Config {
 export function materializeCreateOptions(
   input: CreateOptionsInput,
 ): CreateOptions {
-  return create(CreateOptionsSchema, input);
+  return create(CreateOptionsSchema, input) as CreateOptions;
 }
 
 function optionalTimeoutMs(value: Duration | undefined): number | undefined {

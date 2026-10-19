@@ -1,6 +1,7 @@
 syntax = "proto3";
 package kit.sandbox.v1;
 
+import "buf/validate/validate.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -60,21 +61,42 @@ message ProviderDefaultSource {}
 // is a container image reference, such as "alpine:3.21".
 message ImageSource {
   // is the registry image reference.
-  string reference = 1;
+  string reference = 1 [(buf.validate.field) = {
+    cel: [
+      {
+        id: "nonblank"
+        message: "must not be blank"
+        expression: "this.trim() != ''"
+      },
+      {
+        id: "image_reference"
+        message: "must be a container image reference"
+        expression: "this.size() <= 512 && this.matches('^(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?(?::[0-9]+)?/)?[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*(?:/[a-z0-9]+(?:(?:[._]|__|-+)[a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?(?:@sha256:[a-fA-F0-9]{64})?$')"
+      }
+    ]
+  }];
 }
 // is an existing snapshot. Reference identifies it. Kind classifies it.
 message SnapshotSource {
   // is the provider snapshot identifier.
-  string reference = 1;
+  string reference = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // classifies the snapshot. Default leaves the class to the provider.
-  SnapshotKind kind = 2;
+  SnapshotKind kind = 2 [(buf.validate.field).enum.defined_only = true];
   // is a provider-specific kind name when Kind is provider-specific.
   optional string provider_kind = 3;
 }
 // is an existing warm pool. Reference identifies it.
 message WarmPoolSource {
   // is the provider warm-pool identifier.
-  string reference = 1;
+  string reference = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // classifies a snapshot. Preserve the numeric values.
 enum SnapshotKind {
@@ -89,16 +111,36 @@ enum SnapshotKind {
 // is process setup applied when the sandbox starts. Language is a hint, not an install promise.
 message RuntimeConfig {
   // is a language or toolbox hint. It does not promise that a runtime is installed.
-  optional string language = 1;
-  optional string version = 2;
-  optional string user = 3;
-  optional string working_directory = 4;
-  repeated string entrypoint = 5;
+  optional string language = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
+  optional string version = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
+  optional string user = 3 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
+  optional string working_directory = 4 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
+  repeated string entrypoint = 5 [(buf.validate.field).repeated.items.cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   optional bool pty = 6;
 }
 // selects how the sandbox is isolated. Kind default leaves the class to the provider.
 message IsolationConfig {
-  IsolationKind kind = 1;
+  IsolationKind kind = 1 [(buf.validate.field).enum.defined_only = true];
   optional string provider_kind = 2;
   optional bool nested_virtualization = 3;
 }
@@ -114,23 +156,85 @@ enum IsolationKind {
 // is the requested compute size. Omitted fields use provider defaults.
 // GPU requests and resizing are not creation settings.
 message Resources {
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "cpu_limit"
+        message: "cpu_limit_cores must be at least cpu_cores when the limit is positive"
+        expression: "!has(this.cpu_limit_cores) || this.cpu_limit_cores <= 0.0 || !has(this.cpu_cores) || this.cpu_limit_cores >= this.cpu_cores"
+      },
+      {
+        id: "memory_limit"
+        message: "memory_limit_mib must be at least memory_mib when the limit is positive"
+        expression: "!has(this.memory_limit_mib) || this.memory_limit_mib == 0u || !has(this.memory_mib) || this.memory_limit_mib >= this.memory_mib"
+      },
+      {
+        id: "cpu_requires_positive"
+        message: "a positive cpu_limit_cores requires a positive cpu_cores request"
+        expression: "!has(this.cpu_limit_cores) || this.cpu_limit_cores <= 0.0 || (has(this.cpu_cores) && this.cpu_cores > 0.0)"
+      },
+      {
+        id: "memory_requires_positive"
+        message: "a positive memory_limit_mib requires a positive memory_mib request"
+        expression: "!has(this.memory_limit_mib) || this.memory_limit_mib == 0u || (has(this.memory_mib) && this.memory_mib > 0u)"
+      }
+    ]
+  };
   // is the requested physical CPU count. Modal allows fractions. Daytona requires whole cores.
-  optional double cpu_cores = 1;
+  optional double cpu_cores = 1 [(buf.validate.field) = {
+    cel: [
+      {
+        id: "finite"
+        message: "must be finite"
+        expression: "!this.isNan() && !this.isInf()"
+      },
+      {
+        id: "exclusive_minimum"
+        message: "must be greater than 0"
+        expression: "this > 0.0"
+      }
+    ]
+  }];
   // is an optional CPU ceiling. A positive limit requires a request and cannot be smaller than it.
-  optional double cpu_limit_cores = 2;
+  optional double cpu_limit_cores = 2 [(buf.validate.field) = {
+    cel: [
+      {
+        id: "finite"
+        message: "must be finite"
+        expression: "!this.isNan() && !this.isInf()"
+      },
+      {
+        id: "minimum"
+        message: "must be at least 0"
+        expression: "this >= 0.0"
+      }
+    ]
+  }];
   // is requested memory in MiB. Providers convert this to the native unit.
-  optional uint64 memory_mib = 3;
+  optional uint64 memory_mib = 3 [(buf.validate.field).cel = {
+    id: "exclusive_minimum"
+    message: "must be greater than 0"
+    expression: "this > 0u"
+  }];
   // is an optional memory ceiling in MiB. A positive limit requires a request.
   optional uint64 memory_limit_mib = 4;
   // is requested disk in MiB. Modal rejects a creation override. Daytona requires whole GiB.
-  optional uint64 disk_mib = 5;
+  optional uint64 disk_mib = 5 [(buf.validate.field).cel = {
+    id: "exclusive_minimum"
+    message: "must be greater than 0"
+    expression: "this > 0u"
+  }];
 }
 // is a placement preference. The provider may still choose another location.
 message Placement {
   // is a cloud name such as aws, gcp, or oci. Supported names depend on the provider.
   optional string cloud = 1;
   // lists region preferences in order. It does not promise multi-region support.
-  repeated string regions = 2;
+  repeated string regions = 2 [(buf.validate.field).repeated.items.cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is a provider target. Daytona maps the client region here. Per-request placement is unsupported.
   optional string target = 3;
 }
@@ -141,8 +245,27 @@ message StringAllowlist {
 }
 // is creation-time networking. Empty allowlists do not mean the same thing as omitted ones.
 message NetworkConfig {
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "restricted_requires_allowlist"
+        message: "restricted egress requires outbound_cidrs or outbound_domains"
+        expression: "this.egress != 3 || has(this.outbound_cidrs) || has(this.outbound_domains)"
+      },
+      {
+        id: "block_all_forbids_network"
+        message: "block-all egress forbids networking allowlists, links, and ports"
+        expression: "this.egress != 2 || (!has(this.outbound_cidrs) && !has(this.outbound_domains) && !has(this.inbound_cidrs) && !has(this.linked_sandbox) && this.ports.size() == 0 && (!has(this.private_network) || !this.private_network))"
+      },
+      {
+        id: "allow_all_forbids_allowlists"
+        message: "allow-all egress forbids outbound allowlists"
+        expression: "this.egress != 1 || (!has(this.outbound_cidrs) && !has(this.outbound_domains))"
+      }
+    ]
+  };
   // selects the outbound policy. Default leaves it to the provider.
-  EgressMode egress = 1;
+  EgressMode egress = 1 [(buf.validate.field).enum.defined_only = true];
   // limits outbound traffic to these CIDR ranges.
   StringAllowlist outbound_cidrs = 2;
   // limits outbound traffic to these domains.
@@ -152,9 +275,17 @@ message NetworkConfig {
   // asks for a private network when the provider supports one.
   optional bool private_network = 5;
   // names another sandbox to link. The provider must already know that sandbox.
-  optional string linked_sandbox = 6;
+  optional string linked_sandbox = 6 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // names a provider-managed proxy.
-  optional string proxy_reference = 7;
+  optional string proxy_reference = 7 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is an outbound proxy URL.
   optional string outbound_proxy_url = 8;
   // is a custom domain for the sandbox, when the provider supports one.
@@ -172,10 +303,14 @@ enum EgressMode {
 }
 // publishes one port. Port is the container port. Transport selects the protocol.
 message PortBinding {
-  // is the port number to publish.
-  uint32 port = 1;
+  // is the port number to publish. Zero leaves the port to the provider; otherwise 1-65535.
+  uint32 port = 1 [(buf.validate.field).cel = {
+    id: "maximum"
+    message: "must be at most 65535"
+    expression: "this <= 65535u"
+  }];
   // selects TLS, HTTP/2, or plain transport. Default leaves the choice to the provider.
-  PortTransport transport = 2;
+  PortTransport transport = 2 [(buf.validate.field).enum.defined_only = true];
 }
 // is the protocol used for a published port.
 enum PortTransport {
@@ -196,11 +331,19 @@ message SecurityConfig {
 // names a provider-managed secret and how it is injected.
 message SecretReference {
   // is the provider secret name.
-  string reference = 1;
+  string reference = 1 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // is the environment variable that receives the secret, when injection uses the environment.
-  optional string environment_variable = 2;
+  optional string environment_variable = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
   // selects environment injection or an egress placeholder.
-  SecretInjection injection = 3;
+  SecretInjection injection = 3 [(buf.validate.field).enum.defined_only = true];
 }
 // selects how a secret is exposed to the sandbox.
 enum SecretInjection {
@@ -211,7 +354,7 @@ enum SecretInjection {
 // is requested at creation. It is not a stop, pause, or delete call.
 message LifetimePolicy {
   // is the maximum lifetime. Nil uses the provider default. Explicit zero means unlimited when the provider supports that.
-  google.protobuf.Duration maximum_lifetime = 1;
+  google.protobuf.Duration maximum_lifetime = 1 [(buf.validate.field).duration.gte = {}];
   // requests deletion when the sandbox stops, where the provider supports it.
   optional bool ephemeral = 2;
   // ends the sandbox after it is idle.
@@ -227,10 +370,24 @@ message LifetimePolicy {
 }
 // is one idle or stopped policy. Disabled, immediate, and delayed do not share one zero value.
 message AutomaticAction {
+  option (buf.validate.message) = {
+    cel: [
+      {
+        id: "after_requires_duration"
+        message: "mode after requires after"
+        expression: "this.mode != 2 || has(this.after)"
+      },
+      {
+        id: "after_forbids_duration"
+        message: "after is only set when mode is after"
+        expression: "this.mode == 2 || !has(this.after)"
+      }
+    ]
+  };
   // is default, disabled, or after a delay. Default omits the policy.
-  PolicyMode mode = 1;
+  PolicyMode mode = 1 [(buf.validate.field).enum.defined_only = true];
   // is the delay used when Mode is after. Zero means immediate, not disabled.
-  google.protobuf.Duration after = 2;
+  google.protobuf.Duration after = 2 [(buf.validate.field).duration.gte = {}];
 }
 // selects whether an automatic action is omitted, disabled, or delayed.
 enum PolicyMode {
@@ -242,11 +399,11 @@ enum PolicyMode {
 message ProvisioningOptions {
   // is the client operation deadline, distinct from sandbox lifetime and queue time.
   // Nil and explicit zero add no Kit deadline.
-  google.protobuf.Duration timeout = 1;
+  google.protobuf.Duration timeout = 1 [(buf.validate.field).duration.gte = {}];
   // is how long creation may wait in a provider queue. It is not the sandbox lifetime.
-  google.protobuf.Duration queue_timeout = 2;
+  google.protobuf.Duration queue_timeout = 2 [(buf.validate.field).duration.gte = {}];
   // is the condition creation waits for before it returns.
-  WaitCondition wait_for = 3;
+  WaitCondition wait_for = 3 [(buf.validate.field).enum.defined_only = true];
 }
 // is how far creation waits before returning. Ready can require a probe and a positive timeout.
 enum WaitCondition {
@@ -259,18 +416,40 @@ enum WaitCondition {
 // is the check used when waiting until ready. Set either a TCP port or a command.
 message ReadinessProbe {
   oneof check {
-    uint32 tcp_port = 1;
+    option (buf.validate.oneof).required = true;
+    uint32 tcp_port = 1 [(buf.validate.field) = {
+      cel: [
+        {
+          id: "minimum"
+          message: "must be at least 1"
+          expression: "this >= 1u"
+        },
+        {
+          id: "maximum"
+          message: "must be at most 65535"
+          expression: "this <= 65535u"
+        }
+      ]
+    }];
     CommandProbe command = 2;
   }
 }
 // is a command readiness check. Argv is the command and its arguments.
 message CommandProbe {
-  repeated string argv = 1;
+  repeated string argv = 1 [(buf.validate.field).cel = {
+    id: "min_items"
+    message: "must contain at least one argument"
+    expression: "this.size() >= 1"
+  }];
 }
 // sets provider logging and telemetry options.
 message ObservabilityConfig {
   optional bool verbose = 1;
-  optional string telemetry_endpoint = 2;
+  optional string telemetry_endpoint = 2 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }
 // is the metadata returned by a provider create call.
 message CreateResult {

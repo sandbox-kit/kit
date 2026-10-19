@@ -1,5 +1,12 @@
 import { modal } from "@sandbox-kit/provider-modal";
-import { Client, EgressMode, IsolationKind, PolicyMode, duration } from "@sandbox-kit/sandbox";
+import {
+  Client,
+  EgressMode,
+  IsolationKind,
+  PolicyMode,
+  duration,
+  type CreateOptionsInput,
+} from "@sandbox-kit/sandbox";
 
 const tokenId = process.env.MODAL_TOKEN_ID;
 const tokenSecret = process.env.MODAL_TOKEN_SECRET;
@@ -14,7 +21,7 @@ await using client = new Client({
   timeout: duration(120_000),
 });
 
-const sandbox = await client.create({
+const createOptions = {
   source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
   runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
   isolation: { kind: IsolationKind.Container },
@@ -22,6 +29,8 @@ const sandbox = await client.create({
   network: { egress: EgressMode.AllowAll },
   lifetime: { maximumLifetime: duration(5 * 60_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
   labels: { example: "create-modal-sandbox" },
-});
+} satisfies CreateOptionsInput;
+
+const sandbox = await client.create(createOptions);
 
 console.log(`Sandbox created: ${sandbox.id}`);

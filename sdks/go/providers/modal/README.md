@@ -1,8 +1,8 @@
 # Modal provider
 
-Optional Go module over the official Modal SDK v0.11.0. Use it through the
-shared Sandbox Kit client. Requires Go 1.26.9 or newer and this checkout (local
-module replacements).
+Independent Go module over the official Modal SDK v0.11.0. Published separately
+from the core `sdks/go/sandbox` client; use it through that shared API. Requires
+Go 1.26.9 or newer and this checkout (local module replacements).
 
 ## Usage
 

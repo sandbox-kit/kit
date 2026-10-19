@@ -20,6 +20,7 @@ import (
 	strings "strings"
 	time "time"
 
+	"buf.build/go/protovalidate"
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 )
 
@@ -172,50 +173,26 @@ func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Clie
 }
 
 // validateProtoConfig validates the generated client contract before native
-// provider initialization. Provider-specific support remains provider-owned.
+// provider initialization. Portable rules come from Protovalidate options on
+// kit.sandbox.v1.Config; secure_endpoint stays handwritten. Provider-specific
+// support remains provider-owned.
 func validateProtoConfig(config *sandboxv1.Config) error {
 	if config == nil {
 		return nil
 	}
-	if config.Endpoint != nil {
-		if strings.TrimSpace(*config.Endpoint) == "" || !secureEndpoint(*config.Endpoint) {
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "endpoint", Message: "sandbox-kit: endpoint must use HTTPS except for loopback HTTP development endpoints"}, nil)
-		}
+	if err := protovalidate.Validate(config); err != nil {
+		return WithErrorContext(mapProtovalidateError(err), "", "initialize")
 	}
-	if config.Region != nil && strings.TrimSpace(*config.Region) == "" {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "region", Message: "sandbox-kit: region must not be blank"}, nil)
-	}
-	if config.Timeout != nil {
-		if err := config.Timeout.CheckValid(); err != nil || config.Timeout.AsDuration() < 0 {
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "timeout", Message: "sandbox-kit: timeout must be a non-negative protobuf duration"}, nil)
-		}
-	}
-	if scope := config.Scope; scope != nil {
-		for field, value := range map[string]*string{"scope.app_name": scope.AppName, "scope.environment": scope.Environment, "scope.organization_id": scope.OrganizationId, "scope.project_id": scope.ProjectId} {
-			if value != nil && strings.TrimSpace(*value) == "" {
-				return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: field, Message: "sandbox-kit: scope values must not be blank"}, nil)
-			}
-		}
-	}
-	if auth := config.Auth; auth != nil {
-		switch credentials := auth.Credentials.(type) {
-		case nil:
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "auth", Message: "sandbox-kit: auth credentials are required when auth is supplied"}, nil)
-		case *sandboxv1.AuthConfig_ApiKey:
-			if credentials.ApiKey == nil || strings.TrimSpace(credentials.ApiKey.Key) == "" { return invalidProtoConfigField("auth.api_key.key") }
-		case *sandboxv1.AuthConfig_TokenPair:
-			if credentials.TokenPair == nil || strings.TrimSpace(credentials.TokenPair.Id) == "" || strings.TrimSpace(credentials.TokenPair.Secret) == "" { return invalidProtoConfigField("auth.token_pair") }
-		case *sandboxv1.AuthConfig_BearerToken:
-			if credentials.BearerToken == nil || strings.TrimSpace(credentials.BearerToken.Token) == "" { return invalidProtoConfigField("auth.bearer_token.token") }
-		case *sandboxv1.AuthConfig_OauthRefresh:
-			if credentials.OauthRefresh == nil || strings.TrimSpace(credentials.OauthRefresh.RefreshToken) == "" || strings.TrimSpace(credentials.OauthRefresh.ClientId) == "" || (credentials.OauthRefresh.ClientSecret == nil) == (credentials.OauthRefresh.JwtKey == nil) { return invalidProtoConfigField("auth.oauth_refresh") }
-		}
+	if config.Endpoint != nil && !secureEndpoint(*config.Endpoint) {
+		return NewError(ErrorInfo{
+			Kind:      ErrorKindInvalidArgument,
+			Operation: "initialize",
+			Field:     "endpoint",
+			Rule:      Value("secure_endpoint"),
+			Message:   "sandbox-kit: endpoint must use HTTPS except for loopback HTTP development endpoints",
+		}, nil)
 	}
 	return nil
-}
-
-func invalidProtoConfigField(field string) error {
-	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: field, Message: "sandbox-kit: invalid client configuration"}, nil)
 }
 
 func secureEndpoint(value string) bool {

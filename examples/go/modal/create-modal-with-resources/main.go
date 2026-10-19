@@ -25,8 +25,8 @@ func clientConfig() (sandbox.Provider, *sandbox.Config) {
 		environment = "main"
 	}
 	return modal.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET")}}},
-		Scope: &sandbox.Scope{AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment)},
+		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET")}}},
+		Scope:   &sandbox.Scope{AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment)},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 }

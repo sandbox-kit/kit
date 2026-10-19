@@ -1,0 +1,21 @@
+version: v2
+# Do not use clean: true — plugin outs are language module roots that also hold
+# go.mod / package.json and must not be wiped before generation.
+inputs:
+  - directory: proto
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.12
+    out: sdks/go/contracts
+    opt:
+      - module=github.com/sandbox-kit/kit/sdks/go/contracts
+      - Mkit/sandbox/v1/sandbox.proto=github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1
+      - Mkit/sandbox/v1/client.proto=github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1
+      - Mkit/codegen/v1/options.proto=github.com/sandbox-kit/kit/sdks/go/contracts/internal/codegen/v1;codegenv1
+  - remote: buf.build/bufbuild/es:v2.16.0
+    out: sdks/typescript/contracts/src
+    opt:
+      - target=ts
+      - import_extension=js
+      # Import Protovalidate descriptors from @bufbuild/protovalidate instead of
+      # emitting a second copy under contracts/src/buf/.
+      - map_imports=buf/validate/:@bufbuild/protovalidate/gen

@@ -6,8 +6,8 @@ helpers are handwritten under `sdks/`.
 
 ## Usage
 
-Requires Go 1.26.9 or newer. Contract generation requires `protoc`; protobuf
-verification requires the Buf CLI.
+Requires Go 1.26.9 or newer. Contract generation and protobuf verification
+require the Buf CLI.
 
 From this directory:
 
@@ -31,34 +31,37 @@ Add `GOBIN`, or `$(go env GOPATH)/bin` when unset, to `PATH`.
 The command discovers the repository from the current directory.
 Use `--repo /absolute/path/to/kit` elsewhere.
 
-| Option         | Purpose                      |
-| -------------- | ---------------------------- |
-| `--repo`       | Explicit repository root     |
-| `--go-binary`  | Go executable                |
-| `--npm-binary` | npm executable               |
-| `--protoc`     | Protobuf compiler executable |
-| `--buf`        | Buf CLI executable           |
-| `--help`       | Commands and usage           |
+| Option         | Purpose                  |
+| -------------- | ------------------------ |
+| `--repo`       | Explicit repository root |
+| `--go-binary`  | Go executable            |
+| `--npm-binary` | npm executable           |
+| `--buf`        | Buf CLI executable       |
+| `--help`       | Commands and usage       |
 
 ## What commands do
 
 `test proto` checks canonical formatting, lint, and compilation with Buf. Pass
 `--against` to add a breaking-change comparison against a Git or Buf input.
 
-`generate contracts-go` / `contracts-typescript` refresh protobuf contract
-packages under `sdks/<language>/contracts/`.
+`generate contracts-go` / `contracts-typescript` run `buf generate` using the
+root `buf.gen.yaml` (Go + TypeScript plugins) and refresh contract packages
+under `sdks/<language>/contracts/`. Protovalidate options travel with the
+descriptors; SDKs evaluate create and client-config rules at runtime
+(`secure_endpoint` stays handwritten). `contracts-typescript` also runs
+`npm run build` in `sdks/typescript/contracts` so `@sandbox-kit/contracts`
+exports compiled descriptors from `dist/`.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
 Go example module registered by the command. Example tests use dummy credentials
 and local servers; they create no cloud resources.
 
-`test typescript` builds and tests the shared package and both providers,
-discovers every TypeScript example containing a `package.json`, and builds each
-example without making provider calls.
+`test typescript` builds contracts first, then builds and tests the shared
+package and both providers, discovers every TypeScript example containing a
+`package.json`, and builds each example without making provider calls.
 
 Commands forward cancellation to subprocesses and run Go module commands with
-`GOWORK=off`. Generation uses an external temporary directory and cleans up
-its binaries. Caches stay outside the checkout.
+`GOWORK=off`. Caches stay outside the checkout.
 
 `GOWORK=off` ignores the root workspace for each command so every module is
 verified with its own `go.mod` and local replacements. The root `go.work` is for

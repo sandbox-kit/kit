@@ -10,7 +10,14 @@ import {
   WaitCondition,
   duration,
 } from "@sandbox-kit/sandbox";
-import { App, InvalidError, Proxy, type Image, type Sandbox as ModalSandbox, type SandboxCreateParams } from "modal";
+import {
+  App,
+  InvalidError,
+  Proxy,
+  type Image,
+  type Sandbox as ModalSandbox,
+  type SandboxCreateParams,
+} from "modal";
 import { mapClientConfig, mapCreateRequest } from "./mappings.js";
 import { ModalProvider } from "./modal.js";
 import { captureProviderState } from "./provider_config.js";
@@ -20,40 +27,83 @@ describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
     expect(
       mapClientConfig({
-        auth: { credentials: { case: "tokenPair", value: { id: "id", secret: "secret" } } },
+        auth: {
+          credentials: {
+            case: "tokenPair",
+            value: { id: "id", secret: "secret" },
+          },
+        },
         scope: { environment: "dev" },
         timeout: duration(30_000),
       }),
-    ).toEqual({ tokenId: "id", tokenSecret: "secret", environment: "dev", timeoutMs: 30_000 });
+    ).toEqual({
+      tokenId: "id",
+      tokenSecret: "secret",
+      environment: "dev",
+      timeoutMs: 30_000,
+    });
   });
 
   it("rejects generated unsupported and malformed client configuration", () => {
-    expect(() => mapClientConfig({ endpoint: "https://unsupported.example" })).toThrowError(
-      expect.objectContaining({ kind: ErrorKind.Unsupported, field: "endpoint", operation: "initialize" }),
+    expect(() =>
+      mapClientConfig({ endpoint: "https://unsupported.example" }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: "endpoint",
+        operation: "initialize",
+      }),
     );
     expect(() =>
       mapClientConfig({
-        auth: { credentials: { case: "tokenPair", value: { id: "", secret: "secret" } } },
+        auth: {
+          credentials: {
+            case: "tokenPair",
+            value: { id: "", secret: "secret" },
+          },
+        },
       }),
-    ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "auth.tokenPair.id" }));
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "auth.token_pair.id",
+      }),
+    );
   });
 
   it("captures retained configuration without aliasing caller state", () => {
-    const config = { scope: { appName: "original", environment: "dev" }, region: "us-east-1" };
+    const config = {
+      scope: { appName: "original", environment: "dev" },
+      region: "us-east-1",
+    };
     const state = captureProviderState(config);
     config.scope.appName = "changed";
 
-    expect(state).toMatchObject({ scope: { appName: "original", environment: "dev" }, region: "us-east-1" });
+    expect(state).toMatchObject({
+      scope: { appName: "original", environment: "dev" },
+      region: "us-east-1",
+    });
   });
 
   it("maps the Go creation surface into the native Modal plan", () => {
     const plan = mapCreateRequest(
       {
         name: "example",
-        source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
-        runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
+        source: {
+          kind: { case: "image", value: { reference: "alpine:3.21" } },
+        },
+        runtime: {
+          workingDirectory: "/tmp",
+          entrypoint: ["sleep", "infinity"],
+          pty: true,
+        },
         isolation: { kind: IsolationKind.LinuxVm },
-        resources: { cpuCores: 0.5, cpuLimitCores: 1, memoryMib: 512n, memoryLimitMib: 1024n },
+        resources: {
+          cpuCores: 0.5,
+          cpuLimitCores: 1,
+          memoryMib: 512n,
+          memoryLimitMib: 1024n,
+        },
         placement: { cloud: "aws", regions: ["us-east-1"] },
         network: {
           egress: EgressMode.Restricted,
@@ -66,11 +116,19 @@ describe("Modal mappings", () => {
         },
         security: {
           workloadIdentity: true,
-          secrets: [{ reference: "credential", injection: SecretInjection.Environment }],
+          secrets: [
+            { reference: "credential", injection: SecretInjection.Environment },
+          ],
         },
-        lifetime: { maximumLifetime: duration(300_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
+        lifetime: {
+          maximumLifetime: duration(300_000),
+          idleTerminate: { mode: PolicyMode.After, after: duration(60_000) },
+        },
         readiness: { check: { case: "command", value: { argv: ["true"] } } },
-        provisioning: { timeout: duration(120_000), waitFor: WaitCondition.Ready },
+        provisioning: {
+          timeout: duration(120_000),
+          waitFor: WaitCondition.Ready,
+        },
         observability: { verbose: true },
         labels: { purpose: "test" },
         environment: { NODE_ENV: "test" },
@@ -119,27 +177,43 @@ describe("Modal mappings", () => {
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+          source: {
+            kind: { case: "image", value: { reference: "alpine:3.21" } },
+          },
           environment: { "NOT VALID": "value" },
         },
         config,
       ),
-    ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "environment" }));
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "environment",
+      }),
+    );
     expect(() =>
       mapCreateRequest(
         {
-          source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+          source: {
+            kind: { case: "image", value: { reference: "alpine:3.21" } },
+          },
           network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
         },
         config,
       ),
-    ).toThrowError(expect.objectContaining({ kind: ErrorKind.InvalidArgument, field: "network.inboundCidrs.entries" }));
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: "network.inboundCidrs.entries",
+      }),
+    );
   });
 });
 
 describe("Modal provider orchestration", () => {
   it("resolves a managed proxy before native sandbox creation", async () => {
-    let proxyLookup: { readonly name: string; readonly environment?: string } | undefined;
+    let proxyLookup:
+      | { readonly name: string; readonly environment?: string }
+      | undefined;
     let nativeCreate: SandboxCreateParams | undefined;
     let closeCalls = 0;
     const nativeSandbox = { sandboxId: "sandbox-1" } as ModalSandbox;
@@ -155,8 +229,16 @@ describe("Modal provider orchestration", () => {
         },
       },
       proxies: {
-        async fromName(name: string, params?: { readonly environment?: string }): Promise<Proxy> {
-          proxyLookup = { name, ...(params?.environment === undefined ? {} : { environment: params.environment }) };
+        async fromName(
+          name: string,
+          params?: { readonly environment?: string },
+        ): Promise<Proxy> {
+          proxyLookup = {
+            name,
+            ...(params?.environment === undefined
+              ? {}
+              : { environment: params.environment }),
+          };
           return new Proxy("proxy-id");
         },
       },
@@ -166,7 +248,11 @@ describe("Modal provider orchestration", () => {
         },
       },
       sandboxes: {
-        async create(_app: App, _image: Image, params?: SandboxCreateParams): Promise<ModalSandbox> {
+        async create(
+          _app: App,
+          _image: Image,
+          params?: SandboxCreateParams,
+        ): Promise<ModalSandbox> {
           nativeCreate = params;
           return nativeSandbox;
         },

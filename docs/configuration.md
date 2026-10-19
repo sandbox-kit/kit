@@ -11,10 +11,11 @@ provider as a separate `NewClient` argument; TypeScript attaches it on
 
 The constructors have the same ownership and validation semantics while
 following each language's conventions: Go returns `(*Client, error)`, and
-TypeScript throws on invalid synchronous construction. Go callers defer
-`client.Close(ctx)`; TypeScript callers use `await client.close()` or scope the
-client with `await using`. None of these cleanup forms changes the remote
-sandbox lifecycle.
+TypeScript throws on invalid synchronous construction. Shared Config rules come
+from Protovalidate on `client.proto` (`ValidateConfig`); `secure_endpoint`
+stays handwritten. Go callers defer `client.Close(ctx)`; TypeScript callers use
+`await client.close()` or scope the client with `await using`. None of these
+cleanup forms changes the remote sandbox lifecycle.
 
 ## Configuration fields
 
@@ -99,6 +100,7 @@ Native SDK and validator errors remain accessible through the cause chain.
 See [responses and errors](responses-and-errors.md).
 
 Configuration types and contracts come from
-[`client.proto`](../proto/kit/sandbox/v1/client.proto),
+[`client.proto`](../proto/kit/sandbox/v1/client.proto) (Protovalidate options;
+`secure_endpoint` stays handwritten),
 [client rules](../specs/client.yaml), and provider YAML.
 See [examples](../examples/go/README.md) and [generation](code-generation.md).

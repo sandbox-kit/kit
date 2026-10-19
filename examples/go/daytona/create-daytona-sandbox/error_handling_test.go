@@ -3,9 +3,10 @@ package main
 import (
 	"bytes"
 	"errors"
-	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	"strings"
 	"testing"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 func TestHandleErrorUsesCommonKind(t *testing.T) {
