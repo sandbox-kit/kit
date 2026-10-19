@@ -198,3 +198,7 @@ give me all examples of this where it lacks.
 ---
 
 can u make changes for this and just stage it we know we are doing this for typescript sdk only.
+
+---
+
+can u just commit the typescript sdk changes which are staged
