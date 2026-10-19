@@ -1,3 +1,4 @@
+import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import { describe, expect, it } from "vitest";
 import {
   Client,
@@ -8,7 +9,6 @@ import {
   PortTransport,
   SecretInjection,
   WaitCondition,
-  duration,
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -28,13 +28,10 @@ describe("Modal mappings", () => {
     expect(
       mapClientConfig({
         auth: {
-          credentials: {
-            case: "tokenPair",
-            value: { id: "id", secret: "secret" },
-          },
+          tokenPair: { id: "id", secret: "secret" },
         },
         scope: { environment: "dev" },
-        timeout: duration(30_000),
+        timeout: 30_000,
       }),
     ).toEqual({
       tokenId: "id",
@@ -57,10 +54,7 @@ describe("Modal mappings", () => {
     expect(() =>
       mapClientConfig({
         auth: {
-          credentials: {
-            case: "tokenPair",
-            value: { id: "", secret: "secret" },
-          },
+          tokenPair: { id: "", secret: "secret" },
         },
       }),
     ).toThrowError(
@@ -121,12 +115,12 @@ describe("Modal mappings", () => {
           ],
         },
         lifetime: {
-          maximumLifetime: duration(300_000),
-          idleTerminate: { mode: PolicyMode.After, after: duration(60_000) },
+          maximumLifetime: durationFromMs(300_000),
+          idleTerminate: { mode: PolicyMode.After, after: durationFromMs(60_000) },
         },
         readiness: { check: { case: "command", value: { argv: ["true"] } } },
         provisioning: {
-          timeout: duration(120_000),
+          timeout: durationFromMs(120_000),
           waitFor: WaitCondition.Ready,
         },
         observability: { verbose: true },
@@ -270,7 +264,7 @@ describe("Modal provider orchestration", () => {
     });
 
     const sandbox = await client.create({
-      source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+      source: { image: { reference: "alpine:3.21" } },
       network: { proxyReference: "static-egress" },
     });
     await client.close();

@@ -2,7 +2,8 @@
 // These aliases keep the SDK entrypoint concise while ensuring one representation.
 
 import type { MessageInitShape } from "@bufbuild/protobuf";
-import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import type { Duration } from "@bufbuild/protobuf/wkt";
+import type { DurationFieldsToMs } from "./duration_ms.js";
 import {
   ArchiveOptionsSchema,
   AutomaticActionSchema,
@@ -82,13 +83,12 @@ import {
   type TerminateOptions as ProtoTerminateOptions,
   type WarmPoolSource as ProtoWarmPoolSource,
 } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+import type { FlattenOneof } from "./oneof_input.js";
+import type { MetadataPlain } from "./metadata_plain.js";
 
 export type { Duration };
 
 export type ErrorInfo = Omit<ProtoErrorInfo, "$typeName">;
-export type CreateOptionsInput = MessageInitShape<typeof CreateOptionsSchema>;
-/** Init shape for create()/attach callers; prefer this over SandboxSource for request literals. */
-export type SandboxSourceInput = NonNullable<CreateOptionsInput["source"]>;
 export type ProviderDefaultSource = Omit<
   ProtoProviderDefaultSource,
   "$typeName"
@@ -96,6 +96,21 @@ export type ProviderDefaultSource = Omit<
 export type ImageSource = Omit<ProtoImageSource, "$typeName">;
 export type SnapshotSource = Omit<ProtoSnapshotSource, "$typeName">;
 export type WarmPoolSource = Omit<ProtoWarmPoolSource, "$typeName">;
+/** Public create source: set exactly one variant (no protobuf `{ case, value }`). */
+export type SandboxSourceInput = FlattenOneof<ProtoSandboxSource["kind"]>;
+/** Public readiness: set tcpPort or command (no protobuf `{ case, value }`). */
+export type ReadinessProbeInput = FlattenOneof<ProtoReadinessProbe["check"]>;
+/** Public create request: nested oneofs + millisecond timeouts (not Duration). */
+export type CreateOptionsInput = DurationFieldsToMs<
+  Omit<
+    MessageInitShape<typeof CreateOptionsSchema>,
+    "source" | "readiness" | "providerOptions"
+  >
+> & {
+  source?: SandboxSourceInput;
+  readiness?: ReadinessProbeInput;
+  providerOptions?: Record<string, MetadataPlain>;
+};
 // Proto3 maps/repeated/enums are required on Message; keep them optional on
 // aliases so request construction matches MessageInitShape and Go nil maps.
 export type RuntimeConfig = Omit<
@@ -122,12 +137,20 @@ export type CommandProbe = Omit<ProtoCommandProbe, "$typeName" | "argv"> & {
   argv?: string[];
 };
 export type ObservabilityConfig = Omit<ProtoObservabilityConfig, "$typeName">;
+/** Wire lifecycle options (Duration timeouts) for providers / Backend. */
 export type StartOptions = Omit<ProtoStartOptions, "$typeName">;
 export type StopOptions = Omit<ProtoStopOptions, "$typeName">;
 export type PauseOptions = Omit<ProtoPauseOptions, "$typeName">;
 export type TerminateOptions = Omit<ProtoTerminateOptions, "$typeName">;
 export type ArchiveOptions = Omit<ProtoArchiveOptions, "$typeName">;
 export type DeleteOptions = Omit<ProtoDeleteOptions, "$typeName">;
+/** Public lifecycle options: timeouts are milliseconds. */
+export type StartOptionsInput = DurationFieldsToMs<StartOptions>;
+export type StopOptionsInput = DurationFieldsToMs<StopOptions>;
+export type PauseOptionsInput = DurationFieldsToMs<PauseOptions>;
+export type TerminateOptionsInput = DurationFieldsToMs<TerminateOptions>;
+export type ArchiveOptionsInput = DurationFieldsToMs<ArchiveOptions>;
+export type DeleteOptionsInput = DurationFieldsToMs<DeleteOptions>;
 export type ExitResult = Omit<ProtoExitResult, "$typeName">;
 export type MetadataValue = Omit<ProtoMetadataValue, "$typeName">;
 export type MetadataList = Omit<ProtoMetadataList, "$typeName">;
@@ -236,47 +259,14 @@ export type SandboxInfo = Omit<
   isolation?: IsolationConfig;
   resources?: Resources;
   providerMetadata?: MetadataObject;
-  createdAt?: Timestamp;
+  createdAt?: Date;
 };
 export type CreateResult = Omit<ProtoCreateResult, "$typeName" | "sandbox"> & {
   sandbox?: SandboxInfo;
 };
 
-export {
-  ArchiveOptionsSchema,
-  AutomaticActionSchema,
-  CommandProbeSchema,
-  CreateOptionsSchema,
-  CreateResultSchema,
-  DeleteOptionsSchema,
-  ExitResultSchema,
-  ImageSourceSchema,
-  IsolationConfigSchema,
-  LifetimePolicySchema,
-  MetadataListSchema,
-  MetadataObjectSchema,
-  MetadataValueSchema,
-  NetworkConfigSchema,
-  ObservabilityConfigSchema,
-  PauseOptionsSchema,
-  PlacementSchema,
-  PortBindingSchema,
-  ProviderDefaultSourceSchema,
-  ProvisioningOptionsSchema,
-  ReadinessProbeSchema,
-  ResourcesSchema,
-  RuntimeConfigSchema,
-  SandboxInfoSchema,
-  SandboxSourceSchema,
-  SecretReferenceSchema,
-  SecurityConfigSchema,
-  SnapshotSourceSchema,
-  StartOptionsSchema,
-  StopOptionsSchema,
-  StringAllowlistSchema,
-  TerminateOptionsSchema,
-  WarmPoolSourceSchema,
-};
+// Message schemas stay package-internal (Protovalidate / materialize). They are
+// not part of the public application-facing API.
 
 // Ergonomic names reference protobuf enum values; they do not define a second contract.
 export const SnapshotKind = {

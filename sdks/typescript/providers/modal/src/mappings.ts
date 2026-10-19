@@ -16,8 +16,9 @@ import {
   SandboxState,
   ValueOrigin,
   WaitCondition,
-  materializeClientConfig,
+  resolveClientConfig,
   sandboxError,
+  type Config,
   type ConfigInput,
   type CreateOptions,
   type SandboxInfo,
@@ -44,8 +45,10 @@ export interface ModalCreatePlan {
   readonly readyTimeoutMs?: number;
 }
 
-export function mapClientConfig(config: ConfigInput): ModalClientParams {
-  const source = materializeClientConfig(config);
+export function mapClientConfig(
+  config: Config | ConfigInput,
+): ModalClientParams {
+  const source = resolveClientConfig(config);
   const result = mapGeneratedClientConfig(source);
   if (source.timeout !== undefined)
     result.timeoutMs = finiteDurationMs(

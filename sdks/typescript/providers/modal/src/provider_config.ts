@@ -4,25 +4,38 @@
 import type { ModalClientParams as NativeClientConfig } from "modal";
 import {
   ErrorKind,
-  materializeClientConfig,
+  resolveClientConfig,
   sandboxError,
   validateConfig,
   type Config,
   type ConfigInput,
   type Scope,
 } from "@sandbox-kit/sandbox";
-import { mapClientScope, mapOAuthAuth, mapTokenPairCredentials } from "./provider_mappings.js";
+import {
+  mapClientScope,
+  mapOAuthAuth,
+  mapTokenPairCredentials,
+} from "./provider_mappings.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   let source = config;
   validateConfig(source, "modal", "initialize");
   const target: NativeClientConfig = {};
-  if (source.endpoint !== undefined) unsupported("endpoint", "Endpoint cannot be configured through this SDK's public client constructor");
+  if (source.endpoint !== undefined)
+    unsupported(
+      "endpoint",
+      "Endpoint cannot be configured through this SDK's public client constructor",
+    );
   if (source.scope !== undefined) {
     const mapped = mapClientScope(source.scope, "initialize");
     Object.assign(target, mapped);
-    if (source.scope.organizationId !== undefined) unsupported("scope.organizationId", "unsupported client configuration field");
-    if (source.scope.projectId !== undefined) unsupported("scope.projectId", "unsupported client configuration field");
+    if (source.scope.organizationId !== undefined)
+      unsupported(
+        "scope.organizationId",
+        "unsupported client configuration field",
+      );
+    if (source.scope.projectId !== undefined)
+      unsupported("scope.projectId", "unsupported client configuration field");
   }
   const credentials = source.auth?.credentials;
   if (credentials?.case === "tokenPair") {
@@ -42,12 +55,24 @@ export interface ProviderState {
   readonly region?: string;
 }
 
-export function captureProviderState(config: Config | ConfigInput): ProviderState {
-  const source = materializeClientConfig(config);
+export function captureProviderState(
+  config: Config | ConfigInput,
+): ProviderState {
+  const source = resolveClientConfig(config);
   return {
-    ...(source.scope === undefined ? {} : { scope: structuredClone(source.scope) }),
+    ...(source.scope === undefined
+      ? {}
+      : { scope: structuredClone(source.scope) }),
     ...(source.region === undefined ? {} : { region: source.region }),
   };
 }
 
-function unsupported(field: string, message: string): never { throw sandboxError({ kind: ErrorKind.Unsupported, provider: "modal", operation: "initialize", field, message: "sandbox-kit modal: " + message }); }
+function unsupported(field: string, message: string): never {
+  throw sandboxError({
+    kind: ErrorKind.Unsupported,
+    provider: "modal",
+    operation: "initialize",
+    field,
+    message: "sandbox-kit modal: " + message,
+  });
+}

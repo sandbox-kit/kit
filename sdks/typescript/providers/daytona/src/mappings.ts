@@ -1,5 +1,5 @@
 // Provider-specific orchestration around generated portable field mappings.
-import { durationMs, timestampFromDate } from "@bufbuild/protobuf/wkt";
+import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   EgressMode,
   ErrorKind,
@@ -9,9 +9,10 @@ import {
   SnapshotKind,
   ValueOrigin,
   WaitCondition,
-  materializeClientConfig,
   metadataObjectFromMap,
+  resolveClientConfig,
   sandboxError,
+  type Config,
   type ConfigInput,
   type CreateOptions,
   type SandboxInfo,
@@ -35,8 +36,11 @@ import { mapGeneratedClientConfig, type Environment } from "./provider_config.js
 
 export type DaytonaCreateParams = CreateSandboxFromImageParams | CreateSandboxFromSnapshotParams;
 
-export function mapClientConfig(config: ConfigInput, environment?: Environment): DaytonaConfig {
-  const source = materializeClientConfig(config);
+export function mapClientConfig(
+  config: Config | ConfigInput,
+  environment?: Environment,
+): DaytonaConfig {
+  const source = resolveClientConfig(config);
   const result = mapGeneratedClientConfig(source, environment);
   if (source.auth?.credentials.case === "bearerToken" && source.scope?.organizationId === undefined)
     configInvalid("scope.organizationId", "organization ID is required with bearer authentication");
@@ -271,7 +275,7 @@ export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): San
   if (value.createdAt !== undefined) {
     const date = new Date(value.createdAt);
     if (!Number.isNaN(date.valueOf())) {
-      resultMutable(result).createdAt = timestampFromDate(date);
+      resultMutable(result).createdAt = date;
       origins.created_at = ValueOrigin.Provider;
     }
   }

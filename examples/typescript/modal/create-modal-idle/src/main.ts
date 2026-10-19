@@ -2,7 +2,6 @@ import { modal } from "@sandbox-kit/provider-modal";
 import {
   Client,
   PolicyMode,
-  duration,
   type ClientConfig,
   type SandboxSourceInput,
   type CreateOptionsInput,
@@ -18,28 +17,28 @@ function clientConfig(): ClientConfig {
   return {
     provider: modal(),
     auth: {
-      credentials: { case: "tokenPair", value: {
+      tokenPair: {
         id: requireEnv("MODAL_TOKEN_ID"),
         secret: requireEnv("MODAL_TOKEN_SECRET"),
-      } },
+      },
     },
     scope: {
       appName: requireEnv("MODAL_APP_NAME"),
       environment: process.env.MODAL_ENVIRONMENT || "main",
     },
-    timeout: duration(120_000),
+    timeout: 120_000,
   };
 }
 
 const imageSource: SandboxSourceInput = {
-  kind: { case: "image", value: { reference: "alpine:3.21" } },
+  image: { reference: "alpine:3.21" },
 };
 
 await using client = new Client(clientConfig());
 
 const createOptions = {
   source: imageSource,
-  lifetime: { idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
+  lifetime: { idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
 } satisfies CreateOptionsInput;
 
 const sandbox = await client.create(createOptions);

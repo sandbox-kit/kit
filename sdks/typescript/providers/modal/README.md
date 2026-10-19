@@ -12,13 +12,13 @@ import { Client } from "@sandbox-kit/sandbox";
 await using client = new Client({
   provider: modal(),
   auth: {
-    credentials: { case: "tokenPair", value: { id: "...", secret: "..." } },
+    tokenPair: { id: "...", secret: "..." },
   },
   scope: { appName: "my-app", environment: "main" },
 });
 
 const sandbox = await client.create({
-  source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+  source: { image: { reference: "alpine:3.21"  } },
 });
 console.log(sandbox.id);
 ```

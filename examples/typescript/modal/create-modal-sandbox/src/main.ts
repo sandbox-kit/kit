@@ -4,7 +4,6 @@ import {
   EgressMode,
   IsolationKind,
   PolicyMode,
-  duration,
   type CreateOptionsInput,
 } from "@sandbox-kit/sandbox";
 
@@ -16,18 +15,18 @@ if (!tokenId || !tokenSecret || !appName)
 
 await using client = new Client({
   provider: modal(),
-  auth: { credentials: { case: "tokenPair", value: { id: tokenId, secret: tokenSecret } } },
+  auth: { tokenPair: { id: tokenId, secret: tokenSecret  } },
   scope: { appName, environment: process.env.MODAL_ENVIRONMENT ?? "main" },
-  timeout: duration(120_000),
+  timeout: 120_000,
 });
 
 const createOptions = {
-  source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+  source: { image: { reference: "alpine:3.21"  } },
   runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"], pty: true },
   isolation: { kind: IsolationKind.Container },
   resources: { cpuCores: 0.5, memoryMib: 512n },
   network: { egress: EgressMode.AllowAll },
-  lifetime: { maximumLifetime: duration(5 * 60_000), idleTerminate: { mode: PolicyMode.After, after: duration(60_000) } },
+  lifetime: { maximumLifetime: 5 * 60_000, idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
   labels: { example: "create-modal-sandbox" },
 } satisfies CreateOptionsInput;
 

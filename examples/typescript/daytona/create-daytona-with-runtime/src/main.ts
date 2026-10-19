@@ -1,7 +1,6 @@
 import { daytona } from "@sandbox-kit/provider-daytona";
 import {
   Client,
-  duration,
   type ClientConfig,
   type CreateOptionsInput,
 } from "@sandbox-kit/sandbox";
@@ -17,8 +16,8 @@ function clientConfig(): ClientConfig {
   const region = process.env.DAYTONA_TARGET;
   return {
     provider: daytona(),
-    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
-    timeout: duration(120_000),
+    auth: { apiKey: { key: requireEnv("DAYTONA_API_KEY")  } },
+    timeout: 120_000,
     ...(endpoint ? { endpoint } : {}),
     ...(region ? { region } : {}),
   };
@@ -27,7 +26,7 @@ function clientConfig(): ClientConfig {
 await using client = new Client(clientConfig());
 
 const createOptions = {
-  source: { kind: { case: "snapshot", value: { reference: "daytona-small" } } },
+  source: { snapshot: {  reference: "daytona-small"  } },
   runtime: { language: "python", user: "daytona" },
 } satisfies CreateOptionsInput;
 

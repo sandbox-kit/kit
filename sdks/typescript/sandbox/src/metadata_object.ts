@@ -5,19 +5,11 @@ import {
   MetadataListSchema,
   MetadataObjectSchema,
   MetadataValueSchema,
-  type MetadataObject,
-  type MetadataValue,
-} from "./sandbox_data_contracts.js";
+} from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+import type { MetadataObject, MetadataValue } from "./sandbox_data_contracts.js";
+import type { MetadataPlain } from "./metadata_plain.js";
 
-export type MetadataPlain =
-  | null
-  | boolean
-  | string
-  | number
-  | bigint
-  | Uint8Array
-  | MetadataPlain[]
-  | { [key: string]: MetadataPlain };
+export type { MetadataPlain } from "./metadata_plain.js";
 
 /** Converts a declarative map into the protobuf metadata object. */
 export function metadataObjectFromMap(
@@ -89,14 +81,15 @@ function metadataValueFromPlain(value: MetadataPlain): MetadataValue {
   return create(MetadataValueSchema, {
     value: {
       case: "object",
-      value: metadataObjectFromMap(value) ?? create(MetadataObjectSchema, {}),
+      value: metadataObjectFromMap(value)!,
     },
   });
 }
 
-function metadataValueAsPlain(value: MetadataValue | undefined): MetadataPlain {
-  if (value === undefined || value.value.case === undefined) return null;
+function metadataValueAsPlain(value: MetadataValue): MetadataPlain {
   switch (value.value.case) {
+    case undefined:
+      return null;
     case "boolean":
     case "text":
     case "number":

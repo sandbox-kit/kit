@@ -178,10 +178,7 @@ describe("Shared request validation", () => {
     await expect(
       client.create({
         source: {
-          kind: {
-            case: "image",
-            value: { reference: "not an image reference!" },
-          },
+          image: { reference: "not an image reference!" },
         },
       }),
     ).rejects.toMatchObject({
@@ -224,7 +221,7 @@ describe("Shared request validation", () => {
       client.create({
         isolation: {},
         network: { ports: [{ port: 8080 }] },
-        provisioning: { timeout: duration(1_000) },
+        provisioning: { timeout: 1_000 },
         security: { secrets: [{ reference: "service-secret" }] },
       }),
     ).resolves.toBeDefined();
@@ -350,7 +347,7 @@ describe("Operation cancellation", () => {
     const sandbox = await client.attach("sandbox-existing");
 
     await expect(
-      sandbox.terminate({ timeout: duration(10) }),
+      sandbox.terminate({ timeout: 10 }),
     ).rejects.toMatchObject({
       kind: ErrorKind.Timeout,
       operation: "terminate",

@@ -2,7 +2,6 @@ import { daytona } from "@sandbox-kit/provider-daytona";
 import {
   Client,
   SandboxError,
-  duration,
   type ClientConfig,
 } from "@sandbox-kit/sandbox";
 
@@ -17,8 +16,8 @@ function clientConfig(): ClientConfig {
   const region = process.env.DAYTONA_TARGET;
   return {
     provider: daytona(),
-    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
-    timeout: duration(120_000),
+    auth: { apiKey: { key: requireEnv("DAYTONA_API_KEY")  } },
+    timeout: 120_000,
     ...(endpoint ? { endpoint } : {}),
     ...(region ? { region } : {}),
   };

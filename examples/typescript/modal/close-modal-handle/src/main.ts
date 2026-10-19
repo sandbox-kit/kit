@@ -1,7 +1,6 @@
 import { modal } from "@sandbox-kit/provider-modal";
 import {
   Client,
-  duration,
   type ClientConfig,
 } from "@sandbox-kit/sandbox";
 
@@ -15,16 +14,16 @@ function clientConfig(): ClientConfig {
   return {
     provider: modal(),
     auth: {
-      credentials: { case: "tokenPair", value: {
+      tokenPair: {
         id: requireEnv("MODAL_TOKEN_ID"),
         secret: requireEnv("MODAL_TOKEN_SECRET"),
-      } },
+      },
     },
     scope: {
       appName: requireEnv("MODAL_APP_NAME"),
       environment: process.env.MODAL_ENVIRONMENT || "main",
     },
-    timeout: duration(120_000),
+    timeout: 120_000,
   };
 }
 
