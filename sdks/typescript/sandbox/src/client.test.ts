@@ -1,11 +1,15 @@
+import { durationMs } from "@bufbuild/protobuf/wkt";
 import { describe, expect, it } from "vitest";
 
 import {
   Client,
   ErrorKind,
-  duration,
+  materializeClientConfig,
+  materializeCreateOptions,
+  PolicyMode,
   type Backend,
   type CreateOptions,
+  type CreateOptionsInput,
   type CreateResult,
   type OperationOptions,
   type Provider,
@@ -21,12 +25,14 @@ class RecordingBackend implements Backend {
   closeCalls = 0;
   createCalls = 0;
   terminated = false;
+  lastCreateRequest: CreateOptions | undefined;
 
   async create(
-    _request: CreateOptions,
+    request: CreateOptions,
     _options: OperationOptions,
   ): Promise<CreateResult> {
     this.createCalls++;
+    this.lastCreateRequest = request;
     return { sandbox: { id: "sandbox-1", provider: this.name } };
   }
 
@@ -205,7 +211,7 @@ describe("Shared request validation", () => {
     const { client, backend } = fixture();
     const request = {
       lifetime: { idleStop: { mode: 99 } },
-    } as unknown as CreateOptions;
+    } as unknown as CreateOptionsInput;
 
     await expect(client.create(request)).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
@@ -232,12 +238,70 @@ describe("Shared request validation", () => {
     const { client, backend } = fixture();
 
     await expect(
-      client.create({ provisioning: { timeout: { seconds: -1n, nanos: 0 } } }),
+      client.create({ provisioning: { timeout: -1 } }),
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       field: "provisioning.timeout",
     });
     expect(backend.createCalls).toBe(0);
+  });
+});
+
+describe("Public facade materialization", () => {
+  it("flattens create oneofs and converts millisecond fields to Duration", () => {
+    const wire = materializeCreateOptions({
+      source: { image: { reference: "alpine:3.21" } },
+      readiness: { command: { argv: ["true"] } },
+      provisioning: { timeout: 120_000 },
+      lifetime: {
+        idleStop: { mode: PolicyMode.After, after: 60_000 },
+      },
+    });
+
+    expect(wire.source?.kind).toMatchObject({
+      case: "image",
+      value: { reference: "alpine:3.21" },
+    });
+    expect(wire.readiness?.check).toMatchObject({
+      case: "command",
+      value: { argv: ["true"] },
+    });
+    expect(wire.provisioning?.timeout).toBeDefined();
+    expect(durationMs(wire.provisioning!.timeout!)).toBe(120_000);
+    expect(wire.lifetime?.idleStop?.after).toBeDefined();
+    expect(durationMs(wire.lifetime!.idleStop!.after!)).toBe(60_000);
+  });
+
+  it("flattens auth credentials and converts client timeout milliseconds", () => {
+    const wire = materializeClientConfig({
+      auth: { tokenPair: { id: "id", secret: "secret" } },
+      timeout: 30_000,
+    });
+
+    expect(wire.auth?.credentials).toMatchObject({
+      case: "tokenPair",
+      value: { id: "id", secret: "secret" },
+    });
+    expect(wire.timeout).toBeDefined();
+    expect(durationMs(wire.timeout!)).toBe(30_000);
+  });
+
+  it("hands the provider wire-shaped create options after a public create call", async () => {
+    const { client, backend } = fixture();
+
+    await client.create({
+      source: { image: { reference: "node:24" } },
+      provisioning: { timeout: 5_000 },
+    });
+
+    expect(backend.lastCreateRequest?.source?.kind).toMatchObject({
+      case: "image",
+      value: { reference: "node:24" },
+    });
+    expect(backend.lastCreateRequest?.provisioning?.timeout).toBeDefined();
+    expect(durationMs(backend.lastCreateRequest!.provisioning!.timeout!)).toBe(
+      5_000,
+    );
   });
 });
 
@@ -280,7 +344,7 @@ describe("Shared client configuration validation", () => {
       () =>
         new Client({
           provider,
-          timeout: { seconds: -1n, nanos: 0 } as ReturnType<typeof duration>,
+          timeout: -1,
         }),
     ).toThrowError(
       expect.objectContaining({
@@ -311,10 +375,10 @@ describe("Operation cancellation", () => {
   it("releases client operation bookkeeping after invalid timeout input", async () => {
     const { client, backend } = fixture();
 
-    await expect(client.create({}, { timeoutMs: -1 })).rejects.toMatchObject({
+    await expect(client.create({}, { timeout: -1 })).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "create",
-      field: "timeoutMs",
+      field: "timeout",
     });
     await expect(client.close()).resolves.toBeUndefined();
     expect(backend.closeCalls).toBe(1);
@@ -323,7 +387,7 @@ describe("Operation cancellation", () => {
   it("enforces a caller timeout when a provider operation does not settle", async () => {
     const { client, backend } = hangingFixture();
 
-    await expect(client.create({}, { timeoutMs: 10 })).rejects.toMatchObject({
+    await expect(client.create({}, { timeout: 10 })).rejects.toMatchObject({
       kind: ErrorKind.Timeout,
       operation: "create",
     });
@@ -346,9 +410,7 @@ describe("Operation cancellation", () => {
     const { client } = hangingFixture();
     const sandbox = await client.attach("sandbox-existing");
 
-    await expect(
-      sandbox.terminate({ timeout: 10 }),
-    ).rejects.toMatchObject({
+    await expect(sandbox.terminate({ timeout: 10 })).rejects.toMatchObject({
       kind: ErrorKind.Timeout,
       operation: "terminate",
     });
@@ -451,7 +513,7 @@ describe("Sandbox lifecycle", () => {
     const controller = new AbortController();
 
     const first = sandbox.start();
-    const canceled = sandbox.start({}, { signal: controller.signal });
+    const canceled = sandbox.start({ signal: controller.signal });
     controller.abort();
     await expect(canceled).rejects.toMatchObject({ kind: ErrorKind.Canceled });
 

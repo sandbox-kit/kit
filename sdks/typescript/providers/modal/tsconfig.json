@@ -14,8 +14,8 @@
     "useUnknownInCatchVariables": true,
     "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src/**/*.ts"]
 }

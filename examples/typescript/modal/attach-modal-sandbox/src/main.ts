@@ -1,8 +1,5 @@
 import { modal } from "@sandbox-kit/provider-modal";
-import {
-  Client,
-  type ClientConfig,
-} from "@sandbox-kit/sandbox";
+import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -30,4 +27,6 @@ function clientConfig(): ClientConfig {
 await using client = new Client(clientConfig());
 
 const sandbox = await client.attach(requireEnv("MODAL_SANDBOX_ID"));
-console.log(`Modal handle attached: id=${sandbox.id} capabilities=${sandbox.capabilities().join(",")}`);
+console.log(
+  `Modal handle attached: id=${sandbox.id} capabilities=${sandbox.capabilities().join(",")}`,
+);

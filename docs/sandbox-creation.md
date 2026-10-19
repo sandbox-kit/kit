@@ -32,7 +32,8 @@ explicit snapshot kinds are not mapped. Supplied unsupported fields and
 Omitted fields retain provider defaults. In Go, `sandbox.Value(v)` marks an
 optional scalar as supplied, including zero or false, and
 `sandbox.Duration(d)` sets protobuf duration fields. TypeScript uses property
-presence and `undefined`. Shared create rules come from Protovalidate on
+presence and `undefined`; duration fields are millisecond numbers.
+Shared create rules come from Protovalidate on
 `sandbox.proto` (`ValidateCreateOptions`); provider checks still reject
 unsupported intent before native calls.
 

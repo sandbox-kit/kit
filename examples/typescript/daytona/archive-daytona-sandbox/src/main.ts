@@ -39,3 +39,4 @@ const sandbox = await client.get(requireEnv("DAYTONA_SANDBOX_ID"));
 assertCapability(sandbox, LifecycleCapability.Archive);
 const info = await sandbox.archive();
 console.log(`Daytona archive requested: ${sandbox.id} (${info.state})`);
+

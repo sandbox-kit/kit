@@ -116,7 +116,10 @@ describe("Modal mappings", () => {
         },
         lifetime: {
           maximumLifetime: durationFromMs(300_000),
-          idleTerminate: { mode: PolicyMode.After, after: durationFromMs(60_000) },
+          idleTerminate: {
+            mode: PolicyMode.After,
+            after: durationFromMs(60_000),
+          },
         },
         readiness: { check: { case: "command", value: { argv: ["true"] } } },
         provisioning: {

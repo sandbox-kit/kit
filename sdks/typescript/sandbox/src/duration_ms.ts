@@ -19,7 +19,7 @@ type DurationFieldName =
 /**
  * Recursively replace known protobuf Duration fields with millisecond numbers
  * for public request construction. Field-name based so maps like `labels` are
- * left alone.
+ * left alone. Public values are always milliseconds.
  */
 export type DurationFieldsToMs<T> = T extends readonly (infer U)[]
   ? DurationFieldsToMs<U>[]

@@ -189,11 +189,12 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
     p.h2Ports = [];
     p.unencryptedPorts = [];
     for (const x of v.ports) {
+      const port = x.port;
+      if (port === undefined) invalid("network.ports.port", "port is required");
       const transport = x.transport ?? PortTransport.Default;
-      if (transport === PortTransport.Tls) p.encryptedPorts.push(x.port);
-      else if (transport === PortTransport.Http2Tls) p.h2Ports.push(x.port);
-      else if (transport === PortTransport.Plain)
-        p.unencryptedPorts.push(x.port);
+      if (transport === PortTransport.Tls) p.encryptedPorts.push(port);
+      else if (transport === PortTransport.Http2Tls) p.h2Ports.push(port);
+      else if (transport === PortTransport.Plain) p.unencryptedPorts.push(port);
       else invalid("network.ports.transport", "explicit transport is required");
     }
   }
@@ -276,9 +277,11 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
 function mapReadiness(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.readiness;
   if (!v) return;
-  if (v.check?.case === "tcpPort")
+  if (v.check?.case === "tcpPort") {
+    if (v.check.value === undefined)
+      invalid("readiness.tcp_port", "tcp port is required");
     p.readinessProbe = Probe.withTcp(v.check.value);
-  else if (v.check?.case === "command")
+  } else if (v.check?.case === "command")
     p.readinessProbe = Probe.withExec([...(v.check.value.argv ?? [])]);
   else invalid("readiness", "probe is required");
 }

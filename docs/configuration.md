@@ -26,7 +26,7 @@ cleanup forms changes the remote sandbox lifecycle.
 | `Scope`    | App, environment, organization, or project scope                          |
 | `Endpoint` | Provider API URL, where supported                                         |
 | `Region`   | Provider target or default placement preference                           |
-| `Timeout`  | Default Kit operation deadline (Go `sandbox.Duration`; TS `duration(ms)`) |
+| `Timeout`  | Default Kit operation deadline (Go `sandbox.Duration`; TS ms number)      |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional

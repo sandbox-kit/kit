@@ -67,18 +67,13 @@ replacements as in the example modules. Requires Go 1.26.9 or newer.
 
 ```ts
 import { daytona } from "@sandbox-kit/provider-daytona";
-import { Client, duration, type ClientConfig } from "@sandbox-kit/sandbox";
+import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
 
 function clientConfig(): ClientConfig {
   return {
     provider: daytona(),
-    auth: {
-      credentials: {
-        case: "apiKey",
-        value: { key: process.env.DAYTONA_API_KEY! },
-      },
-    },
-    timeout: duration(120_000),
+    auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+    timeout: 120_000,
   };
 }
 
@@ -257,7 +252,7 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 - Config covers auth, scope, endpoint, region, and default timeout.
 - Create options cover source, resources, runtime, network, and policies.
 - Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
-  TypeScript: property presence and `duration(ms)`.
+  TypeScript: property presence; duration fields are milliseconds.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
   Daytona: whole cores and whole GiB expressed as MiB.

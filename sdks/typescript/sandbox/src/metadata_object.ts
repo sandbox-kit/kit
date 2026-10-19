@@ -6,7 +6,10 @@ import {
   MetadataObjectSchema,
   MetadataValueSchema,
 } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
-import type { MetadataObject, MetadataValue } from "./sandbox_data_contracts.js";
+import type {
+  MetadataObject,
+  MetadataValue,
+} from "./sandbox_data_contracts.js";
 import type { MetadataPlain } from "./metadata_plain.js";
 
 export type { MetadataPlain } from "./metadata_plain.js";
@@ -20,7 +23,7 @@ export function metadataObjectFromMap(
   for (const [key, value] of Object.entries(source)) {
     values[key] = metadataValueFromPlain(value);
   }
-  return create(MetadataObjectSchema, { values });
+  return create(MetadataObjectSchema, { values }) as MetadataObject;
 }
 
 /** Converts a protobuf metadata object into a declarative map. */
@@ -36,19 +39,24 @@ export function metadataObjectAsMap(
 }
 
 function metadataValueFromPlain(value: MetadataPlain): MetadataValue {
-  if (value === null) return create(MetadataValueSchema, {});
+  // create() returns a protobuf Message; public aliases are StripProto shapes.
+  if (value === null) return create(MetadataValueSchema, {}) as MetadataValue;
   if (typeof value === "boolean")
-    return create(MetadataValueSchema, { value: { case: "boolean", value } });
+    return create(MetadataValueSchema, {
+      value: { case: "boolean", value },
+    }) as MetadataValue;
   if (typeof value === "string")
-    return create(MetadataValueSchema, { value: { case: "text", value } });
+    return create(MetadataValueSchema, {
+      value: { case: "text", value },
+    }) as MetadataValue;
   if (typeof value === "bigint") {
     if (value < 0n)
       return create(MetadataValueSchema, {
         value: { case: "signedInteger", value },
-      });
+      }) as MetadataValue;
     return create(MetadataValueSchema, {
       value: { case: "unsignedInteger", value },
-    });
+    }) as MetadataValue;
   }
   if (typeof value === "number") {
     if (!Number.isFinite(value)) {
@@ -59,15 +67,19 @@ function metadataValueFromPlain(value: MetadataPlain): MetadataValue {
       if (value < 0)
         return create(MetadataValueSchema, {
           value: { case: "signedInteger", value: asBigInt },
-        });
+        }) as MetadataValue;
       return create(MetadataValueSchema, {
         value: { case: "unsignedInteger", value: asBigInt },
-      });
+      }) as MetadataValue;
     }
-    return create(MetadataValueSchema, { value: { case: "number", value } });
+    return create(MetadataValueSchema, {
+      value: { case: "number", value },
+    }) as MetadataValue;
   }
   if (value instanceof Uint8Array)
-    return create(MetadataValueSchema, { value: { case: "binary", value } });
+    return create(MetadataValueSchema, {
+      value: { case: "binary", value },
+    }) as MetadataValue;
   if (Array.isArray(value)) {
     return create(MetadataValueSchema, {
       value: {
@@ -76,30 +88,30 @@ function metadataValueFromPlain(value: MetadataPlain): MetadataValue {
           values: value.map(metadataValueFromPlain),
         }),
       },
-    });
+    }) as MetadataValue;
   }
   return create(MetadataValueSchema, {
     value: {
       case: "object",
       value: metadataObjectFromMap(value)!,
     },
-  });
+  }) as MetadataValue;
 }
 
 function metadataValueAsPlain(value: MetadataValue): MetadataPlain {
-  switch (value.value.case) {
+  switch (value.value?.case) {
     case undefined:
       return null;
     case "boolean":
     case "text":
     case "number":
     case "binary":
-      return value.value.value;
+      return value.value.value as MetadataPlain;
     case "signedInteger":
     case "unsignedInteger":
-      return value.value.value;
+      return value.value.value as MetadataPlain;
     case "list":
-      return (value.value.value.values ?? []).map(metadataValueAsPlain);
+      return (value.value.value?.values ?? []).map(metadataValueAsPlain);
     case "object":
       return metadataObjectAsMap(value.value.value) ?? {};
     default:
