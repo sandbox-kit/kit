@@ -1,0 +1,41 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M59DHYM6F0J6DGCFDEW1F2D8",
+  "strategy": "manual-commit",
+  "branch": "feat/buf-protovalidate",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "proto/kit/sandbox/v1/client.proto",
+    "proto/kit/sandbox/v1/sandbox.proto",
+    "sdks/go/contracts/go.mod",
+    "sdks/go/contracts/go.sum",
+    "sdks/go/contracts/internal/codegen/v1/options.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/typescript/contracts/package-lock.json",
+    "sdks/typescript/contracts/package.json",
+    "sdks/typescript/contracts/src/kit/codegen/v1/options_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts",
+    "sdks/typescript/providers/daytona/package-lock.json",
+    "sdks/typescript/providers/daytona/package.json",
+    "sdks/typescript/providers/modal/package-lock.json",
+    "sdks/typescript/providers/modal/package.json",
+    "sdks/typescript/sandbox/package-lock.json",
+    "sdks/typescript/sandbox/package.json",
+    "sdks/typescript/sandbox/src/client.test.ts",
+    "sdks/typescript/sandbox/src/client.ts",
+    "tooling/go.mod",
+    "tooling/go.sum",
+    "tooling/internal/commands/root.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
