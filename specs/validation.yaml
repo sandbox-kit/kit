@@ -1,7 +1,8 @@
 version: 1
-# Portable CreateOptions rules. Enforced by handwritten ValidateCreateOptions in
-# sdks/go/sandbox/create_validation.go (not emitted). Keep this inventory in sync
-# with that implementation.
+# Portable CreateOptions rules. Declared as Protovalidate options on
+# proto/kit/sandbox/v1/sandbox.proto and enforced by language Protovalidate
+# libraries (ValidateCreateOptions). Keep this inventory aligned with those
+# annotations. Provider-specific checks stay in provider adapters / YAML.
 messages:
   SandboxSource:
     constraints:

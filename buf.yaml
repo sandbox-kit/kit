@@ -1,6 +1,10 @@
 version: v2
 modules:
   - path: proto
+deps:
+  # Protovalidate annotations (buf/validate/validate.proto). Resolved via the
+  # Buf Schema Registry — no vendored copy under proto/.
+  - buf.build/bufbuild/protovalidate
 lint:
   # BASIC catches structural and naming mistakes without forcing public API
   # renames such as DEFAULT to UNSPECIFIED or SandboxService to *Service.

@@ -1,6 +1,7 @@
 # Daytona provider for Sandbox Kit
 
-Optional package over `@daytona/sdk@0.224.0`. Use it through `@sandbox-kit/sandbox`.
+Independent package over `@daytona/sdk@0.224.0`, published separately from the
+core `@sandbox-kit/sandbox` client. Use it through that shared API.
 
 ## Usage
 

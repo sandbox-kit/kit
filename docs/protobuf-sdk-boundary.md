@@ -55,5 +55,7 @@ are handwritten; YAML inventories stay documentation for humans.
 
 ## Current boundary
 
-Kit custom SDK emitters are retired. Contract packages come from standard
-protobuf plugins; runtime behavior stays handwritten.
+Kit custom SDK emitters are retired. Contract packages come from Buf-driven
+standard protobuf plugins (`buf generate`). Shared create validation is declared
+with Protovalidate on portable messages and evaluated in each SDK; provider
+checks and Client/Sandbox choreography stay handwritten.

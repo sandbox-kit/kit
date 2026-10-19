@@ -20,7 +20,7 @@
     "test": "tsc -p tsconfig.test.json && vitest run"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "2.11.0",
+    "@bufbuild/protobuf": "2.16.0",
     "@sandbox-kit/sandbox": "file:../../sandbox",
     "modal": "0.11.0"
   },

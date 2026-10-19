@@ -41,43 +41,23 @@ func repositoryFixture(t *testing.T) string {
 	return root
 }
 
-func TestGoContractsGenerationUsesConfiguredExecutables(t *testing.T) {
-	for _, failure := range []bool{false, true} {
-		t.Run(map[bool]string{false: "success", true: "build failure"}[failure], func(t *testing.T) {
+func TestContractsGenerationUsesBuf(t *testing.T) {
+	for _, language := range []string{"contracts-go", "contracts-typescript"} {
+		t.Run(language, func(t *testing.T) {
 			repo := repositoryFixture(t)
 			runner := &recordingRunner{}
-			if failure {
-				runner.failAt, runner.err = 1, errors.New("build failure")
-			}
 			command := newRootCommand(runner)
 			command.SetOut(io.Discard)
 			command.SetErr(io.Discard)
-			command.SetArgs([]string{"generate", "contracts-go", "--repo", repo, "--go-binary", "custom-go", "--protoc", "custom-protoc"})
-			err := command.ExecuteContext(context.Background())
-			if failure && !errors.Is(err, runner.err) {
-				t.Fatalf("expected build failure, got %v", err)
-			}
-			if !failure && err != nil {
+			command.SetArgs([]string{"generate", language, "--repo", repo, "--buf", "custom-buf"})
+			if err := command.ExecuteContext(context.Background()); err != nil {
 				t.Fatal(err)
 			}
-			if len(runner.steps) == 0 || runner.steps[0].name != "custom-go" {
-				t.Fatal("generation did not use the configured executable")
+			if len(runner.steps) != 1 || runner.steps[0].name != "custom-buf" {
+				t.Fatalf("expected buf generate, got %#v", runner.steps)
 			}
-			if !failure {
-				if len(runner.steps) != 2 {
-					t.Fatalf("expected plugin build and protoc, got %d steps", len(runner.steps))
-				}
-				if runner.steps[1].name != "custom-protoc" {
-					t.Fatal("contracts generation did not use configured protoc")
-				}
-			}
-			toolsDir := filepath.Dir(runner.steps[0].args[2])
-			relative, err := filepath.Rel(repo, toolsDir)
-			if err != nil || (relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator))) {
-				t.Fatal("temporary tools were created inside the repository")
-			}
-			if _, err := os.Stat(toolsDir); !os.IsNotExist(err) {
-				t.Fatal("temporary tools directory was not cleaned up")
+			if strings.Join(runner.steps[0].args, " ") != "generate" {
+				t.Fatalf("unexpected buf args: %#v", runner.steps[0].args)
 			}
 			if _, err := os.Stat(filepath.Join(repo, "work")); !os.IsNotExist(err) {
 				t.Fatal("generation created a repository-local work folder")
@@ -86,21 +66,15 @@ func TestGoContractsGenerationUsesConfiguredExecutables(t *testing.T) {
 	}
 }
 
-func TestTypeScriptContractsGenerationUsesNpm(t *testing.T) {
+func TestContractsGenerationSurfacesBufFailure(t *testing.T) {
 	repo := repositoryFixture(t)
-	runner := &recordingRunner{}
+	runner := &recordingRunner{failAt: 1, err: errors.New("buf failure")}
 	command := newRootCommand(runner)
 	command.SetOut(io.Discard)
 	command.SetErr(io.Discard)
-	command.SetArgs([]string{"generate", "contracts-typescript", "--repo", repo, "--npm-binary", "custom-npm"})
-	if err := command.ExecuteContext(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if len(runner.steps) != 1 || runner.steps[0].name != "custom-npm" {
-		t.Fatalf("expected npm generate, got %#v", runner.steps)
-	}
-	if strings.Join(runner.steps[0].args, " ") != "run generate" {
-		t.Fatalf("unexpected npm args: %#v", runner.steps[0].args)
+	command.SetArgs([]string{"generate", "contracts-go", "--repo", repo, "--buf", "custom-buf"})
+	if err := command.ExecuteContext(context.Background()); !errors.Is(err, runner.err) {
+		t.Fatalf("expected buf failure, got %v", err)
 	}
 }
 

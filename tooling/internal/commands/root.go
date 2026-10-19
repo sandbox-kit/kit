@@ -13,7 +13,6 @@ type settings struct {
 	repoRoot  string
 	goBinary  string
 	npmBinary string
-	protoc    string
 	bufBinary string
 }
 
@@ -32,7 +31,6 @@ func newRootCommand(runner runner) *cobra.Command {
 	root.PersistentFlags().StringVar(&config.repoRoot, "repo", "", "Repository root (discovered from the current directory by default)")
 	root.PersistentFlags().StringVar(&config.goBinary, "go-binary", "go", "Go executable")
 	root.PersistentFlags().StringVar(&config.npmBinary, "npm-binary", "npm", "npm executable")
-	root.PersistentFlags().StringVar(&config.protoc, "protoc", "protoc", "Protobuf compiler executable")
 	root.PersistentFlags().StringVar(&config.bufBinary, "buf", "buf", "Buf CLI executable")
 	root.AddCommand(newGenerateCommand(config, runner), newTestCommand(config, runner))
 	return root

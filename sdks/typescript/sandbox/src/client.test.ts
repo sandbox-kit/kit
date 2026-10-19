@@ -166,7 +166,7 @@ describe("Shared request validation", () => {
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "create",
-      field: "resources.cpuCores",
+      field: "resources.cpu_cores",
       rule: "exclusive_minimum",
     });
     expect(backend.createCalls).toBe(0);
@@ -198,7 +198,7 @@ describe("Shared request validation", () => {
       client.create({ security: { secrets: [{ reference: "" }] } }),
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "security.secrets[].reference",
+      field: "security.secrets[0].reference",
       message: "sandbox-kit: must not be blank",
     });
     expect(backend.createCalls).toBe(0);
@@ -212,7 +212,7 @@ describe("Shared request validation", () => {
 
     await expect(client.create(request)).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "lifetime.idleStop.mode",
+      field: "lifetime.idle_stop.mode",
     });
     expect(backend.createCalls).toBe(0);
   });

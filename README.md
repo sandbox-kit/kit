@@ -1,9 +1,11 @@
 # Sandbox Kit
 
 A multi-provider SDK for creating and managing cloud sandboxes from one portable
-API. Install the public client and the provider you need; each provider
-initializes its official SDK. Go and TypeScript share contracts, validation,
-error kinds, and the same Daytona / Modal example matrix.
+API. Install the core client and the provider you need; each provider is a
+separate package that initializes its official SDK. Go and TypeScript share
+contracts, Protovalidate create rules, error kinds, and the same Daytona /
+Modal example matrix. More providers plug into the core sandbox module without
+being bundled inside it.
 
 Closing a client or handle releases local SDK resources only. It does not stop,
 terminate, archive, or delete a cloud sandbox. Execution, storage, GPU requests,
@@ -89,11 +91,14 @@ console.log(sandbox.id, client.providerName);
 checkout. Prefer `await using`; otherwise call `await client.close()` in
 `finally`. Requires Node.js 20 / 22 / 24.15+ and npm 11.19.0.
 
-| Package                         | Role                                     |
-| ------------------------------- | ---------------------------------------- |
-| `@sandbox-kit/sandbox`          | Public client, shared types, error kinds |
-| `@sandbox-kit/provider-daytona` | Daytona integration (`@daytona/sdk`)     |
-| `@sandbox-kit/provider-modal`   | Modal integration (`modal`)              |
+| Package                         | Role                                                        |
+| ------------------------------- | ----------------------------------------------------------- |
+| `@sandbox-kit/sandbox`          | Core client (publish once; more providers depend on this)   |
+| `@sandbox-kit/provider-daytona` | Daytona provider — published independently (`@daytona/sdk`) |
+| `@sandbox-kit/provider-modal`   | Modal provider — published independently (`modal`)          |
+
+The same split applies in Go: `sdks/go/sandbox` is the core module;
+`sdks/go/providers/<name>` are independent modules.
 
 ## Examples
 
@@ -276,7 +281,7 @@ Guides: [configuration](docs/configuration.md) ·
 
 ## Develop and contribute
 
-From `tooling/` (needs Go 1.26.9+; contract generation needs `protoc`):
+From `tooling/` (needs Go 1.26.9+; contract generation needs the Buf CLI):
 
 ```sh
 GOWORK=off go run ./cmd/sandbox-kit test go
