@@ -1,7 +1,7 @@
 # Sandbox Kit for TypeScript
 
 Core client package (`@sandbox-kit/sandbox`). Providers such as
-`@sandbox-kit/provider-daytona` and `@sandbox-kit/provider-modal` are published
+`@sandbox-kit/daytona` and `@sandbox-kit/modal` are published
 separately and plug into this module. Public create/config types use nested exclusive fields (`auth: { apiKey: … }`,
 `source: { image: … }`, `readiness: { command: … }`) and millisecond numbers for
 timeouts (not protobuf `Duration`). The runtime converts to protobuf before
@@ -42,6 +42,6 @@ scope.
 | TypeScript | [examples/typescript](../../../examples/typescript/README.md) |
 | Go         | [examples/go](../../../examples/go/README.md)                 |
 
-Install a provider package such as `@sandbox-kit/provider-daytona` or
-`@sandbox-kit/provider-modal` beside this client. See the
+Install a provider package such as `@sandbox-kit/daytona` or
+`@sandbox-kit/modal` beside this client. See the
 [root README](../../../README.md) for a full create snippet.

@@ -6,7 +6,7 @@ Independent package over `modal@0.11.0`, published separately from the core
 ## Usage
 
 ```ts
-import { modal } from "@sandbox-kit/provider-modal";
+import { modal } from "@sandbox-kit/modal";
 import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({

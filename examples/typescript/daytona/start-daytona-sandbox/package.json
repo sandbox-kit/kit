@@ -12,7 +12,7 @@
     "start": "node --env-file-if-exists=.env dist/main.js"
   },
   "dependencies": {
-    "@sandbox-kit/provider-daytona": "file:../../../../sdks/typescript/providers/daytona",
+    "@sandbox-kit/daytona": "file:../../../../sdks/typescript/providers/daytona",
     "@sandbox-kit/sandbox": "file:../../../../sdks/typescript/sandbox"
   },
   "devDependencies": {

@@ -1,5 +1,5 @@
 {
-  "name": "@sandbox-kit/provider-modal",
+  "name": "@sandbox-kit/modal",
   "version": "0.1.0",
   "private": true,
   "type": "module",

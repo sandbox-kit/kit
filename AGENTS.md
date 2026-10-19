@@ -11,7 +11,7 @@
 - Publish the core client (`sdks/<language>/sandbox`, e.g. `@sandbox-kit/sandbox`
   / `.../sdks/go/sandbox`) as the shared module that more providers plug into.
   Publish each provider module independently per language (e.g.
-  `@sandbox-kit/provider-daytona` and `.../providers/daytona`). Do not ship
+  `@sandbox-kit/daytona` and `.../providers/daytona`). Do not ship
   providers inside the core sandbox package.
 - Keep the public SDK, optional providers, and future harness integrations in
   separate modules. Each provider depends on its official SDK.

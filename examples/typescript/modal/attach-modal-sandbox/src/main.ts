@@ -1,4 +1,4 @@
-import { modal } from "@sandbox-kit/provider-modal";
+import { modal } from "@sandbox-kit/modal";
 import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {

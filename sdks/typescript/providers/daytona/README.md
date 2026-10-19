@@ -7,7 +7,7 @@ core `@sandbox-kit/sandbox` client. Use it through that shared API.
 
 ```ts
 import { Client } from "@sandbox-kit/sandbox";
-import { daytona } from "@sandbox-kit/provider-daytona";
+import { daytona } from "@sandbox-kit/daytona";
 
 const client = new Client({ provider: daytona() });
 

@@ -66,7 +66,7 @@ replacements as in the example modules. Requires Go 1.26.9 or newer.
 ### TypeScript
 
 ```ts
-import { daytona } from "@sandbox-kit/provider-daytona";
+import { daytona } from "@sandbox-kit/daytona";
 import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
 
 function clientConfig(): ClientConfig {
@@ -89,8 +89,8 @@ checkout. Prefer `await using`; otherwise call `await client.close()` in
 | Package                         | Role                                                        |
 | ------------------------------- | ----------------------------------------------------------- |
 | `@sandbox-kit/sandbox`          | Core client (publish once; more providers depend on this)   |
-| `@sandbox-kit/provider-daytona` | Daytona provider — published independently (`@daytona/sdk`) |
-| `@sandbox-kit/provider-modal`   | Modal provider — published independently (`modal`)          |
+`@sandbox-kit/daytona`          | Daytona provider — published independently (`@daytona/sdk`) |
+`@sandbox-kit/modal`            | Modal provider — published independently (`modal`)          |
 
 The same split applies in Go: `sdks/go/sandbox` is the core module;
 `sdks/go/providers/<name>` are independent modules.

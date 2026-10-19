@@ -1,4 +1,4 @@
-import { modal } from "@sandbox-kit/provider-modal";
+import { modal } from "@sandbox-kit/modal";
 import {
   Client,
   IsolationKind,

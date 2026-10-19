@@ -1,4 +1,4 @@
-import { daytona } from "@sandbox-kit/provider-daytona";
+import { daytona } from "@sandbox-kit/daytona";
 import {
   Client,
   EgressMode,
