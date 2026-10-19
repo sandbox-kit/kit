@@ -3,8 +3,18 @@
   "checkpoint_id": "01M59DHYM6F0J6DGCFDEW1F2D8",
   "strategy": "manual-commit",
   "branch": "feat/buf-protovalidate",
-  "checkpoints_count": 1,
+  "checkpoints_count": 10,
   "files_touched": [
+    "AGENTS.md",
+    "README.md",
+    "buf.gen.yaml",
+    "buf.lock",
+    "buf.yaml",
+    "docs/code-generation.md",
+    "docs/protobuf-sdk-boundary.md",
+    "docs/providers.md",
+    "docs/responses-and-errors.md",
+    "go.work.sum",
     "proto/kit/sandbox/v1/client.proto",
     "proto/kit/sandbox/v1/sandbox.proto",
     "sdks/go/contracts/go.mod",
@@ -12,22 +22,40 @@
     "sdks/go/contracts/internal/codegen/v1/options.pb.go",
     "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
     "sdks/go/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/go.mod",
+    "sdks/go/providers/daytona/go.sum",
+    "sdks/go/providers/modal/README.md",
+    "sdks/go/providers/modal/go.mod",
+    "sdks/go/providers/modal/go.sum",
+    "sdks/go/sandbox/README.md",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/go/sandbox/go.mod",
+    "sdks/go/sandbox/go.sum",
     "sdks/typescript/contracts/package-lock.json",
     "sdks/typescript/contracts/package.json",
     "sdks/typescript/contracts/src/kit/codegen/v1/options_pb.ts",
     "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
     "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts",
+    "sdks/typescript/providers/daytona/README.md",
     "sdks/typescript/providers/daytona/package-lock.json",
     "sdks/typescript/providers/daytona/package.json",
+    "sdks/typescript/providers/modal/README.md",
     "sdks/typescript/providers/modal/package-lock.json",
     "sdks/typescript/providers/modal/package.json",
+    "sdks/typescript/sandbox/README.md",
     "sdks/typescript/sandbox/package-lock.json",
     "sdks/typescript/sandbox/package.json",
     "sdks/typescript/sandbox/src/client.test.ts",
     "sdks/typescript/sandbox/src/client.ts",
+    "specs/validation.yaml",
+    "tooling/README.md",
     "tooling/go.mod",
     "tooling/go.sum",
-    "tooling/internal/commands/root.go"
+    "tooling/internal/commands/commands_test.go",
+    "tooling/internal/commands/generate.go",
+    "tooling/internal/commands/root.go",
+    "tooling/tools.go"
   ],
   "sessions": [
     {
@@ -36,6 +64,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 190109,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 10310016,
+    "output_tokens": 51320,
+    "api_call_count": 4
+  }
 }
