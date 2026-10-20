@@ -1,0 +1,25 @@
+in examples I see we have use requireEnv
+
+instead have everywhere like procoss.env.<Key which is there in .env>!
+!exclamation is what u should add to make it lean.
+
+---
+
+also to make it more lean 
+
+don't create clientConfig method directly add in new Client ?
+
+---
+
+const imageSource: SandboxSourceInput
+to make it more lean we must not create also this kinda variable
+
+while we should not stop exporting those types, if there are such types which aren't exported we must though.
+
+---
+
+is there anythin which should be exported but isn't ?
+
+---
+
+go for it
