@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5C3W35P2XW2X3YKTV9KE9SR",
+  "strategy": "manual-commit",
+  "branch": "chore/drop-sandbox-service",
+  "checkpoints_count": 9,
+  "files_touched": [
+    "buf.gen.yaml",
+    "buf.yaml",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/protobuf-sdk-boundary.md",
+    "proto/kit/codegen/v1/options.proto",
+    "proto/kit/sandbox/v1/client.proto",
+    "sdks/go/contracts/internal/codegen/v1/options.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/client_contracts.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/typescript/contracts/src/kit/codegen/v1/options_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
+    "sdks/typescript/providers/daytona/src/provider.ts",
+    "sdks/typescript/providers/modal/src/provider.ts",
+    "tooling/internal/commands/commands_test.go",
+    "tooling/internal/commands/root.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 34190,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2819968,
+    "output_tokens": 9432,
+    "api_call_count": 1
+  }
+}
