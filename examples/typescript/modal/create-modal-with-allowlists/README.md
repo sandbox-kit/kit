@@ -1,10 +1,11 @@
 # Create a Modal sandbox with outbound allowlists
 
-Create with restricted egress, CIDR/domain allowlists, and private networking (`i6pn`).
+Create with `EgressMode.Restricted`, `outboundCidrs` / `outboundDomains`, and
+`privateNetwork: true` (Modal `i6pn`).
 
 ## What this means
 
-Complementary to the managed-proxy example: this sets allowlists and private network directly on the create request.
+Sets outbound allowlists and private networking on the create request.
 
 ## Edge cases
 

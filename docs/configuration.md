@@ -2,31 +2,35 @@
 
 Construct a Go client with `sandbox.NewClient(provider, &sandbox.Config{...})`
 or a TypeScript client with `new Client({...})`. The selected provider
-initializes its official SDK from generated protobuf configuration types. This
-guide uses Go field spelling; TypeScript exposes the same fields in camelCase.
+initializes its official SDK from portable configuration.
 
 Provider selection is never part of the portable `Config` message. Go passes the
 provider as a separate `NewClient` argument; TypeScript attaches it on
-`ClientConfig` beside the protobuf config fields.
+`ClientConfig` (`Config` plus `provider`).
+
+TypeScript config is a public facade: nested auth (`auth: { apiKey: { key } }` /
+`tokenPair` / `bearerToken` / `oauthRefresh`), optional `scope` / `endpoint` /
+`region`, and `timeout` as a **millisecond number**. The client materializes
+protobuf privately before Protovalidate.
 
 The constructors have the same ownership and validation semantics while
 following each language's conventions: Go returns `(*Client, error)`, and
 TypeScript throws on invalid synchronous construction. Shared Config rules come
-from Protovalidate on `client.proto` (`ValidateConfig`); `secure_endpoint`
-stays handwritten. Go callers defer `client.Close(ctx)`; TypeScript callers use
+from Protovalidate on `client.proto` (`ValidateConfig`); `secure_endpoint` is
+handwritten. Go callers defer `client.Close(ctx)`; TypeScript callers use
 `await client.close()` or scope the client with `await using`. None of these
 cleanup forms changes the remote sandbox lifecycle.
 
 ## Configuration fields
 
-| Field      | Purpose                                                                   |
-| ---------- | ------------------------------------------------------------------------- |
-| `Provider` | Go: pass `modal.New()` / `daytona.New()` to `NewClient`. Not in `Config`. |
-| `Auth`     | One explicit credential variant; omit to use SDK credential resolution    |
-| `Scope`    | App, environment, organization, or project scope                          |
-| `Endpoint` | Provider API URL, where supported                                         |
-| `Region`   | Provider target or default placement preference                           |
-| `Timeout`  | Default Kit operation deadline (Go `sandbox.Duration`; TS ms number)      |
+| Go / TypeScript         | Purpose                                                                   |
+| ----------------------- | ------------------------------------------------------------------------- |
+| Provider / `provider`   | Go: pass to `NewClient`. TS: on `ClientConfig`. Not in portable `Config`. |
+| `Auth` / `auth`         | One explicit credential variant; omit for SDK credential resolution       |
+| `Scope` / `scope`       | App, environment, organization, or project scope                          |
+| `Endpoint` / `endpoint` | Provider API URL, where supported                                         |
+| `Region` / `region`     | Provider target or default placement preference                           |
+| `Timeout` / `timeout`   | Default Kit deadline (Go `sandbox.Duration`; TS milliseconds)             |
 
 A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
 The backend supplies identity and cleanup, then implements typed optional
@@ -78,20 +82,22 @@ operations already running through that client. Do not use its handles after
 client closure. Closing one sandbox handle does not close the client or change
 the remote sandbox.
 
-Generated state capture copies supplied scope and region values, preserving
-`nil` and explicit values. Later mutations of the original configuration do not
-change captured state. Kit also copies creation requests and returned metadata.
+Captured client state copies supplied scope and region values, preserving
+omission and explicit values. Later mutations of the original configuration do
+not change captured state. Kit also copies creation requests and returned
+metadata.
 
-`Config.Timeout` is the default Kit deadline for provider operations. A creation
-request can override it with `CreateOptions.Provisioning.Timeout`; lifecycle
-options can override it with their operation-specific `Timeout`. Explicit zero
-adds no Kit deadline. An earlier caller-context deadline still applies, and
-native SDK transport or operation timeouts remain in force.
+`Config.Timeout` / `timeout` is the default Kit deadline for provider operations.
+A creation request can override it with `CreateOptions.Provisioning.Timeout` /
+`provisioning.timeout`; lifecycle options can override it with their
+operation-specific `Timeout` / `timeout`. Explicit zero adds no Kit deadline. An
+earlier caller-context deadline still applies, and native SDK transport or
+operation timeouts remain in force.
 
 ## Credentials and errors
 
 Go credential fields marked `sensitive` and the provider object are excluded
-from generated JSON output. TypeScript configuration uses plain structural
+from protobuf JSON output. TypeScript configuration uses plain structural
 objects, so `JSON.stringify` includes enumerable credential fields. Do not
 serialize, log, or persist configuration objects in either language.
 
@@ -101,6 +107,8 @@ See [responses and errors](responses-and-errors.md).
 
 Configuration types and contracts come from
 [`client.proto`](../proto/kit/sandbox/v1/client.proto) (Protovalidate options;
-`secure_endpoint` stays handwritten),
+`secure_endpoint` is handwritten),
 [client rules](../specs/client.yaml), and provider YAML.
-See [examples](../examples/go/README.md) and [generation](code-generation.md).
+See [Go examples](../examples/go/README.md),
+[TypeScript examples](../examples/typescript/README.md), and
+[generation](code-generation.md).

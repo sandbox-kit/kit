@@ -14,7 +14,6 @@ whole core count). Failures expose portable `kind`, `field`, `operation`, and
 
 - This path usually never reaches Daytona's HTTP API.
 - Other failures can occur after provision; kinds are not safe retry signals.
-- Missing `.env` is an ordinary error in Go examples that load dotenv.
 
 ## Run
 

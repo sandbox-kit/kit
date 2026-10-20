@@ -7,10 +7,10 @@ messages, enums, reflection metadata, and service declarations via standard
 plugins; handwritten SDK code owns client, handle, provider, checks, mappings,
 and error behavior. Shared create and client-config validation is Protovalidate
 options on those messages, evaluated by language Protovalidate libraries
-(`secure_endpoint` stays handwritten).
+(`secure_endpoint` is handwritten).
 
 Portable create/config/info types come from standard protobuf contracts plus
-handwritten SDK aliases. Kit custom emitters are retired.
+handwritten SDK aliases.
 
 ## Generate and verify
 
@@ -48,8 +48,9 @@ types via `@sandbox-kit/contracts/sandbox` and `@sandbox-kit/contracts/client`
 (or the package root); generated files stay under `src/kit/...` for Buf.
 
 Contract packages are committed under `sdks/<language>/contracts/`. Edit
-`proto/`, then regenerate contracts. SDK applications use native types and do
-not load YAML or import protobuf messages at runtime.
+`proto/`, then regenerate contracts. Applications use native types from the
+public sandbox package. TypeScript apps depend on `@sandbox-kit/sandbox` (and a
+provider); `@sandbox-kit/contracts` is an internal wire dependency of the SDK.
 
 ## Inputs
 
@@ -130,7 +131,7 @@ true booleans, and nonzero/nonempty ordinary scalars.
 Shared create and client-config validation is declared as Protovalidate options
 on `proto/` messages and evaluated in each SDK (`ValidateCreateOptions` /
 `ValidateConfig`). Keep `specs/validation.yaml` and `specs/client.yaml` aligned
-with those annotations. The `secure_endpoint` config check stays handwritten.
+with those annotations. The `secure_endpoint` config check is handwritten.
 Both languages preserve explicit zero/false and supply no defaults.
 
 ## Provider checks

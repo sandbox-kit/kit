@@ -18,7 +18,8 @@ await using client = new Client({
 });
 
 const sandbox = await client.create({
-  source: { image: { reference: "alpine:3.21"  } },
+  source: { image: { reference: "alpine:3.21" } },
+  provisioning: { timeout: 120_000 },
 });
 console.log(sandbox.id);
 ```

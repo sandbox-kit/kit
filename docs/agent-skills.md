@@ -17,9 +17,9 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Focused guidance for generics, conditional and mapped types,
-  discriminated unions, type-safe builders, and compile-time tests. These are
-  directly relevant to a generated TypeScript SDK that must preserve protobuf
-  presence, provider variants, and configuration constraints.
+  discriminated unions, type-safe builders, and compile-time tests. These matter
+  for the handwritten TypeScript public facades (`CreateOptions` / `Config`),
+  nested exclusive fields, and provider variants over protobuf contracts.
 - **Scope:** TypeScript type and public API design. It complements the existing
   Go-specific skill instead of competing with it.
 
@@ -38,7 +38,7 @@ rules instead of invocable skills (`/skill-name`).
 - **Source:** `samber/cc-skills-golang`
 - **Why selected:** Adds idiomatic table-driven tests, helpers, integration tests,
   HTTP tests, examples, coverage, benchmarks, and mocking guidance for the Go SDK
-  and generator tooling.
+  and developer CLI under `tooling/`.
 
 ### `golang-error-handling`
 
@@ -88,8 +88,7 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Adds focused pytest fixtures, parametrization, mocking,
-  integration tests, and asynchronous test patterns for generated and handwritten
-  Python SDK behavior.
+  integration tests, and asynchronous test patterns for a future Python SDK.
 
 ### `python-error-handling`
 

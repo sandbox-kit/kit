@@ -1,30 +1,15 @@
 import { daytona } from "@sandbox-kit/daytona";
-import {
-  Client,
-  type ClientConfig,
-} from "@sandbox-kit/sandbox";
+import { Client } from "@sandbox-kit/sandbox";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-}
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+  ...(process.env.DAYTONA_API_URL ? { endpoint: process.env.DAYTONA_API_URL } : {}),
+  ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
+});
 
-function clientConfig(): ClientConfig {
-  const endpoint = process.env.DAYTONA_API_URL;
-  const region = process.env.DAYTONA_TARGET;
-  return {
-    provider: daytona(),
-    auth: { apiKey: { key: requireEnv("DAYTONA_API_KEY")  } },
-    timeout: 120_000,
-    ...(endpoint ? { endpoint } : {}),
-    ...(region ? { region } : {}),
-  };
-}
-
-await using client = new Client(clientConfig());
-
-const sandbox = await client.get(requireEnv("DAYTONA_SANDBOX_ID"));
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 const info = sandbox.info();
 console.log(
   `Daytona sandbox: id=${info.id} state=${info.state} native=${info.providerState ?? "unknown"} capabilities=${sandbox.capabilities().join(",")}`,

@@ -2,7 +2,8 @@
 
 Public portable types and service metadata live in protobuf under `proto/`.
 SDK runtimes alias those generated contract types and keep constructors,
-facades, and orchestration handwritten.
+facades, and orchestration handwritten. TypeScript exposes handwritten public
+create/config facades; see [protobuf SDK boundary](protobuf-sdk-boundary.md).
 
 YAML does not declare a parallel public API surface. Remaining specs inventory
 provider rules, validation, and contracts:
@@ -16,13 +17,15 @@ provider rules, validation, and contracts:
 Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
 provider classification are handwritten per language.
 
-## What stays handwritten
+## Handwritten runtime
 
 - `Client` / `Sandbox` facades and lifecycle dispatch
+- TypeScript public create/config input types and materialization to wire
 - Provider selection, native SDK initialization, and cleanup
 - Error wrappers, cause chaining, and provider-native error classification
-- Metadata clone helpers and request materialization at language boundaries
-- Protovalidate evaluation for shared create/config rules (`secure_endpoint` stays handwritten)
+- Metadata clone helpers
+- Protovalidate evaluation for shared create/config rules (`secure_endpoint` is
+  handwritten)
 - Provider checks, field mappings, and config assembly
 - Provider orchestration that the mapping inventory cannot express
 

@@ -30,6 +30,7 @@ import {
   type MetadataList as ProtoMetadataList,
   type MetadataObject as ProtoMetadataObject,
   type MetadataValue as ProtoMetadataValue,
+  type ObservabilityConfig as ProtoObservabilityConfig,
   type PauseOptions as ProtoPauseOptions,
   type Placement as ProtoPlacement,
   type PortBinding as ProtoPortBinding,
@@ -38,6 +39,7 @@ import {
   type SandboxInfo as ProtoSandboxInfo,
   type SandboxSource as ProtoSandboxSource,
   type SecretReference as ProtoSecretReference,
+  type SecurityConfig as ProtoSecurityConfig,
   type StartOptions as ProtoStartOptions,
   type StopOptions as ProtoStopOptions,
   type TerminateOptions as ProtoTerminateOptions,
@@ -60,7 +62,9 @@ export type IsolationConfig = StripProto<ProtoIsolationConfig>;
 export type Resources = StripProto<ProtoResources>;
 export type Placement = StripProto<ProtoPlacement>;
 export type PortBinding = StripProto<ProtoPortBinding>;
+export type SecurityConfig = StripProto<ProtoSecurityConfig>;
 export type SecretReference = StripProto<ProtoSecretReference>;
+export type ObservabilityConfig = StripProto<ProtoObservabilityConfig>;
 export type SandboxInfo = StripProto<ProtoSandboxInfo>;
 export type CreateResult = StripProto<ProtoCreateResult>;
 
@@ -110,6 +114,25 @@ export type NetworkConfigInput = NonNullable<CreateOptions["network"]>;
 export type SandboxSourceInput = NonNullable<CreateOptions["source"]>;
 /** Public readiness: set tcpPort or command (no protobuf `{ case, value }`). */
 export type ReadinessProbeInput = NonNullable<CreateOptions["readiness"]>;
+
+/**
+ * Public lifetime create input (ms durations).
+ * Derived from {@link CreateOptions}; wire `Duration` fields stay private.
+ */
+export type LifetimePolicyInput = NonNullable<CreateOptions["lifetime"]>;
+/**
+ * Public idle/stopped policy leaf under {@link LifetimePolicyInput} (`after` in ms).
+ */
+export type AutomaticActionInput = NonNullable<
+  LifetimePolicyInput["idleTerminate"]
+>;
+/**
+ * Public provisioning create input (ms timeouts).
+ * Derived from {@link CreateOptions}; wire `Duration` fields stay private.
+ */
+export type ProvisioningOptionsInput = NonNullable<
+  CreateOptions["provisioning"]
+>;
 
 // Ergonomic PascalCase names over protobuf enum values; not a second contract.
 export const SnapshotKind = protoEnum(ProtoSnapshotKind);

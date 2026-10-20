@@ -62,19 +62,34 @@ The same switch works for either provider. Runnable examples demonstrate
 [Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
 
 TypeScript operations reject with `SandboxError`. Use `instanceof` before
-reading its shared details:
+reading its shared details. `error.field` is a canonical protobuf path; compare
+it to exported constants such as `CreateFieldResourcesCpuCores`:
 
 ```ts
+import {
+  CreateFieldResourcesCpuCores,
+  ErrorKind,
+  SandboxError,
+} from "@sandbox-kit/sandbox";
+
 try {
   await client.create(request);
 } catch (error) {
   if (error instanceof SandboxError) {
-    console.error(error.kind, error.field, error.operation);
+    if (error.field === CreateFieldResourcesCpuCores) {
+      console.error("CPU setting rejected:", error.message);
+    } else {
+      console.error(error.kind, error.field, error.operation);
+    }
   } else {
     throw error;
   }
 }
 ```
+
+See also the TypeScript examples
+[handle-daytona-errors](../examples/typescript/daytona/handle-daytona-errors/README.md)
+and [handle-modal-errors](../examples/typescript/modal/handle-modal-errors/README.md).
 
 ## Native causes
 

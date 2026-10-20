@@ -5,10 +5,10 @@ core `sandbox` module and only the optional provider modules they need.
 
 ## Publishing layout
 
-| Artifact                                                | Role                                                                                                                                                              |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Artifact                                                | Role                                                                                                                                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Core client (`@sandbox-kit/sandbox`, `sdks/go/sandbox`) | Portable API, shared types, Protovalidate create/config rules, Client/Sandbox choreography. New providers plug into this module; it must not embed a specific cloud SDK. |
-| Each provider package (per language)                    | Independently versioned and published. Owns native SDK construction, capability checks, and field mappings for one backend.                                       |
+| Each provider package (per language)                    | Independently versioned and published. Owns native SDK construction, capability checks, and field mappings for one backend.                                              |
 
 Add providers by shipping a new language-specific module that implements the
 core `Provider` / backend contracts—not by growing the core sandbox package.
@@ -41,6 +41,10 @@ SDK cleanup.
 
 These contracts live in the consuming `sandbox` package. SDK clients stay
 private; standard operations require no application mapping callbacks.
+
+In TypeScript, `Provider.initialize` and `Backend` methods take the same public
+`Config` / `CreateOptions` shapes applications use. The core `Client`
+materializes protobuf and runs shared validation before calling the backend.
 
 ## Generation boundary
 

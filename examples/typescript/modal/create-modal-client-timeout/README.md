@@ -1,15 +1,18 @@
 # Create a Modal sandbox that waits using the client timeout
 
-Create with `waitFor: Ready` and a command probe, relying on `Client` `timeout` (no `provisioning.timeout` in the request).
+Create with `waitFor: WaitCondition.Ready` and a command probe, relying on
+`Client` `timeout` (this example omits `provisioning.timeout`).
 
 ## What this means
 
-Kit injects the resolved create deadline into `provisioning.timeout` after validation so Modal ready-wait and the call abort share one deadline.
+Kit injects the resolved create deadline into `provisioning.timeout` after
+validation so Modal ready-wait and the call abort share one deadline.
 
 ## Edge cases
 
-- You can still set `provisioning.timeout` explicitly; call-option and client timeouts override when resolved.
-- A readiness probe is still required for `waitFor: Ready`.
+- An explicit `provisioning.timeout` is allowed; call-option and client
+  timeouts override when resolved.
+- `waitFor: WaitCondition.Ready` requires a readiness probe.
 
 ## Run
 

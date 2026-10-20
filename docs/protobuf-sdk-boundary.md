@@ -24,18 +24,21 @@ native SDK client, callback, mutex, function, or another runtime object.
 ## Generated versus handwritten code
 
 Standard protobuf plugins generate messages, enums, reflection metadata, and
-service declarations. Those generated types are the sole representation of
-portable data in each SDK.
+service declarations into each language's contract package. Those types are the
+wire and validation representation of portable data.
 
 Handwritten language runtime code owns behavior:
 
 - public `Client` and `Sandbox` facades;
+- TypeScript public create/config input types (materialized to wire privately);
 - provider selection, native SDK initialization, cleanup, and deadlines;
 - private adapter interfaces and private native SDK state;
-- error behavior and conversion at provider boundaries.
+- error behavior and conversion at provider boundaries;
+- provider checks, field mappings, and config assembly.
 
-The runtime consumes generated request and response messages. It does not
-regenerate its own lookalike structs or use a generator to assemble methods.
+The runtime consumes generated request and response messages for Protovalidate
+and provider mapping. It does not regenerate parallel structs or assemble
+methods with a custom emitter.
 
 ## YAML scope
 
@@ -55,8 +58,17 @@ are handwritten; YAML inventories stay documentation for humans.
 
 ## Current boundary
 
-Kit custom SDK emitters are retired. Contract packages come from Buf-driven
-standard protobuf plugins (`buf generate`). Shared create and client-config
-validation is declared with Protovalidate on portable messages and evaluated in
-each SDK (`secure_endpoint` stays handwritten); provider checks and
-Client/Sandbox choreography stay handwritten.
+Contract packages come from Buf-driven standard protobuf plugins
+(`buf generate`). Shared create and client-config validation is declared with
+Protovalidate on portable messages and evaluated in each SDK
+(`secure_endpoint` is handwritten); provider checks and Client/Sandbox
+choreography are handwritten.
+
+### TypeScript public surface
+
+Applications use handwritten public types from `@sandbox-kit/sandbox`
+(`CreateOptions`, `Config` / `ClientConfig`): nested exclusive fields, millisecond
+timeouts, and plain allowlists/maps. The client **materializes** those values into
+generated protobuf messages privately for Protovalidate, then runs provider
+checks and mappings. Application code depends on `@sandbox-kit/sandbox` (and a
+provider); `@sandbox-kit/contracts` is an internal wire dependency of the SDK.

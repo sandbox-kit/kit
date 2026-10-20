@@ -4,39 +4,55 @@ Core client package (`@sandbox-kit/sandbox`). Providers such as
 `@sandbox-kit/daytona` and `@sandbox-kit/modal` are published
 separately and plug into this module. Apps and providers share public
 `CreateOptions` / `ClientConfig` (`Config` plus `provider`): nested exclusive
-fields (`auth: { apiKey: … }`, `source: { image: … }`, `readiness: { command: … }`)
-and millisecond timeouts. The client materializes protobuf privately for
-Protovalidate (`secure_endpoint` stays handwritten). `ErrorInfo.field` uses
-canonical protobuf paths (`CreateField*` / `ConfigField*` / `InfoField*`),
-matching Go. Closing the client releases local provider SDK resources only; it
-does not stop or delete cloud sandboxes.
+fields (`auth: { apiKey: … }`, `source: { image: … }`, `readiness: { command: … }`),
+plain maps/allowlists (`outboundCidrs: string[]`), and millisecond timeouts.
+`ErrorInfo.field` uses canonical protobuf paths (`CreateField*` / `ConfigField*` /
+`InfoField*`), matching Go. Closing the client releases local provider SDK
+resources only; it does not stop or delete cloud sandboxes.
+
+## Public input → wire boundary
+
+Applications and provider backends speak the **public** shapes above. Inside
+`Client`, requests are converted before Protovalidate and provider mapping:
+
+1. **Public input** — ms numbers, nested oneofs, `string[]` allowlists, plain
+   `providerOptions` maps.
+2. **`materialize*`** — package-private conversion to protobuf wire messages.
+3. **Validate** — shared Protovalidate rules (`secure_endpoint` stays handwritten),
+   then provider checks.
+4. **Provider mappings** — native SDK calls using the validated wire request.
+
+Wire types stay package-private to the client.
 
 ## Usage
 
 ```ts
-import { Client } from "@sandbox-kit/sandbox";
+import {
+  Client,
+  type ClientConfig,
+  type CreateOptions,
+} from "@sandbox-kit/sandbox";
+import { daytona } from "@sandbox-kit/daytona";
 
-const client = new Client(config);
+const config: ClientConfig = {
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+};
 
-try {
-  const sandbox = await client.create();
-  console.log(sandbox.id);
-} finally {
-  await client.close();
-}
-```
+const createOptions: CreateOptions = {
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  provisioning: { timeout: 120_000 },
+};
 
-With TypeScript 5.2+, `ESNext.Disposable`, and a runtime that supports explicit
-resource management:
-
-```ts
 await using client = new Client(config);
-const sandbox = await client.create();
+const sandbox = await client.create(createOptions);
+console.log(sandbox.id);
 ```
 
-Both forms have identical cleanup semantics.
-`client[Symbol.asyncDispose]()` runs automatically at the end of an `await using`
-scope.
+Prefer `await using` when the runtime supports explicit resource management;
+otherwise call `await client.close()` in `finally`. Both forms have identical
+cleanup semantics.
 
 ## Examples
 

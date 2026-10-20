@@ -1,15 +1,17 @@
 # Create a Daytona sandbox with a maximum lifetime
 
-Create from an image with `lifetime.maximumLifetime` set to 60 minutes.
+Create from an image with `lifetime.maximumLifetime: 60 * 60_000` (60 minutes).
 
 ## What this means
 
-Daytona maps maximum lifetime to `ttlMinutes`. Kit requires a positive whole-minute duration.
+Daytona maps maximum lifetime to `ttlMinutes`. Kit requires a positive
+whole-minute millisecond value.
 
 ## Edge cases
 
-- Durations that are not whole minutes are rejected locally.
-- Idle stop/pause and stopped archive/delete policies are covered by `create-daytona-with-policies`.
+- Values that are not whole minutes (in ms) are rejected locally.
+- Idle stop/pause and stopped archive/delete policies are covered by
+  `create-daytona-with-policies`.
 
 ## Run
 

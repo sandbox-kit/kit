@@ -57,9 +57,7 @@ import { metadataObjectFromMap } from "#metadata/metadata_object.js";
 import type { FlattenOneof } from "#internal/oneof_input.js";
 import { protoEnum } from "#internal/proto_enum.js";
 import type { StripProto } from "#internal/strip_proto.js";
-import {
-  InfoFieldId,
-} from "#contracts/field_paths.js";
+import { InfoFieldId } from "#contracts/field_paths.js";
 import {
   ConfigFieldProvider,
   ConfigFieldTimeout,
@@ -88,9 +86,7 @@ export type APIKeyCredentials = StripProto<WireAPIKeyCredentials>;
 export type TokenPairCredentials = StripProto<WireTokenPairCredentials>;
 export type BearerTokenCredentials = StripProto<WireBearerTokenCredentials>;
 export type OAuthCredentials = StripProto<WireOAuthCredentials>;
-export type Scope = StripProto<
-  import("@sandbox-kit/contracts/client").Scope
->;
+export type Scope = StripProto<import("@sandbox-kit/contracts/client").Scope>;
 
 /** Public auth: set exactly one credential variant (no protobuf `{ case, value }`). */
 export type AuthInput = FlattenOneof<NonNullable<AuthConfig["credentials"]>>;
@@ -245,14 +241,20 @@ function validSecureEndpoint(value: string): boolean {
   }
 }
 
-function validateCreateOptions(
-  value: CreateOptionsWire,
+/**
+ * Rejects public {@link CreateOptions} the shared contract cannot represent.
+ * Materializes wire form privately for Protovalidate. Provider-specific checks
+ * remain in each provider adapter.
+ */
+export function validateCreateOptions(
+  value: CreateOptions,
   provider = "",
   operation = "create",
 ): void {
+  const message = materializeCreateOptions(value);
   const result = contractValidator.validate(
     CreateOptionsSchema,
-    value as MessageShape<typeof CreateOptionsSchema>,
+    message as MessageShape<typeof CreateOptionsSchema>,
   );
   if (result.kind === "valid") {
     return;
@@ -831,13 +833,12 @@ export class Client implements AsyncDisposable {
     options: OperationOptions = {},
   ): Promise<Sandbox> {
     const release = this.#begin("create");
-    const materialized = materializeCreateOptions(request);
     const timeout =
       options.timeout ?? request.provisioning?.timeout ?? this.#timeout;
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
       // Validate the wire projection first; providers receive the public request.
-      validateCreateOptions(materialized, this.providerName, "create");
+      validateCreateOptions(request, this.providerName, "create");
       scoped = operationSignal(options, timeout);
       const create = this.#backend.create;
       if (!create) unsupported(this.providerName, "create");

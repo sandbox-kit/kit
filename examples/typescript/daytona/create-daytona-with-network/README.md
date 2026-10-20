@@ -1,6 +1,7 @@
 # Create a Daytona sandbox with restricted network egress
 
-Create from an image with `EgressMode.Restricted` plus outbound CIDR and domain allowlists.
+Create from an image with `EgressMode.Restricted`,
+`outboundCidrs: ["192.0.2.0/24"]`, and `outboundDomains: ["example.com"]`.
 
 ## What this means
 

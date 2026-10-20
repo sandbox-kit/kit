@@ -20,9 +20,11 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Public handle           | `Sandbox`             | Identity, copied metadata, and lifecycle methods     |
 
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
-the SDK runtime. Field-path constants use prefixes such as `CreateField`,
-`ConfigField`, and `InfoField`. Protobuf annotations identify source contracts
-and operation metadata.
+the SDK runtime. TypeScript app-facing `CreateOptions` / `Config` are handwritten
+facades (ms timeouts, nested oneofs); wire messages stay private to the client.
+Field-path constants use prefixes such as `CreateField`, `ConfigField`, and
+`InfoField`. Protobuf annotations identify source contracts and operation
+metadata.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses
@@ -59,7 +61,7 @@ so apps never depend on package subfolders. Providers depend on
 
 Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
-`sandbox_data_contracts.ts`. Kit custom emitters no longer write SDK helpers.
+`sandbox_data_contracts.ts`. SDK helpers are handwritten.
 
 | File                                                     | Purpose                                      |
 | -------------------------------------------------------- | -------------------------------------------- |

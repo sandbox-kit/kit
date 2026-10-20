@@ -86,13 +86,17 @@ console.log(sandbox.id, client.providerName);
 checkout. Prefer `await using`; otherwise call `await client.close()` in
 `finally`. Requires Node.js 20 / 22 / 24.15+ and npm 11.19.0.
 
-| Package                         | Role                                                        |
-| ------------------------------- | ----------------------------------------------------------- |
-| `@sandbox-kit/sandbox`          | Core client (publish once; more providers depend on this)   |
-`@sandbox-kit/daytona`          | Daytona provider — published independently (`@daytona/sdk`) |
-`@sandbox-kit/modal`            | Modal provider — published independently (`modal`)          |
+| Package                | Role                                                        |
+| ---------------------- | ----------------------------------------------------------- |
+| `@sandbox-kit/sandbox` | Core client (publish once; more providers depend on this)   |
+| `@sandbox-kit/daytona` | Daytona provider — published independently (`@daytona/sdk`) |
+| `@sandbox-kit/modal`   | Modal provider — published independently (`modal`)          |
 
-The same split applies in Go: `sdks/go/sandbox` is the core module;
+TypeScript apps use nested auth/source fields and millisecond timeouts on public
+`ClientConfig` / `CreateOptions`. The client materializes protobuf privately
+before validation.
+
+Go uses the same module split: `sdks/go/sandbox` is the core module;
 `sdks/go/providers/<name>` are independent modules.
 
 ## Examples

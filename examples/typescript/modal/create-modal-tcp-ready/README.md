@@ -1,14 +1,17 @@
 # Create a Modal sandbox that waits for a TCP port
 
-Create with a TCP readiness probe on port 8080 and `waitFor: Ready`.
+Create with `readiness: { tcpPort: 8080 }` and
+`provisioning: { waitFor: WaitCondition.Ready, timeout: 120_000 }`.
 
 ## What this means
 
-Unlike the command-probe ready example, this waits until a TCP listener accepts connections. The entrypoint starts a simple listener so the probe can succeed.
+Waits until a TCP listener accepts connections. The entrypoint starts a simple
+listener so the probe can succeed.
 
 ## Edge cases
 
-- `waitFor: Ready` requires a readiness probe and a positive timeout (here `provisioning.timeout`).
+- `waitFor: WaitCondition.Ready` requires a readiness probe and a positive
+  `provisioning.timeout` (ms).
 - Alpine’s busybox `nc` must be available in the image.
 
 ## Run

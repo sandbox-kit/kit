@@ -5,7 +5,7 @@
 - Keep shared contracts in `proto/`, portable rule inventories in versioned YAML
   under `specs/`, and runtime SDKs in `sdks/<language>/`.
 - Keep the developer CLI and YAML inventory loaders in the Go module under
-  `tooling/`. Kit custom emitters are retired; SDK helpers are handwritten.
+  `tooling/`. SDK helpers are handwritten.
 - Keep contracts independent of language runtime dependencies. Each provider
   owns native constructor conventions and names.
 - Publish the core client (`sdks/<language>/sandbox`, e.g. `@sandbox-kit/sandbox`
@@ -29,6 +29,10 @@ public client owns cleanup through `Close`.
 - Use typed integration code. Do not invoke SDK methods through reflection.
 - Expose shared request/response types as native language types from protobuf
   contracts plus handwritten aliases. Protobuf remains a schema input.
+- TypeScript public create/config types use ms timeouts, nested exclusive
+  fields, and plain allowlists. The client materializes wire messages privately
+  for Protovalidate. Application code depends on `@sandbox-kit/sandbox` (and a
+  provider); `@sandbox-kit/contracts` is an internal SDK dependency.
 - Creation returns a sandbox handle. Implement lifecycle methods on that handle
   separately from creation configuration.
 - Preserve field presence, units, source kinds, and provider defaults.
@@ -38,12 +42,12 @@ public client owns cleanup through `Close`.
 
 ## Generation and validation
 
-Kit custom emitters are retired. Shared create and client-config validation is
-declared as Protovalidate options on `proto/` messages and evaluated by language
-Protovalidate libraries inside `ValidateCreateOptions` / `ValidateConfig`. The
-`secure_endpoint` config check stays handwritten. Provider checks
-(`validateProviderCreate`), field mappings, configuration assembly, path
-helpers, and Client/Sandbox choreography remain handwritten in `sdks/`.
+Shared create and client-config validation is declared as Protovalidate options
+on `proto/` messages and evaluated by language Protovalidate libraries inside
+`ValidateCreateOptions` / `ValidateConfig`. The `secure_endpoint` config check
+is handwritten. Provider checks (`validateProviderCreate`), field mappings,
+configuration assembly, path helpers, and Client/Sandbox choreography are
+handwritten in `sdks/`.
 `specs/validation.yaml`, `specs/client.yaml`, `specs/contracts.yaml`, and each
 provider's `checks:` / `groups:` remain inventories to keep in sync with proto
 rules and handwritten code.

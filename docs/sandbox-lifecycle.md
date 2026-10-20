@@ -16,21 +16,24 @@ if !instance.Supports(sandbox.LifecycleCapabilityStop) {
 return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Minute)})
 ```
 
-An operation-specific timeout overrides `Config.Timeout`. Nil inherits the
-client default, and explicit zero adds no Kit deadline. Closing the client does
-not change the cloud sandbox. Do not use handles that depend on its SDK after
-client closure.
-`Sandbox.Close` closes only the local handle; it never changes the remote
-sandbox. Client and handle closure are idempotent. Handle closure waits for
-operations already running through that handle, and client closure waits for
-operations owned by its handles.
+An operation-specific timeout overrides `Config.Timeout` / `timeout`. Omitted
+inherits the client default, and explicit zero adds no Kit deadline. Closing the
+client does not change the cloud sandbox. Do not use handles that depend on its
+SDK after client closure.
+`Sandbox.Close` / `sandbox.close()` closes only the local handle; it never
+changes the remote sandbox. Client and handle closure are idempotent. Handle
+closure waits for operations already running through that handle, and client
+closure waits for operations owned by its handles.
 
 TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
-scoped client when its lifetime matches the current block:
+scoped client when its lifetime matches the current block. Lifecycle call
+options use millisecond `timeout` (for example
+`await sandbox.stop({ force: true, timeout: 60_000 })`):
 
 ```ts
 await using client = new Client(config);
 const sandbox = await client.create(request);
+await sandbox.stop({ timeout: 60_000 });
 ```
 
 Use `await using sandbox = ...` only when the handle itself should become

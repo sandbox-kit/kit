@@ -4,6 +4,10 @@ Independent Node.js projects. Each selects one provider and demonstrates one
 operation. Requires Node.js 24.15.0 (or Node.js 20/22), npm 11.19.0, and this
 checkout.
 
+Examples use the public `@sandbox-kit/sandbox` API: nested exclusive fields
+(`auth: { apiKey: … }`, `source: { image: … }`), millisecond timeouts, and plain
+allowlists.
+
 ## Run one
 
 ```sh

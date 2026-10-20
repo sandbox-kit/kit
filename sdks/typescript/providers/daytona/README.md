@@ -9,20 +9,21 @@ core `@sandbox-kit/sandbox` client. Use it through that shared API.
 import { Client } from "@sandbox-kit/sandbox";
 import { daytona } from "@sandbox-kit/daytona";
 
-const client = new Client({ provider: daytona() });
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
 
-try {
-  const sandbox = await client.create({
-    runtime: { language: "typescript" },
-  });
-  console.log(sandbox.id);
-} finally {
-  await client.close();
-}
+const sandbox = await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  runtime: { language: "typescript" },
+});
+console.log(sandbox.id);
 ```
 
-The native Daytona SDK resolves credentials from its environment when `auth` is
-omitted. Closing the client releases local SDK resources only.
+Auth may be omitted when the native Daytona SDK should resolve credentials from
+its environment. Closing the client releases local SDK resources only.
 
 ## Examples
 

@@ -14,6 +14,8 @@ import {
 import {
   Client,
   ErrorKind,
+  PolicyMode,
+  validateCreateOptions,
   type Backend,
   type CreateOptions,
   type CreateResult,
@@ -170,6 +172,27 @@ describe("Client cleanup", () => {
 });
 
 describe("Shared request validation", () => {
+  it("exposes validateCreateOptions for public CreateOptions", () => {
+    expect(() => validateCreateOptions({})).not.toThrow();
+    expect(() => validateCreateOptions({ resources: { cpuCores: 0 } })).toThrow(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldResourcesCpuCores,
+        rule: "exclusive_minimum",
+      }),
+    );
+    expect(() =>
+      validateCreateOptions({
+        lifetime: { idleStop: { mode: PolicyMode.After } },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        rule: "requires_any",
+      }),
+    );
+  });
+
   it("rejects invalid portable intent before the selected provider is called", async () => {
     const { client, backend } = fixture();
 
