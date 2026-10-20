@@ -13,7 +13,7 @@ import {
   mapClientScope,
   mapOAuthAuth,
   mapTokenPairCredentials,
-} from "./provider_mappings.js";
+} from "#mappings/provider_mappings.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   const source = config;

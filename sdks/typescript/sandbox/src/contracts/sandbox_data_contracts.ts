@@ -1,14 +1,14 @@
 // Portable sandbox data contracts come from standard protobuf generation.
 // These aliases keep the SDK entrypoint concise while ensuring one representation.
 
-import type { DurationFieldsToMs } from "./duration_ms.js";
+import type { DurationFieldsToMs } from "#internal/duration_ms.js";
 import type {
   EmptyMarkersAsTrue,
   FlattenAllowlistFields,
   PlainStringMapFields,
   RemapFields,
-} from "./input_remap.js";
-import type { StripProto } from "./strip_proto.js";
+} from "#internal/input_remap.js";
+import type { StripProto } from "#internal/strip_proto.js";
 import {
   EgressMode as ProtoEgressMode,
   IsolationKind as ProtoIsolationKind,
@@ -42,10 +42,10 @@ import {
   type StopOptions as ProtoStopOptions,
   type TerminateOptions as ProtoTerminateOptions,
   type ReadinessProbe as ProtoReadinessProbe,
-} from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
-import type { StripAndFlatten } from "./oneof_input.js";
-import type { MetadataPlain } from "./metadata_plain.js";
-import { protoEnum } from "./proto_enum.js";
+} from "@sandbox-kit/contracts/sandbox";
+import type { StripAndFlatten } from "#internal/oneof_input.js";
+import type { MetadataPlain } from "#metadata/metadata_plain.js";
+import { protoEnum } from "#internal/proto_enum.js";
 
 /** Public error payload; identity fields stay required after StripProto softening. */
 export type ErrorInfo = StripProto<ProtoErrorInfo> & {

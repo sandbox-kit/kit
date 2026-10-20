@@ -1,10 +1,10 @@
 import { describe, expectTypeOf, it } from "vitest";
-import { type Config } from "./client.js";
+import { type Config } from "#client/client.js";
 import {
   type CreateOptions,
   type NetworkConfigInput,
   type SandboxSourceInput,
-} from "./sandbox_data_contracts.js";
+} from "#contracts/sandbox_data_contracts.js";
 
 describe("CreateOptions remaps", () => {
   it("types allowlists as string[], providerDefault as true, maps as Record", () => {

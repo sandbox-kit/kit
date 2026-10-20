@@ -35,8 +35,8 @@ omitted. Closing the client releases local SDK resources only.
 
 ## Implementation notes
 
-Checks and portable field mappings are handwritten in `provider_checks.ts`,
-`provider_mappings.ts`, and `provider_config.ts`, kept in sync with
+Checks and portable field mappings are handwritten in `checks/provider_checks.ts`,
+`mappings/provider_mappings.ts`, and `config/provider_config.ts`, kept in sync with
 `specs/providers/daytona.yaml`. `src/daytona.ts` owns typed Daytona SDK call
 ordering and lifecycle orchestration; `src/mappings.ts` owns remaining
 provider-specific composition.

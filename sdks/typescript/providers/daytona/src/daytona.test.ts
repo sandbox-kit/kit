@@ -20,7 +20,7 @@ import {
   mapClientConfig,
   mapCreateRequest,
   type DaytonaCreateParams,
-} from "./mappings.js";
+} from "#mappings/mappings.js";
 import { mapDaytonaError } from "./errors.js";
 
 describe("Daytona mappings", () => {

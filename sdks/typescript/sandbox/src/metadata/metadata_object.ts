@@ -5,14 +5,14 @@ import {
   MetadataListSchema,
   MetadataObjectSchema,
   MetadataValueSchema,
-} from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+} from "@sandbox-kit/contracts/sandbox";
 import type {
   MetadataObject,
   MetadataValue,
-} from "./sandbox_data_contracts.js";
-import type { MetadataPlain } from "./metadata_plain.js";
+} from "#contracts/sandbox_data_contracts.js";
+import type { MetadataPlain } from "#metadata/metadata_plain.js";
 
-export type { MetadataPlain } from "./metadata_plain.js";
+export type { MetadataPlain } from "#metadata/metadata_plain.js";
 
 /** Converts a declarative map into the protobuf metadata object. */
 export function metadataObjectFromMap(

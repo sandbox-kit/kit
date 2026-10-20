@@ -17,7 +17,7 @@ import {
   type Config as WireConfig,
   type OAuthCredentials as WireOAuthCredentials,
   type TokenPairCredentials as WireTokenPairCredentials,
-} from "@sandbox-kit/contracts/kit/sandbox/v1/client_pb.js";
+} from "@sandbox-kit/contracts/client";
 import {
   CreateOptionsSchema,
   ErrorKind as ProtoErrorKind,
@@ -29,7 +29,7 @@ import {
   type SandboxSource,
   type SnapshotSource,
   type WarmPoolSource,
-} from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
+} from "@sandbox-kit/contracts/sandbox";
 import {
   SandboxState,
   type ArchiveOptions,
@@ -47,16 +47,16 @@ import {
   type StartOptions,
   type StopOptions,
   type TerminateOptions,
-} from "./sandbox_data_contracts.js";
+} from "#contracts/sandbox_data_contracts.js";
 import {
   materializeDurationFields,
   type DurationFieldsToMs,
-} from "./duration_ms.js";
-import type { RemapFields } from "./input_remap.js";
-import { metadataObjectFromMap } from "./metadata_object.js";
-import type { FlattenOneof } from "./oneof_input.js";
-import { protoEnum } from "./proto_enum.js";
-import type { StripProto } from "./strip_proto.js";
+} from "#internal/duration_ms.js";
+import type { RemapFields } from "#internal/input_remap.js";
+import { metadataObjectFromMap } from "#metadata/metadata_object.js";
+import type { FlattenOneof } from "#internal/oneof_input.js";
+import { protoEnum } from "#internal/proto_enum.js";
+import type { StripProto } from "#internal/strip_proto.js";
 
 const contractValidator = createValidator({ failFast: true });
 
@@ -82,7 +82,7 @@ export type TokenPairCredentials = StripProto<WireTokenPairCredentials>;
 export type BearerTokenCredentials = StripProto<WireBearerTokenCredentials>;
 export type OAuthCredentials = StripProto<WireOAuthCredentials>;
 export type Scope = StripProto<
-  import("@sandbox-kit/contracts/kit/sandbox/v1/client_pb.js").Scope
+  import("@sandbox-kit/contracts/client").Scope
 >;
 
 /** Public auth: set exactly one credential variant (no protobuf `{ case, value }`). */

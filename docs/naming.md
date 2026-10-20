@@ -39,10 +39,23 @@ proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
 tooling/                   Developer CLI and YAML inventory loaders
 examples/go/<provider>/      One folder per provider, one module per example
-sdks/typescript/sandbox/     Public TypeScript SDK package
-sdks/typescript/providers/   Optional TypeScript provider packages
+sdks/typescript/contracts/   Generated protobuf wire types (@sandbox-kit/contracts)
+sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
+  src/client/                Client, Sandbox handle, Backend/Provider
+  src/contracts/             Public type aliases over protobuf messages
+  src/metadata/              Metadata map helpers
+  src/internal/              Package-private duration/oneof/strip helpers
+sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-kit/modal)
+  src/mappings/              Create/info field mappings
+  src/checks/                Provider create checks
+  src/config/                Native SDK client configuration
 examples/typescript/<provider>/ One package per example
 ```
+
+Published TypeScript packages expose only their root export (`.`). Cross-folder
+imports inside a package use private `#` paths (`#internal/...`, `#mappings/...`)
+so apps never depend on package subfolders. Providers depend on
+`@sandbox-kit/sandbox` only.
 
 Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
@@ -53,9 +66,9 @@ handwritten aliases such as `sandbox_data_contracts.go` /
 | `create_validation.go`                          | Shared CreateOptions validation                |
 | `validation_fields.go`                          | Go↔protobuf field-name maps for validators     |
 | `field_paths.go` / `config_paths.go`            | Canonical field-path constants                 |
-| `provider_mappings.go` / `provider_mappings.ts` | Request and metadata field conversions         |
-| `provider_checks.go` / `provider_checks.ts`     | Provider-specific create checks                |
-| `provider_config.ts`                            | Native SDK configuration assembly (TypeScript) |
+| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions  |
+| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks         |
+| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)  |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Keep YAML inventories aligned when changing those files.

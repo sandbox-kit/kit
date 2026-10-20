@@ -50,7 +50,8 @@ under `sdks/<language>/contracts/`. Protovalidate options travel with the
 descriptors; SDKs evaluate create and client-config rules at runtime
 (`secure_endpoint` stays handwritten). `contracts-typescript` also runs
 `npm run build` in `sdks/typescript/contracts` so `@sandbox-kit/contracts`
-exports compiled descriptors from `dist/`.
+exports compiled descriptors from `dist/` via `@sandbox-kit/contracts/sandbox`
+and `@sandbox-kit/contracts/client`.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
 Go example module registered by the command. Example tests use dummy credentials

@@ -45,7 +45,7 @@ Unsupported shared intent is rejected before contacting Modal.
 
 ## Implementation notes
 
-Checks and portable field mappings are handwritten in `provider_checks.ts`,
-`provider_mappings.ts`, and `provider_config.ts`, kept in sync with
+Checks and portable field mappings are handwritten in `checks/provider_checks.ts`,
+`mappings/provider_mappings.ts`, and `config/provider_config.ts`, kept in sync with
 `specs/providers/modal.yaml`. `src/modal.ts` owns SDK call ordering;
 `src/mappings.ts` owns remaining composition those helpers do not cover.

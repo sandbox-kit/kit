@@ -43,7 +43,9 @@ Contract generation requires the Buf CLI. Both generate commands run
 `buf generate` for the plugins declared in `buf.gen.yaml`.
 `contracts-typescript` also runs `npm run build` in
 `sdks/typescript/contracts` so `@sandbox-kit/contracts` exports compiled
-descriptors (including Protovalidate options) from `dist/`.
+descriptors (including Protovalidate options) from `dist/`. Import wire
+types via `@sandbox-kit/contracts/sandbox` and `@sandbox-kit/contracts/client`
+(or the package root); generated files stay under `src/kit/...` for Buf.
 
 Contract packages are committed under `sdks/<language>/contracts/`. Edit
 `proto/`, then regenerate contracts. SDK applications use native types and do

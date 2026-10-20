@@ -29,7 +29,7 @@ import {
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
-} from "./mappings.js";
+} from "#mappings/mappings.js";
 import { mapDaytonaError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 

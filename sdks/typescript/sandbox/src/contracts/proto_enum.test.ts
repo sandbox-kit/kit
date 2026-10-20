@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   EgressMode as ProtoEgressMode,
   PortTransport as ProtoPortTransport,
-} from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
-import { EgressMode, PortTransport } from "./sandbox_data_contracts.js";
-import { protoEnum } from "./proto_enum.js";
+} from "@sandbox-kit/contracts/sandbox";
+import { EgressMode, PortTransport } from "#contracts/sandbox_data_contracts.js";
+import { protoEnum } from "#internal/proto_enum.js";
 
 describe("protoEnum", () => {
   it("maps SCREAMING_SNAKE members to PascalCase with the same values", () => {

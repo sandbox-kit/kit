@@ -17,14 +17,14 @@ import {
   type Sandbox as ModalSandbox,
   type SandboxCreateParams,
 } from "modal";
-import { mapClientConfig, mapCreateRequest } from "./mappings.js";
+import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 import { ModalProvider } from "./modal.js";
 import {
   mapIdleDuration,
   mapLifetimeDuration,
   mapResources,
-} from "./provider_mappings.js";
-import { captureProviderState } from "./provider_config.js";
+} from "#mappings/provider_mappings.js";
+import { captureProviderState } from "#config/provider_config.js";
 import { mapModalError } from "./errors.js";
 
 describe("Modal mappings", () => {

@@ -15,6 +15,7 @@
     "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
+    "customConditions": ["@sandbox-kit/source"],
     "noEmit": true
   },
   "include": ["src/**/*.ts"]

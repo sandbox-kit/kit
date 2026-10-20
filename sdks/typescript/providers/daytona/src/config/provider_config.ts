@@ -13,7 +13,7 @@ import {
   mapBearerAuth,
   mapClientSettings,
   mapScope,
-} from "./provider_mappings.js";
+} from "#mappings/provider_mappings.js";
 
 export type Environment = Readonly<Record<string, string | undefined>>;
 

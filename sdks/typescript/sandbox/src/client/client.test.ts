@@ -13,7 +13,7 @@ import {
   SandboxState,
   type SandboxInfo,
   type TerminateOptions,
-} from "./index.js";
+} from "../index.js";
 
 class RecordingBackend implements Backend {
   readonly name = "test";
