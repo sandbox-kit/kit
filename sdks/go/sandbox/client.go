@@ -65,54 +65,47 @@ type Client struct {
 	lifecycle *clientLifecycle
 }
 
-// SandboxCreator implements the create operation declared by SandboxService.
+// SandboxCreator is the optional create capability on a provider Backend.
 type SandboxCreator interface {
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
 }
 
-// SandboxAttacher implements the attach operation declared by SandboxService.
+// SandboxAttacher is the optional attach capability on a provider Backend.
 type SandboxAttacher interface {
 	AttachSandbox(context.Context, string) (*SandboxInfo, error)
 }
 
-// SandboxRefresher implements the refresh sandbox operation declared by
-// SandboxService.
+// SandboxRefresher is the optional refresh capability on a provider Backend.
 type SandboxRefresher interface {
 	RefreshSandbox(context.Context, string) (*SandboxInfo, error)
 }
 
-// SandboxStarter implements the start sandbox operation declared by
-// SandboxService.
+// SandboxStarter is the optional start capability on a provider Backend.
 type SandboxStarter interface {
 	StartSandbox(context.Context, string, *StartOptions) (*SandboxInfo, error)
 }
 
-// SandboxStopper implements the stop sandbox operation declared by
-// SandboxService.
+// SandboxStopper is the optional stop capability on a provider Backend.
 type SandboxStopper interface {
 	StopSandbox(context.Context, string, *StopOptions) (*SandboxInfo, error)
 }
 
-// SandboxPauser implements the pause sandbox operation declared by
-// SandboxService.
+// SandboxPauser is the optional pause capability on a provider Backend.
 type SandboxPauser interface {
 	PauseSandbox(context.Context, string, *PauseOptions) (*SandboxInfo, error)
 }
 
-// SandboxTerminator implements the terminate sandbox operation declared by
-// SandboxService.
+// SandboxTerminator is the optional terminate capability on a provider Backend.
 type SandboxTerminator interface {
 	TerminateSandbox(context.Context, string, *TerminateOptions) (*ExitResult, error)
 }
 
-// SandboxArchiver implements the archive sandbox operation declared by
-// SandboxService.
+// SandboxArchiver is the optional archive capability on a provider Backend.
 type SandboxArchiver interface {
 	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
 }
 
-// SandboxDeleter implements the delete sandbox operation declared by
-// SandboxService.
+// SandboxDeleter is the optional delete capability on a provider Backend.
 type SandboxDeleter interface {
 	DeleteSandbox(context.Context, string, *DeleteOptions) (*SandboxInfo, error)
 }

@@ -3,11 +3,11 @@
 The architecture is documented in
 [protobuf SDK boundary](protobuf-sdk-boundary.md). Protobuf is the one source of
 truth for portable data and operation contracts. Buf (`buf generate`) emits
-messages, enums, reflection metadata, and service declarations via standard
-plugins; handwritten SDK code owns client, handle, provider, checks, mappings,
-and error behavior. Shared create and client-config validation is Protovalidate
-options on those messages, evaluated by language Protovalidate libraries
-(`secure_endpoint` is handwritten).
+messages, enums, and reflection metadata via standard plugins; handwritten SDK
+code owns client, handle, provider backends, checks,
+mappings, and error behavior. Shared create and client-config validation is
+Protovalidate options on those messages, evaluated by language Protovalidate
+libraries (`secure_endpoint` is handwritten). There is no Kit gRPC service.
 
 Portable create/config/info types come from standard protobuf contracts plus
 handwritten SDK aliases.
@@ -28,7 +28,7 @@ GOWORK=off go run ./cmd/sandbox-kit test proto --against '.git#branch=main,subdi
 
 The second command adds `buf breaking` against the selected Git or Buf input.
 The initial lint baseline is `BASIC`: it catches structural mistakes without
-renaming established enum defaults or the local `SandboxService` declaration.
+renaming established enum defaults.
 
 From `tooling/`:
 
@@ -56,7 +56,7 @@ provider); `@sandbox-kit/contracts` is an internal wire dependency of the SDK.
 
 | Input                             | Defines                                                                            |
 | --------------------------------- | ---------------------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Public portable types, service requests/responses, and operation contracts         |
+| `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, metadata, errors)        |
 | `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
 | `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
 | `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
@@ -68,10 +68,10 @@ inside the language's bindings.
 
 ## API declarations
 
-Public data signatures and service request/response shapes belong in protobuf.
-Runtime objects and behavior are handwritten in each language. YAML must not
-declare types, constructors, methods, result shapes, visibility, or operation
-sequencing.
+Public portable data signatures belong in protobuf. Runtime objects and behavior
+(`Client`, `Sandbox`, provider `Backend` adapters) are handwritten in each
+language. YAML must not declare types, constructors, methods, result shapes,
+visibility, or operation sequencing.
 
 ## Response and error contracts
 
@@ -232,14 +232,12 @@ Backend state capture and metadata cloning are handwritten in the SDK runtime
 
 ## Extend a provider or language
 
-1. Declare shared types and method intent in protobuf.
-2. Describe portable validation and conversions in YAML inventories, and
-   operation intent on an annotated `SandboxService` method.
+1. Declare shared portable types in protobuf.
+2. Describe portable validation and conversions in YAML inventories.
 3. Implement native SDK integration, checks, and mappings in the provider
-   package.
-4. Add annotated service operations that use existing outcome shapes.
-5. Add semantic boundary tests and update examples/docs.
-6. Run the CLI verification command.
+   package, plus any new `Client` / `Sandbox` / `Backend` methods by hand.
+4. Add semantic boundary tests and update examples/docs.
+5. Run the CLI verification command.
 
 SDK orchestration that the inventory cannot express stays in handwritten
 provider integration files (`sandbox.go` in Go and the provider-named `.ts`
@@ -250,8 +248,9 @@ configuration; handwritten `provider_checks` enforces create checks; handwritten
 `errors` classifies native provider errors.
 
 Lifecycle option and result types come from protobuf contracts. Handle methods,
-typed provider dispatch, capability discovery, storage, and close coordination
-remain handwritten runtime code shaped by annotated `SandboxService` methods.
+typed provider dispatch, capability discovery, and close coordination remain
+handwritten runtime code on `Client`, `Sandbox`, and provider `Backend`
+adapters.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).
