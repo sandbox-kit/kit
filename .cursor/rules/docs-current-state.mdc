@@ -1,0 +1,35 @@
+---
+description: Keep docs and READMEs as current-state truth; update silently; remove outdated content
+alwaysApply: true
+---
+
+# Docs and READMEs: current state only
+
+When APIs, layout, architecture, examples, or dependencies change, update the
+relevant README and project Markdown as part of the same work.
+
+## Write what is true now
+
+- Describe the project as it exists **today**. Present tense.
+- Do **not** narrate migrations, "previously… now…", before/after diffs, or
+  changelog-style history inside READMEs or guides unless the user explicitly
+  asks for a migration/history section.
+- Prefer replacing stale wording over appending "new" notes beside old ones.
+
+## Delete outdated content
+
+- Remove sections, examples, commands, and claims that no longer match the repo.
+- Do not leave deprecated paths "for context" unless the user asks.
+
+## Stay silent about the doc edit
+
+- Fold doc updates into the task. Do **not** call out "I also updated the README"
+  or summarize doc churn in the reply unless the user asked about docs.
+- Mentions like "Updated README" in a PR/commit summary are fine when that is
+  the deliverable; casual chat should focus on the feature/fix work.
+
+## Scope
+
+- Applies to `README.md`, `docs/`, `examples/**/README.md`, and other project
+  Markdown that describes current behavior.
+- Does not replace CHANGELOG or commit/PR history; keep those elsewhere.

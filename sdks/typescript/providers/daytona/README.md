@@ -44,8 +44,8 @@ provider-specific composition.
 
 ## Dependency audit
 
-As of 2026-10-14, `npm audit` reports four high-severity findings in the pinned
+`npm audit` reports four high-severity findings in the pinned
 `@daytona/sdk@0.224.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
-The registry currently reports no fix. The provider does not override those
-transitive packages because doing so could create an unsupported SDK
-combination; reassess the audit when upgrading the Daytona SDK.
+The registry reports no fix. The provider does not override those transitive
+packages, because overrides could create an unsupported SDK combination.
+Reassess the audit when upgrading the Daytona SDK.

@@ -1,6 +1,6 @@
 # Code generation
 
-The target architecture is documented in
+The architecture is documented in
 [protobuf SDK boundary](protobuf-sdk-boundary.md). Protobuf is the one source of
 truth for portable data and operation contracts. Buf (`buf generate`) emits
 messages, enums, reflection metadata, and service declarations via standard

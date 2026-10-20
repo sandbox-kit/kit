@@ -81,14 +81,14 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Covers package boundaries, public exports, `pyproject.toml`,
-  source layouts, and dependency organization. This is directly relevant when
-  adding a distributable Python SDK under `sdks/python/`.
+  source layouts, and dependency organization for a Python SDK under
+  `sdks/python/`.
 
 ### `python-testing-patterns`
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Adds focused pytest fixtures, parametrization, mocking,
-  integration tests, and asynchronous test patterns for a future Python SDK.
+  integration tests, and asynchronous test patterns for a Python SDK.
 
 ### `python-error-handling`
 
@@ -100,54 +100,43 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Covers structured concurrency, cancellation, timeouts,
-  resource cleanup, and async context managers. These concerns matter when a
-  Python SDK wraps networked sandbox providers.
+  resource cleanup, and async context managers for a Python SDK that wraps
+  networked sandbox providers.
+
+### `docs-current-state`
+
+- **Source:** local (`.agents/skills/docs-current-state`)
+- **Why selected:** Enforces this repository's documentation policy: write
+  present-tense current-state docs, delete outdated sections, update Markdown
+  with code changes, and avoid before/after or roadmap narration in product
+  guides. Complements the always-on Cursor rule
+  `.cursor/rules/docs-current-state.mdc`.
+
+### `crafting-effective-readmes`
+
+- **Source:** `softaworks/agent-toolkit`
+- **Why selected:** README structure, audience fit, and templates for root,
+  SDK, tooling, and example project READMEs. Prefer this when creating or
+  reshaping a README; pair with `docs-current-state` so content stays current.
+
+### `writing-clearly-and-concisely`
+
+- **Source:** `softaworks/agent-toolkit`
+- **Why selected:** Prose guidance for guides, READMEs, error messages, and
+  other human-readable text. Cuts filler and AI-pattern wording.
+
+### `baoyu-format-markdown`
+
+- **Source:** `JimLiu/baoyu-skills` (local copy)
+- **Why selected:** Formatting-only markdown passes (headings, lists, layout)
+  when the user asks to beautify or reformat without changing meaning.
+
+### `golang-documentation`
+
+- **Source:** `samber/cc-skills-golang`
+- **Why selected:** Go doc comments, example tests, and project documentation
+  patterns for the Go SDK and `tooling/` CLI.
 
 ## Existing complementary skills
 
 - `golang-design-patterns` covers idiomatic Go API and lifecycle choices.
-- `golang-documentation` covers Go and project documentation.
-- `crafting-effective-readmes`, `baoyu-format-markdown`, and
-  `writing-clearly-and-concisely` cover documentation structure and prose rather
-  than SDK architecture.
-
-## Evaluated but not installed
-
-### `typescript-patterns` from `heldinhow`
-
-The previously suggested source could not be verified in the current public
-skills registry or its GitHub source. The selected advanced-types skill covers
-the useful TypeScript-specific portion without relying on an unverified package.
-
-### `design-patterns` from `FlorianBruniaux/claude-code-ultimate-guide`
-
-This is a broad catalog of GoF and framework patterns. It overlaps with both
-`golang-design-patterns` and `coding-standards`, while its React, Angular,
-NestJS, Vue, Redux, and ORM material is unrelated to this SDK. A generic pattern
-catalog also risks encouraging abstractions before the repository's specs and
-provider seams require them.
-
-### `typescript-pro` and other broad TypeScript bundles
-
-These substantially overlap with `typescript-advanced-types` and add unrelated
-application and framework guidance. One focused TypeScript skill keeps activation
-predictable and avoids contradictory recommendations.
-
-### `codebase-design` from `mattpocock/skills`
-
-Its deep-module and seam guidance is strong, but the selected `coding-standards`
-skill already includes cohesive-module, adapter, and boundary guidance. Installing
-both would duplicate architecture advice and vocabulary.
-
-### Microsoft `skill-creator`
-
-This helps authors create agent skills; it is not an SDK design or TypeScript/Go
-interoperability skill. It does not contribute to implementation work in this
-repository.
-
-### SDK generators and framework-specific skills
-
-Low-adoption SDK generator skills and React, Node backend, OpenAPI, NestJS, and
-frontend-focused skills were excluded. This repository uses protobuf contracts,
-YAML inventories, and handwritten SDK runtime code; generic generators could
-conflict with the rules in `AGENTS.md` and `specs/`.

@@ -13,8 +13,8 @@
   Publish each provider module independently per language (e.g.
   `@sandbox-kit/daytona` and `.../providers/daytona`). Do not ship
   providers inside the core sandbox package.
-- Keep the public SDK, optional providers, and future harness integrations in
-  separate modules. Each provider depends on its official SDK.
+- Keep the public SDK, optional providers, and harness integrations in separate
+  modules. Each provider depends on its official SDK.
 
 ## Public API and provider ownership
 
@@ -76,12 +76,13 @@ Use small, independent provider-specific projects under `examples/<language>/`.
 Each example demonstrates one operation with its own configuration and no provider
 selector or CLI flags.
 
-Keep examples aligned with the implemented API. Label test doubles, planned
-features, and local verification limits clearly. Verify changed examples before
-handoff and update `examples/README.md` when adding a language.
+Keep examples aligned with the implemented API. Label test doubles and local
+verification limits clearly. Verify changed examples before handoff and update
+`examples/README.md` when adding a language.
 
 Update project Markdown whenever APIs, layout, architecture, or dependencies
-change. Verify links and commands and distinguish current behavior from plans.
+change. Write docs as current-state truth: present tense, remove outdated
+sections, and verify links and commands against the repository.
 
 ## Development tooling
 

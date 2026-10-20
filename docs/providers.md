@@ -61,22 +61,24 @@ selection, readiness, and remaining network or policy semantics. Adding another
 language requires handwritten typed integration for those operations.
 
 Optional providers depend on their official SDKs. The core sandbox module
-depends on neither provider SDK. Future harness integrations will remain
+depends on neither provider SDK. Harness integrations, when present, stay
 separate, independently published modules.
 
-## Current behavior
+## Behavior
 
 Creation, verified retrieval, or explicit attachment returns a shared sandbox
 handle with metadata origins. Errors expose common kinds and preserve SDK or
 validator causes. Metadata is copied before exposure.
 Closing a client releases SDK resources and leaves cloud sandboxes running.
 Handles must not be used after their owning client closes. Closing a sandbox
-handle is also local-only and idempotent. Creation is an optional backend capability, allowing future
-management-only or attach-only integrations.
+handle is also local-only and idempotent. Creation is an optional backend
+capability, so a provider may expose management or attach without create.
 
 Sandbox Kit introduces no middle service or generated gRPC transport. Native
 provider SDKs use their own transports, including gRPC where applicable.
 
-Execution, GPU requests, storage, and harness integrations remain future work.
+Out of scope for the public API: in-sandbox execution, GPU requests, storage,
+and harness integrations.
+
 See [creation coverage](sandbox-creation.md),
 [configuration](configuration.md), and [generation](code-generation.md).

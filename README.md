@@ -8,8 +8,9 @@ same Daytona / Modal example matrix. More providers plug into the core sandbox
 module without being bundled inside it.
 
 Closing a client or handle releases local SDK resources only. It does not stop,
-terminate, archive, or delete a cloud sandbox. Execution, storage, GPU requests,
-and harness integrations are planned.
+terminate, archive, or delete a cloud sandbox. The public API covers client
+setup, creation, and lifecycle against Daytona and Modal. Execution, storage,
+GPU requests, and harness integrations are out of scope.
 
 ## Usage
 
@@ -127,44 +128,8 @@ Creation examples provision real sandboxes. Lifecycle examples use the ID in
 Error-handling examples fail locally and create nothing. Skip copying
 `.env.example` if you already have a configured `.env`.
 
-Indexes: [all](examples/README.md) · [Go](examples/go/README.md) ·
-[TypeScript](examples/typescript/README.md).
-
-| Example                   | Go                                                               | TypeScript                                                                       |
-| ------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Daytona creation          | [go](examples/go/daytona/create-daytona-sandbox/README.md)       | [typescript](examples/typescript/daytona/create-daytona-sandbox/README.md)       |
-| Daytona snapshot          | [go](examples/go/daytona/create-daytona-from-snapshot/README.md) | [typescript](examples/typescript/daytona/create-daytona-from-snapshot/README.md) |
-| Daytona image             | [go](examples/go/daytona/create-daytona-from-image/README.md)    | [typescript](examples/typescript/daytona/create-daytona-from-image/README.md)    |
-| Daytona runtime           | [go](examples/go/daytona/create-daytona-with-runtime/README.md)  | [typescript](examples/typescript/daytona/create-daytona-with-runtime/README.md)  |
-| Daytona ephemeral         | [go](examples/go/daytona/create-daytona-ephemeral/README.md)     | [typescript](examples/typescript/daytona/create-daytona-ephemeral/README.md)     |
-| Daytona linked            | [go](examples/go/daytona/create-daytona-linked/README.md)        | [typescript](examples/typescript/daytona/create-daytona-linked/README.md)        |
-| Daytona policies          | [go](examples/go/daytona/create-daytona-with-policies/README.md) | [typescript](examples/typescript/daytona/create-daytona-with-policies/README.md) |
-| Daytona get               | [go](examples/go/daytona/get-daytona-sandbox/README.md)          | [typescript](examples/typescript/daytona/get-daytona-sandbox/README.md)          |
-| Daytona refresh           | [go](examples/go/daytona/refresh-daytona-sandbox/README.md)      | [typescript](examples/typescript/daytona/refresh-daytona-sandbox/README.md)      |
-| Daytona start             | [go](examples/go/daytona/start-daytona-sandbox/README.md)        | [typescript](examples/typescript/daytona/start-daytona-sandbox/README.md)        |
-| Daytona stop              | [go](examples/go/daytona/stop-daytona-sandbox/README.md)         | [typescript](examples/typescript/daytona/stop-daytona-sandbox/README.md)         |
-| Daytona pause             | [go](examples/go/daytona/pause-daytona-sandbox/README.md)        | [typescript](examples/typescript/daytona/pause-daytona-sandbox/README.md)        |
-| Daytona archive           | [go](examples/go/daytona/archive-daytona-sandbox/README.md)      | [typescript](examples/typescript/daytona/archive-daytona-sandbox/README.md)      |
-| Daytona delete            | [go](examples/go/daytona/delete-daytona-sandbox/README.md)       | [typescript](examples/typescript/daytona/delete-daytona-sandbox/README.md)       |
-| Daytona close handle      | [go](examples/go/daytona/close-daytona-handle/README.md)         | [typescript](examples/typescript/daytona/close-daytona-handle/README.md)         |
-| Daytona errors            | [go](examples/go/daytona/handle-daytona-errors/README.md)        | [typescript](examples/typescript/daytona/handle-daytona-errors/README.md)        |
-| Modal creation            | [go](examples/go/modal/create-modal-sandbox/README.md)           | [typescript](examples/typescript/modal/create-modal-sandbox/README.md)           |
-| Modal resources           | [go](examples/go/modal/create-modal-with-resources/README.md)    | [typescript](examples/typescript/modal/create-modal-with-resources/README.md)    |
-| Modal runtime             | [go](examples/go/modal/create-modal-with-runtime/README.md)      | [typescript](examples/typescript/modal/create-modal-with-runtime/README.md)      |
-| Modal gVisor              | [go](examples/go/modal/create-modal-gvisor/README.md)            | [typescript](examples/typescript/modal/create-modal-gvisor/README.md)            |
-| Modal Linux VM            | [go](examples/go/modal/create-modal-linux-vm/README.md)          | [typescript](examples/typescript/modal/create-modal-linux-vm/README.md)          |
-| Modal placement           | [go](examples/go/modal/create-modal-with-placement/README.md)    | [typescript](examples/typescript/modal/create-modal-with-placement/README.md)    |
-| Modal labels              | [go](examples/go/modal/create-modal-with-labels/README.md)       | [typescript](examples/typescript/modal/create-modal-with-labels/README.md)       |
-| Modal network             | [go](examples/go/modal/create-modal-with-network/README.md)      | [typescript](examples/typescript/modal/create-modal-with-network/README.md)      |
-| Modal idle timeout        | [go](examples/go/modal/create-modal-idle/README.md)              | [typescript](examples/typescript/modal/create-modal-idle/README.md)              |
-| Modal readiness           | [go](examples/go/modal/create-modal-ready/README.md)             | [typescript](examples/typescript/modal/create-modal-ready/README.md)             |
-| Modal verbose             | [go](examples/go/modal/create-modal-verbose/README.md)           | [typescript](examples/typescript/modal/create-modal-verbose/README.md)           |
-| Modal identity            | [go](examples/go/modal/create-modal-with-identity/README.md)     | [typescript](examples/typescript/modal/create-modal-with-identity/README.md)     |
-| Modal attach              | [go](examples/go/modal/attach-modal-sandbox/README.md)           | [typescript](examples/typescript/modal/attach-modal-sandbox/README.md)           |
-| Modal terminate           | [go](examples/go/modal/terminate-modal-sandbox/README.md)        | [typescript](examples/typescript/modal/terminate-modal-sandbox/README.md)        |
-| Modal termination request | [go](examples/go/modal/request-modal-termination/README.md)      | [typescript](examples/typescript/modal/request-modal-termination/README.md)      |
-| Modal close handle        | [go](examples/go/modal/close-modal-handle/README.md)             | [typescript](examples/typescript/modal/close-modal-handle/README.md)             |
-| Modal errors              | [go](examples/go/modal/handle-modal-errors/README.md)            | [typescript](examples/typescript/modal/handle-modal-errors/README.md)            |
+Full catalog: [examples/README.md](examples/README.md) ·
+[Go](examples/go/README.md) · [TypeScript](examples/typescript/README.md).
 
 ## Handle errors
 

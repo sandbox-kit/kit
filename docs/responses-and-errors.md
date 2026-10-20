@@ -180,9 +180,10 @@ or runtime serialization codec is introduced.
 An error does not prove that no sandbox exists: readiness or metadata handling
 can fail after creation. A lifecycle call can also fail after the provider has
 begun or completed a transition. Refresh the handle when the provider supports
-it before deciding whether to retry. Partial-success creation identity reporting
-remains deferred. Error kinds do not imply safe retries, and Kit performs no
-automatic retries.
+it before deciding whether to retry. Kit does not surface a partial-success
+creation identity when creation fails after the provider has allocated a
+resource. Error kinds do not imply safe retries, and Kit performs no automatic
+retries.
 
 See [creation](sandbox-creation.md), [generation](code-generation.md), and
 [provider verification](provider-verification.md).

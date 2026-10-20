@@ -13,10 +13,10 @@ types, constructors, methods, errors, or control flow.
 - `SandboxService` request/response messages and its operation graph.
 
 `kit.sandbox.internal.v1` is reserved for implementation-only contract data used
-by the SDK runtime and provider adapters. It is not required for the current
-public `client.proto` / `sandbox.proto` adoption. When added, generated Go
-output belongs under a Go `internal/` directory, and TypeScript must not
-re-export that module from a package entrypoint.
+by the SDK runtime and provider adapters. Public contracts live in
+`client.proto` / `sandbox.proto`. Internal generated Go output belongs under a
+Go `internal/` directory; TypeScript must not re-export that module from a
+package entrypoint.
 
 An internal protobuf message is still a data contract. It must not contain a
 native SDK client, callback, mutex, function, or another runtime object.
@@ -56,7 +56,7 @@ It must not prescribe method signatures, constructors, response shapes,
 visibility, or operation sequences. Validation, mappings, and SDK control flow
 are handwritten; YAML inventories stay documentation for humans.
 
-## Current boundary
+## Boundary
 
 Contract packages come from Buf-driven standard protobuf plugins
 (`buf generate`). Shared create and client-config validation is declared with

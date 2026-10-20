@@ -112,7 +112,7 @@ timeout inherits `Config.Timeout` / `timeout`; explicit zero adds no Kit
 deadline. Caller deadlines and native SDK timeouts still apply. Modal ready
 waiting also requires a readiness probe and a positive creation timeout.
 
-## Results, cleanup, and future work
+## Results and cleanup
 
 Kit copies requests and result metadata with typed clone helpers. Errors expose
 shared details while preserving native causes. Cancellation is forwarded to the
@@ -122,8 +122,9 @@ Closing the client releases SDK resources without changing cloud sandboxes.
 Do not use handles after their owning client closes. Closing a handle is also
 local-only.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
-Execution, GPU requests, resizing, storage, harnesses, browsers, computer use,
-and macOS/Windows creation support remain future work.
+
+Out of scope for creation: in-sandbox execution, GPU requests, resizing,
+storage, harnesses, browsers, computer use, and macOS/Windows creation.
 
 See [configuration](configuration.md), [provider reference verification](provider-verification.md),
 and [generation rules](code-generation.md).
