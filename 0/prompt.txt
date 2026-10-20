@@ -1,0 +1,15 @@
+cool commit the changes u made  and push it
+
+---
+
+i have changed branch to main and merge the changes of npm-publishable.
+
+can u run the typescipr texample package deps npm install so package installation are upto date
+
+---
+
+also typescript sdk itself ?
+
+---
+
+also run generator for typescript
