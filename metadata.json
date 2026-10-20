@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5C5SBASY2FVQSBP06BEEAMW",
+  "strategy": "manual-commit",
+  "branch": "chore/typescript-npm-publishable",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "README.md",
+    "sdks/typescript/.gitignore",
+    "sdks/typescript/README.md",
+    "sdks/typescript/contracts/LICENSE",
+    "sdks/typescript/contracts/README.md",
+    "sdks/typescript/contracts/package-lock.json",
+    "sdks/typescript/contracts/package.json",
+    "sdks/typescript/package-lock.json",
+    "sdks/typescript/package.json",
+    "sdks/typescript/providers/daytona/LICENSE",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/package-lock.json",
+    "sdks/typescript/providers/daytona/package.json",
+    "sdks/typescript/providers/modal/LICENSE",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/providers/modal/package-lock.json",
+    "sdks/typescript/providers/modal/package.json",
+    "sdks/typescript/sandbox/LICENSE",
+    "sdks/typescript/sandbox/README.md",
+    "sdks/typescript/sandbox/package-lock.json",
+    "sdks/typescript/sandbox/package.json",
+    "tooling/README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 58587,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1750016,
+    "output_tokens": 11577,
+    "api_call_count": 1
+  }
+}

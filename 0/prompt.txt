@@ -1,0 +1,49 @@
+we need to start publishing the typescript sdk. 
+
+lemme know should be publish as 
+
+@sandbox-kit/core
+@sandbox-kit/daytona
+@sandbox-kit/modal
+
+or 
+
+@sandbox-kit/sandbox
+@sandbox-kit/daytona
+@sandbox-kit/modal
+
+?
+
+---
+
+so later when we add macos, windows, computeruse
+
+we can seperate out from sandbox-kit/sandbox ? whats the reason ? the benefits ?
+
+---
+
+sfimilarly for volume, snapshot and all ?
+
+---
+
+daytona provides i think to create it seperately ? 
+
+chck providers and see ?
+
+---
+
+cool make sense. lets start refine and create a plan for publishing to npm
+
+---
+
+explian more.
+
+---
+
+we will automate later, we need to publish it rn. I already have org named sandbox-kit
+
+but lets make it clean and publishable first.
+
+---
+
+don't publish yet note that. but go ahead build locally
