@@ -1,7 +1,7 @@
 # Create a Modal sandbox and wait until ready
 
-Create with an **exec readiness probe** (`true`) and
-`provisioning.waitFor = Ready`, plus a positive creation timeout.
+Create with `readiness: { command: { argv: ["true"] } }`,
+`provisioning: { waitFor: WaitCondition.Ready, timeout: 120_000 }`.
 
 ## What this means
 
@@ -10,7 +10,7 @@ Kit's ready wait maps to waiting until the probe passes before returning the
 handle. See
 [Sandboxes → Readiness Probes](https://modal.com/docs/guide/sandboxes).
 
-Kit requires a probe and a positive create timeout for ready wait.
+Ready wait requires a probe and a positive `provisioning.timeout` (ms).
 
 ## Edge cases
 

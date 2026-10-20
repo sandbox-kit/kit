@@ -1,34 +1,22 @@
-import { modal } from "@sandbox-kit/provider-modal";
-import {
-  Client,
-  duration,
-  type ClientConfig,
-} from "@sandbox-kit/sandbox";
+import { modal } from "@sandbox-kit/modal";
+import { Client } from "@sandbox-kit/sandbox";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-}
-
-function clientConfig(): ClientConfig {
-  return {
-    provider: modal(),
-    auth: {
-      credentials: { case: "tokenPair", value: {
-        id: requireEnv("MODAL_TOKEN_ID"),
-        secret: requireEnv("MODAL_TOKEN_SECRET"),
-      } },
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
     },
-    scope: {
-      appName: requireEnv("MODAL_APP_NAME"),
-      environment: process.env.MODAL_ENVIRONMENT || "main",
-    },
-    timeout: duration(120_000),
-  };
-}
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: process.env.MODAL_ENVIRONMENT || "main",
+  },
+  timeout: 120_000,
+});
 
-await using client = new Client(clientConfig());
-
-const sandbox = await client.attach(requireEnv("MODAL_SANDBOX_ID"));
-console.log(`Modal handle attached: id=${sandbox.id} capabilities=${sandbox.capabilities().join(",")}`);
+const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
+console.log(
+  `Modal handle attached: id=${sandbox.id} capabilities=${sandbox.capabilities().join(",")}`,
+);

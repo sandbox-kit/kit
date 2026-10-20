@@ -31,17 +31,25 @@ explicit snapshot kinds are not mapped. Supplied unsupported fields and
 
 Omitted fields retain provider defaults. In Go, `sandbox.Value(v)` marks an
 optional scalar as supplied, including zero or false, and
-`sandbox.Duration(d)` sets protobuf duration fields. TypeScript uses property
-presence and `undefined`. Shared create rules come from Protovalidate on
-`sandbox.proto` (`ValidateCreateOptions`); provider checks still reject
-unsupported intent before native calls.
+`sandbox.Duration(d)` sets protobuf duration fields.
 
-| Resource         | Modal                                          | Daytona                             |
-| ---------------- | ---------------------------------------------- | ----------------------------------- |
-| CPU              | Physical cores; minimum 0.125, precision 0.001 | Whole CPU cores                     |
-| Memory           | MiB; minimum request 128                       | Whole GiB expressed as MiB          |
-| Disk             | Creation override unsupported                  | Whole GiB expressed as MiB          |
-| Maximum lifetime | Positive whole seconds, up to 24 hours         | Whole-minute TTL; zero disables TTL |
+TypeScript `CreateOptions` is the public creation request: nested exclusive
+fields (`source: { image: … }`, `readiness: { tcpPort }` / `{ command }`),
+`string[]` allowlists, plain `environment` / `labels` / `providerOptions` maps,
+and **millisecond** duration fields (`timeout`, `after`, `maximumLifetime`).
+Property presence and `undefined` mark omission. The client materializes
+protobuf privately before Protovalidate.
+
+Shared create rules come from Protovalidate on `sandbox.proto`
+(`ValidateCreateOptions`); provider checks still reject unsupported intent
+before native calls.
+
+| Resource         | Modal                                           | Daytona                                      |
+| ---------------- | ----------------------------------------------- | -------------------------------------------- |
+| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              |
+| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   |
+| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   |
+| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL |
 
 Daytona request conversion divides MiB exactly by 1024. Allocated metadata
 converts GiB back to MiB. Snapshot creation inherits snapshot resources.
@@ -55,9 +63,11 @@ varies; resource metadata represents SDK-reported allocation, not echoed request
 
 ## Policy semantics
 
-`PolicyModeDefault` defers to the provider. `PolicyModeDisabled` requests explicit
-disabling. `PolicyModeAfter` supplies a delay; a zero delay requests an immediate
-action and must not be interpreted as disabling.
+Default mode defers to the provider (`PolicyModeDefault` / `PolicyMode.Default`).
+Disabled mode requests explicit disabling (`PolicyModeDisabled` /
+`PolicyMode.Disabled`). After mode supplies a delay (`PolicyModeAfter` /
+`PolicyMode.After`); a zero delay requests an immediate action and must not be
+interpreted as disabling. TypeScript delays are millisecond numbers.
 
 Current Daytona mappings follow the service guide where SDK comments conflict:
 
@@ -98,13 +108,13 @@ toolbox languages use declared supported values. Secrets are references to
 provider-managed secrets, not authentication credentials.
 
 Creation timeout, queue timeout, and lifetime are distinct. Omitted creation
-timeout inherits `Config.Timeout`; explicit zero adds no Kit deadline.
-Caller deadlines and native SDK timeouts still apply. Modal ready waiting also
-requires a readiness probe and a positive creation timeout.
+timeout inherits `Config.Timeout` / `timeout`; explicit zero adds no Kit
+deadline. Caller deadlines and native SDK timeouts still apply. Modal ready
+waiting also requires a readiness probe and a positive creation timeout.
 
-## Results, cleanup, and future work
+## Results and cleanup
 
-Kit uses generated typed copies for requests and result metadata. Errors expose
+Kit copies requests and result metadata with typed clone helpers. Errors expose
 shared details while preserving native causes. Cancellation is forwarded to the
 SDK. Kit performs no automatic retries or cloud cleanup.
 
@@ -112,8 +122,9 @@ Closing the client releases SDK resources without changing cloud sandboxes.
 Do not use handles after their owning client closes. Closing a handle is also
 local-only.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
-Execution, GPU requests, resizing, storage, harnesses, browsers, computer use,
-and macOS/Windows creation support remain future work.
+
+Out of scope for creation: in-sandbox execution, GPU requests, resizing,
+storage, harnesses, browsers, computer use, and macOS/Windows creation.
 
 See [configuration](configuration.md), [provider reference verification](provider-verification.md),
 and [generation rules](code-generation.md).

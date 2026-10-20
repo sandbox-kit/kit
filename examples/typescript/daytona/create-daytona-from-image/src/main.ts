@@ -1,35 +1,16 @@
-import { daytona } from "@sandbox-kit/provider-daytona";
-import {
-  Client,
-  duration,
-  type ClientConfig,
-  type CreateOptionsInput,
-} from "@sandbox-kit/sandbox";
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-}
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+  ...(process.env.DAYTONA_API_URL ? { endpoint: process.env.DAYTONA_API_URL } : {}),
+  ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
+});
 
-function clientConfig(): ClientConfig {
-  const endpoint = process.env.DAYTONA_API_URL;
-  const region = process.env.DAYTONA_TARGET;
-  return {
-    provider: daytona(),
-    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
-    timeout: duration(120_000),
-    ...(endpoint ? { endpoint } : {}),
-    ...(region ? { region } : {}),
-  };
-}
-
-await using client = new Client(clientConfig());
-
-const createOptions = {
-  source: { kind: { case: "image", value: { reference: "ubuntu:22.04" } } },
+const sandbox = await client.create({
+  source: { image: { reference: "ubuntu:22.04"  } },
   resources: { cpuCores: 1, memoryMib: 1_024n, diskMib: 3_072n },
-} satisfies CreateOptionsInput;
-
-const sandbox = await client.create(createOptions);
+});
 console.log(`Daytona sandbox created from ubuntu:22.04: ${sandbox.id}`);

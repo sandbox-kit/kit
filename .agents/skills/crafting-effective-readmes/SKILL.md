@@ -17,6 +17,11 @@ what it does, installation, and one working example. Avoid hype, filler,
 invented features, and decorative formatting. Match examples to the implemented
 API and verify commands and links against the repository.
 
+Document **current state only**. Present tense. Replace or delete outdated
+sections; do not leave before/after, "previously… now…", or migration narrative
+in the README unless the user asks. When the codebase changes, update the
+README as part of that work without announcing the doc edit in chat.
+
 These README preferences take precedence over conflicting template defaults;
 follow explicit user instructions for the current task.
 
@@ -32,49 +37,55 @@ READMEs answer questions your audience will have. Different audiences need diffe
 
 **Ask:** "What README task are you working on?"
 
-| Task | When |
-|------|------|
-| **Creating** | New project, no README yet |
-| **Adding** | Need to document something new |
-| **Updating** | Capabilities changed, content is stale |
-| **Reviewing** | Checking if README is still accurate |
+| Task          | When                                   |
+| ------------- | -------------------------------------- |
+| **Creating**  | New project, no README yet             |
+| **Adding**    | Need to document something new         |
+| **Updating**  | Capabilities changed, content is stale |
+| **Reviewing** | Checking if README is still accurate   |
 
 ### Step 2: Task-Specific Questions
 
 **Creating initial README:**
+
 1. What type of project? (see Project Types below)
 2. What problem does this solve in one sentence?
 3. What's the quickest path to "it works"?
 4. Anything notable to highlight?
 
 **Adding a section:**
+
 1. What needs documenting?
 2. Where should it go in the existing structure?
 3. Who needs this info most?
 
 **Updating existing content:**
-1. What changed?
-2. Read current README, identify stale sections
-3. Propose specific edits
+
+1. What is true now? (ignore how it used to work unless asked)
+2. Read current README, remove or rewrite stale sections
+3. Apply edits so the file reads as a clean current description
 
 **Reviewing/refreshing:**
+
 1. Read current README
 2. Check against actual project state (package.json, main files, etc.)
-3. Flag outdated sections
+3. Delete or rewrite outdated sections
 4. Update "Last reviewed" date if present
 
-### Step 3: Always Ask
+### Step 3: Confirm only when the task is docs-focused
 
-After drafting, ask: **"Anything else to highlight or include that I might have missed?"**
+If the user asked for a README/docs pass, after drafting ask whether anything
+else should be included. If docs were updated as a side effect of feature work,
+do not prompt about the README unless something is still ambiguous.
 
 ## Project Types
 
-| Type | Audience | Key Sections | Template |
-|------|----------|--------------|----------|
-| **Open Source** | Contributors, users worldwide | Install, Usage, Contributing, License | `templates/oss.md` |
-| **Personal** | Future you, portfolio viewers | What it does, Tech stack, Learnings | `templates/personal.md` |
-| **Internal** | Teammates, new hires | Setup, Architecture, Runbooks | `templates/internal.md` |
-| **Config** | Future you (confused) | What's here, Why, How to extend, Gotchas | `templates/xdg-config.md` |
+| Type            | Audience                      | Key Sections                             | Template                  |
+| --------------- | ----------------------------- | ---------------------------------------- | ------------------------- |
+| **Open Source** | Contributors, users worldwide | Install, Usage, Contributing, License    | `templates/oss.md`        |
+| **Personal**    | Future you, portfolio viewers | What it does, Tech stack, Learnings      | `templates/personal.md`   |
+| **Internal**    | Teammates, new hires          | Setup, Architecture, Runbooks            | `templates/internal.md`   |
+| **Config**      | Future you (confused)         | What's here, Why, How to extend, Gotchas | `templates/xdg-config.md` |
 
 **Ask the user** if unclear. Don't assume OSS defaults for everything.
 
@@ -83,7 +94,7 @@ After drafting, ask: **"Anything else to highlight or include that I might have 
 Every README needs at minimum:
 
 1. **Name** - Self-explanatory title
-2. **Description** - What + why in 1-2 sentences  
+2. **Description** - What + why in 1-2 sentences
 3. **Usage** - How to use it (examples help)
 
 ## References

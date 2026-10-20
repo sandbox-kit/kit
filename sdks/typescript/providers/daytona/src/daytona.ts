@@ -1,30 +1,43 @@
-import { Daytona, type DaytonaConfig, type Sandbox as DaytonaSandbox } from "@daytona/sdk";
+import {
+  Daytona,
+  type DaytonaConfig,
+  type Sandbox as DaytonaSandbox,
+} from "@daytona/sdk";
 import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
-  type Backend,
-  type Config,
-  type CreateOptions,
-  type CreateResult,
   IsolationKind,
   LifecycleCapability,
   type OperationOptions,
-  type ArchiveOptions,
-  type DeleteOptions,
-  type PauseOptions,
   type Provider,
   type SandboxInfo,
-  type StartOptions,
-  type StopOptions,
-  metadataObjectAsMap,
+  metadataObjectAsMap
 } from "@sandbox-kit/sandbox";
-import type { Duration } from "@sandbox-kit/sandbox";
+import type {
+  Backend,
+  Config,
+  CreateOptions,
+  CreateResult,
+  ArchiveOptions,
+  DeleteOptions,
+  PauseOptions,
+  StartOptions,
+  StopOptions
+} from "@sandbox-kit/sandbox";
+import type { Duration } from "@bufbuild/protobuf/wkt";
 
-import { mapClientConfig, mapCreateRequest, mapSandboxInfo } from "./mappings.js";
+import {
+  mapClientConfig,
+  mapCreateRequest,
+  mapSandboxInfo,
+} from "#mappings/mappings.js";
 import { mapDaytonaError } from "./errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
-  create(params: ReturnType<typeof mapCreateRequest>, options?: { readonly timeout?: number }): Promise<DaytonaSandbox>;
+  create(
+    params: ReturnType<typeof mapCreateRequest>,
+    options?: { readonly timeout?: number },
+  ): Promise<DaytonaSandbox>;
   get(id: string): Promise<DaytonaSandbox>;
   [Symbol.asyncDispose](): Promise<void>;
 }
@@ -33,7 +46,10 @@ type NativeFactory = (config: DaytonaConfig) => NativeDaytona;
 
 /** @internal Exported from this module for boundary testing, but not from the package root. */
 export class DaytonaProvider extends ProviderBase {
-  constructor(private readonly nativeFactory: NativeFactory = (config) => new Daytona(config)) {
+  constructor(
+    private readonly nativeFactory: NativeFactory = (config) =>
+      new Daytona(config),
+  ) {
     super();
   }
 
@@ -51,12 +67,19 @@ class DaytonaBackend extends BackendBase implements Backend {
     super();
   }
 
-  async create(request: CreateOptions, options: OperationOptions): Promise<CreateResult> {
+  async create(
+    request: CreateOptions,
+    options: OperationOptions,
+  ): Promise<CreateResult> {
     try {
       options.signal?.throwIfAborted();
       const params = mapCreateRequest(request);
-      const timeout = options.timeoutMs === undefined ? undefined : options.timeoutMs / 1_000;
-      const sandbox = await this.native.create(params, timeout === undefined ? undefined : { timeout });
+      const timeout =
+        options.timeout === undefined ? undefined : options.timeout / 1_000;
+      const sandbox = await this.native.create(
+        params,
+        timeout === undefined ? undefined : { timeout },
+      );
       return { sandbox: mapSandboxInfo(sandbox, "create") };
     } catch (error) {
       throw mapDaytonaError(error, "create");
@@ -78,7 +101,8 @@ class DaytonaBackend extends BackendBase implements Backend {
       (typeof gpuCount === "bigint" && gpuCount > 0n);
     if (
       !hasGpu &&
-      (info.isolation?.kind === IsolationKind.LinuxVm || info.isolation?.providerKind === "windows")
+      (info.isolation?.kind === IsolationKind.LinuxVm ||
+        info.isolation?.providerKind === "windows")
     )
       result.push(LifecycleCapability.Pause);
     if (!hasGpu && info.isolation?.kind === IsolationKind.Container)
@@ -92,19 +116,27 @@ class DaytonaBackend extends BackendBase implements Backend {
     });
   }
   async start(id: string, request: StartOptions): Promise<SandboxInfo> {
-    return this.withSandbox(id, "start", (value) => value.start(seconds(request.timeout)));
+    return this.withSandbox(id, "start", (value) =>
+      value.start(seconds(request.timeout)),
+    );
   }
   async stop(id: string, request: StopOptions): Promise<SandboxInfo> {
-    return this.withSandbox(id, "stop", (value) => value.stop(seconds(request.timeout), request.force));
+    return this.withSandbox(id, "stop", (value) =>
+      value.stop(seconds(request.timeout), request.force),
+    );
   }
   async pause(id: string, request: PauseOptions): Promise<SandboxInfo> {
-    return this.withSandbox(id, "pause", (value) => value.pause(seconds(request.timeout)));
+    return this.withSandbox(id, "pause", (value) =>
+      value.pause(seconds(request.timeout)),
+    );
   }
   async archive(id: string, _request: ArchiveOptions): Promise<SandboxInfo> {
     return this.withSandbox(id, "archive", (value) => value.archive());
   }
   async delete(id: string, request: DeleteOptions): Promise<SandboxInfo> {
-    return this.withSandbox(id, "delete", (value) => value.delete(seconds(request.timeout), request.wait));
+    return this.withSandbox(id, "delete", (value) =>
+      value.delete(seconds(request.timeout), request.wait),
+    );
   }
   async closeSandbox(_id: string): Promise<void> {}
 

@@ -1,19 +1,22 @@
 # Create a Modal sandbox with idle termination
 
-Create with **`idleTerminate` after 60 seconds** of inactivity.
+Create with
+`lifetime.idleTerminate: { mode: PolicyMode.After, after: 60_000 }` (60 seconds
+of inactivity).
 
 ## What this means
 
 Modal idle timeouts automatically terminate a sandbox after inactivity (no
-active exec/tunnels/etc., per Modal's idle rules). Separate from the maximum
-lifetime `timeout`. See
+active exec/tunnels/etc., per Modal's idle rules). Separate from
+`lifetime.maximumLifetime`. See
 [Sandboxes → Idle Timeouts](https://modal.com/docs/guide/sandboxes).
 
 ## Edge cases
 
-- Delay must be a positive whole number of seconds when using `After`.
+- `after` is a millisecond value; with `PolicyMode.After` it must map to a
+  positive whole number of seconds.
 - The sandbox may disappear soon after create if it goes idle—expected.
-- `Disabled` turns idle terminate off; zero delay is not “disabled.”
+- `PolicyMode.Disabled` turns idle terminate off; `after: 0` is not “disabled.”
 
 ## Run
 

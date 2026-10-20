@@ -8,7 +8,14 @@ import {
   PortTransport,
   SecretInjection,
   WaitCondition,
-  duration,
+  CreateFieldEnvironment,
+  CreateFieldLifetimeIdleTerminateAfter,
+  CreateFieldLifetimeMaximumLifetime,
+  CreateFieldNetworkInboundCidrsEntries,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesCpuLimitCores,
+  ConfigFieldAuthTokenPairId,
+  ConfigFieldEndpoint
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -18,9 +25,14 @@ import {
   type Sandbox as ModalSandbox,
   type SandboxCreateParams,
 } from "modal";
-import { mapClientConfig, mapCreateRequest } from "./mappings.js";
+import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 import { ModalProvider } from "./modal.js";
-import { captureProviderState } from "./provider_config.js";
+import {
+  mapIdleDuration,
+  mapLifetimeDuration,
+  mapResources,
+} from "#mappings/provider_mappings.js";
+import { captureProviderState } from "#config/provider_config.js";
 import { mapModalError } from "./errors.js";
 
 describe("Modal mappings", () => {
@@ -28,13 +40,10 @@ describe("Modal mappings", () => {
     expect(
       mapClientConfig({
         auth: {
-          credentials: {
-            case: "tokenPair",
-            value: { id: "id", secret: "secret" },
-          },
+          tokenPair: { id: "id", secret: "secret" },
         },
         scope: { environment: "dev" },
-        timeout: duration(30_000),
+        timeout: 30_000,
       }),
     ).toEqual({
       tokenId: "id",
@@ -50,23 +59,20 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
-        field: "endpoint",
+        field: ConfigFieldEndpoint,
         operation: "initialize",
       }),
     );
     expect(() =>
       mapClientConfig({
         auth: {
-          credentials: {
-            case: "tokenPair",
-            value: { id: "", secret: "secret" },
-          },
+          tokenPair: { id: "", secret: "secret" },
         },
       }),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "auth.token_pair.id",
+        field: ConfigFieldAuthTokenPairId,
       }),
     );
   });
@@ -90,7 +96,7 @@ describe("Modal mappings", () => {
       {
         name: "example",
         source: {
-          kind: { case: "image", value: { reference: "alpine:3.21" } },
+          image: { reference: "alpine:3.21" },
         },
         runtime: {
           workingDirectory: "/tmp",
@@ -107,9 +113,9 @@ describe("Modal mappings", () => {
         placement: { cloud: "aws", regions: ["us-east-1"] },
         network: {
           egress: EgressMode.Restricted,
-          outboundCidrs: { entries: ["192.0.2.0/24"] },
-          outboundDomains: { entries: ["example.com"] },
-          inboundCidrs: { entries: ["198.51.100.0/24"] },
+          outboundCidrs: ["192.0.2.0/24"],
+          outboundDomains: ["example.com"],
+          inboundCidrs: ["198.51.100.0/24"],
           privateNetwork: true,
           proxyReference: "static-egress",
           ports: [{ port: 443, transport: PortTransport.Tls }],
@@ -121,12 +127,15 @@ describe("Modal mappings", () => {
           ],
         },
         lifetime: {
-          maximumLifetime: duration(300_000),
-          idleTerminate: { mode: PolicyMode.After, after: duration(60_000) },
+          maximumLifetime: 300_000,
+          idleTerminate: {
+            mode: PolicyMode.After,
+            after: 60_000,
+          },
         },
-        readiness: { check: { case: "command", value: { argv: ["true"] } } },
+        readiness: { command: { argv: ["true"] } },
         provisioning: {
-          timeout: duration(120_000),
+          timeout: 120_000,
           waitFor: WaitCondition.Ready,
         },
         observability: { verbose: true },
@@ -162,6 +171,40 @@ describe("Modal mappings", () => {
     });
   });
 
+  it("rejects CPU values that are not millis-representable", () => {
+    expect(mapResources({ cpuCores: 0.5 })).toMatchObject({ cpu: 0.5 });
+    expect(() => mapResources({ cpuCores: 1.0005 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldResourcesCpuCores,
+      }),
+    );
+    expect(() => mapResources({ cpuLimitCores: 0.0001 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldResourcesCpuLimitCores,
+      }),
+    );
+  });
+
+  it("rejects lifetime and idle durations that are not whole seconds", () => {
+    expect(mapLifetimeDuration({ maximumLifetime: 60_000 })).toMatchObject({
+      timeoutMs: 60_000,
+    });
+    expect(() => mapLifetimeDuration({ maximumLifetime: 1_500 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeMaximumLifetime,
+      }),
+    );
+    expect(() => mapIdleDuration({ after: 500 })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeIdleTerminateAfter,
+      }),
+    );
+  });
+
   it("classifies native errors from the provider specification", () => {
     const native = new InvalidError("invalid request");
     expect(mapModalError(native, "create")).toMatchObject({
@@ -178,7 +221,7 @@ describe("Modal mappings", () => {
       mapCreateRequest(
         {
           source: {
-            kind: { case: "image", value: { reference: "alpine:3.21" } },
+            image: { reference: "alpine:3.21" },
           },
           environment: { "NOT VALID": "value" },
         },
@@ -187,23 +230,23 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "environment",
+        field: CreateFieldEnvironment,
       }),
     );
     expect(() =>
       mapCreateRequest(
         {
           source: {
-            kind: { case: "image", value: { reference: "alpine:3.21" } },
+            image: { reference: "alpine:3.21" },
           },
-          network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
+          network: { inboundCidrs: ["300.1.1.1/24"] },
         },
         config,
       ),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "network.inboundCidrs.entries",
+        field: CreateFieldNetworkInboundCidrsEntries,
       }),
     );
   });
@@ -270,7 +313,7 @@ describe("Modal provider orchestration", () => {
     });
 
     const sandbox = await client.create({
-      source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+      source: { image: { reference: "alpine:3.21" } },
       network: { proxyReference: "static-egress" },
     });
     await client.close();

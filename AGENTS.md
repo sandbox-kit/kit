@@ -5,16 +5,16 @@
 - Keep shared contracts in `proto/`, portable rule inventories in versioned YAML
   under `specs/`, and runtime SDKs in `sdks/<language>/`.
 - Keep the developer CLI and YAML inventory loaders in the Go module under
-  `tooling/`. Kit custom emitters are retired; SDK helpers are handwritten.
+  `tooling/`. SDK helpers are handwritten.
 - Keep contracts independent of language runtime dependencies. Each provider
   owns native constructor conventions and names.
 - Publish the core client (`sdks/<language>/sandbox`, e.g. `@sandbox-kit/sandbox`
   / `.../sdks/go/sandbox`) as the shared module that more providers plug into.
   Publish each provider module independently per language (e.g.
-  `@sandbox-kit/provider-daytona` and `.../providers/daytona`). Do not ship
+  `@sandbox-kit/daytona` and `.../providers/daytona`). Do not ship
   providers inside the core sandbox package.
-- Keep the public SDK, optional providers, and future harness integrations in
-  separate modules. Each provider depends on its official SDK.
+- Keep the public SDK, optional providers, and harness integrations in separate
+  modules. Each provider depends on its official SDK.
 
 ## Public API and provider ownership
 
@@ -29,6 +29,10 @@ public client owns cleanup through `Close`.
 - Use typed integration code. Do not invoke SDK methods through reflection.
 - Expose shared request/response types as native language types from protobuf
   contracts plus handwritten aliases. Protobuf remains a schema input.
+- TypeScript public create/config types use ms timeouts, nested exclusive
+  fields, and plain allowlists. The client materializes wire messages privately
+  for Protovalidate. Application code depends on `@sandbox-kit/sandbox` (and a
+  provider); `@sandbox-kit/contracts` is an internal SDK dependency.
 - Creation returns a sandbox handle. Implement lifecycle methods on that handle
   separately from creation configuration.
 - Preserve field presence, units, source kinds, and provider defaults.
@@ -38,12 +42,12 @@ public client owns cleanup through `Close`.
 
 ## Generation and validation
 
-Kit custom emitters are retired. Shared create and client-config validation is
-declared as Protovalidate options on `proto/` messages and evaluated by language
-Protovalidate libraries inside `ValidateCreateOptions` / `ValidateConfig`. The
-`secure_endpoint` config check stays handwritten. Provider checks
-(`validateProviderCreate`), field mappings, configuration assembly, path
-helpers, and Client/Sandbox choreography remain handwritten in `sdks/`.
+Shared create and client-config validation is declared as Protovalidate options
+on `proto/` messages and evaluated by language Protovalidate libraries inside
+`ValidateCreateOptions` / `ValidateConfig`. The `secure_endpoint` config check
+is handwritten. Provider checks (`validateProviderCreate`), field mappings,
+configuration assembly, path helpers, and Client/Sandbox choreography are
+handwritten in `sdks/`.
 `specs/validation.yaml`, `specs/client.yaml`, `specs/contracts.yaml`, and each
 provider's `checks:` / `groups:` remain inventories to keep in sync with proto
 rules and handwritten code.
@@ -72,12 +76,13 @@ Use small, independent provider-specific projects under `examples/<language>/`.
 Each example demonstrates one operation with its own configuration and no provider
 selector or CLI flags.
 
-Keep examples aligned with the implemented API. Label test doubles, planned
-features, and local verification limits clearly. Verify changed examples before
-handoff and update `examples/README.md` when adding a language.
+Keep examples aligned with the implemented API. Label test doubles and local
+verification limits clearly. Verify changed examples before handoff and update
+`examples/README.md` when adding a language.
 
 Update project Markdown whenever APIs, layout, architecture, or dependencies
-change. Verify links and commands and distinguish current behavior from plans.
+change. Write docs as current-state truth: present tense, remove outdated
+sections, and verify links and commands against the repository.
 
 ## Development tooling
 

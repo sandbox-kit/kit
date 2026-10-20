@@ -14,8 +14,9 @@
     "useUnknownInCatchVariables": true,
     "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "customConditions": ["@sandbox-kit/source"],
+    "noEmit": true
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src/**/*.ts"]
 }

@@ -1,43 +1,26 @@
-import { modal } from "@sandbox-kit/provider-modal";
+import { modal } from "@sandbox-kit/modal";
 import {
   Client,
   SandboxError,
-  duration,
-  type ClientConfig,
-  type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-}
-
-function clientConfig(): ClientConfig {
-  return {
-    provider: modal(),
-    auth: {
-      credentials: { case: "tokenPair", value: {
-        id: requireEnv("MODAL_TOKEN_ID"),
-        secret: requireEnv("MODAL_TOKEN_SECRET"),
-      } },
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
     },
-    scope: {
-      appName: requireEnv("MODAL_APP_NAME"),
-      environment: process.env.MODAL_ENVIRONMENT || "main",
-    },
-    timeout: duration(120_000),
-  };
-}
-
-const imageSource: SandboxSourceInput = {
-  kind: { case: "image", value: { reference: "alpine:3.21" } },
-};
-
-await using client = new Client(clientConfig());
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: process.env.MODAL_ENVIRONMENT || "main",
+  },
+  timeout: 120_000,
+});
 
 try {
-  await client.create({ source: imageSource, resources: { diskMib: 1_024n } });
+  await client.create({ source: { image: { reference: "alpine:3.21" } }, resources: { diskMib: 1_024n } });
   console.log("Sandbox created.");
 } catch (error) {
   if (error instanceof SandboxError) {

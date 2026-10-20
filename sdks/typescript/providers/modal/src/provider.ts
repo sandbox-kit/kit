@@ -1,6 +1,13 @@
 // Modal provider construction and native SDK orchestration are handwritten.
 
-import type { Backend, Config, CreateOptions, CreateResult, OperationOptions, Provider } from "@sandbox-kit/sandbox";
+import type {
+  Backend,
+  Config,
+  CreateOptions,
+  CreateResult,
+  OperationOptions,
+  Provider,
+} from "@sandbox-kit/sandbox";
 
 export const providerName = "modal" as const;
 
@@ -13,6 +20,9 @@ export abstract class ProviderBase implements Provider {
 /** @internal Shared generated backend identity and required operation surface. */
 export abstract class BackendBase implements Backend {
   readonly name = providerName;
-  abstract create(request: CreateOptions, options: OperationOptions): Promise<CreateResult>;
+  abstract create(
+    request: CreateOptions,
+    options: OperationOptions,
+  ): Promise<CreateResult>;
   abstract close(options: OperationOptions): Promise<void>;
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@sandbox-kit/provider-daytona",
+  "name": "@sandbox-kit/daytona",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,8 +15,22 @@
       "import": "./dist/index.js"
     }
   },
+  "imports": {
+    "#mappings/*.js": {
+      "@sandbox-kit/source": "./src/mappings/*.ts",
+      "default": "./dist/mappings/*.js"
+    },
+    "#checks/*.js": {
+      "@sandbox-kit/source": "./src/checks/*.ts",
+      "default": "./dist/checks/*.js"
+    },
+    "#config/*.js": {
+      "@sandbox-kit/source": "./src/config/*.ts",
+      "default": "./dist/config/*.js"
+    }
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "test": "tsc -p tsconfig.test.json && vitest run"
   },
   "dependencies": {

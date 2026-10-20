@@ -1,0 +1,22 @@
+{
+  "name": "sandbox-kit-example-create-daytona-with-secrets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "engines": {
+    "node": "^20.0.0 || ^22.0.0 || >=24.15.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node --env-file-if-exists=.env dist/main.js"
+  },
+  "dependencies": {
+    "@sandbox-kit/daytona": "file:../../../../sdks/typescript/providers/daytona",
+    "@sandbox-kit/sandbox": "file:../../../../sdks/typescript/sandbox"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

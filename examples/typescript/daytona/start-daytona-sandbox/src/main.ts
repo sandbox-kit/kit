@@ -1,29 +1,9 @@
-import { daytona } from "@sandbox-kit/provider-daytona";
+import { daytona } from "@sandbox-kit/daytona";
 import {
   Client,
   LifecycleCapability,
-  duration,
-  type ClientConfig,
   type Sandbox,
 } from "@sandbox-kit/sandbox";
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`${name} is required`);
-  return value;
-}
-
-function clientConfig(): ClientConfig {
-  const endpoint = process.env.DAYTONA_API_URL;
-  const region = process.env.DAYTONA_TARGET;
-  return {
-    provider: daytona(),
-    auth: { credentials: { case: "apiKey", value: { key: requireEnv("DAYTONA_API_KEY") } } },
-    timeout: duration(120_000),
-    ...(endpoint ? { endpoint } : {}),
-    ...(region ? { region } : {}),
-  };
-}
 
 function assertCapability(
   sandbox: Sandbox,
@@ -34,9 +14,15 @@ function assertCapability(
   }
 }
 
-await using client = new Client(clientConfig());
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+  ...(process.env.DAYTONA_API_URL ? { endpoint: process.env.DAYTONA_API_URL } : {}),
+  ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
+});
 
-const sandbox = await client.get(requireEnv("DAYTONA_SANDBOX_ID"));
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 assertCapability(sandbox, LifecycleCapability.Start);
 const info = await sandbox.start();
 console.log(`Daytona sandbox started: ${sandbox.id} (${info.state})`);

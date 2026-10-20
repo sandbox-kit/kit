@@ -3,7 +3,12 @@
 // then native Modal types, then unknown. Cause stays on SandboxError.cause.
 
 import { AlreadyExistsError, ClientClosedError, ConflictError, InvalidError, NotFoundError, ResourceExhaustedError, SandboxTimeoutError, TimeoutError } from "modal";
-import { ErrorKind, SandboxError, sandboxError, type ErrorInfo } from "@sandbox-kit/sandbox";
+import {
+  ErrorKind,
+  SandboxError,
+  sandboxError,
+  type ErrorInfo
+} from "@sandbox-kit/sandbox";
 
 export function mapModalError(error: unknown, operation: string): SandboxError {
   if (error instanceof SandboxError) return error;

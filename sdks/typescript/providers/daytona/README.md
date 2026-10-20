@@ -7,22 +7,23 @@ core `@sandbox-kit/sandbox` client. Use it through that shared API.
 
 ```ts
 import { Client } from "@sandbox-kit/sandbox";
-import { daytona } from "@sandbox-kit/provider-daytona";
+import { daytona } from "@sandbox-kit/daytona";
 
-const client = new Client({ provider: daytona() });
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
 
-try {
-  const sandbox = await client.create({
-    runtime: { language: "typescript" },
-  });
-  console.log(sandbox.id);
-} finally {
-  await client.close();
-}
+const sandbox = await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  runtime: { language: "typescript" },
+});
+console.log(sandbox.id);
 ```
 
-The native Daytona SDK resolves credentials from its environment when `auth` is
-omitted. Closing the client releases local SDK resources only.
+Auth may be omitted when the native Daytona SDK should resolve credentials from
+its environment. Closing the client releases local SDK resources only.
 
 ## Examples
 
@@ -35,16 +36,16 @@ omitted. Closing the client releases local SDK resources only.
 
 ## Implementation notes
 
-Checks and portable field mappings are handwritten in `provider_checks.ts`,
-`provider_mappings.ts`, and `provider_config.ts`, kept in sync with
+Checks and portable field mappings are handwritten in `checks/provider_checks.ts`,
+`mappings/provider_mappings.ts`, and `config/provider_config.ts`, kept in sync with
 `specs/providers/daytona.yaml`. `src/daytona.ts` owns typed Daytona SDK call
 ordering and lifecycle orchestration; `src/mappings.ts` owns remaining
 provider-specific composition.
 
 ## Dependency audit
 
-As of 2026-10-14, `npm audit` reports four high-severity findings in the pinned
+`npm audit` reports four high-severity findings in the pinned
 `@daytona/sdk@0.224.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
-The registry currently reports no fix. The provider does not override those
-transitive packages because doing so could create an unsupported SDK
-combination; reassess the audit when upgrading the Daytona SDK.
+The registry reports no fix. The provider does not override those transitive
+packages, because overrides could create an unsupported SDK combination.
+Reassess the audit when upgrading the Daytona SDK.

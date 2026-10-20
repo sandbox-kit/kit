@@ -1,7 +1,8 @@
 # Create a Modal sandbox with resources
 
-Create with **0.5 physical CPU cores**, **512 MiB** memory, and a **5-minute
-maximum lifetime**; print whether allocated resources appear in metadata.
+Create with `resources: { cpuCores: 0.5, memoryMib: 512n }` and
+`lifetime.maximumLifetime: 5 * 60_000` (5 minutes); print whether allocated
+resources appear in metadata.
 
 ## What this means
 
@@ -12,7 +13,8 @@ burst above the request when the host has spare capacity; you pay for
 [reserving CPU and memory](https://modal.com/docs/guide/resources).
 
 Kit enforces documented floors (0.125 cores, 128 MiB), 0.001-core precision, and
-a maximum lifetime up to 24 hours (whole seconds).
+a maximum lifetime up to 24 hours (`maximumLifetime` is ms and must map to whole
+seconds).
 
 ## Edge cases
 

@@ -1,0 +1,31 @@
+import { daytona } from "@sandbox-kit/daytona";
+import {
+  Client,
+  LifecycleCapability,
+  type Sandbox,
+} from "@sandbox-kit/sandbox";
+
+function assertCapability(
+  sandbox: Sandbox,
+  capability: LifecycleCapability,
+): void {
+  if (!sandbox.supports(capability)) {
+    throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
+  }
+}
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+  ...(process.env.DAYTONA_API_URL ? { endpoint: process.env.DAYTONA_API_URL } : {}),
+  ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
+});
+
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
+assertCapability(sandbox, LifecycleCapability.Start);
+// Single options bag: Kit abort deadline + native start timeout (same ms value).
+const info = await sandbox.start({ timeout: 60_000 });
+console.log(
+  `Daytona sandbox started with 60s timeout: ${sandbox.id} (${info.state})`,
+);

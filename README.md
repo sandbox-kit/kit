@@ -8,8 +8,9 @@ same Daytona / Modal example matrix. More providers plug into the core sandbox
 module without being bundled inside it.
 
 Closing a client or handle releases local SDK resources only. It does not stop,
-terminate, archive, or delete a cloud sandbox. Execution, storage, GPU requests,
-and harness integrations are planned.
+terminate, archive, or delete a cloud sandbox. The public API covers client
+setup, creation, and lifecycle against Daytona and Modal. Execution, storage,
+GPU requests, and harness integrations are out of scope.
 
 ## Usage
 
@@ -66,19 +67,14 @@ replacements as in the example modules. Requires Go 1.26.9 or newer.
 ### TypeScript
 
 ```ts
-import { daytona } from "@sandbox-kit/provider-daytona";
-import { Client, duration, type ClientConfig } from "@sandbox-kit/sandbox";
+import { daytona } from "@sandbox-kit/daytona";
+import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
 
 function clientConfig(): ClientConfig {
   return {
     provider: daytona(),
-    auth: {
-      credentials: {
-        case: "apiKey",
-        value: { key: process.env.DAYTONA_API_KEY! },
-      },
-    },
-    timeout: duration(120_000),
+    auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+    timeout: 120_000,
   };
 }
 
@@ -91,13 +87,17 @@ console.log(sandbox.id, client.providerName);
 checkout. Prefer `await using`; otherwise call `await client.close()` in
 `finally`. Requires Node.js 20 / 22 / 24.15+ and npm 11.19.0.
 
-| Package                         | Role                                                        |
-| ------------------------------- | ----------------------------------------------------------- |
-| `@sandbox-kit/sandbox`          | Core client (publish once; more providers depend on this)   |
-| `@sandbox-kit/provider-daytona` | Daytona provider — published independently (`@daytona/sdk`) |
-| `@sandbox-kit/provider-modal`   | Modal provider — published independently (`modal`)          |
+| Package                | Role                                                        |
+| ---------------------- | ----------------------------------------------------------- |
+| `@sandbox-kit/sandbox` | Core client (publish once; more providers depend on this)   |
+| `@sandbox-kit/daytona` | Daytona provider — published independently (`@daytona/sdk`) |
+| `@sandbox-kit/modal`   | Modal provider — published independently (`modal`)          |
 
-The same split applies in Go: `sdks/go/sandbox` is the core module;
+TypeScript apps use nested auth/source fields and millisecond timeouts on public
+`ClientConfig` / `CreateOptions`. The client materializes protobuf privately
+before validation.
+
+Go uses the same module split: `sdks/go/sandbox` is the core module;
 `sdks/go/providers/<name>` are independent modules.
 
 ## Examples
@@ -128,44 +128,8 @@ Creation examples provision real sandboxes. Lifecycle examples use the ID in
 Error-handling examples fail locally and create nothing. Skip copying
 `.env.example` if you already have a configured `.env`.
 
-Indexes: [all](examples/README.md) · [Go](examples/go/README.md) ·
-[TypeScript](examples/typescript/README.md).
-
-| Example                   | Go                                                               | TypeScript                                                                       |
-| ------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Daytona creation          | [go](examples/go/daytona/create-daytona-sandbox/README.md)       | [typescript](examples/typescript/daytona/create-daytona-sandbox/README.md)       |
-| Daytona snapshot          | [go](examples/go/daytona/create-daytona-from-snapshot/README.md) | [typescript](examples/typescript/daytona/create-daytona-from-snapshot/README.md) |
-| Daytona image             | [go](examples/go/daytona/create-daytona-from-image/README.md)    | [typescript](examples/typescript/daytona/create-daytona-from-image/README.md)    |
-| Daytona runtime           | [go](examples/go/daytona/create-daytona-with-runtime/README.md)  | [typescript](examples/typescript/daytona/create-daytona-with-runtime/README.md)  |
-| Daytona ephemeral         | [go](examples/go/daytona/create-daytona-ephemeral/README.md)     | [typescript](examples/typescript/daytona/create-daytona-ephemeral/README.md)     |
-| Daytona linked            | [go](examples/go/daytona/create-daytona-linked/README.md)        | [typescript](examples/typescript/daytona/create-daytona-linked/README.md)        |
-| Daytona policies          | [go](examples/go/daytona/create-daytona-with-policies/README.md) | [typescript](examples/typescript/daytona/create-daytona-with-policies/README.md) |
-| Daytona get               | [go](examples/go/daytona/get-daytona-sandbox/README.md)          | [typescript](examples/typescript/daytona/get-daytona-sandbox/README.md)          |
-| Daytona refresh           | [go](examples/go/daytona/refresh-daytona-sandbox/README.md)      | [typescript](examples/typescript/daytona/refresh-daytona-sandbox/README.md)      |
-| Daytona start             | [go](examples/go/daytona/start-daytona-sandbox/README.md)        | [typescript](examples/typescript/daytona/start-daytona-sandbox/README.md)        |
-| Daytona stop              | [go](examples/go/daytona/stop-daytona-sandbox/README.md)         | [typescript](examples/typescript/daytona/stop-daytona-sandbox/README.md)         |
-| Daytona pause             | [go](examples/go/daytona/pause-daytona-sandbox/README.md)        | [typescript](examples/typescript/daytona/pause-daytona-sandbox/README.md)        |
-| Daytona archive           | [go](examples/go/daytona/archive-daytona-sandbox/README.md)      | [typescript](examples/typescript/daytona/archive-daytona-sandbox/README.md)      |
-| Daytona delete            | [go](examples/go/daytona/delete-daytona-sandbox/README.md)       | [typescript](examples/typescript/daytona/delete-daytona-sandbox/README.md)       |
-| Daytona close handle      | [go](examples/go/daytona/close-daytona-handle/README.md)         | [typescript](examples/typescript/daytona/close-daytona-handle/README.md)         |
-| Daytona errors            | [go](examples/go/daytona/handle-daytona-errors/README.md)        | [typescript](examples/typescript/daytona/handle-daytona-errors/README.md)        |
-| Modal creation            | [go](examples/go/modal/create-modal-sandbox/README.md)           | [typescript](examples/typescript/modal/create-modal-sandbox/README.md)           |
-| Modal resources           | [go](examples/go/modal/create-modal-with-resources/README.md)    | [typescript](examples/typescript/modal/create-modal-with-resources/README.md)    |
-| Modal runtime             | [go](examples/go/modal/create-modal-with-runtime/README.md)      | [typescript](examples/typescript/modal/create-modal-with-runtime/README.md)      |
-| Modal gVisor              | [go](examples/go/modal/create-modal-gvisor/README.md)            | [typescript](examples/typescript/modal/create-modal-gvisor/README.md)            |
-| Modal Linux VM            | [go](examples/go/modal/create-modal-linux-vm/README.md)          | [typescript](examples/typescript/modal/create-modal-linux-vm/README.md)          |
-| Modal placement           | [go](examples/go/modal/create-modal-with-placement/README.md)    | [typescript](examples/typescript/modal/create-modal-with-placement/README.md)    |
-| Modal labels              | [go](examples/go/modal/create-modal-with-labels/README.md)       | [typescript](examples/typescript/modal/create-modal-with-labels/README.md)       |
-| Modal network             | [go](examples/go/modal/create-modal-with-network/README.md)      | [typescript](examples/typescript/modal/create-modal-with-network/README.md)      |
-| Modal idle timeout        | [go](examples/go/modal/create-modal-idle/README.md)              | [typescript](examples/typescript/modal/create-modal-idle/README.md)              |
-| Modal readiness           | [go](examples/go/modal/create-modal-ready/README.md)             | [typescript](examples/typescript/modal/create-modal-ready/README.md)             |
-| Modal verbose             | [go](examples/go/modal/create-modal-verbose/README.md)           | [typescript](examples/typescript/modal/create-modal-verbose/README.md)           |
-| Modal identity            | [go](examples/go/modal/create-modal-with-identity/README.md)     | [typescript](examples/typescript/modal/create-modal-with-identity/README.md)     |
-| Modal attach              | [go](examples/go/modal/attach-modal-sandbox/README.md)           | [typescript](examples/typescript/modal/attach-modal-sandbox/README.md)           |
-| Modal terminate           | [go](examples/go/modal/terminate-modal-sandbox/README.md)        | [typescript](examples/typescript/modal/terminate-modal-sandbox/README.md)        |
-| Modal termination request | [go](examples/go/modal/request-modal-termination/README.md)      | [typescript](examples/typescript/modal/request-modal-termination/README.md)      |
-| Modal close handle        | [go](examples/go/modal/close-modal-handle/README.md)             | [typescript](examples/typescript/modal/close-modal-handle/README.md)             |
-| Modal errors              | [go](examples/go/modal/handle-modal-errors/README.md)            | [typescript](examples/typescript/modal/handle-modal-errors/README.md)            |
+Full catalog: [examples/README.md](examples/README.md) ·
+[Go](examples/go/README.md) · [TypeScript](examples/typescript/README.md).
 
 ## Handle errors
 
@@ -257,7 +221,7 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 - Config covers auth, scope, endpoint, region, and default timeout.
 - Create options cover source, resources, runtime, network, and policies.
 - Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
-  TypeScript: property presence and `duration(ms)`.
+  TypeScript: property presence; duration fields are milliseconds.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
   Daytona: whole cores and whole GiB expressed as MiB.

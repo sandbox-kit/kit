@@ -1,9 +1,8 @@
 # Create a Modal sandbox
 
 Authenticate with a Modal **token pair**, scope to an **existing app**, and create
-one sandbox from a registry **image**. The TypeScript starter also sets runtime,
-isolation, resources, network, lifetime, and labels; the Go starter is a minimal
-image create.
+one sandbox from a registry **image**, with runtime, isolation, resources,
+network, lifetime, and labels.
 
 ## What this means
 
@@ -58,7 +57,6 @@ python3 -c 'import modal; modal.App.lookup("sandbox-kit-example", create_if_miss
 Set `MODAL_APP_NAME=sandbox-kit-example` in `.env`. See
 [App.lookup](https://modal.com/docs/sdk/py/latest/App#lookup) and
 [environments](https://modal.com/docs/guide/environments).
-
 
 ## Warnings
 

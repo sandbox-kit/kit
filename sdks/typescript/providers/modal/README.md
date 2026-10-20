@@ -6,19 +6,20 @@ Independent package over `modal@0.11.0`, published separately from the core
 ## Usage
 
 ```ts
-import { modal } from "@sandbox-kit/provider-modal";
+import { modal } from "@sandbox-kit/modal";
 import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider: modal(),
   auth: {
-    credentials: { case: "tokenPair", value: { id: "...", secret: "..." } },
+    tokenPair: { id: "...", secret: "..." },
   },
   scope: { appName: "my-app", environment: "main" },
 });
 
 const sandbox = await client.create({
-  source: { kind: { case: "image", value: { reference: "alpine:3.21" } } },
+  source: { image: { reference: "alpine:3.21" } },
+  provisioning: { timeout: 120_000 },
 });
 console.log(sandbox.id);
 ```
@@ -45,7 +46,7 @@ Unsupported shared intent is rejected before contacting Modal.
 
 ## Implementation notes
 
-Checks and portable field mappings are handwritten in `provider_checks.ts`,
-`provider_mappings.ts`, and `provider_config.ts`, kept in sync with
+Checks and portable field mappings are handwritten in `checks/provider_checks.ts`,
+`mappings/provider_mappings.ts`, and `config/provider_config.ts`, kept in sync with
 `specs/providers/modal.yaml`. `src/modal.ts` owns SDK call ordering;
 `src/mappings.ts` owns remaining composition those helpers do not cover.
