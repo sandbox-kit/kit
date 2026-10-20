@@ -1,12 +1,30 @@
 {
   "name": "@sandbox-kit/sandbox",
   "version": "0.1.0",
-  "private": true,
+  "description": "Portable Sandbox Kit client for creating and managing cloud sandboxes.",
+  "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",
   "engines": {
     "node": "^20.0.0 || ^22.0.0 || >=24.15.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandbox-kit/kit.git",
+    "directory": "sdks/typescript/sandbox"
+  },
+  "homepage": "https://github.com/sandbox-kit/kit/tree/main/sdks/typescript/sandbox",
+  "bugs": {
+    "url": "https://github.com/sandbox-kit/kit/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -36,10 +54,11 @@
   "dependencies": {
     "@bufbuild/protobuf": "2.16.0",
     "@bufbuild/protovalidate": "1.3.0",
-    "@sandbox-kit/contracts": "file:../contracts"
+    "@sandbox-kit/contracts": "0.1.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "test": "vitest run"
   },
   "devDependencies": {

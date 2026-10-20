@@ -1,9 +1,27 @@
 {
   "name": "@sandbox-kit/contracts",
   "version": "0.1.0",
-  "private": true,
+  "description": "Internal protobuf wire types for Sandbox Kit. Applications depend on @sandbox-kit/sandbox, not this package.",
+  "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandbox-kit/kit.git",
+    "directory": "sdks/typescript/contracts"
+  },
+  "homepage": "https://github.com/sandbox-kit/kit/tree/main/sdks/typescript/contracts",
+  "bugs": {
+    "url": "https://github.com/sandbox-kit/kit/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -20,6 +38,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
     "generate": "echo 'Use sandbox-kit generate contracts-typescript (buf generate) from the repo root' && exit 1"
   },
   "dependencies": {

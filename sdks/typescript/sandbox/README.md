@@ -61,6 +61,10 @@ cleanup semantics.
 | TypeScript | [examples/typescript](../../../examples/typescript/README.md) |
 | Go         | [examples/go](../../../examples/go/README.md)                 |
 
-Install a provider package such as `@sandbox-kit/daytona` or
-`@sandbox-kit/modal` beside this client. See the
-[root README](../../../README.md) for a full create snippet.
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+# or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
+See the [root README](../../../README.md) for a full create snippet and the
+[TypeScript workspace README](../README.md) for local development.

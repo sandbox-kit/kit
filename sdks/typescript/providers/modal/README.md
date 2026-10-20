@@ -3,6 +3,10 @@
 Independent package over `modal@0.11.0`, published separately from the core
 `@sandbox-kit/sandbox` client. Use it through that shared API.
 
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
 ## Usage
 
 ```ts
