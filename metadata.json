@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5C6HEDC2GQAWHR13P1DQKTY",
+  "strategy": "manual-commit",
+  "branch": "chore/typescript-npm-publishable",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/configuration.md",
+    "docs/provider-verification.md",
+    "docs/sandbox-creation.md",
+    "examples/typescript/daytona/archive-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/close-daytona-handle/package-lock.json",
+    "examples/typescript/daytona/create-daytona-ephemeral/package-lock.json",
+    "examples/typescript/daytona/create-daytona-from-image/package-lock.json",
+    "examples/typescript/daytona/create-daytona-from-snapshot/package-lock.json",
+    "examples/typescript/daytona/create-daytona-linked/package-lock.json",
+    "examples/typescript/daytona/create-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-kvm/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-labels/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-network/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-policies/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-runtime/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-secrets/package-lock.json",
+    "examples/typescript/daytona/create-daytona-with-ttl/package-lock.json",
+    "examples/typescript/daytona/delete-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/force-stop-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/get-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/handle-daytona-errors/package-lock.json",
+    "examples/typescript/daytona/pause-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/refresh-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/request-daytona-deletion/package-lock.json",
+    "examples/typescript/daytona/start-daytona-sandbox/package-lock.json",
+    "examples/typescript/daytona/start-daytona-with-timeout/package-lock.json",
+    "examples/typescript/daytona/stop-daytona-sandbox/package-lock.json",
+    "sdks/typescript/package-lock.json",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
