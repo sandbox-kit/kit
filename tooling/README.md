@@ -59,7 +59,10 @@ and local servers; they create no cloud resources.
 
 `test typescript` builds contracts first, then builds and tests the shared
 package and both providers, discovers every TypeScript example containing a
-`package.json`, and builds each example without making provider calls.
+`package.json`, and builds each example without making provider calls. Install
+TypeScript workspace deps once from `sdks/typescript/` (`npm install`) before
+running it. Manual npm publish steps live in
+[`sdks/typescript/README.md`](../sdks/typescript/README.md).
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Caches stay outside the checkout.

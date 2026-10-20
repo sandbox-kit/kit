@@ -1,0 +1,11 @@
+{
+  "name": "@sandbox-kit/typescript-workspace",
+  "private": true,
+  "packageManager": "npm@11.19.0",
+  "workspaces": [
+    "contracts",
+    "sandbox",
+    "providers/daytona",
+    "providers/modal"
+  ]
+}

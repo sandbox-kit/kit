@@ -1,7 +1,11 @@
 # Daytona provider for Sandbox Kit
 
-Independent package over `@daytona/sdk@0.224.0`, published separately from the
+Independent package over `@daytona/sdk@0.225.0`, published separately from the
 core `@sandbox-kit/sandbox` client. Use it through that shared API.
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+```
 
 ## Usage
 
@@ -45,7 +49,8 @@ provider-specific composition.
 ## Dependency audit
 
 `npm audit` reports four high-severity findings in the pinned
-`@daytona/sdk@0.224.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
-The registry reports no fix. The provider does not override those transitive
+`@daytona/sdk@0.225.0` dependency chain (`fast-glob` → `micromatch` → `braces`).
+The registry reports no fix (`braces` latest is still vulnerable; Daytona still
+depends on `fast-glob`). The provider does not override those transitive
 packages, because overrides could create an unsupported SDK combination.
-Reassess the audit when upgrading the Daytona SDK.
+Reassess the audit when Daytona drops or patches that chain.

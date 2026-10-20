@@ -14,9 +14,6 @@ GPU requests, and harness integrations are out of scope.
 
 ## Usage
 
-Modules and packages in this checkout use local replacements. They are not
-published release versions yet.
-
 ### Go
 
 ```go
@@ -83,15 +80,24 @@ const sandbox = await client.create();
 console.log(sandbox.id, client.providerName);
 ```
 
-`provider` lives on `ClientConfig`. Packages use `file:` dependencies in this
-checkout. Prefer `await using`; otherwise call `await client.close()` in
-`finally`. Requires Node.js 20 / 22 / 24.15+ and npm 11.19.0.
+Install the core client and a provider:
 
-| Package                | Role                                                        |
-| ---------------------- | ----------------------------------------------------------- |
-| `@sandbox-kit/sandbox` | Core client (publish once; more providers depend on this)   |
-| `@sandbox-kit/daytona` | Daytona provider — published independently (`@daytona/sdk`) |
-| `@sandbox-kit/modal`   | Modal provider — published independently (`modal`)          |
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+# or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
+`provider` lives on `ClientConfig`. Prefer `await using`; otherwise call
+`await client.close()` in `finally`. Requires Node.js 20 / 22 / 24.15+ and
+npm 11.19.0. In this checkout, examples use `file:` dependencies on the local
+packages under `sdks/typescript/`.
+
+| Package                  | Role                                                        |
+| ------------------------ | ----------------------------------------------------------- |
+| `@sandbox-kit/sandbox`   | Core client (publish once; more providers depend on this)   |
+| `@sandbox-kit/daytona`   | Daytona provider — published independently (`@daytona/sdk`) |
+| `@sandbox-kit/modal`     | Modal provider — published independently (`modal`)          |
+| `@sandbox-kit/contracts` | Internal wire types — do not depend on this directly        |
 
 TypeScript apps use nested auth/source fields and millisecond timeouts on public
 `ClientConfig` / `CreateOptions`. The client materializes protobuf privately
