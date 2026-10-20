@@ -1,0 +1,5 @@
+can u check daytona sdk version which is latest and maybe upgrade the version and as per the version change if there are breaking changes fix it ? check their docs really well
+
+---
+
+can u check modal too for latest version and changes arethere in them and it breaks -> make changes. just do for typescript.

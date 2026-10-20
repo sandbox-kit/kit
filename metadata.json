@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5C6XHBZEG8YD5Q873NFRVC2",
+  "strategy": "manual-commit",
+  "branch": "chore/typescript-npm-publishable",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/configuration.md",
+    "docs/provider-verification.md",
+    "docs/sandbox-creation.md",
+    "examples/typescript/modal/attach-modal-sandbox/package-lock.json",
+    "examples/typescript/modal/close-modal-handle/package-lock.json",
+    "examples/typescript/modal/create-modal-client-timeout/package-lock.json",
+    "examples/typescript/modal/create-modal-gvisor/package-lock.json",
+    "examples/typescript/modal/create-modal-idle/package-lock.json",
+    "examples/typescript/modal/create-modal-linux-vm/package-lock.json",
+    "examples/typescript/modal/create-modal-ready/package-lock.json",
+    "examples/typescript/modal/create-modal-sandbox/package-lock.json",
+    "examples/typescript/modal/create-modal-tcp-ready/package-lock.json",
+    "examples/typescript/modal/create-modal-verbose/package-lock.json",
+    "examples/typescript/modal/create-modal-with-allowlists/package-lock.json",
+    "examples/typescript/modal/create-modal-with-identity/package-lock.json",
+    "examples/typescript/modal/create-modal-with-labels/package-lock.json",
+    "examples/typescript/modal/create-modal-with-network/package-lock.json",
+    "examples/typescript/modal/create-modal-with-placement/package-lock.json",
+    "examples/typescript/modal/create-modal-with-ports/package-lock.json",
+    "examples/typescript/modal/create-modal-with-resources/package-lock.json",
+    "examples/typescript/modal/create-modal-with-runtime/package-lock.json",
+    "examples/typescript/modal/create-modal-with-secrets/package-lock.json",
+    "examples/typescript/modal/handle-modal-errors/package-lock.json",
+    "examples/typescript/modal/request-modal-termination/package-lock.json",
+    "examples/typescript/modal/terminate-modal-sandbox/package-lock.json",
+    "examples/typescript/modal/terminate-modal-with-timeout/package-lock.json",
+    "sdks/typescript/package-lock.json",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/providers/modal/package.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
