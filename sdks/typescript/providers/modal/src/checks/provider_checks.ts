@@ -1,6 +1,14 @@
 import {
   ErrorKind,
-  sandboxError
+  sandboxError,
+  CreateFieldEnvironment,
+  CreateFieldNetworkInboundCidrsEntries,
+  CreateFieldNetworkOutboundCidrsEntries,
+  CreateFieldNetworkOutboundDomainsEntries,
+  CreateFieldPlacementCloud,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesMemoryMib,
+  CreateFieldRuntimeWorkingDirectory
 } from "@sandbox-kit/sandbox";
 import type {
   CreateOptions
@@ -13,7 +21,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   if (cpuCores !== undefined && cpuCores < 0.125) {
     fail(
       ErrorKind.InvalidArgument,
-      "resources.cpuCores",
+      CreateFieldResourcesCpuCores,
       "resources.cpu_cores is outside supported values",
     );
   }
@@ -21,7 +29,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   if (memoryMib !== undefined && memoryMib < BigInt("128")) {
     fail(
       ErrorKind.InvalidArgument,
-      "resources.memoryMib",
+      CreateFieldResourcesMemoryMib,
       "resources.memory_mib is outside supported values",
     );
   }
@@ -29,7 +37,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   if (workingDirectory !== undefined && !workingDirectory.startsWith("/")) {
     fail(
       ErrorKind.InvalidArgument,
-      "runtime.workingDirectory",
+      CreateFieldRuntimeWorkingDirectory,
       "runtime.working_directory is outside supported values",
     );
   }
@@ -43,7 +51,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   ) {
     fail(
       ErrorKind.Unsupported,
-      "placement.cloud",
+      CreateFieldPlacementCloud,
       "placement.cloud is outside supported values",
     );
   }
@@ -51,7 +59,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (value !== "" && !validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "network.outboundCidrs.entries",
+        CreateFieldNetworkOutboundCidrsEntries,
         "network.outbound_cidrs.entries is outside supported values",
       );
     }
@@ -60,7 +68,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (!validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "network.inboundCidrs.entries",
+        CreateFieldNetworkInboundCidrsEntries,
         "network.inbound_cidrs.entries is outside supported values",
       );
     }
@@ -69,7 +77,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (value !== "" && !validDomain(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "network.outboundDomains.entries",
+        CreateFieldNetworkOutboundDomainsEntries,
         "network.outbound_domains.entries is outside supported values",
       );
     }
@@ -78,7 +86,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (!validEnvName(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "environment",
+        CreateFieldEnvironment,
         "environment is outside supported values",
       );
     }

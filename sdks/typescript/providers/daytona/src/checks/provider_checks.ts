@@ -1,7 +1,13 @@
 import {
   ErrorKind,
   PolicyMode,
-  sandboxError
+  sandboxError,
+  CreateFieldLifetime,
+  CreateFieldNetworkOutboundCidrsEntries,
+  CreateFieldNetworkOutboundDomainsEntries,
+  CreateFieldNetworkOutboundProxyUrl,
+  CreateFieldRuntimeLanguage,
+  CreateFieldSecuritySecretsEnvironmentVariable
 } from "@sandbox-kit/sandbox";
 import type {
   CreateOptions
@@ -23,7 +29,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   ) {
     fail(
       ErrorKind.Unsupported,
-      "runtime.language",
+      CreateFieldRuntimeLanguage,
       "runtime.language is outside supported values",
     );
   }
@@ -31,7 +37,7 @@ export function validateProviderCreate(request: CreateOptions): void {
   if (outboundProxyUrl !== undefined && !validHttpUrl(outboundProxyUrl)) {
     fail(
       ErrorKind.InvalidArgument,
-      "network.outboundProxyUrl",
+      CreateFieldNetworkOutboundProxyUrl,
       "network.outbound_proxy_url is outside supported values",
     );
   }
@@ -39,7 +45,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (!validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "network.outboundCidrs.entries",
+        CreateFieldNetworkOutboundCidrsEntries,
         "network.outbound_cidrs.entries is outside supported values",
       );
     }
@@ -48,7 +54,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     if (!validDomain(value)) {
       fail(
         ErrorKind.InvalidArgument,
-        "network.outboundDomains.entries",
+        CreateFieldNetworkOutboundDomainsEntries,
         "network.outbound_domains.entries is outside supported values",
       );
     }
@@ -61,7 +67,7 @@ export function validateProviderCreate(request: CreateOptions): void {
     ) {
       fail(
         ErrorKind.InvalidArgument,
-        "security.secrets.environmentVariable",
+        CreateFieldSecuritySecretsEnvironmentVariable,
         "security.secrets.environment_variable is outside supported values",
       );
     }
@@ -70,31 +76,31 @@ export function validateProviderCreate(request: CreateOptions): void {
     delayed(request.lifetime?.idleStop) &&
     delayed(request.lifetime?.idlePause)
   ) {
-    invalid("lifetime", "incompatible lifetime policies");
+    invalid(CreateFieldLifetime, "incompatible lifetime policies");
   }
   if (
     delayed(request.lifetime?.idlePause) &&
     request.lifetime?.ephemeral === true
   ) {
-    invalid("lifetime", "incompatible lifetime policies");
+    invalid(CreateFieldLifetime, "incompatible lifetime policies");
   }
   if (
     delayed(request.lifetime?.idlePause) &&
     immediate(request.lifetime?.stoppedDelete)
   ) {
-    invalid("lifetime", "incompatible lifetime policies");
+    invalid(CreateFieldLifetime, "incompatible lifetime policies");
   }
   if (
     delayed(request.lifetime?.stoppedDelete) &&
     request.lifetime?.ephemeral === true
   ) {
-    invalid("lifetime", "incompatible lifetime policies");
+    invalid(CreateFieldLifetime, "incompatible lifetime policies");
   }
   if (
     delayed(request.lifetime?.stoppedArchive) &&
     request.lifetime?.ephemeral === true
   ) {
-    invalid("lifetime", "incompatible lifetime policies");
+    invalid(CreateFieldLifetime, "incompatible lifetime policies");
   }
 }
 

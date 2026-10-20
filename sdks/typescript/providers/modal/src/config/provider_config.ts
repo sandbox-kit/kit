@@ -8,6 +8,9 @@ import {
   validateConfig,
   type Config,
   type Scope,
+  ConfigFieldAuth,
+  ConfigFieldEndpoint,
+  ConfigFieldScopeProjectId
 } from "@sandbox-kit/sandbox";
 import {
   mapClientScope,
@@ -21,7 +24,7 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   const target: NativeClientConfig = {};
   if (source.endpoint !== undefined)
     unsupported(
-      "endpoint",
+      ConfigFieldEndpoint,
       "Endpoint cannot be configured through this SDK's public client constructor",
     );
   if (source.scope !== undefined) {
@@ -33,7 +36,7 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
         "unsupported client configuration field",
       );
     if (source.scope.projectId !== undefined)
-      unsupported("scope.projectId", "unsupported client configuration field");
+      unsupported(ConfigFieldScopeProjectId, "unsupported client configuration field");
   }
   if (source.auth?.tokenPair !== undefined) {
     Object.assign(
@@ -46,7 +49,7 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
       mapOAuthAuth(source.auth.oauthRefresh, "initialize"),
     );
   } else if (source.auth !== undefined) {
-    unsupported("auth", "unsupported authentication mode");
+    unsupported(ConfigFieldAuth, "unsupported authentication mode");
   }
   return target;
 }

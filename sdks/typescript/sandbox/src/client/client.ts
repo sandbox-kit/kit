@@ -57,6 +57,13 @@ import { metadataObjectFromMap } from "#metadata/metadata_object.js";
 import type { FlattenOneof } from "#internal/oneof_input.js";
 import { protoEnum } from "#internal/proto_enum.js";
 import type { StripProto } from "#internal/strip_proto.js";
+import {
+  InfoFieldId,
+} from "#contracts/field_paths.js";
+import {
+  ConfigFieldProvider,
+  ConfigFieldTimeout,
+} from "#contracts/config_paths.js";
 
 const contractValidator = createValidator({ failFast: true });
 
@@ -372,7 +379,7 @@ function operationSignal(
       kind: ErrorKind.InvalidArgument,
       provider: "",
       operation: "",
-      field: "timeout",
+      field: ConfigFieldTimeout,
       message: "sandbox-kit: timeout must be a finite non-negative number",
     });
   }
@@ -714,7 +721,7 @@ export class Client implements AsyncDisposable {
         kind: ErrorKind.InvalidArgument,
         provider: "",
         operation: "initialize",
-        field: "provider",
+        field: ConfigFieldProvider,
         message: "sandbox-kit: provider is required",
       });
     validateConfig(config, config.provider.name, "initialize");
@@ -735,7 +742,7 @@ export class Client implements AsyncDisposable {
         kind: ErrorKind.InvalidResponse,
         provider: config.provider.name,
         operation: "initialize",
-        field: "provider",
+        field: ConfigFieldProvider,
         message: "sandbox-kit: provider returned no backend",
       });
     if (this.#backend.name !== this.#providerName) {
@@ -744,7 +751,7 @@ export class Client implements AsyncDisposable {
         kind: ErrorKind.InvalidResponse,
         provider: this.#providerName,
         operation: "initialize",
-        field: "provider",
+        field: ConfigFieldProvider,
         message:
           "sandbox-kit: initialized backend identity differs from selected provider",
       });
@@ -763,7 +770,7 @@ export class Client implements AsyncDisposable {
           kind: ErrorKind.InvalidArgument,
           provider: this.providerName,
           operation: "attach",
-          field: "id",
+          field: InfoFieldId,
           message: "sandbox-kit: sandbox ID must not be blank",
         });
       if (!this.#backend.attach) unsupported(this.providerName, "attach");
@@ -796,7 +803,7 @@ export class Client implements AsyncDisposable {
           kind: ErrorKind.InvalidArgument,
           provider: this.providerName,
           operation: "get",
-          field: "id",
+          field: InfoFieldId,
           message: "sandbox-kit: sandbox ID must not be blank",
         });
       if (!this.#backend.refresh) unsupported(this.providerName, "get");
@@ -862,7 +869,7 @@ export class Client implements AsyncDisposable {
           kind: ErrorKind.InvalidResponse,
           provider: this.providerName,
           operation: "create",
-          field: "id",
+          field: InfoFieldId,
           message: "sandbox-kit: provider returned no sandbox identity",
         });
       if (
@@ -873,7 +880,7 @@ export class Client implements AsyncDisposable {
           kind: ErrorKind.InvalidResponse,
           provider: this.providerName,
           operation: "create",
-          field: "provider",
+          field: ConfigFieldProvider,
           message:
             "sandbox-kit: response provider differs from selected provider",
         });

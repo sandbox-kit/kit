@@ -7,6 +7,13 @@ import {
   sandboxError,
   type SandboxInfo,
   type Scope,
+  CreateFieldResourcesMemoryLimitMib,
+  CreateFieldResourcesMemoryMib,
+  InfoFieldId,
+  CreateFieldLifetimeIdleTerminateAfter,
+  CreateFieldLifetimeMaximumLifetime,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesCpuLimitCores
 } from "@sandbox-kit/sandbox";
 import type {
   CreateOptions,
@@ -36,7 +43,7 @@ export function mapSandboxIdentity(
     if (source.sandboxId !== undefined) {
       const value = source.sandboxId;
       target.id = value;
-      origins["id"] = ValueOrigin.Provider;
+      origins[InfoFieldId] = ValueOrigin.Provider;
     }
   }
   target.provider = "modal";
@@ -95,7 +102,7 @@ export function mapResources(
     if (source.cpuCores !== undefined) {
       target.cpu = scaledCpuCores(
         source.cpuCores,
-        "resources.cpu_cores",
+        CreateFieldResourcesCpuCores,
         operation,
       );
     }
@@ -104,7 +111,7 @@ export function mapResources(
     if (source.cpuLimitCores !== undefined) {
       target.cpuLimit = scaledCpuCores(
         source.cpuLimitCores,
-        "resources.cpu_limit_cores",
+        CreateFieldResourcesCpuLimitCores,
         operation,
       );
     }
@@ -115,7 +122,7 @@ export function mapResources(
       if (value > 2147483647n)
         mappingError(
           ErrorKind.InvalidArgument,
-          "resources.memory_mib",
+          CreateFieldResourcesMemoryMib,
           "memory_mib cannot be represented",
           operation,
         );
@@ -128,7 +135,7 @@ export function mapResources(
       if (value > 2147483647n)
         mappingError(
           ErrorKind.InvalidArgument,
-          "resources.memory_limit_mib",
+          CreateFieldResourcesMemoryLimitMib,
           "memory_limit_mib cannot be represented",
           operation,
         );
@@ -148,7 +155,7 @@ export function mapLifetimeDuration(
     if (source.maximumLifetime !== undefined) {
       target.timeoutMs = durationSecondsMs(
         source.maximumLifetime,
-        "lifetime.maximum_lifetime",
+        CreateFieldLifetimeMaximumLifetime,
         86_400,
         operation,
       );
@@ -167,7 +174,7 @@ export function mapIdleDuration(
     if (source.after !== undefined) {
       target.idleTimeoutMs = durationSecondsMs(
         source.after,
-        "lifetime.idle_terminate.after",
+        CreateFieldLifetimeIdleTerminateAfter,
         4_294_967_295,
         operation,
       );

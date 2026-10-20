@@ -11,11 +11,34 @@ import {
   sandboxError,
   type Config,
   type CreateOptions,
-  type SandboxInfo
+  type SandboxInfo,
+  CreateFieldIsolation,
+  CreateFieldNetwork,
+  CreateFieldNetworkEgress,
+  CreateFieldNetworkLinkedSandbox,
+  CreateFieldObservabilityVerbose,
+  CreateFieldPlacement,
+  CreateFieldProvisioningWaitFor,
+  CreateFieldReadiness,
+  CreateFieldResources,
+  CreateFieldResourcesCpuCores,
+  CreateFieldRuntime,
+  CreateFieldSecuritySecretsEnvironmentVariable,
+  CreateFieldSecuritySecretsInjection,
+  CreateFieldSourceSnapshotKind,
+  CreateFieldRuntimeUser,
+  CreateFieldSecuritySecretsReference,
+  CreateFieldSecurityWorkloadIdentity,
+  CreateFieldSourceImageReference,
+  CreateFieldSourceSnapshotProviderKind,
+  CreateFieldSourceSnapshotReference,
+  CreateFieldSourceWarmPool,
+  CreateFieldNetworkOutboundCidrs,
+  CreateFieldNetworkOutboundDomains,
+  CreateFieldLifetimeIdleTerminate,
+  CreateFieldObservabilityTelemetryEndpoint,
 } from "@sandbox-kit/sandbox";
-import {
-  metadataObjectFromMap,
-} from "@sandbox-kit/sandbox";
+import { metadataObjectFromMap } from "@sandbox-kit/sandbox";
 import {
   type CreateSandboxBaseParams,
   type CreateSandboxFromImageParams,
@@ -31,9 +54,14 @@ import {
   mapSandboxInfo as generatedMapSandboxInfo,
 } from "./provider_mappings.js";
 import { validateProviderCreate } from "#checks/provider_checks.js";
-import { mapGeneratedClientConfig, type Environment } from "#config/provider_config.js";
+import {
+  mapGeneratedClientConfig,
+  type Environment,
+} from "#config/provider_config.js";
 
-export type DaytonaCreateParams = CreateSandboxFromImageParams | CreateSandboxFromSnapshotParams;
+export type DaytonaCreateParams =
+  | CreateSandboxFromImageParams
+  | CreateSandboxFromSnapshotParams;
 
 export function mapClientConfig(
   config: Config,
@@ -62,98 +90,190 @@ export function mapCreateRequest(request: CreateOptions): DaytonaCreateParams {
   mapProvisioning(request, base);
   mapObservability(request, base);
   if (request.placement !== undefined)
-    unsupported("placement", "per-request Daytona placement is unsupported; use Config.region");
-  if (request.readiness !== undefined) unsupported("readiness", "Daytona readiness probes are not mapped");
-  if (request.providerOptions !== undefined) unsupported("providerOptions", "Daytona provider options are not mapped");
+    unsupported(
+      CreateFieldPlacement,
+      "per-request Daytona placement is unsupported; use Config.region",
+    );
+  if (request.readiness !== undefined)
+    unsupported(
+      CreateFieldReadiness,
+      "Daytona readiness probes are not mapped",
+    );
+  if (request.providerOptions !== undefined)
+    unsupported("providerOptions", "Daytona provider options are not mapped");
   const source = request.source;
   if (source?.warmPool !== undefined)
-    unsupported("source.warmPool", "explicit warm-pool creation mapping is unavailable");
+    unsupported(
+      CreateFieldSourceWarmPool,
+      "explicit warm-pool creation mapping is unavailable",
+    );
   if (source?.image !== undefined)
     return {
       ...base,
-      image: nonblank(source.image.reference, "source.image.reference"),
-      ...(request.resources === undefined ? {} : { resources: mapResources(request.resources) }),
+      image: nonblank(source.image.reference, CreateFieldSourceImageReference),
+      ...(request.resources === undefined
+        ? {}
+        : { resources: mapResources(request.resources) }),
     };
-  if (request.resources !== undefined) unsupported("resources", "Daytona resources require an image source");
+  if (request.resources !== undefined)
+    unsupported(
+      CreateFieldResources,
+      "Daytona resources require an image source",
+    );
   if (source?.snapshot !== undefined) {
     const snapshot = source.snapshot;
     if ((snapshot.kind ?? SnapshotKind.Default) !== SnapshotKind.Default)
-      unsupported("source.snapshot.kind", "explicit snapshot-kind restore mapping is unavailable");
+      unsupported(
+        CreateFieldSourceSnapshotKind,
+        "explicit snapshot-kind restore mapping is unavailable",
+      );
     if (snapshot.providerKind !== undefined)
-      unsupported("source.snapshot.providerKind", "provider snapshot kind is unsupported");
-    return { ...base, snapshot: nonblank(snapshot.reference, "source.snapshot.reference") };
+      unsupported(
+        CreateFieldSourceSnapshotProviderKind,
+        "provider snapshot kind is unsupported",
+      );
+    return {
+      ...base,
+      snapshot: nonblank(
+        snapshot.reference,
+        CreateFieldSourceSnapshotReference,
+      ),
+    };
   }
   return { ...base };
 }
 
-function mapRuntime(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapRuntime(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.runtime;
   if (value === undefined) return;
   if (value.language !== undefined) target.language = value.language;
-  if (value.user !== undefined) target.user = nonblank(value.user, "runtime.user");
+  if (value.user !== undefined)
+    target.user = nonblank(value.user, CreateFieldRuntimeUser);
   if (
     value.version !== undefined ||
     value.workingDirectory !== undefined ||
     value.entrypoint !== undefined ||
     value.pty !== undefined
   )
-    unsupported("runtime", "runtime version, working directory, entrypoint, and PTY are not mapped by Daytona");
+    unsupported(
+      CreateFieldRuntime,
+      "runtime version, working directory, entrypoint, and PTY are not mapped by Daytona",
+    );
 }
 
-function mapIsolation(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapIsolation(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.isolation;
   if (value === undefined) return;
-  if ((value.kind ?? IsolationKind.Default) !== IsolationKind.Default || value.providerKind !== undefined)
-    unsupported("isolation", "Daytona isolation class comes from the selected source");
-  if (value.nestedVirtualization !== undefined) target.kvm = value.nestedVirtualization;
+  if (
+    (value.kind ?? IsolationKind.Default) !== IsolationKind.Default ||
+    value.providerKind !== undefined
+  )
+    unsupported(
+      CreateFieldIsolation,
+      "Daytona isolation class comes from the selected source",
+    );
+  if (value.nestedVirtualization !== undefined)
+    target.kvm = value.nestedVirtualization;
 }
 
-function mapSecurity(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapSecurity(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.security;
   if (value === undefined) return;
   if (value.publicAccess !== undefined) target.public = value.publicAccess;
   if (value.workloadIdentity !== undefined)
-    unsupported("security.workloadIdentity", "Daytona workload identity is not mapped");
+    unsupported(
+      CreateFieldSecurityWorkloadIdentity,
+      "Daytona workload identity is not mapped",
+    );
   if (value.secrets !== undefined) {
     const secrets: Record<string, string> = {};
     for (const secret of value.secrets) {
       const variable =
         secret.environmentVariable === undefined
           ? ""
-          : nonblank(secret.environmentVariable, "security.secrets.environmentVariable");
-      if (variable === "") invalid("security.secrets.environmentVariable", "secret environment variable is required");
+          : nonblank(
+              secret.environmentVariable,
+              CreateFieldSecuritySecretsEnvironmentVariable,
+            );
+      if (variable === "")
+        invalid(
+          CreateFieldSecuritySecretsEnvironmentVariable,
+          "secret environment variable is required",
+        );
       const injection = secret.injection ?? SecretInjection.Default;
-      if (injection !== SecretInjection.Default && injection !== SecretInjection.EgressPlaceholder)
-        unsupported("security.secrets.injection", "Daytona secrets require egress-placeholder injection");
+      if (
+        injection !== SecretInjection.Default &&
+        injection !== SecretInjection.EgressPlaceholder
+      )
+        unsupported(
+          CreateFieldSecuritySecretsInjection,
+          "Daytona secrets require egress-placeholder injection",
+        );
       if (Object.hasOwn(secrets, variable))
-        invalid("security.secrets.environmentVariable", "duplicate secret environment variable");
-      secrets[variable] = nonblank(secret.reference, "security.secrets.reference");
+        invalid(
+          CreateFieldSecuritySecretsEnvironmentVariable,
+          "duplicate secret environment variable",
+        );
+      secrets[variable] = nonblank(
+        secret.reference,
+        CreateFieldSecuritySecretsReference,
+      );
     }
     target.secrets = secrets;
   }
 }
 
-function mapNetwork(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapNetwork(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.network;
   if (value === undefined) return;
   if (value.linkedSandbox !== undefined && request.lifetime?.ephemeral !== true)
-    invalid("network.linkedSandbox", "linked sandboxes must be ephemeral");
+    invalid(
+      CreateFieldNetworkLinkedSandbox,
+      "linked sandboxes must be ephemeral",
+    );
   const egress = value.egress ?? EgressMode.Default;
   if (egress === EgressMode.BlockAll) target.networkBlockAll = true;
-  else if (egress !== EgressMode.Default && egress !== EgressMode.AllowAll && egress !== EgressMode.Restricted)
-    invalid("network.egress", "unknown egress mode");
+  else if (
+    egress !== EgressMode.Default &&
+    egress !== EgressMode.AllowAll &&
+    egress !== EgressMode.Restricted
+  )
+    invalid(CreateFieldNetworkEgress, "unknown egress mode");
   if (value.outboundCidrs !== undefined) {
     if (!value.outboundCidrs.length)
-      unsupported("network.outboundCidrs", "empty CIDR allowlist mapping is not verified");
+      unsupported(
+        CreateFieldNetworkOutboundCidrs,
+        "empty CIDR allowlist mapping is not verified",
+      );
     target.networkAllowList = value.outboundCidrs.join(",");
   }
   if (value.outboundDomains !== undefined) {
     if (!value.outboundDomains.length)
-      unsupported("network.outboundDomains", "empty domain allowlist mapping is not verified");
+      unsupported(
+        CreateFieldNetworkOutboundDomains,
+        "empty domain allowlist mapping is not verified",
+      );
     target.domainAllowList = value.outboundDomains.join(",");
   }
-  if (value.linkedSandbox !== undefined) target.linkedSandbox = nonblank(value.linkedSandbox, "network.linkedSandbox");
-  if (value.outboundProxyUrl !== undefined) target.outboundProxyUrl = value.outboundProxyUrl;
+  if (value.linkedSandbox !== undefined)
+    target.linkedSandbox = nonblank(
+      value.linkedSandbox,
+      CreateFieldNetworkLinkedSandbox,
+    );
+  if (value.outboundProxyUrl !== undefined)
+    target.outboundProxyUrl = value.outboundProxyUrl;
   if (
     value.inboundCidrs !== undefined ||
     value.privateNetwork !== undefined ||
@@ -161,46 +281,86 @@ function mapNetwork(request: CreateOptions, target: CreateSandboxBaseParams): vo
     value.customDomain !== undefined ||
     value.ports !== undefined
   )
-    unsupported("network", "one or more Daytona network fields are not mapped");
+    unsupported(
+      CreateFieldNetwork,
+      "one or more Daytona network fields are not mapped",
+    );
 }
 
-function mapLifetime(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapLifetime(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.lifetime;
   if (value === undefined) return;
   Object.assign(target, generatedMapLifetimePolicies(value));
   if (value.ephemeral !== undefined) target.ephemeral = value.ephemeral;
   if (value.maximumLifetime !== undefined)
-    target.ttlMinutes = wholeMinutes(value.maximumLifetime, "lifetime.maximumLifetime", true);
+    target.ttlMinutes = wholeMinutes(
+      value.maximumLifetime,
+      "lifetime.maximumLifetime",
+      true,
+    );
   if (value.idleTerminate !== undefined)
-    unsupported("lifetime.idleTerminate", "Daytona idle termination is not mapped");
+    unsupported(
+      CreateFieldLifetimeIdleTerminate,
+      "Daytona idle termination is not mapped",
+    );
 }
 
-function mapProvisioning(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapProvisioning(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.provisioning;
   if (value === undefined) return;
   if (value.queueTimeout !== undefined)
-    target.queueTimeout = wholeMinutes(value.queueTimeout, "provisioning.queueTimeout", false);
+    target.queueTimeout = wholeMinutes(
+      value.queueTimeout,
+      "provisioning.queueTimeout",
+      false,
+    );
   const waitFor = value.waitFor ?? WaitCondition.Default;
   if (waitFor !== WaitCondition.Default && waitFor !== WaitCondition.Started)
-    unsupported("provisioning.waitFor", "the Daytona TypeScript SDK only returns after startup");
+    unsupported(
+      CreateFieldProvisioningWaitFor,
+      "the Daytona TypeScript SDK only returns after startup",
+    );
 }
 
-function mapObservability(request: CreateOptions, target: CreateSandboxBaseParams): void {
+function mapObservability(
+  request: CreateOptions,
+  target: CreateSandboxBaseParams,
+): void {
   const value = request.observability;
   if (value === undefined) return;
   if (value.telemetryEndpoint !== undefined)
-    target.otelEndpointOverride = nonblank(value.telemetryEndpoint, "observability.telemetryEndpoint");
-  if (value.verbose !== undefined) unsupported("observability.verbose", "Daytona verbose creation is not mapped");
+    target.otelEndpointOverride = nonblank(
+      value.telemetryEndpoint,
+      CreateFieldObservabilityTelemetryEndpoint,
+    );
+  if (value.verbose !== undefined)
+    unsupported(
+      CreateFieldObservabilityVerbose,
+      "Daytona verbose creation is not mapped",
+    );
 }
 
-function mapResources(value: NonNullable<CreateOptions["resources"]>): ReturnType<typeof generatedMapResources> {
-  if (value.cpuCores !== undefined && value.cpuCores <= 0) invalid("resources.cpuCores", "CPU must be positive");
+function mapResources(
+  value: NonNullable<CreateOptions["resources"]>,
+): ReturnType<typeof generatedMapResources> {
+  if (value.cpuCores !== undefined && value.cpuCores <= 0)
+    invalid(CreateFieldResourcesCpuCores, "CPU must be positive");
   if (value.cpuLimitCores !== undefined || value.memoryLimitMib !== undefined)
-    unsupported("resources", "Daytona resource limits are not mapped");
+    unsupported(CreateFieldResources, "Daytona resource limits are not mapped");
   return generatedMapResources(value);
 }
 
-function wholeMinutes(value: number, field: string, zeroAllowed: boolean): number {
+function wholeMinutes(
+  value: number,
+  field: string,
+  zeroAllowed: boolean,
+): number {
   if (
     !Number.isFinite(value) ||
     value < 0 ||
@@ -212,10 +372,15 @@ function wholeMinutes(value: number, field: string, zeroAllowed: boolean): numbe
   return value / 60_000;
 }
 
-export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): SandboxInfo {
+export function mapSandboxInfo(
+  value: DaytonaSandbox,
+  operation = "create",
+): SandboxInfo {
   const mapped = generatedMapSandboxInfo(value, operation);
   const origins: Record<string, ValueOrigin> = { ...(mapped.origins ?? {}) };
-  const state = mapState(value.state === undefined ? undefined : String(value.state));
+  const state = mapState(
+    value.state === undefined ? undefined : String(value.state),
+  );
   const result: SandboxInfo = {
     ...mapped,
     id: mapped.id ?? value.id,
@@ -246,8 +411,10 @@ export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): San
   const metadata: Record<string, string | number | boolean> = {};
   if (value.gpu > 0) metadata.gpu_count = value.gpu;
   if (value.gpuType !== undefined) metadata.gpu_type = String(value.gpuType);
-  if (value.desiredState !== undefined) metadata.desired_state = String(value.desiredState);
-  if (value.errorReason !== undefined) metadata.error_reason = value.errorReason;
+  if (value.desiredState !== undefined)
+    metadata.desired_state = String(value.desiredState);
+  if (value.errorReason !== undefined)
+    metadata.error_reason = value.errorReason;
   if (value.recoverable !== undefined) metadata.recoverable = value.recoverable;
   if (value.spot === true) metadata.spot = true;
   for (const [key, entry] of [
@@ -286,7 +453,9 @@ export function mapSandboxInfo(value: DaytonaSandbox, operation = "create"): San
   return result;
 }
 
-function resultMutable(value: SandboxInfo): { -readonly [K in keyof SandboxInfo]: SandboxInfo[K] } {
+function resultMutable(value: SandboxInfo): {
+  -readonly [K in keyof SandboxInfo]: SandboxInfo[K];
+} {
   return value;
 }
 function mapState(value: string | undefined): SandboxState {

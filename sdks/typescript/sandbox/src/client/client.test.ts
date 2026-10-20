@@ -1,4 +1,15 @@
 import { describe, expect, it } from "vitest";
+import {
+  CreateFieldLifetimeIdleStopMode,
+  CreateFieldProvisioningTimeout,
+  CreateFieldResourcesCpuCores,
+  CreateFieldSourceImageReference,
+} from "#contracts/field_paths.js";
+import {
+  ConfigFieldEndpoint,
+  ConfigFieldProvider,
+  ConfigFieldTimeout,
+} from "#contracts/config_paths.js";
 
 import {
   Client,
@@ -95,7 +106,7 @@ describe("Client cleanup", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidResponse,
-        field: "provider",
+        field: ConfigFieldProvider,
       }),
     );
     await Promise.resolve();
@@ -167,7 +178,7 @@ describe("Shared request validation", () => {
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "create",
-      field: "resources.cpu_cores",
+      field: CreateFieldResourcesCpuCores,
       rule: "exclusive_minimum",
     });
     expect(backend.createCalls).toBe(0);
@@ -184,7 +195,7 @@ describe("Shared request validation", () => {
       }),
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "source.image.reference",
+      field: CreateFieldSourceImageReference,
     });
     expect(backend.createCalls).toBe(0);
   });
@@ -210,7 +221,7 @@ describe("Shared request validation", () => {
 
     await expect(client.create(request)).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "lifetime.idle_stop.mode",
+      field: CreateFieldLifetimeIdleStopMode,
     });
     expect(backend.createCalls).toBe(0);
   });
@@ -236,7 +247,7 @@ describe("Shared request validation", () => {
       client.create({ provisioning: { timeout: -1 } }),
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "provisioning.timeout",
+      field: CreateFieldProvisioningTimeout,
     });
     expect(backend.createCalls).toBe(0);
   });
@@ -286,7 +297,7 @@ describe("Shared client configuration validation", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "endpoint",
+        field: ConfigFieldEndpoint,
         operation: "initialize",
       }),
     );
@@ -313,7 +324,7 @@ describe("Shared client configuration validation", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "timeout",
+        field: ConfigFieldTimeout,
         operation: "initialize",
       }),
     );
@@ -342,7 +353,7 @@ describe("Operation cancellation", () => {
     await expect(client.create({}, { timeout: -1 })).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "create",
-      field: "timeout",
+      field: ConfigFieldTimeout,
     });
     await expect(client.close()).resolves.toBeUndefined();
     expect(backend.closeCalls).toBe(1);

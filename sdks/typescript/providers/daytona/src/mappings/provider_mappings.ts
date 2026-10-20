@@ -7,21 +7,41 @@ import {
   ValueOrigin,
   sandboxError,
   type SandboxInfo,
-  type Scope
+  type Scope,
+  CreateFieldLifetimeIdlePause,
+  CreateFieldLifetimeIdleStop,
+  CreateFieldLifetimeStoppedArchive,
+  CreateFieldLifetimeStoppedDelete,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesDiskMib,
+  CreateFieldResourcesMemoryMib,
+  InfoFieldId,
+  InfoFieldLabels,
+  InfoFieldName,
+  InfoFieldProviderState,
+  InfoFieldRegion,
 } from "@sandbox-kit/sandbox";
 import type {
   APIKeyCredentials,
   BearerTokenCredentials,
   Config,
   CreateOptions,
-  Resources
+  Resources,
 } from "@sandbox-kit/sandbox";
-import type { CreateSandboxBaseParams as NativeCreateSandboxBaseParams, DaytonaConfig as NativeDaytonaConfig, Resources as NativeResources, Sandbox as NativeSandbox } from "@daytona/sdk";
+import type {
+  CreateSandboxBaseParams as NativeCreateSandboxBaseParams,
+  DaytonaConfig as NativeDaytonaConfig,
+  Resources as NativeResources,
+  Sandbox as NativeSandbox,
+} from "@daytona/sdk";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 type PublicLifetime = NonNullable<CreateOptions["lifetime"]>;
 
-export function mapLifetimePolicies(source: PublicLifetime | undefined, operation: string = "create"): NativeCreateSandboxBaseParams {
+export function mapLifetimePolicies(
+  source: PublicLifetime | undefined,
+  operation: string = "create",
+): NativeCreateSandboxBaseParams {
   const target: Mutable<NativeCreateSandboxBaseParams> = {};
   if (source === undefined) return target;
   if (source.idleStop !== undefined) {
@@ -30,14 +50,37 @@ export function mapLifetimePolicies(source: PublicLifetime | undefined, operatio
     if (mode === PolicyMode.Disabled) {
       target.autoStopInterval = 0;
     } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_stop", "duration is required", operation);
+      if (policy.after === undefined)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeIdleStop,
+          "duration is required",
+          operation,
+        );
       const afterMs = policy.after;
-      if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.idle_stop", "immediate action is not representable", operation);
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_stop", "delay cannot be represented in whole minutes", operation);
+      if (afterMs === 0)
+        mappingError(
+          ErrorKind.Unsupported,
+          CreateFieldLifetimeIdleStop,
+          "immediate action is not representable",
+          operation,
+        );
+      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeIdleStop,
+          "delay cannot be represented in whole minutes",
+          operation,
+        );
       const minutes = afterMs / 60_000;
       target.autoStopInterval = minutes;
     } else if (mode !== PolicyMode.Default) {
-      mappingError(ErrorKind.InvalidArgument, "lifetime.idle_stop", "unknown policy mode", operation);
+      mappingError(
+        ErrorKind.InvalidArgument,
+        CreateFieldLifetimeIdleStop,
+        "unknown policy mode",
+        operation,
+      );
     }
   }
   if (source.idlePause !== undefined) {
@@ -46,52 +89,134 @@ export function mapLifetimePolicies(source: PublicLifetime | undefined, operatio
     if (mode === PolicyMode.Disabled) {
       target.autoPauseInterval = 0;
     } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_pause", "duration is required", operation);
+      if (policy.after === undefined)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeIdlePause,
+          "duration is required",
+          operation,
+        );
       const afterMs = policy.after;
-      if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.idle_pause", "immediate action is not representable", operation);
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_pause", "delay cannot be represented in whole minutes", operation);
+      if (afterMs === 0)
+        mappingError(
+          ErrorKind.Unsupported,
+          CreateFieldLifetimeIdlePause,
+          "immediate action is not representable",
+          operation,
+        );
+      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeIdlePause,
+          "delay cannot be represented in whole minutes",
+          operation,
+        );
       const minutes = afterMs / 60_000;
       target.autoPauseInterval = minutes;
     } else if (mode !== PolicyMode.Default) {
-      mappingError(ErrorKind.InvalidArgument, "lifetime.idle_pause", "unknown policy mode", operation);
+      mappingError(
+        ErrorKind.InvalidArgument,
+        CreateFieldLifetimeIdlePause,
+        "unknown policy mode",
+        operation,
+      );
     }
   }
   if (source.stoppedArchive !== undefined) {
     const policy = source.stoppedArchive;
     const mode = policy.mode ?? PolicyMode.Default;
     if (mode === PolicyMode.Disabled) {
-      mappingError(ErrorKind.Unsupported, "lifetime.stopped_archive", "explicit disabling is not representable", operation);
+      mappingError(
+        ErrorKind.Unsupported,
+        CreateFieldLifetimeStoppedArchive,
+        "explicit disabling is not representable",
+        operation,
+      );
     } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "duration is required", operation);
+      if (policy.after === undefined)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeStoppedArchive,
+          "duration is required",
+          operation,
+        );
       const afterMs = policy.after;
-      if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.stopped_archive", "immediate action is not representable", operation);
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "delay cannot be represented in whole minutes", operation);
+      if (afterMs === 0)
+        mappingError(
+          ErrorKind.Unsupported,
+          CreateFieldLifetimeStoppedArchive,
+          "immediate action is not representable",
+          operation,
+        );
+      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeStoppedArchive,
+          "delay cannot be represented in whole minutes",
+          operation,
+        );
       const minutes = afterMs / 60_000;
-      if (minutes > 43200) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "delay exceeds documented maximum", operation);
+      if (minutes > 43200)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeStoppedArchive,
+          "delay exceeds documented maximum",
+          operation,
+        );
       target.autoArchiveInterval = minutes;
     } else if (mode !== PolicyMode.Default) {
-      mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "unknown policy mode", operation);
+      mappingError(
+        ErrorKind.InvalidArgument,
+        CreateFieldLifetimeStoppedArchive,
+        "unknown policy mode",
+        operation,
+      );
     }
   }
   if (source.stoppedDelete !== undefined) {
     const policy = source.stoppedDelete;
     const mode = policy.mode ?? PolicyMode.Default;
     if (mode === PolicyMode.Disabled) {
-      mappingError(ErrorKind.Unsupported, "lifetime.stopped_delete", "explicit disabling is not representable", operation);
+      mappingError(
+        ErrorKind.Unsupported,
+        CreateFieldLifetimeStoppedDelete,
+        "explicit disabling is not representable",
+        operation,
+      );
     } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_delete", "duration is required", operation);
+      if (policy.after === undefined)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeStoppedDelete,
+          "duration is required",
+          operation,
+        );
       const afterMs = policy.after;
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_delete", "delay cannot be represented in whole minutes", operation);
+      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldLifetimeStoppedDelete,
+          "delay cannot be represented in whole minutes",
+          operation,
+        );
       const minutes = afterMs / 60_000;
       target.autoDeleteInterval = minutes;
     } else if (mode !== PolicyMode.Default) {
-      mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_delete", "unknown policy mode", operation);
+      mappingError(
+        ErrorKind.InvalidArgument,
+        CreateFieldLifetimeStoppedDelete,
+        "unknown policy mode",
+        operation,
+      );
     }
   }
   return target;
 }
 
-export function mapCommonCreateFields(source: CreateOptions | undefined, operation: string = "create"): NativeCreateSandboxBaseParams {
+export function mapCommonCreateFields(
+  source: CreateOptions | undefined,
+  operation: string = "create",
+): NativeCreateSandboxBaseParams {
   const target: Mutable<NativeCreateSandboxBaseParams> = {};
   if (source === undefined) return target;
   {
@@ -115,34 +240,58 @@ export function mapCommonCreateFields(source: CreateOptions | undefined, operati
   return target;
 }
 
-export function mapResources(source: Resources | undefined, operation: string = "create"): NativeResources {
+export function mapResources(
+  source: Resources | undefined,
+  operation: string = "create",
+): NativeResources {
   const target: Mutable<NativeResources> = {};
   if (source === undefined) return target;
   {
     if (source.cpuCores !== undefined) {
       const value = source.cpuCores;
-      if (!Number.isInteger(value) || value > 2147483647) mappingError(ErrorKind.InvalidArgument, "resources.cpu_cores", "cpu_cores cannot be represented", operation);
+      if (!Number.isInteger(value) || value > 2147483647)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldResourcesCpuCores,
+          "cpu_cores cannot be represented",
+          operation,
+        );
       target.cpu = Number(value);
     }
   }
   {
     if (source.memoryMib !== undefined) {
       const value = source.memoryMib;
-      if (value % 1024n !== 0n || value / 1024n > 2147483647n) mappingError(ErrorKind.InvalidArgument, "resources.memory_mib", "memory_mib cannot be represented", operation);
+      if (value % 1024n !== 0n || value / 1024n > 2147483647n)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldResourcesMemoryMib,
+          "memory_mib cannot be represented",
+          operation,
+        );
       target.memory = Number(value / 1024n);
     }
   }
   {
     if (source.diskMib !== undefined) {
       const value = source.diskMib;
-      if (value % 1024n !== 0n || value / 1024n > 2147483647n) mappingError(ErrorKind.InvalidArgument, "resources.disk_mib", "disk_mib cannot be represented", operation);
+      if (value % 1024n !== 0n || value / 1024n > 2147483647n)
+        mappingError(
+          ErrorKind.InvalidArgument,
+          CreateFieldResourcesDiskMib,
+          "disk_mib cannot be represented",
+          operation,
+        );
       target.disk = Number(value / 1024n);
     }
   }
   return target;
 }
 
-export function mapSandboxInfo(source: NativeSandbox | undefined, operation: string = "create"): Partial<SandboxInfo> {
+export function mapSandboxInfo(
+  source: NativeSandbox | undefined,
+  operation: string = "create",
+): Partial<SandboxInfo> {
   const target: Mutable<Partial<SandboxInfo>> = {};
   if (source === undefined) return target;
   const origins: Record<string, ValueOrigin> = {};
@@ -151,45 +300,55 @@ export function mapSandboxInfo(source: NativeSandbox | undefined, operation: str
     if (source.id !== undefined) {
       const value = source.id;
       target.id = value;
-      origins["id"] = ValueOrigin.Provider;
+      origins[InfoFieldId] = ValueOrigin.Provider;
     }
   }
   {
     if (source.name !== undefined) {
       const value = source.name;
       target.name = value;
-      origins["name"] = ValueOrigin.Provider;
+      origins[InfoFieldName] = ValueOrigin.Provider;
     }
   }
   {
     if (source.state !== undefined) {
       const value = source.state;
       target.providerState = String(value);
-      origins["provider_state"] = ValueOrigin.Provider;
+      origins[InfoFieldProviderState] = ValueOrigin.Provider;
     }
   }
   {
     if (source.target !== undefined) {
       const value = source.target;
       target.region = value;
-      origins["region"] = ValueOrigin.Provider;
+      origins[InfoFieldRegion] = ValueOrigin.Provider;
     }
   }
   {
     if (source.labels !== undefined) {
       const value = source.labels;
       target.labels = { ...value };
-      origins["labels"] = ValueOrigin.Provider;
+      origins[InfoFieldLabels] = ValueOrigin.Provider;
     }
   }
   target.provider = "daytona";
   return target;
 }
 
-export function mapAllocatedResources(source: NativeSandbox | undefined, operation: string = "create"): Partial<Resources> {
+export function mapAllocatedResources(
+  source: NativeSandbox | undefined,
+  operation: string = "create",
+): Partial<Resources> {
   const target: Mutable<Partial<Resources>> = {};
   if (source === undefined) return target;
-  if (!((source.cpu ?? 0) > 0 && (source.memory ?? 0) > 0 && (source.disk ?? 0) > 0)) return target;
+  if (
+    !(
+      (source.cpu ?? 0) > 0 &&
+      (source.memory ?? 0) > 0 &&
+      (source.disk ?? 0) > 0
+    )
+  )
+    return target;
   {
     if (source.cpu !== undefined) {
       const value = source.cpu;
@@ -199,21 +358,36 @@ export function mapAllocatedResources(source: NativeSandbox | undefined, operati
   {
     if (source.memory !== undefined) {
       const value = source.memory;
-      if (!Number.isSafeInteger(value) || value < 0) mappingError(ErrorKind.InvalidResponse, "memory", "memory cannot be represented", operation);
+      if (!Number.isSafeInteger(value) || value < 0)
+        mappingError(
+          ErrorKind.InvalidResponse,
+          "memory",
+          "memory cannot be represented",
+          operation,
+        );
       target.memoryMib = BigInt(value) * 1024n;
     }
   }
   {
     if (source.disk !== undefined) {
       const value = source.disk;
-      if (!Number.isSafeInteger(value) || value < 0) mappingError(ErrorKind.InvalidResponse, "disk", "disk cannot be represented", operation);
+      if (!Number.isSafeInteger(value) || value < 0)
+        mappingError(
+          ErrorKind.InvalidResponse,
+          "disk",
+          "disk cannot be represented",
+          operation,
+        );
       target.diskMib = BigInt(value) * 1024n;
     }
   }
   return target;
 }
 
-export function mapClientSettings(source: Config | undefined, operation: string = "initialize"): NativeDaytonaConfig {
+export function mapClientSettings(
+  source: Config | undefined,
+  operation: string = "initialize",
+): NativeDaytonaConfig {
   const target: Mutable<NativeDaytonaConfig> = {};
   if (source === undefined) return target;
   {
@@ -231,7 +405,10 @@ export function mapClientSettings(source: Config | undefined, operation: string 
   return target;
 }
 
-export function mapAPIKeyCredentials(source: APIKeyCredentials | undefined, operation: string = "initialize"): NativeDaytonaConfig {
+export function mapAPIKeyCredentials(
+  source: APIKeyCredentials | undefined,
+  operation: string = "initialize",
+): NativeDaytonaConfig {
   const target: Mutable<NativeDaytonaConfig> = {};
   if (source === undefined) return target;
   {
@@ -241,7 +418,10 @@ export function mapAPIKeyCredentials(source: APIKeyCredentials | undefined, oper
   return target;
 }
 
-export function mapBearerAuth(source: BearerTokenCredentials | undefined, operation: string = "initialize"): NativeDaytonaConfig {
+export function mapBearerAuth(
+  source: BearerTokenCredentials | undefined,
+  operation: string = "initialize",
+): NativeDaytonaConfig {
   const target: Mutable<NativeDaytonaConfig> = {};
   if (source === undefined) return target;
   {
@@ -251,7 +431,10 @@ export function mapBearerAuth(source: BearerTokenCredentials | undefined, operat
   return target;
 }
 
-export function mapScope(source: Scope | undefined, operation: string = "initialize"): NativeDaytonaConfig {
+export function mapScope(
+  source: Scope | undefined,
+  operation: string = "initialize",
+): NativeDaytonaConfig {
   const target: Mutable<NativeDaytonaConfig> = {};
   if (source === undefined) return target;
   {
@@ -263,6 +446,17 @@ export function mapScope(source: Scope | undefined, operation: string = "initial
   return target;
 }
 
-function mappingError(kind: ErrorKind, field: string, message: string, operation: string): never {
-  throw sandboxError({ kind, provider: "daytona", operation, field, message: "sandbox-kit daytona: " + message });
+function mappingError(
+  kind: ErrorKind,
+  field: string,
+  message: string,
+  operation: string,
+): never {
+  throw sandboxError({
+    kind,
+    provider: "daytona",
+    operation,
+    field,
+    message: "sandbox-kit daytona: " + message,
+  });
 }

@@ -8,6 +8,14 @@ import {
   PortTransport,
   SecretInjection,
   WaitCondition,
+  CreateFieldEnvironment,
+  CreateFieldLifetimeIdleTerminateAfter,
+  CreateFieldLifetimeMaximumLifetime,
+  CreateFieldNetworkInboundCidrsEntries,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesCpuLimitCores,
+  ConfigFieldAuthTokenPairId,
+  ConfigFieldEndpoint
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -51,7 +59,7 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
-        field: "endpoint",
+        field: ConfigFieldEndpoint,
         operation: "initialize",
       }),
     );
@@ -64,7 +72,7 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "auth.token_pair.id",
+        field: ConfigFieldAuthTokenPairId,
       }),
     );
   });
@@ -168,13 +176,13 @@ describe("Modal mappings", () => {
     expect(() => mapResources({ cpuCores: 1.0005 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "resources.cpu_cores",
+        field: CreateFieldResourcesCpuCores,
       }),
     );
     expect(() => mapResources({ cpuLimitCores: 0.0001 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "resources.cpu_limit_cores",
+        field: CreateFieldResourcesCpuLimitCores,
       }),
     );
   });
@@ -186,13 +194,13 @@ describe("Modal mappings", () => {
     expect(() => mapLifetimeDuration({ maximumLifetime: 1_500 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "lifetime.maximum_lifetime",
+        field: CreateFieldLifetimeMaximumLifetime,
       }),
     );
     expect(() => mapIdleDuration({ after: 500 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "lifetime.idle_terminate.after",
+        field: CreateFieldLifetimeIdleTerminateAfter,
       }),
     );
   });
@@ -222,7 +230,7 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "environment",
+        field: CreateFieldEnvironment,
       }),
     );
     expect(() =>
@@ -238,7 +246,7 @@ describe("Modal mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "network.inboundCidrs.entries",
+        field: CreateFieldNetworkInboundCidrsEntries,
       }),
     );
   });

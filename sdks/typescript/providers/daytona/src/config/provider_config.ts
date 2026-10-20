@@ -7,6 +7,10 @@ import {
   sandboxError,
   validateConfig,
   type Config,
+  ConfigFieldAuth,
+  ConfigFieldScopeAppName,
+  ConfigFieldScopeEnvironment,
+  ConfigFieldScopeProjectId
 } from "@sandbox-kit/sandbox";
 import {
   mapAPIKeyCredentials,
@@ -36,14 +40,14 @@ export function mapGeneratedClientConfig(
     const mapped = mapScope(source.scope, "initialize");
     Object.assign(target, mapped);
     if (source.scope.appName !== undefined)
-      unsupported("scope.appName", "unsupported client configuration field");
+      unsupported(ConfigFieldScopeAppName, "unsupported client configuration field");
     if (source.scope.environment !== undefined)
       unsupported(
-        "scope.environment",
+        ConfigFieldScopeEnvironment,
         "unsupported client configuration field",
       );
     if (source.scope.projectId !== undefined)
-      unsupported("scope.projectId", "unsupported client configuration field");
+      unsupported(ConfigFieldScopeProjectId, "unsupported client configuration field");
   }
   if (source.auth?.apiKey !== undefined) {
     Object.assign(
@@ -56,7 +60,7 @@ export function mapGeneratedClientConfig(
       mapBearerAuth(source.auth.bearerToken, "initialize"),
     );
   } else if (source.auth !== undefined) {
-    unsupported("auth", "unsupported authentication mode");
+    unsupported(ConfigFieldAuth, "unsupported authentication mode");
   }
   return target;
 }

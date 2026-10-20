@@ -11,6 +11,12 @@ import {
   PolicyMode,
   SecretInjection,
   WaitCondition,
+  CreateFieldLifetime,
+  CreateFieldNetworkLinkedSandbox,
+  CreateFieldNetworkOutboundCidrsEntries,
+  CreateFieldProvisioningWaitFor,
+  ConfigFieldEndpoint,
+  ConfigFieldScopeProjectId
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { describe, expect, it } from "vitest";
@@ -64,7 +70,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "endpoint",
+        field: ConfigFieldEndpoint,
         operation: "initialize",
       }),
     );
@@ -73,7 +79,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
-        field: "scope.projectId",
+        field: ConfigFieldScopeProjectId,
         operation: "initialize",
       }),
     );
@@ -173,7 +179,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
-        field: "provisioning.waitFor",
+        field: CreateFieldProvisioningWaitFor,
       }),
     );
   });
@@ -186,7 +192,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "network.outboundCidrs.entries",
+        field: CreateFieldNetworkOutboundCidrsEntries,
       }),
     );
     expect(() =>
@@ -199,7 +205,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "lifetime",
+        field: CreateFieldLifetime,
       }),
     );
     expect(() =>
@@ -207,7 +213,7 @@ describe("Daytona mappings", () => {
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: "network.linkedSandbox",
+        field: CreateFieldNetworkLinkedSandbox,
       }),
     );
     expect(

@@ -61,14 +61,15 @@ Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
 `sandbox_data_contracts.ts`. Kit custom emitters no longer write SDK helpers.
 
-| File                                            | Purpose                                        |
-| ----------------------------------------------- | ---------------------------------------------- |
-| `create_validation.go`                          | Shared CreateOptions validation                |
-| `validation_fields.go`                          | Go↔protobuf field-name maps for validators     |
-| `field_paths.go` / `config_paths.go`            | Canonical field-path constants                 |
-| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions  |
-| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks         |
-| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)  |
+| File                                                     | Purpose                                      |
+| -------------------------------------------------------- | -------------------------------------------- |
+| `create_validation.go`                                   | Shared CreateOptions validation              |
+| `validation_fields.go`                                   | Go↔protobuf field-name maps for validators   |
+| `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)          |
+| `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field` |
+| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions       |
+| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks              |
+| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)       |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Keep YAML inventories aligned when changing those files.
