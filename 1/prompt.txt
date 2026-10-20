@@ -1,0 +1,330 @@
+can u just commit it
+
+---
+
+change to sdk-public-facade branch we need to work there rn
+
+---
+
+can u generate go contracts again in this as I think changes commited in another branch made this branch contract oudated.
+
+---
+
+one ofthe things I still don't like is how duration has been really implemented in typescript sdk. 
+
+timeout: 120_000
+
+we should by default let metion duration in Ms ? 
+
+ain't thats fine ? whats the problem ? and wehy we are complicating ?
+
+---
+
+120 should mean 120ms?
+
+---
+
+can't we change
+
+timeoutMs: 120
+
+which means 120ms ?
+
+---
+
+also the sandbox.archieve and many other such methods
+
+has request / unknown fields request 
+
+its messy ? why so ?
+
+---
+
+yes do that changes too.
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+ain't we need to change proto to have timeoutMs
+
+also ?
+
+---
+
+ig so just have timeout as naming ?
+
+---
+
+cool go aehad
+
+---
+
+still in many params, $typename is exposed can u check
+
+---
+
+can u think of writnig stripproto much deeper like 
+
+so for eg we are building Networkconfig from set of types
+
+we are omitting just because we need to remove protos from child fields too> 
+
+
+can u make it so we don't even need to use Omit ? just for that ?
+
+---
+
+CreateOptionsInput still doesn't remove proto fields 
+
+like check create-modal-verbose example
+
+---
+
+ig that needs to be flattenOneOf
+
+and maybe create some generic mxingflatten & strip proto ?
+
+---
+
+can we build more generators like this ig ?
+
+the const we have exported also should be somethin like this ?
+
+EgressMode and similar to it ?
+
+---
+
+canu check the tests 
+
+u will need to change the test ig for typescript sdks
+
+it might have bcome outdated.
+
+---
+
+@sdks/typescript/sandbox/src/client.test.ts:34-37 can u chck why ?
+
+---
+
+@sdks/typescript/providers/daytona/src/daytona.test.ts:267 fix this as well ?
+
+---
+
+it still shows that not solution
+
+---
+
+and the changes u made for Native Daytona for this which was not correct should we remove and revert that ? or it was correct ?
+
+---
+
+coo now can u commit changes and push to branch
+
+---
+
+can u check the typescript sdk of both the providers and see we haven't miss anything, there isn't validation which we haven't handle.
+
+---
+
+just lemme know for typescript and if its go specific we have left with fixing for go sdk a lot.
+
+---
+
+just lemme know for typescript not golang
+
+---
+
+do fix this
+
+---
+
+can u add more examples to cover more cases of both the provider. 
+
+currently just in typescript sdk
+
+---
+
+check around lifecycle methods 
+
+if u can add more if its missing
+
+---
+
+ig there are still protobuf generated types which are exposed like 
+providerDefault, kind under isolation, etc.
+
+check CreateOptionsInput to know more. 
+
+there will be more of it canu check
+
+---
+
+what u will do expian me
+
+---
+
+cool do it
+
+---
+
+ig its not fixed ? @examples/typescript/modal/create-modal-with-allowlists/src/main.ts:42-44
+
+---
+
+can u rebuilt entire typescript examples each ones.
+
+---
+
+not sure can't be can build CreateOptionsInput and NetworkConfigInput with kind of requirements we handle.
+
+like bilding custom strip, flatten srtip proto. 
+
+we had to do two thing one remove and making fields more ideal to write and removing entries and similar thin
+
+other is limitint or avoid using Omit just to addd it s & later
+
+---
+
+can u check once its correct ?
+
+---
+
+can u commit and push
+
+---
+
+currently adapters are exposed as 
+
+provider-daytona
+
+we need @sandbox-kit/daytona
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+commit and push
+
+---
+
+is there anythin u suggest to imporve in typescript sdk before we jump to go ?
+
+---
+
+I had done some changes around go
+in sdk-public-facade-go
+
+which was created from this branch but head of this branch is ahead. now 
+
+can u bring those changes to this branch 
+
+but I still need those changes to uncommit in this branch.
+
+---
+
+is response, error mapping and error handling has been done and implemented in typescript ?
+
+---
+
+can u change the PR name and description 
+
+which is open for this branch based on changes we have made. #15
+
+---
+
+Do before Go. 
+
+canu explian all 4 points ? what exactly u mean.
+
+---
+
+how its being used CreateOptionsInput & CreateOptions currently in typescript ?
+
+---
+
+what do u think we should do ? as we don't need to expose protobuf sepcifc schema to user.
+
+---
+
+cool do it
+
+---
+
+CreateOptionsWire (or stop exporting it from the package root; only Backend / providers import it).
+
+ain't this would be better not sure ?
+
+---
+
+do subpath export yes
+
+---
+
+ig this is too much 
+
+just remove CreateOptionsWire and just import where ever it needs ?
+
+---
+
+can u first remove go-sdk sepcific changes we have just stash them ?
+
+---
+
+what if we just use CreateOptions ? internally as well ?
+
+---
+
+I see, so we have providers which imports from core that is sandbox-kit/sandbox 
+
+even tho its internal. thats why this is issue.
+
+---
+
+ig just use CreateOptions for providers too ?
+
+I see even if we use Wire
+
+internally we are still mapping the request for specific providers ? 
+
+is there blockers for it or any decision ?
+
+---
+
+should we do this is this good ?
+
+---
+
+go ahead implement it
+
+---
+
+CreateOptionsWire
+
+and similar fields which are not used should be removed right + methods materialized of them + tests should be removed check those
+
+---
+
+can u commit this
+
+---
+
+push
+
+---
+
+I'm curious the service which are generated for lifecycle methods from protobufs
+
+are not being used ? i think there would be better ? way ?
+
+---
+
+does validation still happens correctly ?
