@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "2.16.0",
-    "@daytona/sdk": "0.224.0",
+    "@daytona/sdk": "0.225.0",
     "@sandbox-kit/sandbox": "0.1.0"
   },
   "devDependencies": {

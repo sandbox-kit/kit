@@ -1,7 +1,7 @@
 # Provider reference verification
 
 Go bindings target Modal v0.11.0 and Daytona v0.222.0. TypeScript bindings target
-`modal@0.11.0` and `@daytona/sdk@0.224.0`. Latest documentation helps discover
+`modal@0.11.0` and `@daytona/sdk@0.225.0`. Latest documentation helps discover
 APIs; pinned SDK source and compilation determine the signatures and
 serialization used by this checkout.
 
