@@ -1,9 +1,9 @@
 # API declarations
 
-Public portable types and service metadata live in protobuf under `proto/`.
-SDK runtimes alias those generated contract types and keep constructors,
-facades, and orchestration handwritten. TypeScript exposes handwritten public
-create/config facades; see [protobuf SDK boundary](protobuf-sdk-boundary.md).
+Public portable types live in protobuf under `proto/`. SDK runtimes alias those
+generated contract types and keep constructors, facades, provider backends, and
+orchestration handwritten. TypeScript exposes handwritten public create/config
+facades; see [protobuf SDK boundary](protobuf-sdk-boundary.md).
 
 YAML does not declare a parallel public API surface. Remaining specs inventory
 provider rules, validation, and contracts:

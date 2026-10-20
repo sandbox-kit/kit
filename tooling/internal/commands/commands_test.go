@@ -29,7 +29,7 @@ func (r *recordingRunner) run(_ context.Context, task step, _, _ io.Writer) erro
 func repositoryFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, path := range []string{"proto/kit/codegen/v1/options.proto", "tooling/go.mod"} {
+	for _, path := range []string{"proto/kit/sandbox/v1/client.proto", "tooling/go.mod"} {
 		file := filepath.Join(root, filepath.FromSlash(path))
 		if err := os.MkdirAll(filepath.Dir(file), 0o755); err != nil {
 			t.Fatal(err)

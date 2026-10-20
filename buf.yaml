@@ -7,7 +7,7 @@ deps:
   - buf.build/bufbuild/protovalidate
 lint:
   # BASIC catches structural and naming mistakes without forcing public API
-  # renames such as DEFAULT to UNSPECIFIED or SandboxService to *Service.
+  # renames such as DEFAULT to UNSPECIFIED.
   use:
     - BASIC
   except:

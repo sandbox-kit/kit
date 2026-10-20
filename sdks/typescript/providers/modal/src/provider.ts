@@ -11,13 +11,13 @@ import type {
 
 export const providerName = "modal" as const;
 
-/** @internal Shared generated provider identity wiring. */
+/** @internal Shared provider identity wiring. */
 export abstract class ProviderBase implements Provider {
   readonly name = providerName;
   abstract initialize(config: Config): Backend;
 }
 
-/** @internal Shared generated backend identity and required operation surface. */
+/** @internal Shared backend identity and required create/close surface. */
 export abstract class BackendBase implements Backend {
   readonly name = providerName;
   abstract create(

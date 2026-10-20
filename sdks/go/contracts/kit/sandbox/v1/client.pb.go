@@ -8,7 +8,6 @@ package sandboxv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	_ "github.com/sandbox-kit/kit/sdks/go/contracts/internal/codegen/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -24,14 +23,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// is the shared client configuration. Provider is attached by the generator and is not serialized.
-//
-// Example:
-//
-//	client, err := NewClient(Config{
-//	    Provider: provider,
-//	    Timeout:  Value(2 * time.Minute),
-//	})
+// Shared client configuration. Provider selection is a language SDK concern and
+// is not part of this portable message.
 type Config struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// is one credential alternative. Nil lets the native SDK resolve its own environment or profile.
@@ -527,502 +520,11 @@ func (x *Scope) GetProjectId() string {
 	return ""
 }
 
-// References an existing provider sandbox. It is the shared input envelope for
-// retrieval and lifecycle calls; native SDKs expose the ID through a Sandbox
-// handle rather than forcing applications to construct this message.
-type SandboxReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SandboxId     string                 `protobuf:"bytes,1,opt,name=sandbox_id,json=sandboxId,proto3" json:"sandbox_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SandboxReference) Reset() {
-	*x = SandboxReference{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SandboxReference) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SandboxReference) ProtoMessage() {}
-
-func (x *SandboxReference) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SandboxReference.ProtoReflect.Descriptor instead.
-func (*SandboxReference) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *SandboxReference) GetSandboxId() string {
-	if x != nil {
-		return x.SandboxId
-	}
-	return ""
-}
-
-type GetSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *GetSandboxRequest) Reset() {
-	*x = GetSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *GetSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*GetSandboxRequest) ProtoMessage() {}
-
-func (x *GetSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use GetSandboxRequest.ProtoReflect.Descriptor instead.
-func (*GetSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *GetSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-type AttachSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AttachSandboxRequest) Reset() {
-	*x = AttachSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AttachSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AttachSandboxRequest) ProtoMessage() {}
-
-func (x *AttachSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use AttachSandboxRequest.ProtoReflect.Descriptor instead.
-func (*AttachSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *AttachSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-type RefreshSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RefreshSandboxRequest) Reset() {
-	*x = RefreshSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RefreshSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RefreshSandboxRequest) ProtoMessage() {}
-
-func (x *RefreshSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RefreshSandboxRequest.ProtoReflect.Descriptor instead.
-func (*RefreshSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *RefreshSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-type StartSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *StartOptions          `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StartSandboxRequest) Reset() {
-	*x = StartSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StartSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StartSandboxRequest) ProtoMessage() {}
-
-func (x *StartSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StartSandboxRequest.ProtoReflect.Descriptor instead.
-func (*StartSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *StartSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *StartSandboxRequest) GetOptions() *StartOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
-type StopSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *StopOptions           `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StopSandboxRequest) Reset() {
-	*x = StopSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StopSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StopSandboxRequest) ProtoMessage() {}
-
-func (x *StopSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StopSandboxRequest.ProtoReflect.Descriptor instead.
-func (*StopSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *StopSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *StopSandboxRequest) GetOptions() *StopOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
-type PauseSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *PauseOptions          `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PauseSandboxRequest) Reset() {
-	*x = PauseSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PauseSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PauseSandboxRequest) ProtoMessage() {}
-
-func (x *PauseSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PauseSandboxRequest.ProtoReflect.Descriptor instead.
-func (*PauseSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *PauseSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *PauseSandboxRequest) GetOptions() *PauseOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
-type TerminateSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *TerminateOptions      `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *TerminateSandboxRequest) Reset() {
-	*x = TerminateSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TerminateSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TerminateSandboxRequest) ProtoMessage() {}
-
-func (x *TerminateSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use TerminateSandboxRequest.ProtoReflect.Descriptor instead.
-func (*TerminateSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *TerminateSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *TerminateSandboxRequest) GetOptions() *TerminateOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
-type ArchiveSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *ArchiveOptions        `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ArchiveSandboxRequest) Reset() {
-	*x = ArchiveSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ArchiveSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ArchiveSandboxRequest) ProtoMessage() {}
-
-func (x *ArchiveSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ArchiveSandboxRequest.ProtoReflect.Descriptor instead.
-func (*ArchiveSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ArchiveSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *ArchiveSandboxRequest) GetOptions() *ArchiveOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
-type DeleteSandboxRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Sandbox       *SandboxReference      `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
-	Options       *DeleteOptions         `protobuf:"bytes,2,opt,name=options,proto3" json:"options,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *DeleteSandboxRequest) Reset() {
-	*x = DeleteSandboxRequest{}
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DeleteSandboxRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DeleteSandboxRequest) ProtoMessage() {}
-
-func (x *DeleteSandboxRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_client_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DeleteSandboxRequest.ProtoReflect.Descriptor instead.
-func (*DeleteSandboxRequest) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_client_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *DeleteSandboxRequest) GetSandbox() *SandboxReference {
-	if x != nil {
-		return x.Sandbox
-	}
-	return nil
-}
-
-func (x *DeleteSandboxRequest) GetOptions() *DeleteOptions {
-	if x != nil {
-		return x.Options
-	}
-	return nil
-}
-
 var File_kit_sandbox_v1_client_proto protoreflect.FileDescriptor
 
 const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\n" +
-	"\x1bkit/sandbox/v1/client.proto\x12\x0ekit.sandbox.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1ckit/codegen/v1/options.proto\x1a\x1ckit/sandbox/v1/sandbox.proto\"\xec\x02\n" +
+	"\x1bkit/sandbox/v1/client.proto\x12\x0ekit.sandbox.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\"\xec\x02\n" +
 	"\x06Config\x12.\n" +
 	"\x04auth\x18\x01 \x01(\v2\x1a.kit.sandbox.v1.AuthConfigR\x04auth\x12W\n" +
 	"\bendpoint\x18\x02 \x01(\tB6\xbaH3\xba\x010\n" +
@@ -1079,57 +581,7 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\t_app_nameB\x0e\n" +
 	"\f_environmentB\x12\n" +
 	"\x10_organization_idB\r\n" +
-	"\v_project_id\"1\n" +
-	"\x10SandboxReference\x12\x1d\n" +
-	"\n" +
-	"sandbox_id\x18\x01 \x01(\tR\tsandboxId\"O\n" +
-	"\x11GetSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\"R\n" +
-	"\x14AttachSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\"S\n" +
-	"\x15RefreshSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\"\x89\x01\n" +
-	"\x13StartSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x126\n" +
-	"\aoptions\x18\x02 \x01(\v2\x1c.kit.sandbox.v1.StartOptionsR\aoptions\"\x87\x01\n" +
-	"\x12StopSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x125\n" +
-	"\aoptions\x18\x02 \x01(\v2\x1b.kit.sandbox.v1.StopOptionsR\aoptions\"\x89\x01\n" +
-	"\x13PauseSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x126\n" +
-	"\aoptions\x18\x02 \x01(\v2\x1c.kit.sandbox.v1.PauseOptionsR\aoptions\"\x91\x01\n" +
-	"\x17TerminateSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x12:\n" +
-	"\aoptions\x18\x02 \x01(\v2 .kit.sandbox.v1.TerminateOptionsR\aoptions\"\x8d\x01\n" +
-	"\x15ArchiveSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x128\n" +
-	"\aoptions\x18\x02 \x01(\v2\x1e.kit.sandbox.v1.ArchiveOptionsR\aoptions\"\x8b\x01\n" +
-	"\x14DeleteSandboxRequest\x12:\n" +
-	"\asandbox\x18\x01 \x01(\v2 .kit.sandbox.v1.SandboxReferenceR\asandbox\x127\n" +
-	"\aoptions\x18\x02 \x01(\v2\x1d.kit.sandbox.v1.DeleteOptionsR\aoptions2\xbc\f\n" +
-	"\x0eSandboxService\x12{\n" +
-	"\x06Create\x12\x1d.kit.sandbox.v1.CreateOptions\x1a\x1c.kit.sandbox.v1.CreateResult\"4\xd2\xf3\x180\n" +
-	"\x06create*\rcreate_handleB\x0fsandbox_creatorJ\x06create\x12\x83\x01\n" +
-	"\x03Get\x12!.kit.sandbox.v1.GetSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"<\xd2\xf3\x188\n" +
-	"\x03get*\rcreate_handleB\x11sandbox_refresherJ\x0frefresh_sandbox\x12\x8a\x01\n" +
-	"\x06Attach\x12$.kit.sandbox.v1.AttachSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"=\xd2\xf3\x189\n" +
-	"\x06attach*\rcreate_handleB\x10sandbox_attacherJ\x0eattach_sandbox\x12\x9a\x01\n" +
-	"\aRefresh\x12%.kit.sandbox.v1.RefreshSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"K\xd2\xf3\x18G\n" +
-	"\arefresh\x12\arefresh\x18\x01*\rupdate_handleB\x11sandbox_refresherJ\x0frefresh_sandbox\x12\x9e\x01\n" +
-	"\x05Start\x12#.kit.sandbox.v1.StartSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"S\xd2\xf3\x18O\n" +
-	"\x05start\x12\x05start\x18\x01\"\fStartOptions*\rupdate_handle8\x01B\x0fsandbox_starterJ\rstart_sandbox\x12\x98\x01\n" +
-	"\x04Stop\x12\".kit.sandbox.v1.StopSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"O\xd2\xf3\x18K\n" +
-	"\x04stop\x12\x04stop\x18\x01\"\vStopOptions*\rupdate_handle8\x01B\x0fsandbox_stopperJ\fstop_sandbox\x12\x9d\x01\n" +
-	"\x05Pause\x12#.kit.sandbox.v1.PauseSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"R\xd2\xf3\x18N\n" +
-	"\x05pause\x12\x05pause\x18\x01\"\fPauseOptions*\rupdate_handle8\x01B\x0esandbox_pauserJ\rpause_sandbox\x12\xc2\x01\n" +
-	"\tTerminate\x12'.kit.sandbox.v1.TerminateSandboxRequest\x1a\x1a.kit.sandbox.v1.ExitResult\"p\xd2\xf3\x18l\n" +
-	"\tterminate\x12\tterminate\x18\x01\"\x10TerminateOptions*\vexit_result2\n" +
-	"terminated8\x01B\x12sandbox_terminatorJ\x11terminate_sandbox\x12\xab\x01\n" +
-	"\aArchive\x12%.kit.sandbox.v1.ArchiveSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"\\\xd2\xf3\x18X\n" +
-	"\aarchive\x12\aarchive\x18\x01\"\x0eArchiveOptions*\rupdate_handle8\x01B\x10sandbox_archiverJ\x0farchive_sandbox\x12\xad\x01\n" +
-	"\x06Delete\x12$.kit.sandbox.v1.DeleteSandboxRequest\x1a\x1b.kit.sandbox.v1.SandboxInfo\"`\xd2\xf3\x18\\\n" +
-	"\x06delete\x12\x06delete\x18\x01\"\rDeleteOptions*\rupdate_handle2\adeleted8\x01B\x0fsandbox_deleterJ\x0edelete_sandboxBP\xc2\xf3\x18\x18\n" +
-	"\x0eSandboxService\x12\x06ConfigZ2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
+	"\v_project_idB4Z2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
 
 var (
 	file_kit_sandbox_v1_client_proto_rawDescOnce sync.Once
@@ -1143,85 +595,30 @@ func file_kit_sandbox_v1_client_proto_rawDescGZIP() []byte {
 	return file_kit_sandbox_v1_client_proto_rawDescData
 }
 
-var file_kit_sandbox_v1_client_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_kit_sandbox_v1_client_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_kit_sandbox_v1_client_proto_goTypes = []any{
-	(*Config)(nil),                  // 0: kit.sandbox.v1.Config
-	(*AuthConfig)(nil),              // 1: kit.sandbox.v1.AuthConfig
-	(*APIKeyCredentials)(nil),       // 2: kit.sandbox.v1.APIKeyCredentials
-	(*TokenPairCredentials)(nil),    // 3: kit.sandbox.v1.TokenPairCredentials
-	(*BearerTokenCredentials)(nil),  // 4: kit.sandbox.v1.BearerTokenCredentials
-	(*OAuthCredentials)(nil),        // 5: kit.sandbox.v1.OAuthCredentials
-	(*Scope)(nil),                   // 6: kit.sandbox.v1.Scope
-	(*SandboxReference)(nil),        // 7: kit.sandbox.v1.SandboxReference
-	(*GetSandboxRequest)(nil),       // 8: kit.sandbox.v1.GetSandboxRequest
-	(*AttachSandboxRequest)(nil),    // 9: kit.sandbox.v1.AttachSandboxRequest
-	(*RefreshSandboxRequest)(nil),   // 10: kit.sandbox.v1.RefreshSandboxRequest
-	(*StartSandboxRequest)(nil),     // 11: kit.sandbox.v1.StartSandboxRequest
-	(*StopSandboxRequest)(nil),      // 12: kit.sandbox.v1.StopSandboxRequest
-	(*PauseSandboxRequest)(nil),     // 13: kit.sandbox.v1.PauseSandboxRequest
-	(*TerminateSandboxRequest)(nil), // 14: kit.sandbox.v1.TerminateSandboxRequest
-	(*ArchiveSandboxRequest)(nil),   // 15: kit.sandbox.v1.ArchiveSandboxRequest
-	(*DeleteSandboxRequest)(nil),    // 16: kit.sandbox.v1.DeleteSandboxRequest
-	(*durationpb.Duration)(nil),     // 17: google.protobuf.Duration
-	(*StartOptions)(nil),            // 18: kit.sandbox.v1.StartOptions
-	(*StopOptions)(nil),             // 19: kit.sandbox.v1.StopOptions
-	(*PauseOptions)(nil),            // 20: kit.sandbox.v1.PauseOptions
-	(*TerminateOptions)(nil),        // 21: kit.sandbox.v1.TerminateOptions
-	(*ArchiveOptions)(nil),          // 22: kit.sandbox.v1.ArchiveOptions
-	(*DeleteOptions)(nil),           // 23: kit.sandbox.v1.DeleteOptions
-	(*CreateOptions)(nil),           // 24: kit.sandbox.v1.CreateOptions
-	(*CreateResult)(nil),            // 25: kit.sandbox.v1.CreateResult
-	(*SandboxInfo)(nil),             // 26: kit.sandbox.v1.SandboxInfo
-	(*ExitResult)(nil),              // 27: kit.sandbox.v1.ExitResult
+	(*Config)(nil),                 // 0: kit.sandbox.v1.Config
+	(*AuthConfig)(nil),             // 1: kit.sandbox.v1.AuthConfig
+	(*APIKeyCredentials)(nil),      // 2: kit.sandbox.v1.APIKeyCredentials
+	(*TokenPairCredentials)(nil),   // 3: kit.sandbox.v1.TokenPairCredentials
+	(*BearerTokenCredentials)(nil), // 4: kit.sandbox.v1.BearerTokenCredentials
+	(*OAuthCredentials)(nil),       // 5: kit.sandbox.v1.OAuthCredentials
+	(*Scope)(nil),                  // 6: kit.sandbox.v1.Scope
+	(*durationpb.Duration)(nil),    // 7: google.protobuf.Duration
 }
 var file_kit_sandbox_v1_client_proto_depIdxs = []int32{
-	1,  // 0: kit.sandbox.v1.Config.auth:type_name -> kit.sandbox.v1.AuthConfig
-	6,  // 1: kit.sandbox.v1.Config.scope:type_name -> kit.sandbox.v1.Scope
-	17, // 2: kit.sandbox.v1.Config.timeout:type_name -> google.protobuf.Duration
-	2,  // 3: kit.sandbox.v1.AuthConfig.api_key:type_name -> kit.sandbox.v1.APIKeyCredentials
-	3,  // 4: kit.sandbox.v1.AuthConfig.token_pair:type_name -> kit.sandbox.v1.TokenPairCredentials
-	4,  // 5: kit.sandbox.v1.AuthConfig.bearer_token:type_name -> kit.sandbox.v1.BearerTokenCredentials
-	5,  // 6: kit.sandbox.v1.AuthConfig.oauth_refresh:type_name -> kit.sandbox.v1.OAuthCredentials
-	7,  // 7: kit.sandbox.v1.GetSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	7,  // 8: kit.sandbox.v1.AttachSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	7,  // 9: kit.sandbox.v1.RefreshSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	7,  // 10: kit.sandbox.v1.StartSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	18, // 11: kit.sandbox.v1.StartSandboxRequest.options:type_name -> kit.sandbox.v1.StartOptions
-	7,  // 12: kit.sandbox.v1.StopSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	19, // 13: kit.sandbox.v1.StopSandboxRequest.options:type_name -> kit.sandbox.v1.StopOptions
-	7,  // 14: kit.sandbox.v1.PauseSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	20, // 15: kit.sandbox.v1.PauseSandboxRequest.options:type_name -> kit.sandbox.v1.PauseOptions
-	7,  // 16: kit.sandbox.v1.TerminateSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	21, // 17: kit.sandbox.v1.TerminateSandboxRequest.options:type_name -> kit.sandbox.v1.TerminateOptions
-	7,  // 18: kit.sandbox.v1.ArchiveSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	22, // 19: kit.sandbox.v1.ArchiveSandboxRequest.options:type_name -> kit.sandbox.v1.ArchiveOptions
-	7,  // 20: kit.sandbox.v1.DeleteSandboxRequest.sandbox:type_name -> kit.sandbox.v1.SandboxReference
-	23, // 21: kit.sandbox.v1.DeleteSandboxRequest.options:type_name -> kit.sandbox.v1.DeleteOptions
-	24, // 22: kit.sandbox.v1.SandboxService.Create:input_type -> kit.sandbox.v1.CreateOptions
-	8,  // 23: kit.sandbox.v1.SandboxService.Get:input_type -> kit.sandbox.v1.GetSandboxRequest
-	9,  // 24: kit.sandbox.v1.SandboxService.Attach:input_type -> kit.sandbox.v1.AttachSandboxRequest
-	10, // 25: kit.sandbox.v1.SandboxService.Refresh:input_type -> kit.sandbox.v1.RefreshSandboxRequest
-	11, // 26: kit.sandbox.v1.SandboxService.Start:input_type -> kit.sandbox.v1.StartSandboxRequest
-	12, // 27: kit.sandbox.v1.SandboxService.Stop:input_type -> kit.sandbox.v1.StopSandboxRequest
-	13, // 28: kit.sandbox.v1.SandboxService.Pause:input_type -> kit.sandbox.v1.PauseSandboxRequest
-	14, // 29: kit.sandbox.v1.SandboxService.Terminate:input_type -> kit.sandbox.v1.TerminateSandboxRequest
-	15, // 30: kit.sandbox.v1.SandboxService.Archive:input_type -> kit.sandbox.v1.ArchiveSandboxRequest
-	16, // 31: kit.sandbox.v1.SandboxService.Delete:input_type -> kit.sandbox.v1.DeleteSandboxRequest
-	25, // 32: kit.sandbox.v1.SandboxService.Create:output_type -> kit.sandbox.v1.CreateResult
-	26, // 33: kit.sandbox.v1.SandboxService.Get:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 34: kit.sandbox.v1.SandboxService.Attach:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 35: kit.sandbox.v1.SandboxService.Refresh:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 36: kit.sandbox.v1.SandboxService.Start:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 37: kit.sandbox.v1.SandboxService.Stop:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 38: kit.sandbox.v1.SandboxService.Pause:output_type -> kit.sandbox.v1.SandboxInfo
-	27, // 39: kit.sandbox.v1.SandboxService.Terminate:output_type -> kit.sandbox.v1.ExitResult
-	26, // 40: kit.sandbox.v1.SandboxService.Archive:output_type -> kit.sandbox.v1.SandboxInfo
-	26, // 41: kit.sandbox.v1.SandboxService.Delete:output_type -> kit.sandbox.v1.SandboxInfo
-	32, // [32:42] is the sub-list for method output_type
-	22, // [22:32] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	1, // 0: kit.sandbox.v1.Config.auth:type_name -> kit.sandbox.v1.AuthConfig
+	6, // 1: kit.sandbox.v1.Config.scope:type_name -> kit.sandbox.v1.Scope
+	7, // 2: kit.sandbox.v1.Config.timeout:type_name -> google.protobuf.Duration
+	2, // 3: kit.sandbox.v1.AuthConfig.api_key:type_name -> kit.sandbox.v1.APIKeyCredentials
+	3, // 4: kit.sandbox.v1.AuthConfig.token_pair:type_name -> kit.sandbox.v1.TokenPairCredentials
+	4, // 5: kit.sandbox.v1.AuthConfig.bearer_token:type_name -> kit.sandbox.v1.BearerTokenCredentials
+	5, // 6: kit.sandbox.v1.AuthConfig.oauth_refresh:type_name -> kit.sandbox.v1.OAuthCredentials
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_kit_sandbox_v1_client_proto_init() }
@@ -1229,7 +626,6 @@ func file_kit_sandbox_v1_client_proto_init() {
 	if File_kit_sandbox_v1_client_proto != nil {
 		return
 	}
-	file_kit_sandbox_v1_sandbox_proto_init()
 	file_kit_sandbox_v1_client_proto_msgTypes[0].OneofWrappers = []any{}
 	file_kit_sandbox_v1_client_proto_msgTypes[1].OneofWrappers = []any{
 		(*AuthConfig_ApiKey)(nil),
@@ -1245,9 +641,9 @@ func file_kit_sandbox_v1_client_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kit_sandbox_v1_client_proto_rawDesc), len(file_kit_sandbox_v1_client_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   7,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   0,
 		},
 		GoTypes:           file_kit_sandbox_v1_client_proto_goTypes,
 		DependencyIndexes: file_kit_sandbox_v1_client_proto_depIdxs,

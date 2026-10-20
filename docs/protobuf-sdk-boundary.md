@@ -6,11 +6,13 @@ types, constructors, methods, errors, or control flow.
 
 ## Contract packages
 
-`kit.sandbox.v1` contains public, portable data and service contracts:
+`kit.sandbox.v1` contains public, portable data contracts:
 
 - configuration and creation options;
-- sandbox metadata, lifecycle options, results, and portable error details;
-- `SandboxService` request/response messages and its operation graph.
+- sandbox metadata, lifecycle options, results, and portable error details.
+
+Kit does not declare a protobuf RPC service. Language SDKs expose handwritten
+`Client` / `Sandbox` APIs and provider `Backend` adapters over vendor SDKs.
 
 `kit.sandbox.internal.v1` is reserved for implementation-only contract data used
 by the SDK runtime and provider adapters. Public contracts live in
@@ -23,9 +25,9 @@ native SDK client, callback, mutex, function, or another runtime object.
 
 ## Generated versus handwritten code
 
-Standard protobuf plugins generate messages, enums, reflection metadata, and
-service declarations into each language's contract package. Those types are the
-wire and validation representation of portable data.
+Standard protobuf plugins generate messages, enums, and reflection metadata
+into each language's contract package. Those types are the wire and validation
+representation of portable data.
 
 Handwritten language runtime code owns behavior:
 

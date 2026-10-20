@@ -1,5 +1,5 @@
-// Sandbox lifecycle behavior is handwritten. The operation data contracts are
-// declared by SandboxService in protobuf.
+// Sandbox lifecycle behavior is handwritten. Portable option/result types come
+// from protobuf; Backend capability interfaces are optional provider adapters.
 package sandbox
 
 import (

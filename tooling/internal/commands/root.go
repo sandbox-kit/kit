@@ -62,7 +62,7 @@ func resolveRoot(configured string) (string, error) {
 }
 
 func isRepository(root string) bool {
-	for _, path := range []string{"proto/kit/codegen/v1/options.proto", "tooling/go.mod"} {
+	for _, path := range []string{"proto/kit/sandbox/v1/client.proto", "tooling/go.mod"} {
 		info, err := os.Stat(filepath.Join(root, filepath.FromSlash(path)))
 		if err != nil || info.IsDir() {
 			return false
