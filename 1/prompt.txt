@@ -1,0 +1,23 @@
+cool commit and push
+
+---
+
+now Materialize boundary note (small docs)
+
+also there is readme, .md, docs of whole project which is outdated. 
+
+while go-sdk related is fine we don't update but others should be updateed.
+
+---
+
+also everywhere u don't need to mention what was there u just need to mention whats currently true 
+
+- examples docs for typescript is outdated. check
+
+---
+
+cool is there anythin which is outdated ? not the code .md in gneeral
+
+---
+
+change and refine it.
