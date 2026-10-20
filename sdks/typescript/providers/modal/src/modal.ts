@@ -5,15 +5,17 @@ import {
 } from "modal";
 import {
   LifecycleCapability,
-  type Backend,
-  type Config,
-  type CreateOptions,
-  type CreateResult,
-  type ExitResult,
   type OperationOptions,
   type Provider,
-  type SandboxInfo,
-  type TerminateOptions,
+  type SandboxInfo
+} from "@sandbox-kit/sandbox";
+import type {
+  Backend,
+  Config,
+  CreateOptions,
+  CreateResult,
+  ExitResult,
+  TerminateOptions
 } from "@sandbox-kit/sandbox";
 import {
   mapClientConfig,

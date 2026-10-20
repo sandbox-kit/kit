@@ -21,39 +21,27 @@ import {
   ValueOrigin as ProtoValueOrigin,
   WaitCondition as ProtoWaitCondition,
   type ArchiveOptions as ProtoArchiveOptions,
-  type AutomaticAction as ProtoAutomaticAction,
-  type CommandProbe as ProtoCommandProbe,
   type CreateOptions as ProtoCreateOptions,
   type CreateResult as ProtoCreateResult,
   type DeleteOptions as ProtoDeleteOptions,
   type ErrorInfo as ProtoErrorInfo,
   type ExitResult as ProtoExitResult,
-  type ImageSource as ProtoImageSource,
   type IsolationConfig as ProtoIsolationConfig,
-  type LifetimePolicy as ProtoLifetimePolicy,
   type MetadataList as ProtoMetadataList,
   type MetadataObject as ProtoMetadataObject,
   type MetadataValue as ProtoMetadataValue,
-  type NetworkConfig as ProtoNetworkConfig,
-  type ObservabilityConfig as ProtoObservabilityConfig,
   type PauseOptions as ProtoPauseOptions,
   type Placement as ProtoPlacement,
   type PortBinding as ProtoPortBinding,
-  type ProviderDefaultSource as ProtoProviderDefaultSource,
-  type ProvisioningOptions as ProtoProvisioningOptions,
-  type ReadinessProbe as ProtoReadinessProbe,
   type Resources as ProtoResources,
   type RuntimeConfig as ProtoRuntimeConfig,
   type SandboxInfo as ProtoSandboxInfo,
   type SandboxSource as ProtoSandboxSource,
   type SecretReference as ProtoSecretReference,
-  type SecurityConfig as ProtoSecurityConfig,
-  type SnapshotSource as ProtoSnapshotSource,
   type StartOptions as ProtoStartOptions,
   type StopOptions as ProtoStopOptions,
-  type StringAllowlist as ProtoStringAllowlist,
   type TerminateOptions as ProtoTerminateOptions,
-  type WarmPoolSource as ProtoWarmPoolSource,
+  type ReadinessProbe as ProtoReadinessProbe,
 } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
 import type { StripAndFlatten } from "./oneof_input.js";
 import type { MetadataPlain } from "./metadata_plain.js";
@@ -67,27 +55,12 @@ export type ErrorInfo = StripProto<ProtoErrorInfo> & {
   field: string;
   message: string;
 };
-export type ProviderDefaultSource = StripProto<ProtoProviderDefaultSource>;
-export type ImageSource = StripProto<ProtoImageSource>;
-export type SnapshotSource = StripProto<ProtoSnapshotSource>;
-export type WarmPoolSource = StripProto<ProtoWarmPoolSource>;
 export type RuntimeConfig = StripProto<ProtoRuntimeConfig>;
 export type IsolationConfig = StripProto<ProtoIsolationConfig>;
 export type Resources = StripProto<ProtoResources>;
 export type Placement = StripProto<ProtoPlacement>;
-export type StringAllowlist = StripProto<ProtoStringAllowlist>;
 export type PortBinding = StripProto<ProtoPortBinding>;
 export type SecretReference = StripProto<ProtoSecretReference>;
-export type AutomaticAction = StripProto<ProtoAutomaticAction>;
-export type CommandProbe = StripProto<ProtoCommandProbe>;
-export type ObservabilityConfig = StripProto<ProtoObservabilityConfig>;
-export type NetworkConfig = StripProto<ProtoNetworkConfig>;
-export type SecurityConfig = StripProto<ProtoSecurityConfig>;
-export type LifetimePolicy = StripProto<ProtoLifetimePolicy>;
-export type ProvisioningOptions = StripProto<ProtoProvisioningOptions>;
-export type SandboxSource = StripProto<ProtoSandboxSource>;
-export type ReadinessProbe = StripProto<ProtoReadinessProbe>;
-export type CreateOptions = StripProto<ProtoCreateOptions>;
 export type SandboxInfo = StripProto<ProtoSandboxInfo>;
 export type CreateResult = StripProto<ProtoCreateResult>;
 
@@ -104,10 +77,11 @@ export type MetadataList = StripProto<ProtoMetadataList>;
 export type MetadataObject = StripProto<ProtoMetadataObject>;
 
 /**
- * Public create request, composed from reusable input transforms:
- * strip + flatten oneofs → plain maps / allowlists / empty markers → ms durations.
+ * Public create request for `Client.create`.
+ * Composed from reusable input transforms: strip + flatten oneofs → plain maps /
+ * allowlists / empty markers → ms durations.
  */
-export type CreateOptionsInput = DurationFieldsToMs<
+export type CreateOptions = DurationFieldsToMs<
   EmptyMarkersAsTrue<
     FlattenAllowlistFields<
       PlainStringMapFields<
@@ -128,17 +102,14 @@ export type CreateOptionsInput = DurationFieldsToMs<
 
 /**
  * Public network create input (allowlists are plain `string[]`).
- * Derived from {@link CreateOptionsInput}; present empty arrays mean deny-all.
+ * Derived from {@link CreateOptions}; present empty arrays mean deny-all.
  */
-export type NetworkConfigInput = NonNullable<CreateOptionsInput["network"]>;
+export type NetworkConfigInput = NonNullable<CreateOptions["network"]>;
 
 /** Public create source: set exactly one variant (no protobuf `{ case, value }`). */
-export type SandboxSourceInput = NonNullable<CreateOptionsInput["source"]>;
+export type SandboxSourceInput = NonNullable<CreateOptions["source"]>;
 /** Public readiness: set tcpPort or command (no protobuf `{ case, value }`). */
-export type ReadinessProbeInput = NonNullable<CreateOptionsInput["readiness"]>;
-
-// Message schemas stay package-internal (Protovalidate / materialize). They are
-// not part of the public application-facing API.
+export type ReadinessProbeInput = NonNullable<CreateOptions["readiness"]>;
 
 // Ergonomic PascalCase names over protobuf enum values; not a second contract.
 export const SnapshotKind = protoEnum(ProtoSnapshotKind);

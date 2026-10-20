@@ -1,7 +1,9 @@
 import {
   ErrorKind,
-  sandboxError,
-  type CreateOptions,
+  sandboxError
+} from "@sandbox-kit/sandbox";
+import type {
+  CreateOptions
 } from "@sandbox-kit/sandbox";
 
 // validateProviderCreate rejects creation settings this provider cannot honor.
@@ -45,7 +47,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       "placement.cloud is outside supported values",
     );
   }
-  for (const value of request.network?.outboundCidrs?.entries ?? []) {
+  for (const value of request.network?.outboundCidrs ?? []) {
     if (value !== "" && !validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
@@ -54,7 +56,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       );
     }
   }
-  for (const value of request.network?.inboundCidrs?.entries ?? []) {
+  for (const value of request.network?.inboundCidrs ?? []) {
     if (!validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
@@ -63,7 +65,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       );
     }
   }
-  for (const value of request.network?.outboundDomains?.entries ?? []) {
+  for (const value of request.network?.outboundDomains ?? []) {
     if (value !== "" && !validDomain(value)) {
       fail(
         ErrorKind.InvalidArgument,

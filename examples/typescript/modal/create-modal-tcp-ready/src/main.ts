@@ -3,7 +3,7 @@ import {
   Client,
   WaitCondition,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
   type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
@@ -43,7 +43,7 @@ const createOptions = {
   },
   readiness: { tcpPort: 8080 },
   provisioning: { timeout: 120_000, waitFor: WaitCondition.Ready },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox ready on TCP 8080: ${sandbox.id}`);

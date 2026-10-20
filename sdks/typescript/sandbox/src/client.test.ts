@@ -1,23 +1,18 @@
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import { describe, expect, it } from "vitest";
 
 import {
   Client,
   ErrorKind,
-  materializeClientConfig,
-  materializeCreateOptions,
-  PolicyMode,
   type Backend,
   type CreateOptions,
-  type CreateOptionsInput,
   type CreateResult,
+  type ExitResult,
   type OperationOptions,
   type Provider,
   LifecycleCapability,
   SandboxState,
   type SandboxInfo,
   type TerminateOptions,
-  type ExitResult,
 } from "./index.js";
 
 class RecordingBackend implements Backend {
@@ -211,7 +206,7 @@ describe("Shared request validation", () => {
     const { client, backend } = fixture();
     const request = {
       lifetime: { idleStop: { mode: 99 } },
-    } as unknown as CreateOptionsInput;
+    } as unknown as CreateOptions;
 
     await expect(client.create(request)).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
@@ -247,73 +242,8 @@ describe("Shared request validation", () => {
   });
 });
 
-describe("Public facade materialization", () => {
-  it("flattens create oneofs and converts millisecond fields to Duration", () => {
-    const wire = materializeCreateOptions({
-      source: { image: { reference: "alpine:3.21" } },
-      readiness: { command: { argv: ["true"] } },
-      provisioning: { timeout: 120_000 },
-      lifetime: {
-        idleStop: { mode: PolicyMode.After, after: 60_000 },
-      },
-    });
-
-    expect(wire.source?.kind).toMatchObject({
-      case: "image",
-      value: { reference: "alpine:3.21" },
-    });
-    expect(wire.readiness?.check).toMatchObject({
-      case: "command",
-      value: { argv: ["true"] },
-    });
-    expect(wire.provisioning?.timeout).toBeDefined();
-    expect(durationMs(wire.provisioning!.timeout!)).toBe(120_000);
-    expect(wire.lifetime?.idleStop?.after).toBeDefined();
-    expect(durationMs(wire.lifetime!.idleStop!.after!)).toBe(60_000);
-  });
-
-  it("wraps string-array allowlists and providerDefault into wire shapes", () => {
-    const wire = materializeCreateOptions({
-      source: { providerDefault: true },
-      network: {
-        outboundCidrs: ["192.0.2.0/24"],
-        outboundDomains: ["example.com"],
-        inboundCidrs: [],
-      },
-      environment: { PATH: "/usr/bin" },
-      labels: { team: "kit" },
-    });
-
-    expect(wire.source?.kind).toMatchObject({
-      case: "providerDefault",
-      value: {},
-    });
-    expect(wire.network?.outboundCidrs).toMatchObject({
-      entries: ["192.0.2.0/24"],
-    });
-    expect(wire.network?.outboundDomains).toMatchObject({
-      entries: ["example.com"],
-    });
-    expect(wire.network?.inboundCidrs).toMatchObject({ entries: [] });
-    expect(wire.environment).toEqual({ PATH: "/usr/bin" });
-    expect(wire.labels).toEqual({ team: "kit" });
-  });
-
-  it("flattens auth credentials and converts client timeout milliseconds", () => {
-    const wire = materializeClientConfig({
-      auth: { tokenPair: { id: "id", secret: "secret" } },
-      timeout: 30_000,
-    });
-
-    expect(wire.auth?.credentials).toMatchObject({
-      case: "tokenPair",
-      value: { id: "id", secret: "secret" },
-    });
-    expect(wire.timeout).toBeDefined();
-    expect(durationMs(wire.timeout!)).toBe(30_000);
-  });
-
-  it("hands the provider wire-shaped create options after a public create call", async () => {
+describe("Public create options for providers", () => {
+  it("hands the provider public create options after a create call", async () => {
     const { client, backend } = fixture();
 
     await client.create({
@@ -321,14 +251,10 @@ describe("Public facade materialization", () => {
       provisioning: { timeout: 5_000 },
     });
 
-    expect(backend.lastCreateRequest?.source?.kind).toMatchObject({
-      case: "image",
-      value: { reference: "node:24" },
+    expect(backend.lastCreateRequest?.source).toMatchObject({
+      image: { reference: "node:24" },
     });
-    expect(backend.lastCreateRequest?.provisioning?.timeout).toBeDefined();
-    expect(durationMs(backend.lastCreateRequest!.provisioning!.timeout!)).toBe(
-      5_000,
-    );
+    expect(backend.lastCreateRequest?.provisioning?.timeout).toBe(5_000);
   });
 
   it("writes the resolved create timeout into provisioning for providers", async () => {
@@ -339,10 +265,7 @@ describe("Public facade materialization", () => {
       { timeout: 15_000 },
     );
 
-    expect(backend.lastCreateRequest?.provisioning?.timeout).toBeDefined();
-    expect(durationMs(backend.lastCreateRequest!.provisioning!.timeout!)).toBe(
-      15_000,
-    );
+    expect(backend.lastCreateRequest?.provisioning?.timeout).toBe(15_000);
   });
 });
 

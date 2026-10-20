@@ -7,58 +7,46 @@ import {
   type MessageShape,
 } from "@bufbuild/protobuf";
 import { pathToString } from "@bufbuild/protobuf/reflect";
-import {
-  durationFromMs,
-  durationMs,
-  type Duration,
-} from "@bufbuild/protobuf/wkt";
+import { durationFromMs, type Duration } from "@bufbuild/protobuf/wkt";
 import { createValidator } from "@bufbuild/protovalidate";
 import {
   ConfigSchema,
   type APIKeyCredentials as WireAPIKeyCredentials,
-  type ArchiveSandboxRequest as WireArchiveSandboxRequest,
-  type AttachSandboxRequest as WireAttachSandboxRequest,
   type AuthConfig,
   type BearerTokenCredentials as WireBearerTokenCredentials,
   type Config as WireConfig,
-  type DeleteSandboxRequest as WireDeleteSandboxRequest,
-  type GetSandboxRequest as WireGetSandboxRequest,
   type OAuthCredentials as WireOAuthCredentials,
-  type PauseSandboxRequest as WirePauseSandboxRequest,
-  type RefreshSandboxRequest as WireRefreshSandboxRequest,
-  type SandboxReference as WireSandboxReference,
-  type StartSandboxRequest as WireStartSandboxRequest,
-  type StopSandboxRequest as WireStopSandboxRequest,
-  type TerminateSandboxRequest as WireTerminateSandboxRequest,
   type TokenPairCredentials as WireTokenPairCredentials,
 } from "@sandbox-kit/contracts/kit/sandbox/v1/client_pb.js";
 import {
   CreateOptionsSchema,
   ErrorKind as ProtoErrorKind,
+  type CommandProbe,
+  type CreateOptions as ProtoCreateOptions,
+  type ImageSource,
+  type ProviderDefaultSource,
+  type ReadinessProbe,
+  type SandboxSource,
+  type SnapshotSource,
+  type WarmPoolSource,
 } from "@sandbox-kit/contracts/kit/sandbox/v1/sandbox_pb.js";
 import {
   SandboxState,
   type ArchiveOptions,
   type CreateOptions,
-  type CreateOptionsInput,
   type CreateResult,
   type DeleteOptions,
   type ErrorInfo,
   type ExitResult,
-  type ImageSource,
   type LifecycleCapability,
   type NetworkConfigInput,
   type PauseOptions,
-  type ReadinessProbe,
   type ReadinessProbeInput,
   type SandboxInfo,
-  type SandboxSource,
   type SandboxSourceInput,
-  type SnapshotSource,
   type StartOptions,
   type StopOptions,
   type TerminateOptions,
-  type WarmPoolSource,
 } from "./sandbox_data_contracts.js";
 import {
   materializeDurationFields,
@@ -88,19 +76,6 @@ const stableRuleIDs: Record<string, string> = {
   after_forbids_duration: "forbids",
 };
 
-/** Wire config used by providers after materialization. */
-export type Config = StripProto<WireConfig>;
-export type ArchiveSandboxRequest = StripProto<WireArchiveSandboxRequest>;
-export type AttachSandboxRequest = StripProto<WireAttachSandboxRequest>;
-export type DeleteSandboxRequest = StripProto<WireDeleteSandboxRequest>;
-export type GetSandboxRequest = StripProto<WireGetSandboxRequest>;
-export type PauseSandboxRequest = StripProto<WirePauseSandboxRequest>;
-export type RefreshSandboxRequest = StripProto<WireRefreshSandboxRequest>;
-export type SandboxReference = StripProto<WireSandboxReference>;
-export type StartSandboxRequest = StripProto<WireStartSandboxRequest>;
-export type StopSandboxRequest = StripProto<WireStopSandboxRequest>;
-export type TerminateSandboxRequest = StripProto<WireTerminateSandboxRequest>;
-
 /** Public credential shapes (no protobuf `$typeName` / getters). */
 export type APIKeyCredentials = StripProto<WireAPIKeyCredentials>;
 export type TokenPairCredentials = StripProto<WireTokenPairCredentials>;
@@ -113,13 +88,21 @@ export type Scope = StripProto<
 /** Public auth: set exactly one credential variant (no protobuf `{ case, value }`). */
 export type AuthInput = FlattenOneof<NonNullable<AuthConfig["credentials"]>>;
 
-/** Plain-object client configuration accepted at construction time. */
-export type ConfigInput = DurationFieldsToMs<
+/**
+ * Public client settings (ms timeout, flat auth).
+ * Prefer {@link ClientConfig} at construction (`Config` plus `provider`).
+ */
+export type Config = DurationFieldsToMs<
   RemapFields<
     StripProto<MessageInitShape<typeof ConfigSchema>>,
     { auth: AuthInput }
   >
 >;
+
+/** Wire config after materialize; package-private for Protovalidate. */
+type ConfigWire = StripProto<WireConfig>;
+/** Wire create options after materialize; package-private for Protovalidate. */
+type CreateOptionsWire = StripProto<ProtoCreateOptions>;
 
 // Ergonomic PascalCase names over protobuf enum values; not a second contract.
 export const ErrorKind = protoEnum(ProtoErrorKind);
@@ -185,11 +168,12 @@ export interface Backend {
 
 export interface Provider {
   readonly name: string;
+  /** Receives public {@link Config}. */
   initialize(config: Config): Backend;
 }
 
 /** Provider selection stays handwritten and is never part of the portable Config message. */
-export type ClientConfig = ConfigInput & {
+export type ClientConfig = Config & {
   readonly provider: Provider;
 };
 
@@ -254,8 +238,8 @@ function validSecureEndpoint(value: string): boolean {
   }
 }
 
-export function validateCreateOptions(
-  value: CreateOptions,
+function validateCreateOptions(
+  value: CreateOptionsWire,
   provider = "",
   operation = "create",
 ): void {
@@ -323,11 +307,11 @@ function messageFieldHint(ruleID: string): string {
 }
 
 export function validateConfig(
-  value: Config | ConfigInput,
+  value: Config,
   provider = "",
   operation = "create",
 ): void {
-  const message = resolveClientConfig(value);
+  const message = materializeClientConfig(value);
   const result = contractValidator.validate(
     ConfigSchema,
     message as MessageShape<typeof ConfigSchema>,
@@ -741,7 +725,8 @@ export class Client implements AsyncDisposable {
       isClosed: () => this.#closing || this.#closed,
     };
     try {
-      this.#backend = config.provider.initialize(materializeConfig(config));
+      const { provider: _provider, ...shared } = config;
+      this.#backend = config.provider.initialize(shared);
     } catch (error) {
       throw withContext(error, config.provider.name, "initialize");
     }
@@ -835,32 +820,31 @@ export class Client implements AsyncDisposable {
     }
   }
   async create(
-    request: CreateOptionsInput = {},
+    request: CreateOptions = {},
     options: OperationOptions = {},
   ): Promise<Sandbox> {
     const release = this.#begin("create");
     const materialized = materializeCreateOptions(request);
     const timeout =
-      options.timeout ??
-      optionalTimeoutMs(materialized.provisioning?.timeout) ??
-      this.#timeout;
+      options.timeout ?? request.provisioning?.timeout ?? this.#timeout;
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
-      // Validate the caller request first; inject the resolved deadline afterward
-      // so operation timeouts are not re-checked as provisioning.timeout.
+      // Validate the wire projection first; providers receive the public request.
       validateCreateOptions(materialized, this.providerName, "create");
       scoped = operationSignal(options, timeout);
       const create = this.#backend.create;
       if (!create) unsupported(this.providerName, "create");
-      const providerRequest = clone(materialized);
-      // Modal ready-wait (and similar) read provisioning.timeout; keep it aligned
-      // with the resolved create deadline (call options → provisioning → client).
-      if (timeout !== undefined) {
-        providerRequest.provisioning = {
-          ...providerRequest.provisioning,
-          timeout: durationFromMs(timeout),
-        };
-      }
+      const providerRequest: CreateOptions = {
+        ...request,
+        ...(timeout === undefined
+          ? {}
+          : {
+              provisioning: {
+                ...request.provisioning,
+                timeout,
+              },
+            }),
+      };
       const result = await awaitWithSignal(
         () =>
           create.call(
@@ -964,7 +948,7 @@ export class Client implements AsyncDisposable {
 }
 
 /** Materializes a plain client config into the generated protobuf message. */
-export function materializeClientConfig(input: ConfigInput): Config {
+function materializeClientConfig(input: Config): ConfigWire {
   const { auth, timeout, ...rest } = input;
   return create(ConfigSchema, {
     ...rest,
@@ -972,7 +956,7 @@ export function materializeClientConfig(input: ConfigInput): Config {
     ...(auth === undefined
       ? {}
       : { auth: { credentials: authCredentials(auth) } }),
-  } as MessageInitShape<typeof ConfigSchema>) as Config;
+  } as MessageInitShape<typeof ConfigSchema>) as ConfigWire;
 }
 
 function wireTimeoutOptions(options: OperationOptions): { timeout?: Duration } {
@@ -981,20 +965,8 @@ function wireTimeoutOptions(options: OperationOptions): { timeout?: Duration } {
     : { timeout: durationFromMs(options.timeout) };
 }
 
-/** Resolves public or wire client config into the generated protobuf message. */
-export function resolveClientConfig(value: Config | ConfigInput): Config {
-  return isWireConfig(value)
-    ? (create(
-        ConfigSchema,
-        value as MessageInitShape<typeof ConfigSchema>,
-      ) as Config)
-    : materializeClientConfig(value);
-}
-
 /** Materializes plain create options into the generated protobuf message. */
-export function materializeCreateOptions(
-  input: CreateOptionsInput,
-): CreateOptions {
+function materializeCreateOptions(input: CreateOptions): CreateOptionsWire {
   const { source, readiness, providerOptions, network, ...rest } = input;
   const withDurations = materializeDurationFields(rest);
   return create(CreateOptionsSchema, {
@@ -1011,7 +983,7 @@ export function materializeCreateOptions(
       : { providerOptions: metadataObjectFromMap(providerOptions) }),
   } as unknown as MessageInitShape<
     typeof CreateOptionsSchema
-  >) as CreateOptions;
+  >) as CreateOptionsWire;
 }
 
 /** Wrap public string-array allowlists into wire StringAllowlist messages. */
@@ -1029,13 +1001,6 @@ function materializeNetworkConfig(network: NetworkConfigInput) {
       ? {}
       : { inboundCidrs: { entries: inboundCidrs } }),
   };
-}
-
-function isWireConfig(value: Config | ConfigInput): value is Config {
-  // Public ConfigInput uses millisecond numbers; wire Config uses Duration.
-  if (typeof value.timeout === "number") return false;
-  const auth = value.auth;
-  return auth === undefined || "credentials" in auth;
 }
 
 function authCredentials(
@@ -1067,7 +1032,7 @@ function sourceKind(
   if (source.providerDefault !== undefined)
     return {
       case: "providerDefault",
-      value: {},
+      value: {} as ProviderDefaultSource,
     };
   if (source.image !== undefined)
     return { case: "image", value: source.image as ImageSource };
@@ -1084,22 +1049,10 @@ function readinessCheck(
   if (readiness.tcpPort !== undefined)
     return { case: "tcpPort", value: readiness.tcpPort };
   if (readiness.command !== undefined)
-    return { case: "command", value: readiness.command };
+    return { case: "command", value: readiness.command as CommandProbe };
   return { case: undefined } as NonNullable<ReadinessProbe["check"]>;
 }
 
-function optionalTimeoutMs(
-  value: Duration | number | undefined,
-): number | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "number") return value;
-  return durationMs(value);
-}
-
-function materializeConfig(config: ClientConfig): Config {
-  const { provider: _provider, ...shared } = config;
-  return materializeClientConfig(shared);
-}
 function unsupported(provider: string, operation: string): never {
   throw sandboxError({
     kind: ErrorKind.Unsupported,

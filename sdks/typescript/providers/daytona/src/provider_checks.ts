@@ -1,11 +1,15 @@
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   ErrorKind,
   PolicyMode,
-  sandboxError,
-  type AutomaticAction,
-  type CreateOptions,
+  sandboxError
 } from "@sandbox-kit/sandbox";
+import type {
+  CreateOptions
+} from "@sandbox-kit/sandbox";
+
+type PublicAction = NonNullable<
+  NonNullable<CreateOptions["lifetime"]>["idleStop"]
+>;
 
 // validateProviderCreate rejects creation settings this provider cannot honor.
 // Rules are inventoried in specs/providers/daytona.yaml checks.
@@ -31,7 +35,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       "network.outbound_proxy_url is outside supported values",
     );
   }
-  for (const value of request.network?.outboundCidrs?.entries ?? []) {
+  for (const value of request.network?.outboundCidrs ?? []) {
     if (!validCidr(value)) {
       fail(
         ErrorKind.InvalidArgument,
@@ -40,7 +44,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       );
     }
   }
-  for (const value of request.network?.outboundDomains?.entries ?? []) {
+  for (const value of request.network?.outboundDomains ?? []) {
     if (!validDomain(value)) {
       fail(
         ErrorKind.InvalidArgument,
@@ -94,19 +98,19 @@ export function validateProviderCreate(request: CreateOptions): void {
   }
 }
 
-function delayed(policy: AutomaticAction | undefined): boolean {
+function delayed(policy: PublicAction | undefined): boolean {
   return (
     (policy?.mode ?? PolicyMode.Default) === PolicyMode.After &&
     policy?.after !== undefined &&
-    durationMs(policy.after) > 0
+    policy.after > 0
   );
 }
 
-function immediate(policy: AutomaticAction | undefined): boolean {
+function immediate(policy: PublicAction | undefined): boolean {
   return (
     (policy?.mode ?? PolicyMode.Default) === PolicyMode.After &&
     policy?.after !== undefined &&
-    durationMs(policy.after) === 0
+    policy.after === 0
   );
 }
 

@@ -3,7 +3,7 @@ import {
   Client,
   SecretInjection,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -37,7 +37,7 @@ const createOptions = {
       },
     ],
   },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Daytona sandbox created with injected secret: ${sandbox.id}`);

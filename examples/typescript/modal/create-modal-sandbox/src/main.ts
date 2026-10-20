@@ -4,7 +4,7 @@ import {
   EgressMode,
   IsolationKind,
   PolicyMode,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 const tokenId = process.env.MODAL_TOKEN_ID;
@@ -28,7 +28,7 @@ const createOptions = {
   network: { egress: EgressMode.AllowAll },
   lifetime: { maximumLifetime: 5 * 60_000, idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
   labels: { example: "create-modal-sandbox" },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 

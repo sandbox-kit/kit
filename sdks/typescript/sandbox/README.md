@@ -2,9 +2,10 @@
 
 Core client package (`@sandbox-kit/sandbox`). Providers such as
 `@sandbox-kit/daytona` and `@sandbox-kit/modal` are published
-separately and plug into this module. Public create/config types use nested exclusive fields (`auth: { apiKey: … }`,
-`source: { image: … }`, `readiness: { command: … }`) and millisecond numbers for
-timeouts (not protobuf `Duration`). The runtime converts to protobuf before
+separately and plug into this module. Apps and providers share public
+`CreateOptions` / `ClientConfig` (`Config` plus `provider`): nested exclusive
+fields (`auth: { apiKey: … }`, `source: { image: … }`, `readiness: { command: … }`)
+and millisecond timeouts. The client materializes protobuf privately for
 Protovalidate (`secure_endpoint` stays handwritten). Closing the client releases
 local provider SDK resources only; it does not stop or delete cloud sandboxes.
 

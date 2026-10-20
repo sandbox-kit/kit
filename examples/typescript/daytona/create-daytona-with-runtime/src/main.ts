@@ -2,7 +2,7 @@ import { daytona } from "@sandbox-kit/daytona";
 import {
   Client,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -28,7 +28,7 @@ await using client = new Client(clientConfig());
 const createOptions = {
   source: { snapshot: {  reference: "daytona-small"  } },
   runtime: { language: "python", user: "daytona" },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Daytona Python sandbox created: ${sandbox.id} (${sandbox.info().isolation?.kind ?? "default"})`);

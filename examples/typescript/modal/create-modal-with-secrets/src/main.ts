@@ -3,7 +3,7 @@ import {
   Client,
   SecretInjection,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
   type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
@@ -46,7 +46,7 @@ const createOptions = {
       },
     ],
   },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox created with secret: ${sandbox.id}`);

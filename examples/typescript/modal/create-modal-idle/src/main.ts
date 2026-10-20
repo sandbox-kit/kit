@@ -4,7 +4,7 @@ import {
   PolicyMode,
   type ClientConfig,
   type SandboxSourceInput,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -39,7 +39,7 @@ await using client = new Client(clientConfig());
 const createOptions = {
   source: imageSource,
   lifetime: { idleTerminate: { mode: PolicyMode.After, after: 60_000 } },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox created: ${sandbox.id}`);

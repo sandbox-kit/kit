@@ -1,4 +1,3 @@
-import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import { describe, expect, it } from "vitest";
 import {
   Client,
@@ -89,7 +88,7 @@ describe("Modal mappings", () => {
       {
         name: "example",
         source: {
-          kind: { case: "image", value: { reference: "alpine:3.21" } },
+          image: { reference: "alpine:3.21" },
         },
         runtime: {
           workingDirectory: "/tmp",
@@ -106,9 +105,9 @@ describe("Modal mappings", () => {
         placement: { cloud: "aws", regions: ["us-east-1"] },
         network: {
           egress: EgressMode.Restricted,
-          outboundCidrs: { entries: ["192.0.2.0/24"] },
-          outboundDomains: { entries: ["example.com"] },
-          inboundCidrs: { entries: ["198.51.100.0/24"] },
+          outboundCidrs: ["192.0.2.0/24"],
+          outboundDomains: ["example.com"],
+          inboundCidrs: ["198.51.100.0/24"],
           privateNetwork: true,
           proxyReference: "static-egress",
           ports: [{ port: 443, transport: PortTransport.Tls }],
@@ -120,15 +119,15 @@ describe("Modal mappings", () => {
           ],
         },
         lifetime: {
-          maximumLifetime: durationFromMs(300_000),
+          maximumLifetime: 300_000,
           idleTerminate: {
             mode: PolicyMode.After,
-            after: durationFromMs(60_000),
+            after: 60_000,
           },
         },
-        readiness: { check: { case: "command", value: { argv: ["true"] } } },
+        readiness: { command: { argv: ["true"] } },
         provisioning: {
-          timeout: durationFromMs(120_000),
+          timeout: 120_000,
           waitFor: WaitCondition.Ready,
         },
         observability: { verbose: true },
@@ -181,18 +180,16 @@ describe("Modal mappings", () => {
   });
 
   it("rejects lifetime and idle durations that are not whole seconds", () => {
-    expect(
-      mapLifetimeDuration({ maximumLifetime: durationFromMs(60_000) }),
-    ).toMatchObject({ timeoutMs: 60_000 });
-    expect(() =>
-      mapLifetimeDuration({ maximumLifetime: durationFromMs(1_500) }),
-    ).toThrowError(
+    expect(mapLifetimeDuration({ maximumLifetime: 60_000 })).toMatchObject({
+      timeoutMs: 60_000,
+    });
+    expect(() => mapLifetimeDuration({ maximumLifetime: 1_500 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: "lifetime.maximum_lifetime",
       }),
     );
-    expect(() => mapIdleDuration({ after: durationFromMs(500) })).toThrowError(
+    expect(() => mapIdleDuration({ after: 500 })).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: "lifetime.idle_terminate.after",
@@ -216,7 +213,7 @@ describe("Modal mappings", () => {
       mapCreateRequest(
         {
           source: {
-            kind: { case: "image", value: { reference: "alpine:3.21" } },
+            image: { reference: "alpine:3.21" },
           },
           environment: { "NOT VALID": "value" },
         },
@@ -232,9 +229,9 @@ describe("Modal mappings", () => {
       mapCreateRequest(
         {
           source: {
-            kind: { case: "image", value: { reference: "alpine:3.21" } },
+            image: { reference: "alpine:3.21" },
           },
-          network: { inboundCidrs: { entries: ["300.1.1.1/24"] } },
+          network: { inboundCidrs: ["300.1.1.1/24"] },
         },
         config,
       ),

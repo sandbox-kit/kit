@@ -2,7 +2,7 @@ import { daytona } from "@sandbox-kit/daytona";
 import {
   Client,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -29,7 +29,7 @@ const createOptions = {
   source: { image: { reference: "ubuntu:22.04" } },
   labels: { team: "platform", purpose: "kit-example" },
   environment: { NODE_ENV: "development" },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(

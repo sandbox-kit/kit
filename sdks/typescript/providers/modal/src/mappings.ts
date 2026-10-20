@@ -1,5 +1,4 @@
 // Provider-specific orchestration around generated portable field mappings.
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   Probe,
   type ModalClientParams,
@@ -16,12 +15,10 @@ import {
   SandboxState,
   ValueOrigin,
   WaitCondition,
-  resolveClientConfig,
   sandboxError,
   type Config,
-  type ConfigInput,
   type CreateOptions,
-  type SandboxInfo,
+  type SandboxInfo
 } from "@sandbox-kit/sandbox";
 import {
   mapCommonCreateFields as generatedMapCommonCreateFields,
@@ -45,17 +42,10 @@ export interface ModalCreatePlan {
   readonly readyTimeoutMs?: number;
 }
 
-export function mapClientConfig(
-  config: Config | ConfigInput,
-): ModalClientParams {
-  const source = resolveClientConfig(config);
-  const result = mapGeneratedClientConfig(source);
-  if (source.timeout !== undefined)
-    result.timeoutMs = finiteDurationMs(
-      durationMs(source.timeout),
-      "timeout",
-      true,
-    );
+export function mapClientConfig(config: Config): ModalClientParams {
+  const result = mapGeneratedClientConfig(config);
+  if (config.timeout !== undefined)
+    result.timeoutMs = finiteDurationMs(config.timeout, "timeout", true);
   return result;
 }
 
@@ -68,7 +58,7 @@ export function mapCreateRequest(
     config.scope?.appName === undefined
       ? invalid("scope.appName", "Modal app name is required")
       : nonblank(config.scope.appName, "scope.appName");
-  if (request.source?.kind?.case !== "image")
+  if (request.source?.image === undefined)
     unsupported("source", "Modal requires an explicit image source");
   const params: SandboxCreateParams = generatedMapCommonCreateFields(request);
   if (request.name !== undefined) params.name = nonblank(request.name, "name");
@@ -92,7 +82,7 @@ export function mapCreateRequest(
       ? {}
       : { environment: config.scope.environment }),
     image: nonblank(
-      request.source.kind.value.reference,
+      request.source.image.reference,
       "source.image.reference",
     ),
     params,
@@ -170,17 +160,17 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
     egress !== EgressMode.Restricted
   )
     invalid("network.egress", "unknown egress mode");
-  if (v.outboundCidrs)
-    p.outboundCidrAllowlist = [...(v.outboundCidrs.entries ?? [])];
-  if (v.outboundDomains)
-    p.outboundDomainAllowlist = [...(v.outboundDomains.entries ?? [])];
-  if (v.inboundCidrs) {
-    if (!v.inboundCidrs.entries?.length)
+  if (v.outboundCidrs !== undefined)
+    p.outboundCidrAllowlist = [...v.outboundCidrs];
+  if (v.outboundDomains !== undefined)
+    p.outboundDomainAllowlist = [...v.outboundDomains];
+  if (v.inboundCidrs !== undefined) {
+    if (!v.inboundCidrs.length)
       unsupported(
         "network.inboundCidrs",
         "empty inbound deny-all is not representable",
       );
-    p.inboundCidrAllowlist = [...v.inboundCidrs.entries];
+    p.inboundCidrAllowlist = [...v.inboundCidrs];
   }
   if (v.privateNetwork !== undefined) p.i6pn = v.privateNetwork;
   if (v.customDomain !== undefined) p.customDomain = v.customDomain;
@@ -242,7 +232,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   if (!v) return;
   if (v.maximumLifetime !== undefined)
     finiteDurationMs(
-      durationMs(v.maximumLifetime),
+      v.maximumLifetime,
       "lifetime.maximumLifetime",
       false,
     );
@@ -254,7 +244,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
       if (v.idleTerminate.after === undefined)
         invalid("lifetime.idleTerminate.after", "duration is required");
       finiteDurationMs(
-        durationMs(v.idleTerminate.after),
+        v.idleTerminate.after,
         "lifetime.idleTerminate.after",
         false,
       );
@@ -277,12 +267,10 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
 function mapReadiness(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.readiness;
   if (!v) return;
-  if (v.check?.case === "tcpPort") {
-    if (v.check.value === undefined)
-      invalid("readiness.tcp_port", "tcp port is required");
-    p.readinessProbe = Probe.withTcp(v.check.value);
-  } else if (v.check?.case === "command")
-    p.readinessProbe = Probe.withExec([...(v.check.value.argv ?? [])]);
+  if (v.tcpPort !== undefined) {
+    p.readinessProbe = Probe.withTcp(v.tcpPort);
+  } else if (v.command !== undefined)
+    p.readinessProbe = Probe.withExec([...(v.command.argv ?? [])]);
   else invalid("readiness", "probe is required");
 }
 function mapProvisioning(
@@ -300,10 +288,10 @@ function mapProvisioning(
   if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled)
     return { waitUntilReady: false };
   if (waitFor === WaitCondition.Ready) {
-    if (v.timeout === undefined || durationMs(v.timeout) <= 0)
+    if (v.timeout === undefined || v.timeout <= 0)
       invalid("provisioning.timeout", "ready wait requires a positive timeout");
     if (!r.readiness) invalid("readiness", "ready wait requires a probe");
-    return { waitUntilReady: true, readyTimeoutMs: durationMs(v.timeout) };
+    return { waitUntilReady: true, readyTimeoutMs: v.timeout };
   }
   unsupported(
     "provisioning.waitFor",

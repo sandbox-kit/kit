@@ -3,7 +3,12 @@
 // then DaytonaError code/status maps, then unknown. Cause stays on SandboxError.cause.
 
 import { DaytonaError } from "@daytona/sdk";
-import { ErrorKind, SandboxError, sandboxError, type ErrorInfo } from "@sandbox-kit/sandbox";
+import {
+  ErrorKind,
+  SandboxError,
+  sandboxError,
+  type ErrorInfo
+} from "@sandbox-kit/sandbox";
 
 export function mapDaytonaError(error: unknown, operation: string): SandboxError {
   if (error instanceof SandboxError) return error;

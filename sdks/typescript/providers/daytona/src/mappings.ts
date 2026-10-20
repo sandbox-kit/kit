@@ -1,5 +1,4 @@
 // Provider-specific orchestration around generated portable field mappings.
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   EgressMode,
   ErrorKind,
@@ -9,13 +8,13 @@ import {
   SnapshotKind,
   ValueOrigin,
   WaitCondition,
-  metadataObjectFromMap,
-  resolveClientConfig,
   sandboxError,
   type Config,
-  type ConfigInput,
   type CreateOptions,
-  type SandboxInfo,
+  type SandboxInfo
+} from "@sandbox-kit/sandbox";
+import {
+  metadataObjectFromMap,
 } from "@sandbox-kit/sandbox";
 import {
   type CreateSandboxBaseParams,
@@ -37,13 +36,18 @@ import { mapGeneratedClientConfig, type Environment } from "./provider_config.js
 export type DaytonaCreateParams = CreateSandboxFromImageParams | CreateSandboxFromSnapshotParams;
 
 export function mapClientConfig(
-  config: Config | ConfigInput,
+  config: Config,
   environment?: Environment,
 ): DaytonaConfig {
-  const source = resolveClientConfig(config);
-  const result = mapGeneratedClientConfig(source, environment);
-  if (source.auth?.credentials.case === "bearerToken" && source.scope?.organizationId === undefined)
-    configInvalid("scope.organizationId", "organization ID is required with bearer authentication");
+  const result = mapGeneratedClientConfig(config, environment);
+  if (
+    config.auth?.bearerToken !== undefined &&
+    config.scope?.organizationId === undefined
+  )
+    configInvalid(
+      "scope.organizationId",
+      "organization ID is required with bearer authentication",
+    );
   return result;
 }
 
@@ -62,17 +66,17 @@ export function mapCreateRequest(request: CreateOptions): DaytonaCreateParams {
   if (request.readiness !== undefined) unsupported("readiness", "Daytona readiness probes are not mapped");
   if (request.providerOptions !== undefined) unsupported("providerOptions", "Daytona provider options are not mapped");
   const source = request.source;
-  if (source?.kind?.case === "warmPool")
+  if (source?.warmPool !== undefined)
     unsupported("source.warmPool", "explicit warm-pool creation mapping is unavailable");
-  if (source?.kind?.case === "image")
+  if (source?.image !== undefined)
     return {
       ...base,
-      image: nonblank(source.kind.value.reference, "source.image.reference"),
+      image: nonblank(source.image.reference, "source.image.reference"),
       ...(request.resources === undefined ? {} : { resources: mapResources(request.resources) }),
     };
   if (request.resources !== undefined) unsupported("resources", "Daytona resources require an image source");
-  if (source?.kind?.case === "snapshot") {
-    const snapshot = source.kind.value;
+  if (source?.snapshot !== undefined) {
+    const snapshot = source.snapshot;
     if ((snapshot.kind ?? SnapshotKind.Default) !== SnapshotKind.Default)
       unsupported("source.snapshot.kind", "explicit snapshot-kind restore mapping is unavailable");
     if (snapshot.providerKind !== undefined)
@@ -139,14 +143,14 @@ function mapNetwork(request: CreateOptions, target: CreateSandboxBaseParams): vo
   else if (egress !== EgressMode.Default && egress !== EgressMode.AllowAll && egress !== EgressMode.Restricted)
     invalid("network.egress", "unknown egress mode");
   if (value.outboundCidrs !== undefined) {
-    if (!value.outboundCidrs.entries?.length)
+    if (!value.outboundCidrs.length)
       unsupported("network.outboundCidrs", "empty CIDR allowlist mapping is not verified");
-    target.networkAllowList = value.outboundCidrs.entries.join(",");
+    target.networkAllowList = value.outboundCidrs.join(",");
   }
   if (value.outboundDomains !== undefined) {
-    if (!value.outboundDomains.entries?.length)
+    if (!value.outboundDomains.length)
       unsupported("network.outboundDomains", "empty domain allowlist mapping is not verified");
-    target.domainAllowList = value.outboundDomains.entries.join(",");
+    target.domainAllowList = value.outboundDomains.join(",");
   }
   if (value.linkedSandbox !== undefined) target.linkedSandbox = nonblank(value.linkedSandbox, "network.linkedSandbox");
   if (value.outboundProxyUrl !== undefined) target.outboundProxyUrl = value.outboundProxyUrl;
@@ -166,7 +170,7 @@ function mapLifetime(request: CreateOptions, target: CreateSandboxBaseParams): v
   Object.assign(target, generatedMapLifetimePolicies(value));
   if (value.ephemeral !== undefined) target.ephemeral = value.ephemeral;
   if (value.maximumLifetime !== undefined)
-    target.ttlMinutes = wholeMinutes(durationMs(value.maximumLifetime), "lifetime.maximumLifetime", true);
+    target.ttlMinutes = wholeMinutes(value.maximumLifetime, "lifetime.maximumLifetime", true);
   if (value.idleTerminate !== undefined)
     unsupported("lifetime.idleTerminate", "Daytona idle termination is not mapped");
 }
@@ -175,7 +179,7 @@ function mapProvisioning(request: CreateOptions, target: CreateSandboxBaseParams
   const value = request.provisioning;
   if (value === undefined) return;
   if (value.queueTimeout !== undefined)
-    target.queueTimeout = wholeMinutes(durationMs(value.queueTimeout), "provisioning.queueTimeout", false);
+    target.queueTimeout = wholeMinutes(value.queueTimeout, "provisioning.queueTimeout", false);
   const waitFor = value.waitFor ?? WaitCondition.Default;
   if (waitFor !== WaitCondition.Default && waitFor !== WaitCondition.Started)
     unsupported("provisioning.waitFor", "the Daytona TypeScript SDK only returns after startup");

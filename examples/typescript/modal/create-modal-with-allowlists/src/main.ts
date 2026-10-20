@@ -3,7 +3,7 @@ import {
   Client,
   EgressMode,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
   type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
@@ -44,7 +44,7 @@ const createOptions = {
     outboundDomains: ["example.com"],
     privateNetwork: true,
   },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(

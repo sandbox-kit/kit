@@ -1,4 +1,3 @@
-import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import {
   DaytonaError,
   type DaytonaConfig,
@@ -12,8 +11,8 @@ import {
   PolicyMode,
   SecretInjection,
   WaitCondition,
-  type CreateOptions,
 } from "@sandbox-kit/sandbox";
+import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { describe, expect, it } from "vitest";
 
 import { DaytonaProvider } from "./daytona.js";
@@ -82,11 +81,11 @@ describe("Daytona mappings", () => {
 
   it("maps an image request with exact resource and policy units", () => {
     const request: CreateOptions = {
-      source: { kind: { case: "image", value: { reference: "node:24" } } },
+      source: { image: { reference: "node:24" } },
       runtime: { language: "typescript" },
       resources: { cpuCores: 2, memoryMib: 2_048n, diskMib: 10_240n },
       lifetime: {
-        idleStop: { mode: PolicyMode.After, after: durationFromMs(120_000) },
+        idleStop: { mode: PolicyMode.After, after: 120_000 },
       },
     };
 
@@ -117,25 +116,25 @@ describe("Daytona mappings", () => {
         },
         network: {
           egress: EgressMode.Restricted,
-          outboundCidrs: { entries: ["192.0.2.0/24"] },
-          outboundDomains: { entries: ["example.com"] },
+          outboundCidrs: ["192.0.2.0/24"],
+          outboundDomains: ["example.com"],
           outboundProxyUrl: "https://proxy.example.com",
         },
         lifetime: {
-          maximumLifetime: durationFromMs(3_600_000),
+          maximumLifetime: 3_600_000,
           ephemeral: false,
-          idleStop: { mode: PolicyMode.After, after: durationFromMs(900_000) },
+          idleStop: { mode: PolicyMode.After, after: 900_000 },
           stoppedArchive: {
             mode: PolicyMode.After,
-            after: durationFromMs(86_400_000),
+            after: 86_400_000,
           },
           stoppedDelete: {
             mode: PolicyMode.After,
-            after: durationFromMs(172_800_000),
+            after: 172_800_000,
           },
         },
         provisioning: {
-          queueTimeout: durationFromMs(300_000),
+          queueTimeout: 300_000,
           waitFor: WaitCondition.Started,
         },
         observability: {
@@ -182,7 +181,7 @@ describe("Daytona mappings", () => {
   it("applies generated network and policy checks before mapping", () => {
     expect(() =>
       mapCreateRequest({
-        network: { outboundCidrs: { entries: ["not-a-cidr"] } },
+        network: { outboundCidrs: ["not-a-cidr"] },
       }),
     ).toThrowError(
       expect.objectContaining({
@@ -193,8 +192,8 @@ describe("Daytona mappings", () => {
     expect(() =>
       mapCreateRequest({
         lifetime: {
-          idleStop: { mode: PolicyMode.After, after: durationFromMs(60_000) },
-          idlePause: { mode: PolicyMode.After, after: durationFromMs(60_000) },
+          idleStop: { mode: PolicyMode.After, after: 60_000 },
+          idlePause: { mode: PolicyMode.After, after: 60_000 },
         },
       }),
     ).toThrowError(

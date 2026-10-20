@@ -3,7 +3,7 @@ import {
   Client,
   PolicyMode,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -31,7 +31,7 @@ const createOptions = {
     idlePause: { mode: PolicyMode.Disabled },
     stoppedDelete: { mode: PolicyMode.After, after: 10 * 60_000 },
   },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 const info = sandbox.info();

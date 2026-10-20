@@ -3,7 +3,7 @@ import {
   Client,
   type ClientConfig,
   type SandboxSourceInput,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -38,7 +38,7 @@ await using client = new Client(clientConfig());
 const createOptions = {
   source: imageSource,
   network: { proxyReference: requireEnv("MODAL_PROXY_NAME") },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox created: ${sandbox.id}`);

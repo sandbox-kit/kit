@@ -4,11 +4,9 @@
 import type { ModalClientParams as NativeClientConfig } from "modal";
 import {
   ErrorKind,
-  resolveClientConfig,
   sandboxError,
   validateConfig,
   type Config,
-  type ConfigInput,
   type Scope,
 } from "@sandbox-kit/sandbox";
 import {
@@ -18,7 +16,7 @@ import {
 } from "./provider_mappings.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
-  let source = config;
+  const source = config;
   validateConfig(source, "modal", "initialize");
   const target: NativeClientConfig = {};
   if (source.endpoint !== undefined)
@@ -37,33 +35,33 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
     if (source.scope.projectId !== undefined)
       unsupported("scope.projectId", "unsupported client configuration field");
   }
-  const credentials = source.auth?.credentials;
-  if (credentials?.case === "tokenPair") {
-    const mapped = mapTokenPairCredentials(credentials.value, "initialize");
-    Object.assign(target, mapped);
-  } else if (credentials?.case === "oauthRefresh") {
-    const mapped = mapOAuthAuth(credentials.value, "initialize");
-    Object.assign(target, mapped);
-  } else if (credentials?.case !== undefined) {
+  if (source.auth?.tokenPair !== undefined) {
+    Object.assign(
+      target,
+      mapTokenPairCredentials(source.auth.tokenPair, "initialize"),
+    );
+  } else if (source.auth?.oauthRefresh !== undefined) {
+    Object.assign(
+      target,
+      mapOAuthAuth(source.auth.oauthRefresh, "initialize"),
+    );
+  } else if (source.auth !== undefined) {
     unsupported("auth", "unsupported authentication mode");
   }
   return target;
 }
 
 export interface ProviderState {
-  readonly scope?: ConfigInput["scope"] | Scope;
+  readonly scope?: Scope;
   readonly region?: string;
 }
 
-export function captureProviderState(
-  config: Config | ConfigInput,
-): ProviderState {
-  const source = resolveClientConfig(config);
+export function captureProviderState(config: Config): ProviderState {
   return {
-    ...(source.scope === undefined
+    ...(config.scope === undefined
       ? {}
-      : { scope: structuredClone(source.scope) }),
-    ...(source.region === undefined ? {} : { region: source.region }),
+      : { scope: structuredClone(config.scope) }),
+    ...(config.region === undefined ? {} : { region: config.region }),
   };
 }
 

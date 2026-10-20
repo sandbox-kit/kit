@@ -3,7 +3,7 @@ import {
   Client,
   EgressMode,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -33,7 +33,7 @@ const createOptions = {
     outboundCidrs: ["192.0.2.0/24"],
     outboundDomains: ["example.com"],
   },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Daytona sandbox created with restricted egress: ${sandbox.id}`);

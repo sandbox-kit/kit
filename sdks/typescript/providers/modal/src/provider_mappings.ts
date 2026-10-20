@@ -1,20 +1,18 @@
 // Provider field mappings between shared CreateOptions/Config and the native SDK.
 // Inventoried in specs/providers/modal.yaml groups; kept in sync by hand (not emitted).
 
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   ErrorKind,
-  PolicyMode,
   ValueOrigin,
   sandboxError,
-  type AutomaticAction,
-  type CreateOptions,
-  type LifetimePolicy,
-  type OAuthCredentials,
-  type Resources,
   type SandboxInfo,
   type Scope,
-  type TokenPairCredentials,
+} from "@sandbox-kit/sandbox";
+import type {
+  CreateOptions,
+  OAuthCredentials,
+  Resources,
+  TokenPairCredentials,
 } from "@sandbox-kit/sandbox";
 import type {
   ModalClientParams as NativeModalClientParams,
@@ -23,6 +21,8 @@ import type {
 } from "modal";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+type PublicLifetime = NonNullable<CreateOptions["lifetime"]>;
+type PublicIdleTerminate = NonNullable<PublicLifetime["idleTerminate"]>;
 
 export function mapSandboxIdentity(
   source: NativeSandbox | undefined,
@@ -139,7 +139,7 @@ export function mapResources(
 }
 
 export function mapLifetimeDuration(
-  source: LifetimePolicy | undefined,
+  source: PublicLifetime | undefined,
   operation: string = "create",
 ): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
@@ -147,7 +147,7 @@ export function mapLifetimeDuration(
   {
     if (source.maximumLifetime !== undefined) {
       target.timeoutMs = durationSecondsMs(
-        durationMs(source.maximumLifetime),
+        source.maximumLifetime,
         "lifetime.maximum_lifetime",
         86_400,
         operation,
@@ -158,7 +158,7 @@ export function mapLifetimeDuration(
 }
 
 export function mapIdleDuration(
-  source: AutomaticAction | undefined,
+  source: PublicIdleTerminate | undefined,
   operation: string = "create",
 ): NativeSandboxCreateParams {
   const target: Mutable<NativeSandboxCreateParams> = {};
@@ -166,7 +166,7 @@ export function mapIdleDuration(
   {
     if (source.after !== undefined) {
       target.idleTimeoutMs = durationSecondsMs(
-        durationMs(source.after),
+        source.after,
         "lifetime.idle_terminate.after",
         4_294_967_295,
         operation,

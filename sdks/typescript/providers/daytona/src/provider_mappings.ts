@@ -1,13 +1,27 @@
 // Provider field mappings between shared CreateOptions/Config and the native SDK.
 // Inventoried in specs/providers/daytona.yaml groups; kept in sync by hand (not emitted).
 
-import { durationMs } from "@bufbuild/protobuf/wkt";
-import { ErrorKind, PolicyMode, ValueOrigin, sandboxError, type APIKeyCredentials, type BearerTokenCredentials, type Config, type CreateOptions, type LifetimePolicy, type Resources, type SandboxInfo, type Scope } from "@sandbox-kit/sandbox";
+import {
+  ErrorKind,
+  PolicyMode,
+  ValueOrigin,
+  sandboxError,
+  type SandboxInfo,
+  type Scope
+} from "@sandbox-kit/sandbox";
+import type {
+  APIKeyCredentials,
+  BearerTokenCredentials,
+  Config,
+  CreateOptions,
+  Resources
+} from "@sandbox-kit/sandbox";
 import type { CreateSandboxBaseParams as NativeCreateSandboxBaseParams, DaytonaConfig as NativeDaytonaConfig, Resources as NativeResources, Sandbox as NativeSandbox } from "@daytona/sdk";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
+type PublicLifetime = NonNullable<CreateOptions["lifetime"]>;
 
-export function mapLifetimePolicies(source: LifetimePolicy | undefined, operation: string = "create"): NativeCreateSandboxBaseParams {
+export function mapLifetimePolicies(source: PublicLifetime | undefined, operation: string = "create"): NativeCreateSandboxBaseParams {
   const target: Mutable<NativeCreateSandboxBaseParams> = {};
   if (source === undefined) return target;
   if (source.idleStop !== undefined) {
@@ -17,7 +31,7 @@ export function mapLifetimePolicies(source: LifetimePolicy | undefined, operatio
       target.autoStopInterval = 0;
     } else if (mode === PolicyMode.After) {
       if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_stop", "duration is required", operation);
-      const afterMs = durationMs(policy.after);
+      const afterMs = policy.after;
       if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.idle_stop", "immediate action is not representable", operation);
       if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_stop", "delay cannot be represented in whole minutes", operation);
       const minutes = afterMs / 60_000;
@@ -33,7 +47,7 @@ export function mapLifetimePolicies(source: LifetimePolicy | undefined, operatio
       target.autoPauseInterval = 0;
     } else if (mode === PolicyMode.After) {
       if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_pause", "duration is required", operation);
-      const afterMs = durationMs(policy.after);
+      const afterMs = policy.after;
       if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.idle_pause", "immediate action is not representable", operation);
       if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.idle_pause", "delay cannot be represented in whole minutes", operation);
       const minutes = afterMs / 60_000;
@@ -49,7 +63,7 @@ export function mapLifetimePolicies(source: LifetimePolicy | undefined, operatio
       mappingError(ErrorKind.Unsupported, "lifetime.stopped_archive", "explicit disabling is not representable", operation);
     } else if (mode === PolicyMode.After) {
       if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "duration is required", operation);
-      const afterMs = durationMs(policy.after);
+      const afterMs = policy.after;
       if (afterMs === 0) mappingError(ErrorKind.Unsupported, "lifetime.stopped_archive", "immediate action is not representable", operation);
       if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_archive", "delay cannot be represented in whole minutes", operation);
       const minutes = afterMs / 60_000;
@@ -66,7 +80,7 @@ export function mapLifetimePolicies(source: LifetimePolicy | undefined, operatio
       mappingError(ErrorKind.Unsupported, "lifetime.stopped_delete", "explicit disabling is not representable", operation);
     } else if (mode === PolicyMode.After) {
       if (policy.after === undefined) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_delete", "duration is required", operation);
-      const afterMs = durationMs(policy.after);
+      const afterMs = policy.after;
       if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0) mappingError(ErrorKind.InvalidArgument, "lifetime.stopped_delete", "delay cannot be represented in whole minutes", operation);
       const minutes = afterMs / 60_000;
       target.autoDeleteInterval = minutes;

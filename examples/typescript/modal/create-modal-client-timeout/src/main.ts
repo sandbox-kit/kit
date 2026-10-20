@@ -3,7 +3,7 @@ import {
   Client,
   WaitCondition,
   type ClientConfig,
-  type CreateOptionsInput,
+  type CreateOptions,
   type SandboxSourceInput,
 } from "@sandbox-kit/sandbox";
 
@@ -42,7 +42,7 @@ const createOptions = {
   runtime: { entrypoint: ["sleep", "300"] },
   readiness: { command: { argv: ["true"] } },
   provisioning: { waitFor: WaitCondition.Ready },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox ready using client timeout for wait: ${sandbox.id}`);

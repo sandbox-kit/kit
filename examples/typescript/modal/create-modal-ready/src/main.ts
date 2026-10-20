@@ -4,7 +4,7 @@ import {
   WaitCondition,
   type ClientConfig,
   type SandboxSourceInput,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -41,7 +41,7 @@ const createOptions = {
   runtime: { entrypoint: ["sleep", "300"] },
   readiness: { command: { argv: ["true"] } },
   provisioning: { timeout: 120_000, waitFor: WaitCondition.Ready },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox ready: ${sandbox.id}`);

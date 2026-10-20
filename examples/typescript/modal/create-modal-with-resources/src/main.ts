@@ -3,7 +3,7 @@ import {
   Client,
   type ClientConfig,
   type SandboxSourceInput,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -39,7 +39,7 @@ const createOptions = {
   source: imageSource,
   resources: { cpuCores: 0.5, memoryMib: 512n },
   lifetime: { maximumLifetime: 5 * 60_000 },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 const info = sandbox.info();

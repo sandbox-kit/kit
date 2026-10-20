@@ -3,7 +3,7 @@ import {
   Client,
   type ClientConfig,
   type SandboxSourceInput,
-  type CreateOptionsInput,
+  type CreateOptions,
 } from "@sandbox-kit/sandbox";
 
 function requireEnv(name: string): string {
@@ -39,7 +39,7 @@ const region = process.env.MODAL_REGION;
 const createOptions = {
   source: imageSource,
   placement: { cloud: process.env.MODAL_CLOUD || "auto", ...(region ? { regions: [region] } : {}) },
-} satisfies CreateOptionsInput;
+} satisfies CreateOptions;
 
 const sandbox = await client.create(createOptions);
 console.log(`Modal sandbox created: ${sandbox.id}`);
