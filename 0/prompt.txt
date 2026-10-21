@@ -1,15 +1,1 @@
-cool now commit all the changes and push to facade-go branch we are in 
-
-then make a PR with good title and description .
-
----
-
-cool is the changes in this branch breaks anygthing in typescript ?
-
----
-
-is docs, .md, readme related to changes we have made in this branch is updated and upto date ?
-
----
-
-update it
+cool commit and push to feat/facade-go
