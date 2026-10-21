@@ -30,7 +30,7 @@ import (
 func createSandbox() (result error) {
     client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
         Auth: &sandbox.AuthConfig{
-            Credentials: &sandbox.AuthConfig_ApiKey{
+            Credentials: &sandbox.APIKey{
                 ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
             },
         },

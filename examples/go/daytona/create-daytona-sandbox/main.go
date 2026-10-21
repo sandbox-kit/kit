@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,18 +14,17 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		handleError(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
+		log.Fatalf("copy .env.example to .env and fill in its values: %v", err)
 	}
 	config := &sandbox.Config{
-		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.APIKey{
+				ApiKey: &sandbox.APIKeyCredentials{
+					Key: os.Getenv("DAYTONA_API_KEY"),
+				},
+			},
+		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
@@ -35,22 +35,12 @@ func run() (result error) {
 	}
 	client, err := sandbox.NewClient(daytona.New(), config)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	defer func() {
-		if closeErr := client.Close(context.Background()); closeErr != nil {
-			if result == nil {
-				result = closeErr
-			} else {
-				handleError(os.Stderr, closeErr)
-			}
-		}
-	}()
-
+	defer client.Close(context.Background())
 	instance, err := client.Create(context.Background(), nil)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	fmt.Printf("Daytona sandbox created: %s\n", instance.ID())
-	return nil
 }

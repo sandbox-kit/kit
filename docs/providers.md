@@ -18,7 +18,7 @@ core `Provider` / backend contracts—not by growing the core sandbox package.
 ```go
 client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
     Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.AuthConfig_TokenPair{
+        Credentials: &sandbox.TokenPair{
             TokenPair: &sandbox.TokenPairCredentials{Id: tokenID, Secret: tokenSecret},
         },
     },

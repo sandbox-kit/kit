@@ -16,6 +16,9 @@ var goTestModules = []string{
 	"examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image",
 	"examples/go/daytona/create-daytona-with-runtime",
 	"examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked",
+	"examples/go/daytona/create-daytona-with-kvm", "examples/go/daytona/create-daytona-with-labels",
+	"examples/go/daytona/create-daytona-with-network", "examples/go/daytona/create-daytona-with-secrets",
+	"examples/go/daytona/create-daytona-with-ttl",
 	"examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor",
 	"examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement",
 	"examples/go/modal/create-modal-with-labels", "examples/go/modal/create-modal-with-network",
@@ -26,8 +29,13 @@ var goTestModules = []string{
 	"examples/go/daytona/get-daytona-sandbox", "examples/go/daytona/refresh-daytona-sandbox",
 	"examples/go/daytona/start-daytona-sandbox", "examples/go/daytona/pause-daytona-sandbox",
 	"examples/go/daytona/archive-daytona-sandbox", "examples/go/daytona/delete-daytona-sandbox",
+	"examples/go/daytona/force-stop-daytona-sandbox", "examples/go/daytona/request-daytona-deletion",
+	"examples/go/daytona/start-daytona-with-timeout",
 	"examples/go/modal/attach-modal-sandbox", "examples/go/modal/request-modal-termination",
 	"examples/go/daytona/close-daytona-handle", "examples/go/modal/close-modal-handle",
+	"examples/go/modal/create-modal-client-timeout", "examples/go/modal/create-modal-tcp-ready",
+	"examples/go/modal/create-modal-with-allowlists", "examples/go/modal/create-modal-with-ports",
+	"examples/go/modal/create-modal-with-secrets", "examples/go/modal/terminate-modal-with-timeout",
 }
 
 var typescriptTestModules = []struct {

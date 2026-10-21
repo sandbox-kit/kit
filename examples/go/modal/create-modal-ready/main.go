@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,60 +14,49 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() (result error) {
-	client, err := newClient()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if closeErr := client.Close(context.Background()); closeErr != nil {
-			if result == nil {
-				result = closeErr
-			} else {
-				fmt.Fprintln(os.Stderr, closeErr)
-			}
-		}
-	}()
-	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
-		Runtime: &sandbox.RuntimeConfig{
-			Entrypoint: []string{"sleep", "300"},
-		},
-		Readiness: &sandbox.ReadinessProbe{Check: &sandbox.ReadinessProbe_Command{Command: &sandbox.CommandProbe{Argv: []string{"true"}}}},
-		Provisioning: &sandbox.ProvisioningOptions{
-			Timeout: sandbox.Duration(2 * time.Minute),
-			WaitFor: sandbox.WaitConditionReady,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Modal sandbox ready: %s\n", instance.ID())
-	return nil
-}
-
-func newClient() (*sandbox.Client, error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return nil, fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
+		log.Fatal(fmt.Errorf("copy .env.example to .env and fill in its values: %w", err))
 	}
 	environment := os.Getenv("MODAL_ENVIRONMENT")
 	if environment == "" {
 		environment = "main"
 	}
-	return sandbox.NewClient(modal.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{
-			Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-		}}},
+	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.TokenPair{
+				TokenPair: &sandbox.TokenPairCredentials{
+					Id:     os.Getenv("MODAL_TOKEN_ID"),
+					Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+				},
+			},
+		},
 		Scope: &sandbox.Scope{
 			AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
 			Environment: sandbox.Value(environment),
 		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close(context.Background())
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}}},
+		Runtime: &sandbox.RuntimeConfig{
+			Entrypoint: []string{"sleep", "300"},
+		},
+		Readiness: &sandbox.ReadinessProbe{
+			Check: &sandbox.Command{
+				Command: &sandbox.CommandProbe{Argv: []string{"true"}},
+			},
+		},
+		Provisioning: &sandbox.ProvisioningOptions{
+			Timeout: sandbox.Duration(2 * time.Minute),
+			WaitFor: sandbox.WaitConditionReady,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Modal sandbox ready: %s\n", instance.ID())
 }

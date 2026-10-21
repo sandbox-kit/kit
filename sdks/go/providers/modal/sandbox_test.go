@@ -52,7 +52,7 @@ func (s sandboxesStub) Create(_ context.Context, _ *sdk.App, _ *sdk.Image, p *sd
 	return &sdk.Sandbox{SandboxID: "created"}, nil
 }
 func modalConfig() *sandbox.CreateOptions {
-	return &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "python:3.11"}}}, Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(1.5), MemoryMib: sandbox.Value(uint64(2048))}, Environment: map[string]string{"MODE": "test"}}
+	return &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "python:3.11"}}}, Isolation: &sandbox.IsolationConfig{Kind: sandbox.IsolationKindContainer}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(1.5), MemoryMib: sandbox.Value(uint64(2048))}, Environment: map[string]string{"MODE": "test"}}
 }
 func TestTypedSDKMappingAndCommonHandle(t *testing.T) {
 	calls := 0

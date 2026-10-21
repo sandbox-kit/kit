@@ -48,7 +48,7 @@ func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 		t.Fatal("SDK replaced")
 	}
 	client, _ := sandbox.NewClient(&operationProvider{adapter: adapter}, &sandbox.Config{})
-	handle, err := client.Create(context.Background(), &sandbox.CreateOptions{Name: sandbox.Value("test"), Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "python:3.11"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0), MemoryMib: sandbox.Value(uint64(4096)), DiskMib: sandbox.Value(uint64(8192))}, Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionSubmitted}})
+	handle, err := client.Create(context.Background(), &sandbox.CreateOptions{Name: sandbox.Value("test"), Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "python:3.11"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0), MemoryMib: sandbox.Value(uint64(4096)), DiskMib: sandbox.Value(uint64(8192))}, Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionSubmitted}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,8 +61,8 @@ func TestTypedSDKCreationAndResponseNormalization(t *testing.T) {
 }
 func TestUnrepresentableConfigRejectedBeforeCall(t *testing.T) {
 	for _, config := range []*sandbox.CreateOptions{
-		{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(1.5)}},
-		{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{MemoryMib: sandbox.Value(uint64(1000))}},
+		{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{CpuCores: sandbox.Value(1.5)}},
+		{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}}, Resources: &sandbox.Resources{MemoryMib: sandbox.Value(uint64(1000))}},
 		{Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0)}},
 		{Placement: &sandbox.Placement{Regions: []string{"region"}}},
 		{Lifetime: &sandbox.LifetimePolicy{IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(time.Duration(0))}}},

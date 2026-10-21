@@ -31,7 +31,7 @@ func newTestClient(provider sandbox.Backend) (*sandbox.Client, error) {
 func TestClientInitializesFromCommonConfiguration(t *testing.T) {
 	factory := &testProvider{provider: &creationBackend{}}
 	config := &sandbox.Config{
-		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test-key"}}},
+		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test-key"}}},
 		Endpoint: sandbox.Value("https://example.invalid"),
 		Region:   sandbox.Value("region"),
 		Timeout:  sandbox.Duration(time.Second),
@@ -51,8 +51,8 @@ func TestClientRejectsInvalidConfigurationBeforeInitialization(t *testing.T) {
 		{Endpoint: sandbox.Value("ftp://example.invalid")},
 		{Endpoint: sandbox.Value("not-a-url")},
 		{Auth: &sandbox.AuthConfig{}},
-		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id"}}}},
-		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_OauthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "id"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.OAuthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "id"}}}},
 	} {
 		factory := &testProvider{provider: &creationBackend{}}
 		if client, err := sandbox.NewClient(factory, config); err == nil || client != nil {
@@ -120,7 +120,7 @@ func TestClientDefaultTimeoutAndPerOperationOverrides(t *testing.T) {
 	}
 }
 func TestConfigContractsAreProtobufMessages(t *testing.T) {
-	config := &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "secret-id", Secret: "secret-value"}}}}
+	config := &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "secret-id", Secret: "secret-value"}}}}
 	if _, ok := any(config).(proto.Message); !ok {
 		t.Fatal("config is not a protobuf message")
 	}

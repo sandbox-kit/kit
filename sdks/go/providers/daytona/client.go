@@ -49,12 +49,12 @@ func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
 	}
 	if auth := resolved.GetAuth(); auth != nil {
 		switch credentials := auth.Credentials.(type) {
-		case *sandboxv1.AuthConfig_ApiKey:
+		case *sandbox.APIKey:
 			if credentials.ApiKey == nil || credentials.ApiKey.Key == "" {
 				return params, invalidClientField("auth.api_key", "api_key requires key")
 			}
 			params.APIKey = credentials.ApiKey.Key
-		case *sandboxv1.AuthConfig_BearerToken:
+		case *sandbox.BearerToken:
 			if credentials.BearerToken == nil || credentials.BearerToken.Token == "" {
 				return params, invalidClientField("auth.bearer_token", "bearer_token requires token")
 			}

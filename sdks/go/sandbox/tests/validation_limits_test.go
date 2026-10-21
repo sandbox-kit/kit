@@ -39,7 +39,7 @@ func TestImageReferenceValidationBeforeBackend(t *testing.T) {
 				called = true
 				return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "test"}}, nil
 			}})
-			_, err := client.Create(context.Background(), &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: tc.reference}}}})
+			_, err := client.Create(context.Background(), &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: tc.reference}}}})
 			if (err == nil) != tc.valid || called != tc.valid {
 				t.Fatalf("valid=%v called=%v error=%v", tc.valid, called, err)
 			}

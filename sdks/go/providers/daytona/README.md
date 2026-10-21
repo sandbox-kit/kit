@@ -18,7 +18,7 @@ import (
 
 config := &sandbox.Config{
     Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.AuthConfig_ApiKey{
+        Credentials: &sandbox.APIKey{
             ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
         },
     },
@@ -36,7 +36,7 @@ instance, err := client.Create(ctx, nil)
 // Or an image with resource requests:
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
     Source: &sandbox.SandboxSource{
-        Kind: &sandbox.SandboxSource_Image{
+        Kind: &sandbox.Image{
             Image: &sandbox.ImageSource{Reference: "python:3.11"},
         },
     },

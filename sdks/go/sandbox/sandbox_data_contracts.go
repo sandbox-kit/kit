@@ -11,12 +11,16 @@ import (
 // Portable sandbox data contracts come from standard protobuf generation.
 // These aliases keep the SDK entrypoint concise while ensuring one representation.
 type (
-	CreateOptions       = sandboxv1.CreateOptions
-	SandboxSource       = sandboxv1.SandboxSource
-	SandboxSource_ProviderDefault = sandboxv1.SandboxSource_ProviderDefault
-	SandboxSource_Image           = sandboxv1.SandboxSource_Image
-	SandboxSource_Snapshot        = sandboxv1.SandboxSource_Snapshot
-	SandboxSource_WarmPool        = sandboxv1.SandboxSource_WarmPool
+	CreateOptions = sandboxv1.CreateOptions
+	SandboxSource = sandboxv1.SandboxSource
+	// ProviderDefault is the provider-default variant of SandboxSource.Kind.
+	ProviderDefault = sandboxv1.SandboxSource_ProviderDefault
+	// Image is the image variant of SandboxSource.Kind.
+	Image = sandboxv1.SandboxSource_Image
+	// Snapshot is the snapshot variant of SandboxSource.Kind.
+	Snapshot = sandboxv1.SandboxSource_Snapshot
+	// WarmPool is the warm-pool variant of SandboxSource.Kind.
+	WarmPool              = sandboxv1.SandboxSource_WarmPool
 	ProviderDefaultSource = sandboxv1.ProviderDefaultSource
 	ImageSource           = sandboxv1.ImageSource
 	SnapshotSource        = sandboxv1.SnapshotSource
@@ -30,44 +34,46 @@ type (
 	PortBinding           = sandboxv1.PortBinding
 	SecurityConfig        = sandboxv1.SecurityConfig
 	SecretReference       = sandboxv1.SecretReference
-	LifetimePolicy         = sandboxv1.LifetimePolicy
+	LifetimePolicy        = sandboxv1.LifetimePolicy
 	AutomaticAction       = sandboxv1.AutomaticAction
 	ProvisioningOptions   = sandboxv1.ProvisioningOptions
 	ReadinessProbe        = sandboxv1.ReadinessProbe
-	ReadinessProbe_TcpPort = sandboxv1.ReadinessProbe_TcpPort
-	ReadinessProbe_Command = sandboxv1.ReadinessProbe_Command
-	CommandProbe          = sandboxv1.CommandProbe
-	ObservabilityConfig   = sandboxv1.ObservabilityConfig
-	CreateResult          = sandboxv1.CreateResult
-	StartOptions          = sandboxv1.StartOptions
-	StopOptions           = sandboxv1.StopOptions
-	PauseOptions          = sandboxv1.PauseOptions
-	TerminateOptions      = sandboxv1.TerminateOptions
-	ArchiveOptions        = sandboxv1.ArchiveOptions
-	DeleteOptions         = sandboxv1.DeleteOptions
-	ExitResult            = sandboxv1.ExitResult
-	SandboxInfo           = sandboxv1.SandboxInfo
-	MetadataValue                   = sandboxv1.MetadataValue
-	MetadataValue_Boolean           = sandboxv1.MetadataValue_Boolean
-	MetadataValue_Text              = sandboxv1.MetadataValue_Text
-	MetadataValue_SignedInteger     = sandboxv1.MetadataValue_SignedInteger
-	MetadataValue_UnsignedInteger   = sandboxv1.MetadataValue_UnsignedInteger
-	MetadataValue_Number            = sandboxv1.MetadataValue_Number
-	MetadataValue_Binary            = sandboxv1.MetadataValue_Binary
-	MetadataValue_List              = sandboxv1.MetadataValue_List
-	MetadataValue_Object            = sandboxv1.MetadataValue_Object
-	MetadataList                    = sandboxv1.MetadataList
-	MetadataObject                  = sandboxv1.MetadataObject
-	SnapshotKind          = sandboxv1.SnapshotKind
-	IsolationKind         = sandboxv1.IsolationKind
-	EgressMode            = sandboxv1.EgressMode
-	PortTransport         = sandboxv1.PortTransport
-	SecretInjection       = sandboxv1.SecretInjection
-	PolicyMode            = sandboxv1.PolicyMode
-	WaitCondition         = sandboxv1.WaitCondition
-	SandboxState          = sandboxv1.SandboxState
-	LifecycleCapability   = sandboxv1.LifecycleCapability
-	ValueOrigin           = sandboxv1.ValueOrigin
+	// TCPPort is the TCP-port variant of ReadinessProbe.Check.
+	TCPPort = sandboxv1.ReadinessProbe_TcpPort
+	// Command is the command variant of ReadinessProbe.Check.
+	Command                 = sandboxv1.ReadinessProbe_Command
+	CommandProbe            = sandboxv1.CommandProbe
+	ObservabilityConfig     = sandboxv1.ObservabilityConfig
+	CreateResult            = sandboxv1.CreateResult
+	StartOptions            = sandboxv1.StartOptions
+	StopOptions             = sandboxv1.StopOptions
+	PauseOptions            = sandboxv1.PauseOptions
+	TerminateOptions        = sandboxv1.TerminateOptions
+	ArchiveOptions          = sandboxv1.ArchiveOptions
+	DeleteOptions           = sandboxv1.DeleteOptions
+	ExitResult              = sandboxv1.ExitResult
+	SandboxInfo             = sandboxv1.SandboxInfo
+	MetadataValue           = sandboxv1.MetadataValue
+	MetadataBoolean         = sandboxv1.MetadataValue_Boolean
+	MetadataText            = sandboxv1.MetadataValue_Text
+	MetadataSignedInteger   = sandboxv1.MetadataValue_SignedInteger
+	MetadataUnsignedInteger = sandboxv1.MetadataValue_UnsignedInteger
+	MetadataNumber          = sandboxv1.MetadataValue_Number
+	MetadataBinary          = sandboxv1.MetadataValue_Binary
+	MetadataListValue       = sandboxv1.MetadataValue_List
+	MetadataObjectValue     = sandboxv1.MetadataValue_Object
+	MetadataList            = sandboxv1.MetadataList
+	MetadataObject          = sandboxv1.MetadataObject
+	SnapshotKind            = sandboxv1.SnapshotKind
+	IsolationKind           = sandboxv1.IsolationKind
+	EgressMode              = sandboxv1.EgressMode
+	PortTransport           = sandboxv1.PortTransport
+	SecretInjection         = sandboxv1.SecretInjection
+	PolicyMode              = sandboxv1.PolicyMode
+	WaitCondition           = sandboxv1.WaitCondition
+	SandboxState            = sandboxv1.SandboxState
+	LifecycleCapability     = sandboxv1.LifecycleCapability
+	ValueOrigin             = sandboxv1.ValueOrigin
 )
 
 const (

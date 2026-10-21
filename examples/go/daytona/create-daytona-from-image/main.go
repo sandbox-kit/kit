@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,47 +14,17 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() (result error) {
-	client, err := newClient()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if closeErr := client.Close(context.Background()); closeErr != nil {
-			if result == nil {
-				result = closeErr
-			} else {
-				fmt.Fprintln(os.Stderr, closeErr)
-			}
-		}
-	}()
-	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"}}},
-		Resources: &sandbox.Resources{
-			CpuCores:  sandbox.Value(1.0),
-			MemoryMib: sandbox.Value(uint64(1024)),
-			DiskMib:   sandbox.Value(uint64(3072)),
-		},
-	})
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Daytona sandbox created from ubuntu:22.04: %s\n", instance.ID())
-	return nil
-}
-
-func newClient() (*sandbox.Client, error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return nil, fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
+		log.Fatal("copy .env.example to .env and fill in its values: ", err)
 	}
 	config := &sandbox.Config{
-		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.APIKey{
+				ApiKey: &sandbox.APIKeyCredentials{
+					Key: os.Getenv("DAYTONA_API_KEY"),
+				},
+			},
+		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
@@ -62,5 +33,25 @@ func newClient() (*sandbox.Client, error) {
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	return sandbox.NewClient(daytona.New(), config)
+	client, err := sandbox.NewClient(daytona.New(), config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close(context.Background())
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Source: &sandbox.SandboxSource{
+			Kind: &sandbox.Image{
+				Image: &sandbox.ImageSource{Reference: "ubuntu:22.04"},
+			},
+		},
+		Resources: &sandbox.Resources{
+			CpuCores:  sandbox.Value(1.0),
+			MemoryMib: sandbox.Value(uint64(1024)),
+			DiskMib:   sandbox.Value(uint64(3072)),
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Daytona sandbox created from ubuntu:22.04: %s\n", instance.ID())
 }

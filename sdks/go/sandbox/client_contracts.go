@@ -12,17 +12,21 @@ import (
 // aliases preserve the SDK's concise package entrypoint while ensuring there is
 // exactly one representation of each portable value.
 type (
-	Config                  = sandboxv1.Config
-	AuthConfig              = sandboxv1.AuthConfig
-	AuthConfig_ApiKey       = sandboxv1.AuthConfig_ApiKey
-	AuthConfig_TokenPair    = sandboxv1.AuthConfig_TokenPair
-	AuthConfig_BearerToken  = sandboxv1.AuthConfig_BearerToken
-	AuthConfig_OauthRefresh = sandboxv1.AuthConfig_OauthRefresh
-	APIKeyCredentials       = sandboxv1.APIKeyCredentials
-	TokenPairCredentials    = sandboxv1.TokenPairCredentials
-	BearerTokenCredentials  = sandboxv1.BearerTokenCredentials
-	OAuthCredentials        = sandboxv1.OAuthCredentials
-	Scope                   = sandboxv1.Scope
+	Config     = sandboxv1.Config
+	AuthConfig = sandboxv1.AuthConfig
+	// APIKey is the API-key variant of AuthConfig.Credentials.
+	APIKey = sandboxv1.AuthConfig_ApiKey
+	// TokenPair is the token-pair variant of AuthConfig.Credentials.
+	TokenPair = sandboxv1.AuthConfig_TokenPair
+	// BearerToken is the bearer-token variant of AuthConfig.Credentials.
+	BearerToken = sandboxv1.AuthConfig_BearerToken
+	// OAuthRefresh is the OAuth refresh-token variant of AuthConfig.Credentials.
+	OAuthRefresh           = sandboxv1.AuthConfig_OauthRefresh
+	APIKeyCredentials      = sandboxv1.APIKeyCredentials
+	TokenPairCredentials   = sandboxv1.TokenPairCredentials
+	BearerTokenCredentials = sandboxv1.BearerTokenCredentials
+	OAuthCredentials       = sandboxv1.OAuthCredentials
+	Scope                  = sandboxv1.Scope
 )
 
 // Duration builds a protobuf duration for client and operation configuration.

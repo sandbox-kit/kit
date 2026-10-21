@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -30,7 +32,41 @@ func newIPv4TestServer(t *testing.T, handler http.Handler) *httptest.Server {
 	return server
 }
 
-func TestExampleRunUsesOfficialSDKAndMappedPolicies(t *testing.T) {
+func testClientConfig() (sandbox.Provider, *sandbox.Config) {
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.APIKey{
+				ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+			},
+		},
+		Timeout: sandbox.Duration(2 * time.Minute),
+	}
+	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
+		config.Endpoint = sandbox.Value(endpoint)
+	}
+	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
+		config.Region = sandbox.Value(target)
+	}
+	return daytona.New(), config
+}
+
+func testCreateOptions() *sandbox.CreateOptions {
+	return &sandbox.CreateOptions{
+		Lifetime: &sandbox.LifetimePolicy{
+			IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
+			StoppedDelete: &sandbox.AutomaticAction{
+				Mode:  sandbox.PolicyModeAfter,
+				After: sandbox.Duration(10 * time.Minute),
+			},
+		},
+	}
+}
+
+func TestMainUsesOfficialSDKAndMappedPolicies(t *testing.T) {
+	if os.Getenv("SANDBOX_KIT_RUN_EXAMPLE") == "1" {
+		main()
+		return
+	}
 	requests := make(chan map[string]any, 1)
 	server := newIPv4TestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "POST" || r.URL.Path != "/sandbox" {
@@ -52,12 +88,15 @@ func TestExampleRunUsesOfficialSDKAndMappedPolicies(t *testing.T) {
 	t.Setenv("DAYTONA_API_KEY", "test-only-key")
 	t.Setenv("DAYTONA_API_URL", server.URL)
 	t.Setenv("DAYTONA_TARGET", "test-region")
-	t.Chdir(t.TempDir())
-	if err := os.WriteFile(".env", []byte("# Test uses explicit dummy environment values.\n"), 0600); err != nil {
+	dir := t.TempDir()
+	if err := os.WriteFile(dir+"/.env", []byte("# Test uses explicit dummy environment values.\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := run(); err != nil {
-		t.Fatal(err)
+	command := exec.Command(os.Args[0], "-test.run=^TestMainUsesOfficialSDKAndMappedPolicies$")
+	command.Dir = dir
+	command.Env = append(os.Environ(), "SANDBOX_KIT_RUN_EXAMPLE=1")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("example failed: %v\n%s", err, output)
 	}
 	select {
 	case body := <-requests:
@@ -84,7 +123,7 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 	t.Setenv("DAYTONA_API_KEY", "test-only-key")
 	t.Setenv("DAYTONA_API_URL", server.URL)
 	t.Setenv("DAYTONA_TARGET", "test-region")
-	client, err := sandbox.NewClient(clientConfig())
+	client, err := sandbox.NewClient(testClientConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +147,7 @@ func TestRejectedPoliciesNeverReachCreateEndpoint(t *testing.T) {
 		}, "idle_pause"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			options := createOptions()
+			options := testCreateOptions()
 			tc.set(options.Lifetime)
 			instance, err := client.Create(context.Background(), options)
 			if instance != nil || err == nil || !strings.Contains(err.Error(), tc.want) {
@@ -144,7 +183,7 @@ func TestImmediateActionsRemainExplicitOnWire(t *testing.T) {
 	t.Setenv("DAYTONA_API_KEY", "test-only-key")
 	t.Setenv("DAYTONA_API_URL", server.URL)
 	t.Setenv("DAYTONA_TARGET", "test-region")
-	client, err := sandbox.NewClient(clientConfig())
+	client, err := sandbox.NewClient(testClientConfig())
 	if err != nil {
 		t.Fatal(err)
 	}

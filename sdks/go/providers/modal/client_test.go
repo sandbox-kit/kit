@@ -9,7 +9,7 @@ import (
 
 func TestCommonInitializationMappings(t *testing.T) {
 	config := &sandbox.Config{
-		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "token-id", Secret: "token-secret"}}},
+		Auth:  &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "token-id", Secret: "token-secret"}}},
 		Scope: &sandbox.Scope{AppName: sandbox.Value("my-app"), Environment: sandbox.Value("dev")}, Region: sandbox.Value("us-east"),
 	}
 	params, err := mapClientConfig(config)
@@ -19,7 +19,7 @@ func TestCommonInitializationMappings(t *testing.T) {
 	if params.TokenID != "token-id" || params.TokenSecret != "token-secret" || params.Environment != "dev" {
 		t.Fatal("common settings not mapped")
 	}
-	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_OauthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "client", ClientSecret: sandbox.Value("secret")}}}
+	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.OAuthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "client", ClientSecret: sandbox.Value("secret")}}}
 	params, err = mapClientConfig(config)
 	if err != nil {
 		t.Fatal(err)
@@ -38,8 +38,8 @@ func TestCommonInitializationMappings(t *testing.T) {
 func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) {
 	for _, config := range []*sandbox.Config{
 		{Endpoint: sandbox.Value("https://example.invalid")},
-		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test"}}}},
-		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_BearerToken{BearerToken: &sandbox.BearerTokenCredentials{Token: "test"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.BearerToken{BearerToken: &sandbox.BearerTokenCredentials{Token: "test"}}}},
 		{Scope: &sandbox.Scope{OrganizationId: sandbox.Value("org")}},
 	} {
 		if provider, err := New().NewClient(config); err == nil || provider != nil {
@@ -53,7 +53,7 @@ func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) 
 }
 func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 	scope := &sandbox.Scope{AppName: sandbox.Value("app")}
-	request := &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}}}
+	request := &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}}}
 	plan, err := planCreate(request, scope, "default-region")
 	if err != nil {
 		t.Fatal(err)
@@ -75,7 +75,7 @@ func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 
 func TestManagedProxyIsRetainedForNativeLookup(t *testing.T) {
 	request := &sandbox.CreateOptions{
-		Source:  &sandbox.SandboxSource{Kind: &sandbox.SandboxSource_Image{Image: &sandbox.ImageSource{Reference: "image"}}},
+		Source:  &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}},
 		Network: &sandbox.NetworkConfig{ProxyReference: sandbox.Value("static-egress")},
 	}
 	plan, err := planCreate(request, &sandbox.Scope{AppName: sandbox.Value("app")}, "")
