@@ -3,7 +3,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,18 +15,17 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		handleError(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
+		log.Fatalf("copy .env.example to .env and fill in its values: %v", err)
 	}
 	config := &sandbox.Config{
-		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.APIKey{
+				ApiKey: &sandbox.APIKeyCredentials{
+					Key: os.Getenv("DAYTONA_API_KEY"),
+				},
+			},
+		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
@@ -35,26 +36,38 @@ func run() (result error) {
 	}
 	client, err := sandbox.NewClient(daytona.New(), config)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	defer func() {
-		if closeErr := client.Close(context.Background()); closeErr != nil {
-			if result == nil {
-				result = closeErr
-			} else {
-				handleError(os.Stderr, closeErr)
-			}
-		}
-	}()
-
+	defer client.Close(context.Background())
 	// Invalid CPU demonstrates how an application handles configuration errors.
 	_, err = client.Create(context.Background(), &sandbox.CreateOptions{
 		Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)},
 	})
 	if err != nil {
-		handleError(os.Stdout, err)
-		return nil
+		var sandboxError *sandbox.Error
+		if !errors.As(err, &sandboxError) {
+			fmt.Fprintln(os.Stdout, err)
+			return
+		}
+		switch sandboxError.Kind {
+		case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
+			fmt.Fprintf(os.Stdout, "Check %s: %s\n", sandboxError.Field, sandboxError.Message)
+		case sandbox.ErrorKindAuthentication:
+			fmt.Fprintln(os.Stdout, "Check your provider credentials.")
+		case sandbox.ErrorKindPermissionDenied:
+			fmt.Fprintln(os.Stdout, "Your account does not have permission for this operation.")
+		case sandbox.ErrorKindNotFound:
+			fmt.Fprintln(os.Stdout, "The requested provider resource was not found.")
+		case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
+			fmt.Fprintln(os.Stdout, "The provider's rate or resource limit was reached.")
+		case sandbox.ErrorKindCanceled:
+			fmt.Fprintln(os.Stdout, "The operation was canceled.")
+		case sandbox.ErrorKindTimeout:
+			fmt.Fprintln(os.Stdout, "The operation timed out.")
+		default:
+			fmt.Fprintln(os.Stdout, err)
+		}
+		return
 	}
 	fmt.Fprintln(os.Stdout, "Sandbox created.")
-	return nil
 }

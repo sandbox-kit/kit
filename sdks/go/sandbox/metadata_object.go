@@ -54,44 +54,44 @@ func metadataValueFromAny(value any) (*MetadataValue, error) {
 	case nil:
 		return &MetadataValue{}, nil
 	case bool:
-		return &MetadataValue{Value: &MetadataValue_Boolean{Boolean: v}}, nil
+		return &MetadataValue{Value: &MetadataBoolean{Boolean: v}}, nil
 	case string:
-		return &MetadataValue{Value: &MetadataValue_Text{Text: v}}, nil
+		return &MetadataValue{Value: &MetadataText{Text: v}}, nil
 	case int:
-		return &MetadataValue{Value: &MetadataValue_SignedInteger{SignedInteger: int64(v)}}, nil
+		return &MetadataValue{Value: &MetadataSignedInteger{SignedInteger: int64(v)}}, nil
 	case int8:
-		return &MetadataValue{Value: &MetadataValue_SignedInteger{SignedInteger: int64(v)}}, nil
+		return &MetadataValue{Value: &MetadataSignedInteger{SignedInteger: int64(v)}}, nil
 	case int16:
-		return &MetadataValue{Value: &MetadataValue_SignedInteger{SignedInteger: int64(v)}}, nil
+		return &MetadataValue{Value: &MetadataSignedInteger{SignedInteger: int64(v)}}, nil
 	case int32:
-		return &MetadataValue{Value: &MetadataValue_SignedInteger{SignedInteger: int64(v)}}, nil
+		return &MetadataValue{Value: &MetadataSignedInteger{SignedInteger: int64(v)}}, nil
 	case int64:
-		return &MetadataValue{Value: &MetadataValue_SignedInteger{SignedInteger: v}}, nil
+		return &MetadataValue{Value: &MetadataSignedInteger{SignedInteger: v}}, nil
 	case uint:
-		return &MetadataValue{Value: &MetadataValue_UnsignedInteger{UnsignedInteger: uint64(v)}}, nil
+		return &MetadataValue{Value: &MetadataUnsignedInteger{UnsignedInteger: uint64(v)}}, nil
 	case uint8:
-		return &MetadataValue{Value: &MetadataValue_UnsignedInteger{UnsignedInteger: uint64(v)}}, nil
+		return &MetadataValue{Value: &MetadataUnsignedInteger{UnsignedInteger: uint64(v)}}, nil
 	case uint16:
-		return &MetadataValue{Value: &MetadataValue_UnsignedInteger{UnsignedInteger: uint64(v)}}, nil
+		return &MetadataValue{Value: &MetadataUnsignedInteger{UnsignedInteger: uint64(v)}}, nil
 	case uint32:
-		return &MetadataValue{Value: &MetadataValue_UnsignedInteger{UnsignedInteger: uint64(v)}}, nil
+		return &MetadataValue{Value: &MetadataUnsignedInteger{UnsignedInteger: uint64(v)}}, nil
 	case uint64:
-		return &MetadataValue{Value: &MetadataValue_UnsignedInteger{UnsignedInteger: v}}, nil
+		return &MetadataValue{Value: &MetadataUnsignedInteger{UnsignedInteger: v}}, nil
 	case float32:
-		return &MetadataValue{Value: &MetadataValue_Number{Number: float64(v)}}, nil
+		return &MetadataValue{Value: &MetadataNumber{Number: float64(v)}}, nil
 	case float64:
 		if math.IsNaN(v) || math.IsInf(v, 0) {
 			return nil, fmt.Errorf("sandbox-kit: metadata numbers must be finite")
 		}
-		return &MetadataValue{Value: &MetadataValue_Number{Number: v}}, nil
+		return &MetadataValue{Value: &MetadataNumber{Number: v}}, nil
 	case []byte:
-		return &MetadataValue{Value: &MetadataValue_Binary{Binary: append([]byte(nil), v...)}}, nil
+		return &MetadataValue{Value: &MetadataBinary{Binary: append([]byte(nil), v...)}}, nil
 	case []string:
 		list := &MetadataList{Values: make([]*MetadataValue, 0, len(v))}
 		for _, item := range v {
-			list.Values = append(list.Values, &MetadataValue{Value: &MetadataValue_Text{Text: item}})
+			list.Values = append(list.Values, &MetadataValue{Value: &MetadataText{Text: item}})
 		}
-		return &MetadataValue{Value: &MetadataValue_List{List: list}}, nil
+		return &MetadataValue{Value: &MetadataListValue{List: list}}, nil
 	case []any:
 		list := &MetadataList{Values: make([]*MetadataValue, 0, len(v))}
 		for _, item := range v {
@@ -101,13 +101,13 @@ func metadataValueFromAny(value any) (*MetadataValue, error) {
 			}
 			list.Values = append(list.Values, converted)
 		}
-		return &MetadataValue{Value: &MetadataValue_List{List: list}}, nil
+		return &MetadataValue{Value: &MetadataListValue{List: list}}, nil
 	case map[string]any:
 		object, err := metadataObjectFromCopiedMap(v)
 		if err != nil {
 			return nil, err
 		}
-		return &MetadataValue{Value: &MetadataValue_Object{Object: object}}, nil
+		return &MetadataValue{Value: &MetadataObjectValue{Object: object}}, nil
 	default:
 		return nil, fmt.Errorf("sandbox-kit: unsupported metadata value %T", value)
 	}
@@ -118,19 +118,19 @@ func metadataValueAsAny(value *MetadataValue) (any, error) {
 		return nil, nil
 	}
 	switch v := value.Value.(type) {
-	case *MetadataValue_Boolean:
+	case *MetadataBoolean:
 		return v.Boolean, nil
-	case *MetadataValue_Text:
+	case *MetadataText:
 		return v.Text, nil
-	case *MetadataValue_SignedInteger:
+	case *MetadataSignedInteger:
 		return v.SignedInteger, nil
-	case *MetadataValue_UnsignedInteger:
+	case *MetadataUnsignedInteger:
 		return v.UnsignedInteger, nil
-	case *MetadataValue_Number:
+	case *MetadataNumber:
 		return v.Number, nil
-	case *MetadataValue_Binary:
+	case *MetadataBinary:
 		return append([]byte(nil), v.Binary...), nil
-	case *MetadataValue_List:
+	case *MetadataListValue:
 		out := make([]any, 0, len(v.List.GetValues()))
 		for _, item := range v.List.GetValues() {
 			converted, err := metadataValueAsAny(item)
@@ -140,7 +140,7 @@ func metadataValueAsAny(value *MetadataValue) (any, error) {
 			out = append(out, converted)
 		}
 		return out, nil
-	case *MetadataValue_Object:
+	case *MetadataObjectValue:
 		return MetadataObjectAsMap(v.Object)
 	default:
 		return nil, fmt.Errorf("sandbox-kit: unsupported metadata value")

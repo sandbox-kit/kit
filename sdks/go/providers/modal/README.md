@@ -18,7 +18,7 @@ import (
 
 config := &sandbox.Config{
     Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.AuthConfig_TokenPair{
+        Credentials: &sandbox.TokenPair{
             TokenPair: &sandbox.TokenPairCredentials{
                 Id:     os.Getenv("MODAL_TOKEN_ID"),
                 Secret: os.Getenv("MODAL_TOKEN_SECRET"),
@@ -39,7 +39,7 @@ defer client.Close(context.Background())
 
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
     Source: &sandbox.SandboxSource{
-        Kind: &sandbox.SandboxSource_Image{
+        Kind: &sandbox.Image{
             Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
         },
     },

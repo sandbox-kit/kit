@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,15 +14,17 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		handleError(os.Stderr, err)
-		os.Exit(1)
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("copy .env.example to .env and set credentials: %v", err)
 	}
-}
-
-func clientConfig() (sandbox.Provider, *sandbox.Config) {
 	config := &sandbox.Config{
-		Auth:    &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")}}},
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.APIKey{
+				ApiKey: &sandbox.APIKeyCredentials{
+					Key: os.Getenv("DAYTONA_API_KEY"),
+				},
+			},
+		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	}
 	if endpoint := os.Getenv("DAYTONA_API_URL"); endpoint != "" {
@@ -30,39 +33,24 @@ func clientConfig() (sandbox.Provider, *sandbox.Config) {
 	if target := os.Getenv("DAYTONA_TARGET"); target != "" {
 		config.Region = sandbox.Value(target)
 	}
-	return daytona.New(), config
-}
-
-func createOptions() *sandbox.CreateOptions {
-	return &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{
-		IdlePause:     &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
-		StoppedDelete: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter, After: sandbox.Duration(10 * time.Minute)},
-	}}
-}
-
-func run() (result error) {
-	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("copy .env.example to .env and set credentials: %w", err)
-	}
-	client, err := sandbox.NewClient(clientConfig())
+	client, err := sandbox.NewClient(daytona.New(), config)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	defer func() {
-		if closeErr := client.Close(context.Background()); closeErr != nil {
-			if result == nil {
-				result = closeErr
-			} else {
-				handleError(os.Stderr, closeErr)
-			}
-		}
-	}()
-	instance, err := client.Create(context.Background(), createOptions())
+	defer client.Close(context.Background())
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Lifetime: &sandbox.LifetimePolicy{
+			IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
+			StoppedDelete: &sandbox.AutomaticAction{
+				Mode:  sandbox.PolicyModeAfter,
+				After: sandbox.Duration(10 * time.Minute),
+			},
+		},
+	})
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	fmt.Printf("Daytona sandbox created: %s (auto-pause disabled, deletion 10 minutes after stopping)\n", instance.ID())
 	info := instance.Info()
 	fmt.Printf("ID origin: %s; resource origin: %s\n", info.Origins["id"], info.Origins["resources"])
-	return nil
 }

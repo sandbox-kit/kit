@@ -7,7 +7,7 @@ func TestUnknownEnumValuesAndMissingReservations(t *testing.T) {
 		{Isolation: &IsolationConfig{Kind: IsolationKind(99)}},
 		{Network: &NetworkConfig{Egress: EgressMode(99)}},
 		{Provisioning: &ProvisioningOptions{WaitFor: WaitCondition(99)}},
-		{Source: &SandboxSource{Kind: &SandboxSource_Snapshot{Snapshot: &SnapshotSource{Reference: "snapshot", Kind: SnapshotKind(99)}}}},
+		{Source: &SandboxSource{Kind: &Snapshot{Snapshot: &SnapshotSource{Reference: "snapshot", Kind: SnapshotKind(99)}}}},
 		{Security: &SecurityConfig{Secrets: []*SecretReference{{Reference: "secret", Injection: SecretInjection(99)}}}},
 		{Resources: &Resources{CpuLimitCores: Value(2.0)}},
 		{Resources: &Resources{MemoryLimitMib: Value(uint64(1024))}},

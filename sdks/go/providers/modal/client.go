@@ -33,13 +33,13 @@ func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
 	}
 	if auth := config.GetAuth(); auth != nil {
 		switch credentials := auth.Credentials.(type) {
-		case *sandboxv1.AuthConfig_TokenPair:
+		case *sandbox.TokenPair:
 			if credentials.TokenPair == nil || credentials.TokenPair.Id == "" || credentials.TokenPair.Secret == "" {
 				return params, invalidClientField("auth.token_pair", "token_pair requires id and secret")
 			}
 			params.TokenID = credentials.TokenPair.Id
 			params.TokenSecret = credentials.TokenPair.Secret
-		case *sandboxv1.AuthConfig_OauthRefresh:
+		case *sandbox.OAuthRefresh:
 			if credentials.OauthRefresh == nil || credentials.OauthRefresh.RefreshToken == "" || credentials.OauthRefresh.ClientId == "" {
 				return params, invalidClientField("auth.oauth_refresh", "oauth_refresh requires refresh_token and client_id")
 			}

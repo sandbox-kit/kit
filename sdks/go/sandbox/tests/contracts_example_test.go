@@ -30,7 +30,7 @@ func ExampleCloneSandboxInfo() {
 	}
 	original := &sandbox.SandboxInfo{Id: "example", ProviderMetadata: metadata, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
 	copied := sandbox.CloneSandboxInfo(original)
-	original.ProviderMetadata.Values["generation"] = &sandbox.MetadataValue{Value: &sandbox.MetadataValue_SignedInteger{SignedInteger: 0}}
+	original.ProviderMetadata.Values["generation"] = &sandbox.MetadataValue{Value: &sandbox.MetadataSignedInteger{SignedInteger: 0}}
 	copiedMap, err := sandbox.MetadataObjectAsMap(copied.ProviderMetadata)
 	if err != nil {
 		panic(err)

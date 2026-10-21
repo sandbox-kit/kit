@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -13,45 +14,37 @@ import (
 )
 
 func main() {
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func run() (result error) {
 	if err := godotenv.Load(".env"); err != nil {
-		return fmt.Errorf("copy .env.example to .env and fill in its values: %w", err)
+		log.Fatalf("copy .env.example to .env and fill in its values: %v", err)
 	}
 	environment := os.Getenv("MODAL_ENVIRONMENT")
 	if environment == "" {
 		environment = "main"
 	}
 	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{
-			Id: os.Getenv("MODAL_TOKEN_ID"), Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-		}}},
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.TokenPair{
+				TokenPair: &sandbox.TokenPairCredentials{
+					Id:     os.Getenv("MODAL_TOKEN_ID"),
+					Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+				},
+			},
+		},
 		Scope: &sandbox.Scope{
 			AppName: sandbox.Value(os.Getenv("MODAL_APP_NAME")), Environment: sandbox.Value(environment),
 		},
 		Timeout: sandbox.Duration(2 * time.Minute),
 	})
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	defer func() {
-		if err := client.Close(context.Background()); result == nil {
-			result = err
-		}
-	}()
-
+	defer client.Close(context.Background())
 	instance, err := client.Attach(context.Background(), os.Getenv("MODAL_SANDBOX_ID"))
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 	if err := instance.Close(context.Background()); err != nil {
-		return err
+		log.Fatal(err)
 	}
 	fmt.Printf("Modal handle closed locally: %s (remote sandbox unchanged)\n", instance.ID())
-	return nil
 }

@@ -84,7 +84,7 @@ func TestUnsupportedClientConfiguration(t *testing.T) {
 	provider, config := clientConfig()
 	config.Endpoint = sandbox.Value("https://example.invalid")
 	// Endpoint is rejected independently of authentication; supply explicit dummy credentials.
-	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "dummy", Secret: "dummy"}}}
+	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "dummy", Secret: "dummy"}}}
 	config.Scope = nil
 	client, err := sandbox.NewClient(provider, config)
 	if client != nil || err == nil || !strings.Contains(err.Error(), "Endpoint") {

@@ -10,7 +10,7 @@ import (
 
 func TestCommonInitializationMappings(t *testing.T) {
 	config := &sandbox.Config{
-		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: "api-key"}}},
+		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{Key: "api-key"}}},
 		Endpoint: sandbox.Value("https://example.invalid"),
 		Region:   sandbox.Value("region"),
 		Timeout:  sandbox.Duration(time.Second),
@@ -22,7 +22,7 @@ func TestCommonInitializationMappings(t *testing.T) {
 	if params.APIKey != "api-key" || params.APIUrl != "https://example.invalid" || params.Target != "region" || params.Timeout != nil {
 		t.Fatal("client settings were not mapped with correct timeout semantics")
 	}
-	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_BearerToken{BearerToken: &sandbox.BearerTokenCredentials{Token: "jwt"}}}
+	config.Auth = &sandbox.AuthConfig{Credentials: &sandbox.BearerToken{BearerToken: &sandbox.BearerTokenCredentials{Token: "jwt"}}}
 	config.Scope = &sandbox.Scope{OrganizationId: sandbox.Value("org")}
 	params, err = mapClientConfig(config)
 	if err != nil || params.JWTToken != "jwt" || params.OrganizationID != "org" {
@@ -31,7 +31,7 @@ func TestCommonInitializationMappings(t *testing.T) {
 }
 func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) {
 	for _, config := range []*sandbox.Config{
-		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id", Secret: "secret"}}}},
+		{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id", Secret: "secret"}}}},
 		{Scope: &sandbox.Scope{AppName: sandbox.Value("app")}},
 		{Scope: &sandbox.Scope{Environment: sandbox.Value("env")}},
 	} {
@@ -45,7 +45,7 @@ func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 	t.Setenv("DAYTONA_JWT_TOKEN", "")
 	t.Setenv("DAYTONA_API_KEY", "")
 	client, err := sandbox.NewClient(New(), &sandbox.Config{
-		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.AuthConfig_ApiKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test-only"}}},
+		Auth:     &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{Key: "test-only"}}},
 		Endpoint: sandbox.Value("https://example.invalid"),
 		Region:   sandbox.Value("region"),
 	})
