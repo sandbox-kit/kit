@@ -1,13 +1,3 @@
-cool commit all the changes and push 
-
-+ update the issue which is opened for made changes.
-
----
-
-can u look into once is there anything breaking ?
-
----
-
 the one u are telling about that its breaking its not. 
 
 We have made changes
