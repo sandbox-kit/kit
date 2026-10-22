@@ -1,0 +1,15 @@
+cool commit all the changes and push 
+
++ update the issue which is opened for made changes.
+
+---
+
+can u look into once is there anything breaking ?
+
+---
+
+the one u are telling about that its breaking its not. 
+
+We have made changes
+
+ig if u are reading docs or anything readme which tells that u must update it.
