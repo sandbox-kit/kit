@@ -17,11 +17,26 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("copy .env.example to .env and set credentials: %v", err)
 	}
+	client, err := sandbox.NewClient(clientConfig())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close(context.Background())
+	instance, err := client.Create(context.Background(), createOptions())
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Modal sandbox created: %s (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)\n", instance.ID())
+	info := instance.Info()
+	fmt.Printf("ID origin: %s; allocated resources reported: %t\n", info.Origins["id"], info.Resources != nil)
+}
+
+func clientConfig() (sandbox.Provider, *sandbox.Config) {
 	environment := os.Getenv("MODAL_ENVIRONMENT")
 	if environment == "" {
 		environment = "main"
 	}
-	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+	return modal.New(), &sandbox.Config{
 		Auth: &sandbox.AuthConfig{
 			Credentials: &sandbox.TokenPair{
 				TokenPair: &sandbox.TokenPairCredentials{
@@ -35,12 +50,11 @@ func main() {
 			Environment: sandbox.Value(environment),
 		},
 		Timeout: sandbox.Duration(2 * time.Minute),
-	})
-	if err != nil {
-		log.Fatal(err)
 	}
-	defer client.Close(context.Background())
-	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+}
+
+func createOptions() *sandbox.CreateOptions {
+	return &sandbox.CreateOptions{
 		Source: &sandbox.SandboxSource{
 			Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "alpine:3.21"}},
 		},
@@ -49,11 +63,5 @@ func main() {
 			MemoryMib: sandbox.Value(uint64(512)),
 		},
 		Lifetime: &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Duration(5 * time.Minute)},
-	})
-	if err != nil {
-		log.Fatal(err)
 	}
-	fmt.Printf("Modal sandbox created: %s (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)\n", instance.ID())
-	info := instance.Info()
-	fmt.Printf("ID origin: %s; allocated resources reported: %t\n", info.Origins["id"], info.Resources != nil)
 }
