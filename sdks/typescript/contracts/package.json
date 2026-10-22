@@ -1,6 +1,6 @@
 {
   "name": "@sandbox-kit/contracts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "internal protobuf wire types for sandbox kit",
   "keywords": [
     "sandbox-kit",
@@ -42,8 +42,9 @@
     }
   },
   "scripts": {
+    "clean": "rm -rf dist",
     "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "npm run clean && npm run build",
     "generate": "echo 'Use sandbox-kit generate contracts-typescript (buf generate) from the repo root' && exit 1"
   },
   "dependencies": {

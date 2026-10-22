@@ -2,12 +2,12 @@
 
 Workspace for the published TypeScript packages:
 
-| Package | Role |
-| --- | --- |
+| Package                  | Role                                             |
+| ------------------------ | ------------------------------------------------ |
 | `@sandbox-kit/contracts` | Internal wire types (dependency of sandbox only) |
-| `@sandbox-kit/sandbox` | Core client |
-| `@sandbox-kit/daytona` | Daytona provider |
-| `@sandbox-kit/modal` | Modal provider |
+| `@sandbox-kit/sandbox`   | Core client                                      |
+| `@sandbox-kit/daytona`   | Daytona provider                                 |
+| `@sandbox-kit/modal`     | Modal provider                                   |
 
 ## Local development
 
@@ -53,5 +53,6 @@ cd ../providers/daytona && npm pack --dry-run
 cd ../providers/modal && npm pack --dry-run
 ```
 
+`prepublishOnly` deletes `dist/` then rebuilds so stale outputs are not packed.
 Confirm each tarball includes `dist/`, `README.md`, and `LICENSE`, and that
 package dependencies use version numbers (not `file:`).
