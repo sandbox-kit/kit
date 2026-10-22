@@ -1,20 +1,5 @@
-also all the go-sdks packages
+cool commit and push 
 
-and typescript-sdks packages 
-contracts, sandbox, daytona and modal 
+and update the issue descriptoin which is open. 
 
-there readme should be based on how user should use. it shouldn't content internals about how sandbox-kit is being build internally. 
-
-as its show on npm page readme 
-
-think as u are user of this sandbox-kit sdk how u would like to read and get use to sdk. 
-
-write accordingly.
-
----
-
-so specific to MODAL providers. 
-
-it needs to create app. but for now in README don't mention anything about cretoin of app and also doesn't mentoin about 
-
-exising Modal app kit looks up. the app it doesn't create one. (revmoe this line too) .
++ update in issue which all packages needs to publish too.
