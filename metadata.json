@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5HYSNMRT9M3FB5XHVQTSJD1",
+  "strategy": "manual-commit",
+  "branch": "fix/provider-shared-validation-endpoint",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "docs/configuration.md",
+    "docs/providers.md",
+    "examples/go/daytona/create-daytona-sandbox/README.md",
+    "examples/typescript/daytona/create-daytona-sandbox/README.md",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/client_test.go",
+    "sdks/go/providers/daytona/sandbox.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/typescript/providers/daytona/src/config/provider_config.ts",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
+    "sdks/typescript/providers/modal/src/config/provider_config.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "specs/providers/daytona.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 97239,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1826176,
+    "output_tokens": 10457,
+    "api_call_count": 3
+  }
+}

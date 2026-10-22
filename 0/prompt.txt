@@ -1,0 +1,31 @@
+can u check the design pattern in both go and typescript whats different and whats not good ?
+
+---
+
+explian ach of them with example
+
+---
+
+for 1. we should not validate config / validate create options again in provider. 
+
+that would solve it right ? 
+
++ for endpoint we have to pass whats passed from sdk and not use env 
+
+we don't expect that behaviour but we should still validate the passed endpoint + if not passed default should be https://app.daytona.io/api
+
+---
+
+Go/TS Daytona client tests that assert DAYTONA_API_URL / DAYTONA_SERVER_URL fallback
+specs/providers/daytona.yaml (variables: [DAYTONA_API_URL, DAYTONA_SERVER_URL])
+Any docs that say Kit reads those env vars
+
+also fix this including the originial fix implement this 1.
+
+---
+
+whle this looks good does endpoint passed is being validated ?
+
+---
+
+this will need to push new version of which typescript package ?
