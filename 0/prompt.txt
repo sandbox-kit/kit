@@ -1,13 +1,3 @@
-cool commit and push to branch
-
----
-
-with this change can u just run all the examples test. u need to first install new dependency for all the examples then u need to run those. 
-
-make sure things are cool. + optoinally incase u ned to run generate command u should do.
-
----
-
-commit and push to main
+commit and push to this branch.
 
 also update the open issue description
