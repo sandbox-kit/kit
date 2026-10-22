@@ -45,3 +45,7 @@ rerun all the dependency install .
 ---
 
 + also this doesn't happen again should we add command in prepublishOnly or anywhere which rm dist ?
+
+---
+
+cool now commit and push to main
