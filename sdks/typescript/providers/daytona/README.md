@@ -29,6 +29,23 @@ console.log(sandbox.id);
 Auth may be omitted when the native Daytona SDK should resolve credentials from
 its environment. Closing the client releases local SDK resources only.
 
+## Configuration
+
+| Client setting   | Support                           |
+| ---------------- | --------------------------------- |
+| API key          | Supported                         |
+| Bearer/JWT token | Supported; organization required  |
+| Omitted auth     | Native SDK environment resolution |
+| Scope            | Organization ID                   |
+| Endpoint         | `endpoint` maps to API URL        |
+| Region           | `region` maps to target           |
+
+Organization and target may use SDK environment defaults when omitted. An omitted
+endpoint defaults to `https://app.daytona.io/api`. Explicit `endpoint` takes
+precedence. Kit does not read `DAYTONA_API_URL` or `DAYTONA_SERVER_URL`. Remote
+endpoints require HTTPS; HTTP is accepted for localhost or literal loopback IPs.
+See [common configuration](../../../../docs/configuration.md).
+
 ## Examples
 
 | Example    | Project                                                                                                        |
