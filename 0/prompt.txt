@@ -1,0 +1,7 @@
+cool can u create a branch commit, push to that branch and open a PR
+
+---
+
+can u check the go examples generate protobufs again install dependency in all go packages again
+
+and see if things are breaking including test
