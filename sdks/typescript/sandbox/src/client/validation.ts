@@ -64,20 +64,23 @@ type ConfigWire = StripProto<WireConfig>;
 /** Wire create options after materialize; package-private for Protovalidate. */
 type CreateOptionsWire = StripProto<ProtoCreateOptions>;
 
-function validationError(
-  provider: string,
-  operation: string,
-  field: string,
-  rule: string,
-  message: string,
-): never {
+/** Inputs for throwing a shared create/config validation failure. */
+interface ValidationErrorInput {
+  provider: string;
+  operation: string;
+  field: string;
+  rule: string;
+  message: string;
+}
+
+function validationError(input: ValidationErrorInput): never {
   throw sandboxError({
     kind: ErrorKind.InvalidArgument,
-    provider,
-    operation,
-    field,
-    rule,
-    message: "sandbox-kit: " + message,
+    provider: input.provider,
+    operation: input.operation,
+    field: input.field,
+    rule: input.rule,
+    message: "sandbox-kit: " + input.message,
   });
 }
 
@@ -114,35 +117,7 @@ export function validateCreateOptions(
     CreateOptionsSchema,
     message as MessageShape<typeof CreateOptionsSchema>,
   );
-  if (result.kind === "valid") {
-    return;
-  }
-  if (result.kind === "error") {
-    throw sandboxError(
-      {
-        kind: ErrorKind.InvalidArgument,
-        provider,
-        operation,
-        field: "",
-        message: "sandbox-kit: invalid configuration",
-      },
-      result.error,
-    );
-  }
-  const violation = result.violations[0]!;
-  const ruleID = violation.ruleId;
-  let field = pathToString(violation.field);
-  const rule = stableRuleIDs[ruleID] ?? ruleID;
-  if (!field) {
-    field = messageFieldHint(ruleID);
-  }
-  validationError(
-    provider,
-    operation,
-    field,
-    rule,
-    violation.message || "invalid configuration",
-  );
+  reportValidationResult(result, provider, operation);
 }
 
 function messageFieldHint(ruleID: string): string {
@@ -183,6 +158,27 @@ export function validateConfig(
     ConfigSchema,
     message as MessageShape<typeof ConfigSchema>,
   );
+  reportValidationResult(result, provider, operation);
+  if (
+    message.endpoint !== undefined &&
+    !validSecureEndpoint(message.endpoint)
+  ) {
+    validationError({
+      provider,
+      operation,
+      field: "endpoint",
+      rule: "secure_endpoint",
+      message: "must use HTTPS except for loopback HTTP development endpoints",
+    });
+  }
+}
+
+function reportValidationResult(
+  result: ReturnType<typeof contractValidator.validate>,
+  provider: string,
+  operation: string,
+): void {
+  if (result.kind === "valid") return;
   if (result.kind === "error") {
     throw sandboxError(
       {
@@ -195,34 +191,20 @@ export function validateConfig(
       result.error,
     );
   }
-  if (result.kind === "invalid") {
-    const violation = result.violations[0]!;
-    const ruleID = violation.ruleId;
-    let field = pathToString(violation.field);
-    const rule = stableRuleIDs[ruleID] ?? ruleID;
-    if (!field) {
-      field = messageFieldHint(ruleID);
-    }
-    validationError(
-      provider,
-      operation,
-      field,
-      rule,
-      violation.message || "invalid configuration",
-    );
+  const violation = result.violations[0]!;
+  const ruleID = violation.ruleId;
+  let field = pathToString(violation.field);
+  const rule = stableRuleIDs[ruleID] ?? ruleID;
+  if (!field) {
+    field = messageFieldHint(ruleID);
   }
-  if (
-    message.endpoint !== undefined &&
-    !validSecureEndpoint(message.endpoint)
-  ) {
-    validationError(
-      provider,
-      operation,
-      "endpoint",
-      "secure_endpoint",
-      "must use HTTPS except for loopback HTTP development endpoints",
-    );
-  }
+  validationError({
+    provider,
+    operation,
+    field,
+    rule,
+    message: violation.message || "invalid configuration",
+  });
 }
 
 /** Materializes a plain client config into the generated protobuf message. */

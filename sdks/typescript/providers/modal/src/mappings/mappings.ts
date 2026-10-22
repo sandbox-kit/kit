@@ -15,7 +15,6 @@ import {
   SandboxState,
   ValueOrigin,
   WaitCondition,
-  sandboxError,
   type Config,
   type CreateOptions,
   type SandboxInfo,
@@ -47,7 +46,7 @@ import {
   CreateFieldResourcesMemoryMib,
   CreateFieldSecurityPublicAccess,
   CreateFieldSecuritySecretsReference,
-  CreateFieldSourceImageReference
+  CreateFieldSourceImageReference,
 } from "@sandbox-kit/sandbox";
 import {
   mapCommonCreateFields as generatedMapCommonCreateFields,
@@ -59,6 +58,7 @@ import {
 import { validateProviderCreate } from "#checks/provider_checks.js";
 import { mapGeneratedClientConfig } from "#config/provider_config.js";
 import type { ProviderState } from "#config/provider_config.js";
+import { providerError } from "#errors.js";
 
 export interface ModalCreatePlan {
   readonly app: string;
@@ -90,7 +90,8 @@ export function mapCreateRequest(
   if (request.source?.image === undefined)
     unsupported(CreateFieldSource, "Modal requires an explicit image source");
   const params: SandboxCreateParams = generatedMapCommonCreateFields(request);
-  if (request.name !== undefined) params.name = nonblank(request.name, CreateFieldName);
+  if (request.name !== undefined)
+    params.name = nonblank(request.name, CreateFieldName);
   if (config.region !== undefined)
     params.regions = [nonblankConfig(config.region, "region")];
   mapRuntime(request, params);
@@ -150,7 +151,10 @@ function mapIsolation(r: CreateOptions, p: SandboxCreateParams): void {
   if (kind === IsolationKind.LinuxVm) p.runtime = "vm";
   else if (kind === IsolationKind.Container) p.runtime = "gvisor";
   else if (kind !== IsolationKind.Default)
-    unsupported(CreateFieldIsolationKind, "requested Modal isolation is unsupported");
+    unsupported(
+      CreateFieldIsolationKind,
+      "requested Modal isolation is unsupported",
+    );
   if (v.providerKind !== undefined || v.nestedVirtualization !== undefined)
     unsupported(
       CreateFieldIsolation,
@@ -167,7 +171,10 @@ function mapResources(r: CreateOptions, p: SandboxCreateParams): void {
   if (v.memoryLimitMib !== undefined)
     integer(v.memoryLimitMib, CreateFieldResourcesMemoryLimitMib, 1);
   if (v.diskMib !== undefined)
-    unsupported(CreateFieldResourcesDiskMib, "Modal disk override is unsupported");
+    unsupported(
+      CreateFieldResourcesDiskMib,
+      "Modal disk override is unsupported",
+    );
   Object.assign(p, generatedMapResources(v));
 }
 function mapPlacement(r: CreateOptions, p: SandboxCreateParams): void {
@@ -176,7 +183,10 @@ function mapPlacement(r: CreateOptions, p: SandboxCreateParams): void {
   if (v.cloud !== undefined) p.cloud = v.cloud;
   if (v.regions !== undefined) p.regions = [...v.regions];
   if (v.target !== undefined)
-    unsupported(CreateFieldPlacementTarget, "Modal placement target is unsupported");
+    unsupported(
+      CreateFieldPlacementTarget,
+      "Modal placement target is unsupported",
+    );
 }
 function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.network;
@@ -209,12 +219,17 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateParams): void {
     p.unencryptedPorts = [];
     for (const x of v.ports) {
       const port = x.port;
-      if (port === undefined) invalid(CreateFieldNetworkPortsPort, "port is required");
+      if (port === undefined)
+        invalid(CreateFieldNetworkPortsPort, "port is required");
       const transport = x.transport ?? PortTransport.Default;
       if (transport === PortTransport.Tls) p.encryptedPorts.push(port);
       else if (transport === PortTransport.Http2Tls) p.h2Ports.push(port);
       else if (transport === PortTransport.Plain) p.unencryptedPorts.push(port);
-      else invalid(CreateFieldNetworkPortsTransport, "explicit transport is required");
+      else
+        invalid(
+          CreateFieldNetworkPortsTransport,
+          "explicit transport is required",
+        );
     }
   }
   if (v.linkedSandbox !== undefined || v.outboundProxyUrl !== undefined)
@@ -260,11 +275,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.lifetime;
   if (!v) return;
   if (v.maximumLifetime !== undefined)
-    finiteDurationMs(
-      v.maximumLifetime,
-      "lifetime.maximumLifetime",
-      false,
-    );
+    finiteDurationMs(v.maximumLifetime, "lifetime.maximumLifetime", false);
   Object.assign(p, generatedMapLifetimeDuration(v));
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
@@ -318,8 +329,12 @@ function mapProvisioning(
     return { waitUntilReady: false };
   if (waitFor === WaitCondition.Ready) {
     if (v.timeout === undefined || v.timeout <= 0)
-      invalid(CreateFieldProvisioningTimeout, "ready wait requires a positive timeout");
-    if (!r.readiness) invalid(CreateFieldReadiness, "ready wait requires a probe");
+      invalid(
+        CreateFieldProvisioningTimeout,
+        "ready wait requires a positive timeout",
+      );
+    if (!r.readiness)
+      invalid(CreateFieldReadiness, "ready wait requires a probe");
     return { waitUntilReady: true, readyTimeoutMs: v.timeout };
   }
   unsupported(
@@ -393,29 +408,26 @@ function finiteDurationMs(v: number, f: string, zero: boolean): number {
   return v;
 }
 function invalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "modal",
     operation: "create",
     field,
-    message: "sandbox-kit modal: " + message,
+    message,
   });
 }
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "modal",
     operation: "create",
     field,
-    message: "sandbox-kit modal: " + message,
+    message,
   });
 }
 function configInvalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "modal",
     operation: "initialize",
     field,
-    message: "sandbox-kit modal: " + message,
+    message,
   });
 }

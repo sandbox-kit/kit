@@ -4,7 +4,6 @@
 import {
   ErrorKind,
   ValueOrigin,
-  sandboxError,
   type SandboxInfo,
   type Scope,
   CreateFieldResourcesMemoryLimitMib,
@@ -13,7 +12,7 @@ import {
   CreateFieldLifetimeIdleTerminateAfter,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldResourcesCpuCores,
-  CreateFieldResourcesCpuLimitCores
+  CreateFieldResourcesCpuLimitCores,
 } from "@sandbox-kit/sandbox";
 import type {
   CreateOptions,
@@ -26,6 +25,7 @@ import type {
   Sandbox as NativeSandbox,
   SandboxCreateParams as NativeSandboxCreateParams,
 } from "modal";
+import { providerError, type ProviderErrorInput } from "#errors.js";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 type PublicLifetime = NonNullable<CreateOptions["lifetime"]>;
@@ -120,12 +120,12 @@ export function mapResources(
     if (source.memoryMib !== undefined) {
       const value = source.memoryMib;
       if (value > 2147483647n)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldResourcesMemoryMib,
-          "memory_mib cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidArgument,
+          field: CreateFieldResourcesMemoryMib,
+          message: "memory_mib cannot be represented",
           operation,
-        );
+        });
       target.memoryMiB = Number(value);
     }
   }
@@ -133,12 +133,12 @@ export function mapResources(
     if (source.memoryLimitMib !== undefined) {
       const value = source.memoryLimitMib;
       if (value > 2147483647n)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldResourcesMemoryLimitMib,
-          "memory_limit_mib cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidArgument,
+          field: CreateFieldResourcesMemoryLimitMib,
+          message: "memory_limit_mib cannot be represented",
           operation,
-        );
+        });
       target.memoryLimitMiB = Number(value);
     }
   }
@@ -196,12 +196,13 @@ function scaledCpuCores(
     value !== scaled / 1000 ||
     scaled > 4_294_967_295
   ) {
-    mappingError(
-      ErrorKind.InvalidArgument,
+    mappingError({
+      kind: ErrorKind.InvalidArgument,
       field,
-      field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
+      message:
+        field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
       operation,
-    );
+    });
   }
   return value * 1000 < scaled ? scaled / 1000 : value;
 }
@@ -219,12 +220,13 @@ function durationSecondsMs(
     value % 1000 !== 0 ||
     value / 1000 > maximumSeconds
   ) {
-    mappingError(
-      ErrorKind.InvalidArgument,
+    mappingError({
+      kind: ErrorKind.InvalidArgument,
       field,
-      field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
+      message:
+        field.slice(field.lastIndexOf(".") + 1) + " cannot be represented",
       operation,
-    );
+    });
   }
   return value;
 }
@@ -275,17 +277,6 @@ export function mapOAuthAuth(
   return target;
 }
 
-function mappingError(
-  kind: ErrorKind,
-  field: string,
-  message: string,
-  operation: string,
-): never {
-  throw sandboxError({
-    kind,
-    provider: "modal",
-    operation,
-    field,
-    message: "sandbox-kit modal: " + message,
-  });
+function mappingError(input: ProviderErrorInput): never {
+  providerError(input);
 }

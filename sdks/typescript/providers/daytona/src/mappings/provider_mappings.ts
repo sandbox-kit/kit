@@ -5,7 +5,6 @@ import {
   ErrorKind,
   PolicyMode,
   ValueOrigin,
-  sandboxError,
   type SandboxInfo,
   type Scope,
   CreateFieldLifetimeIdlePause,
@@ -34,9 +33,20 @@ import type {
   Resources as NativeResources,
   Sandbox as NativeSandbox,
 } from "@daytona/sdk";
+import { providerError, type ProviderErrorInput } from "#errors.js";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 type PublicLifetime = NonNullable<CreateOptions["lifetime"]>;
+type PublicAction = NonNullable<PublicLifetime["idleStop"]>;
+
+/** Field-specific options for mapping one Daytona minute-based lifetime policy. */
+interface MinutePolicySpec {
+  field: string;
+  operation: string;
+  allowDisable: boolean;
+  forbidImmediate: boolean;
+  maxMinutes?: number;
+}
 
 export function mapLifetimePolicies(
   source: PublicLifetime | undefined,
@@ -44,173 +54,95 @@ export function mapLifetimePolicies(
 ): NativeCreateSandboxBaseParams {
   const target: Mutable<NativeCreateSandboxBaseParams> = {};
   if (source === undefined) return target;
-  if (source.idleStop !== undefined) {
-    const policy = source.idleStop;
-    const mode = policy.mode ?? PolicyMode.Default;
-    if (mode === PolicyMode.Disabled) {
-      target.autoStopInterval = 0;
-    } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeIdleStop,
-          "duration is required",
-          operation,
-        );
-      const afterMs = policy.after;
-      if (afterMs === 0)
-        mappingError(
-          ErrorKind.Unsupported,
-          CreateFieldLifetimeIdleStop,
-          "immediate action is not representable",
-          operation,
-        );
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeIdleStop,
-          "delay cannot be represented in whole minutes",
-          operation,
-        );
-      const minutes = afterMs / 60_000;
-      target.autoStopInterval = minutes;
-    } else if (mode !== PolicyMode.Default) {
-      mappingError(
-        ErrorKind.InvalidArgument,
-        CreateFieldLifetimeIdleStop,
-        "unknown policy mode",
-        operation,
-      );
-    }
-  }
-  if (source.idlePause !== undefined) {
-    const policy = source.idlePause;
-    const mode = policy.mode ?? PolicyMode.Default;
-    if (mode === PolicyMode.Disabled) {
-      target.autoPauseInterval = 0;
-    } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeIdlePause,
-          "duration is required",
-          operation,
-        );
-      const afterMs = policy.after;
-      if (afterMs === 0)
-        mappingError(
-          ErrorKind.Unsupported,
-          CreateFieldLifetimeIdlePause,
-          "immediate action is not representable",
-          operation,
-        );
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeIdlePause,
-          "delay cannot be represented in whole minutes",
-          operation,
-        );
-      const minutes = afterMs / 60_000;
-      target.autoPauseInterval = minutes;
-    } else if (mode !== PolicyMode.Default) {
-      mappingError(
-        ErrorKind.InvalidArgument,
-        CreateFieldLifetimeIdlePause,
-        "unknown policy mode",
-        operation,
-      );
-    }
-  }
-  if (source.stoppedArchive !== undefined) {
-    const policy = source.stoppedArchive;
-    const mode = policy.mode ?? PolicyMode.Default;
-    if (mode === PolicyMode.Disabled) {
-      mappingError(
-        ErrorKind.Unsupported,
-        CreateFieldLifetimeStoppedArchive,
-        "explicit disabling is not representable",
-        operation,
-      );
-    } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeStoppedArchive,
-          "duration is required",
-          operation,
-        );
-      const afterMs = policy.after;
-      if (afterMs === 0)
-        mappingError(
-          ErrorKind.Unsupported,
-          CreateFieldLifetimeStoppedArchive,
-          "immediate action is not representable",
-          operation,
-        );
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeStoppedArchive,
-          "delay cannot be represented in whole minutes",
-          operation,
-        );
-      const minutes = afterMs / 60_000;
-      if (minutes > 43200)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeStoppedArchive,
-          "delay exceeds documented maximum",
-          operation,
-        );
-      target.autoArchiveInterval = minutes;
-    } else if (mode !== PolicyMode.Default) {
-      mappingError(
-        ErrorKind.InvalidArgument,
-        CreateFieldLifetimeStoppedArchive,
-        "unknown policy mode",
-        operation,
-      );
-    }
-  }
-  if (source.stoppedDelete !== undefined) {
-    const policy = source.stoppedDelete;
-    const mode = policy.mode ?? PolicyMode.Default;
-    if (mode === PolicyMode.Disabled) {
-      mappingError(
-        ErrorKind.Unsupported,
-        CreateFieldLifetimeStoppedDelete,
-        "explicit disabling is not representable",
-        operation,
-      );
-    } else if (mode === PolicyMode.After) {
-      if (policy.after === undefined)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeStoppedDelete,
-          "duration is required",
-          operation,
-        );
-      const afterMs = policy.after;
-      if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldLifetimeStoppedDelete,
-          "delay cannot be represented in whole minutes",
-          operation,
-        );
-      const minutes = afterMs / 60_000;
-      target.autoDeleteInterval = minutes;
-    } else if (mode !== PolicyMode.Default) {
-      mappingError(
-        ErrorKind.InvalidArgument,
-        CreateFieldLifetimeStoppedDelete,
-        "unknown policy mode",
-        operation,
-      );
-    }
-  }
+  const idleStop = mapMinutePolicy(source.idleStop, {
+    field: CreateFieldLifetimeIdleStop,
+    operation,
+    allowDisable: true,
+    forbidImmediate: true,
+  });
+  if (idleStop !== undefined) target.autoStopInterval = idleStop;
+  const idlePause = mapMinutePolicy(source.idlePause, {
+    field: CreateFieldLifetimeIdlePause,
+    operation,
+    allowDisable: true,
+    forbidImmediate: true,
+  });
+  if (idlePause !== undefined) target.autoPauseInterval = idlePause;
+  const stoppedArchive = mapMinutePolicy(source.stoppedArchive, {
+    field: CreateFieldLifetimeStoppedArchive,
+    operation,
+    allowDisable: false,
+    forbidImmediate: true,
+    maxMinutes: 43200,
+  });
+  if (stoppedArchive !== undefined) target.autoArchiveInterval = stoppedArchive;
+  const stoppedDelete = mapMinutePolicy(source.stoppedDelete, {
+    field: CreateFieldLifetimeStoppedDelete,
+    operation,
+    allowDisable: false,
+    forbidImmediate: false,
+  });
+  if (stoppedDelete !== undefined) target.autoDeleteInterval = stoppedDelete;
   return target;
+}
+
+function mapMinutePolicy(
+  policy: PublicAction | undefined,
+  spec: MinutePolicySpec,
+): number | undefined {
+  if (policy === undefined) return undefined;
+  const mode = policy.mode ?? PolicyMode.Default;
+  if (mode === PolicyMode.Disabled) {
+    if (!spec.allowDisable)
+      mappingError({
+        kind: ErrorKind.Unsupported,
+        field: spec.field,
+        message: "explicit disabling is not representable",
+        operation: spec.operation,
+      });
+    return 0;
+  }
+  if (mode === PolicyMode.After) {
+    if (policy.after === undefined)
+      mappingError({
+        kind: ErrorKind.InvalidArgument,
+        field: spec.field,
+        message: "duration is required",
+        operation: spec.operation,
+      });
+    const afterMs = policy.after;
+    if (spec.forbidImmediate && afterMs === 0)
+      mappingError({
+        kind: ErrorKind.Unsupported,
+        field: spec.field,
+        message: "immediate action is not representable",
+        operation: spec.operation,
+      });
+    if (!Number.isFinite(afterMs) || afterMs < 0 || afterMs % 60_000 !== 0)
+      mappingError({
+        kind: ErrorKind.InvalidArgument,
+        field: spec.field,
+        message: "delay cannot be represented in whole minutes",
+        operation: spec.operation,
+      });
+    const minutes = afterMs / 60_000;
+    if (spec.maxMinutes !== undefined && minutes > spec.maxMinutes)
+      mappingError({
+        kind: ErrorKind.InvalidArgument,
+        field: spec.field,
+        message: "delay exceeds documented maximum",
+        operation: spec.operation,
+      });
+    return minutes;
+  }
+  if (mode !== PolicyMode.Default)
+    mappingError({
+      kind: ErrorKind.InvalidArgument,
+      field: spec.field,
+      message: "unknown policy mode",
+      operation: spec.operation,
+    });
+  return undefined;
 }
 
 export function mapCommonCreateFields(
@@ -250,12 +182,12 @@ export function mapResources(
     if (source.cpuCores !== undefined) {
       const value = source.cpuCores;
       if (!Number.isInteger(value) || value > 2147483647)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldResourcesCpuCores,
-          "cpu_cores cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidArgument,
+          field: CreateFieldResourcesCpuCores,
+          message: "cpu_cores cannot be represented",
           operation,
-        );
+        });
       target.cpu = Number(value);
     }
   }
@@ -263,12 +195,12 @@ export function mapResources(
     if (source.memoryMib !== undefined) {
       const value = source.memoryMib;
       if (value % 1024n !== 0n || value / 1024n > 2147483647n)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldResourcesMemoryMib,
-          "memory_mib cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidArgument,
+          field: CreateFieldResourcesMemoryMib,
+          message: "memory_mib cannot be represented",
           operation,
-        );
+        });
       target.memory = Number(value / 1024n);
     }
   }
@@ -276,12 +208,12 @@ export function mapResources(
     if (source.diskMib !== undefined) {
       const value = source.diskMib;
       if (value % 1024n !== 0n || value / 1024n > 2147483647n)
-        mappingError(
-          ErrorKind.InvalidArgument,
-          CreateFieldResourcesDiskMib,
-          "disk_mib cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidArgument,
+          field: CreateFieldResourcesDiskMib,
+          message: "disk_mib cannot be represented",
           operation,
-        );
+        });
       target.disk = Number(value / 1024n);
     }
   }
@@ -359,12 +291,12 @@ export function mapAllocatedResources(
     if (source.memory !== undefined) {
       const value = source.memory;
       if (!Number.isSafeInteger(value) || value < 0)
-        mappingError(
-          ErrorKind.InvalidResponse,
-          "memory",
-          "memory cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidResponse,
+          field: "memory",
+          message: "memory cannot be represented",
           operation,
-        );
+        });
       target.memoryMib = BigInt(value) * 1024n;
     }
   }
@@ -372,12 +304,12 @@ export function mapAllocatedResources(
     if (source.disk !== undefined) {
       const value = source.disk;
       if (!Number.isSafeInteger(value) || value < 0)
-        mappingError(
-          ErrorKind.InvalidResponse,
-          "disk",
-          "disk cannot be represented",
+        mappingError({
+          kind: ErrorKind.InvalidResponse,
+          field: "disk",
+          message: "disk cannot be represented",
           operation,
-        );
+        });
       target.diskMib = BigInt(value) * 1024n;
     }
   }
@@ -446,17 +378,6 @@ export function mapScope(
   return target;
 }
 
-function mappingError(
-  kind: ErrorKind,
-  field: string,
-  message: string,
-  operation: string,
-): never {
-  throw sandboxError({
-    kind,
-    provider: "daytona",
-    operation,
-    field,
-    message: "sandbox-kit daytona: " + message,
-  });
+function mappingError(input: ProviderErrorInput): never {
+  providerError(input);
 }

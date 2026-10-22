@@ -44,6 +44,14 @@ export const sandboxConstructorToken: unique symbol = Symbol(
   "sandbox-kit.Sandbox",
 );
 
+/** Internal construction inputs for {@link Sandbox}; only Client may call. */
+export interface SandboxInit {
+  backend: Backend;
+  owner: ClientLifecycle;
+  info: SandboxInfo;
+  timeout?: number;
+}
+
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #owner: ClientLifecycle;
@@ -51,19 +59,13 @@ export class Sandbox implements AsyncDisposable {
   #info: SandboxInfo;
   #closed = false;
   #tail: Promise<void> = Promise.resolve();
-  constructor(
-    token: typeof sandboxConstructorToken,
-    backend: Backend,
-    owner: ClientLifecycle,
-    info: SandboxInfo,
-    timeout?: number,
-  ) {
+  constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
     if (token !== sandboxConstructorToken)
       throw new TypeError("Sandbox handles are created by Client");
-    this.#backend = backend;
-    this.#owner = owner;
-    this.#info = clone(info);
-    this.#timeout = timeout;
+    this.#backend = init.backend;
+    this.#owner = init.owner;
+    this.#info = clone(init.info);
+    this.#timeout = init.timeout;
   }
   get id(): string {
     return this.#info.id;

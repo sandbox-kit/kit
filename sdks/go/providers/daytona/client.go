@@ -20,25 +20,25 @@ const defaultEndpoint = "https://app.daytona.io/api"
 // Shared Config validation runs in sandbox.NewClient; this maps only.
 // An omitted endpoint uses defaultEndpoint.
 func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
-	var params types.DaytonaConfig
 	if config == nil {
 		config = &sandboxv1.Config{}
 	}
-	if config.Endpoint != nil {
-		params.APIUrl = *config.Endpoint
-	} else {
-		params.APIUrl = defaultEndpoint
+	params, _, err := mapClientSettings(config)
+	if err != nil {
+		return params, err
 	}
-	if config.Region != nil {
-		params.Target = *config.Region
+	if config.Endpoint == nil {
+		params.APIUrl = defaultEndpoint
 	}
 	if config.Scope != nil {
 		if config.Scope.AppName != nil || config.Scope.Environment != nil || config.Scope.ProjectId != nil {
 			return params, unsupportedClientField("scope", "Daytona only supports organization_id scope")
 		}
-		if config.Scope.OrganizationId != nil {
-			params.OrganizationID = *config.Scope.OrganizationId
+		mapped, _, err := mapScope(config.Scope)
+		if err != nil {
+			return params, err
 		}
+		params.OrganizationID = mapped.OrganizationID
 	}
 	if auth := config.GetAuth(); auth != nil {
 		switch credentials := auth.Credentials.(type) {
@@ -46,12 +46,20 @@ func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
 			if credentials.ApiKey == nil || credentials.ApiKey.Key == "" {
 				return params, invalidClientField("auth.api_key", "api_key requires key")
 			}
-			params.APIKey = credentials.ApiKey.Key
+			mapped, _, err := mapAPIKeyCredentials(credentials.ApiKey)
+			if err != nil {
+				return params, err
+			}
+			params.APIKey = mapped.APIKey
 		case *sandbox.BearerToken:
 			if credentials.BearerToken == nil || credentials.BearerToken.Token == "" {
 				return params, invalidClientField("auth.bearer_token", "bearer_token requires token")
 			}
-			params.JWTToken = credentials.BearerToken.Token
+			mapped, _, err := mapBearerAuth(credentials.BearerToken)
+			if err != nil {
+				return params, err
+			}
+			params.JWTToken = mapped.JWTToken
 		default:
 			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
 		}

@@ -2,7 +2,10 @@
 // remain generated from protobuf. This module owns construction and create /
 // attach / get / close; validation, errors, and the Sandbox handle live beside it.
 
-import type { CreateOptions } from "#contracts/sandbox_data_contracts.js";
+import type {
+  CreateOptions,
+  SandboxInfo,
+} from "#contracts/sandbox_data_contracts.js";
 import { InfoFieldId } from "#contracts/field_paths.js";
 import { ConfigFieldProvider } from "#contracts/config_paths.js";
 import {
@@ -21,15 +24,8 @@ import {
   sandboxConstructorToken,
   type ClientLifecycle,
 } from "#client/sandbox.js";
-import type {
-  Backend,
-  ClientConfig,
-  OperationOptions,
-} from "#client/types.js";
-import {
-  validateConfig,
-  validateCreateOptions,
-} from "#client/validation.js";
+import type { Backend, ClientConfig, OperationOptions } from "#client/types.js";
+import { validateConfig, validateCreateOptions } from "#client/validation.js";
 
 export type {
   APIKeyCredentials,
@@ -47,16 +43,9 @@ export type {
   TerminateCallOptions,
   TokenPairCredentials,
 } from "#client/types.js";
-export {
-  ErrorKind,
-  SandboxError,
-  sandboxError,
-} from "#client/errors.js";
+export { ErrorKind, SandboxError, sandboxError } from "#client/errors.js";
 export { Sandbox } from "#client/sandbox.js";
-export {
-  validateConfig,
-  validateCreateOptions,
-} from "#client/validation.js";
+export { validateConfig, validateCreateOptions } from "#client/validation.js";
 
 export class Client implements AsyncDisposable {
   readonly #backend: Backend;
@@ -115,40 +104,24 @@ export class Client implements AsyncDisposable {
     return this.#providerName;
   }
   async attach(id: string, options: OperationOptions = {}): Promise<Sandbox> {
-    const release = this.#begin("attach");
-    let scoped: ReturnType<typeof operationSignal> | undefined;
-    try {
-      scoped = operationSignal(options, this.#timeout);
-      if (!id.trim())
-        throw sandboxError({
-          kind: ErrorKind.InvalidArgument,
-          provider: this.providerName,
-          operation: "attach",
-          field: InfoFieldId,
-          message: "sandbox-kit: sandbox ID must not be blank",
-        });
+    return this.#openById("attach", id, options, (fetchOptions) => {
       if (!this.#backend.attach) unsupported(this.providerName, "attach");
-      const info = await awaitWithSignal(
-        () =>
-          this.#backend.attach!(id, operationOptions(options, scoped?.signal)),
-        scoped.signal,
-      );
-      return new Sandbox(
-        sandboxConstructorToken,
-        this.#backend,
-        this.#lifecycle,
-        { ...info, id, provider: this.providerName },
-        this.#timeout,
-      );
-    } catch (error) {
-      throw withContext(error, this.providerName, "attach");
-    } finally {
-      scoped?.dispose();
-      release();
-    }
+      return this.#backend.attach(id, fetchOptions);
+    });
   }
   async get(id: string, options: OperationOptions = {}): Promise<Sandbox> {
-    const release = this.#begin("get");
+    return this.#openById("get", id, options, (fetchOptions) => {
+      if (!this.#backend.refresh) unsupported(this.providerName, "get");
+      return this.#backend.refresh(id, fetchOptions);
+    });
+  }
+  async #openById(
+    operation: "attach" | "get",
+    id: string,
+    options: OperationOptions,
+    fetch: (options: OperationOptions) => Promise<SandboxInfo>,
+  ): Promise<Sandbox> {
+    const release = this.#begin(operation);
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
       scoped = operationSignal(options, this.#timeout);
@@ -156,25 +129,22 @@ export class Client implements AsyncDisposable {
         throw sandboxError({
           kind: ErrorKind.InvalidArgument,
           provider: this.providerName,
-          operation: "get",
+          operation,
           field: InfoFieldId,
           message: "sandbox-kit: sandbox ID must not be blank",
         });
-      if (!this.#backend.refresh) unsupported(this.providerName, "get");
       const info = await awaitWithSignal(
-        () =>
-          this.#backend.refresh!(id, operationOptions(options, scoped?.signal)),
+        () => fetch(operationOptions(options, scoped?.signal)),
         scoped.signal,
       );
-      return new Sandbox(
-        sandboxConstructorToken,
-        this.#backend,
-        this.#lifecycle,
-        { ...info, id, provider: this.providerName },
-        this.#timeout,
-      );
+      return new Sandbox(sandboxConstructorToken, {
+        backend: this.#backend,
+        owner: this.#lifecycle,
+        info: { ...info, id, provider: this.providerName },
+        ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
+      });
     } catch (error) {
-      throw withContext(error, this.providerName, "get");
+      throw withContext(error, this.providerName, operation);
     } finally {
       scoped?.dispose();
       release();
@@ -237,13 +207,12 @@ export class Client implements AsyncDisposable {
           message:
             "sandbox-kit: response provider differs from selected provider",
         });
-      return new Sandbox(
-        sandboxConstructorToken,
-        this.#backend,
-        this.#lifecycle,
-        { ...result.sandbox, provider: this.providerName },
-        this.#timeout,
-      );
+      return new Sandbox(sandboxConstructorToken, {
+        backend: this.#backend,
+        owner: this.#lifecycle,
+        info: { ...result.sandbox, provider: this.providerName },
+        ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
+      });
     } catch (error) {
       throw withContext(error, this.providerName, "create");
     } finally {

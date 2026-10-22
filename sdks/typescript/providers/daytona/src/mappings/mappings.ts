@@ -8,7 +8,6 @@ import {
   SnapshotKind,
   ValueOrigin,
   WaitCondition,
-  sandboxError,
   type Config,
   type CreateOptions,
   type SandboxInfo,
@@ -55,6 +54,7 @@ import {
 } from "./provider_mappings.js";
 import { validateProviderCreate } from "#checks/provider_checks.js";
 import { mapGeneratedClientConfig } from "#config/provider_config.js";
+import { providerError } from "#errors.js";
 
 export type DaytonaCreateParams =
   | CreateSandboxFromImageParams
@@ -495,29 +495,26 @@ function nonblank(value: string, field: string): string {
   return value;
 }
 function invalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "daytona",
     operation: "create",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "daytona",
     operation: "create",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }
 function configInvalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "daytona",
     operation: "initialize",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }

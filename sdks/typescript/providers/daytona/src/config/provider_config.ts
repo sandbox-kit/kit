@@ -4,7 +4,6 @@
 import type { DaytonaConfig as NativeClientConfig } from "@daytona/sdk";
 import {
   ErrorKind,
-  sandboxError,
   type Config,
   ConfigFieldAuth,
   ConfigFieldScopeAppName,
@@ -17,6 +16,7 @@ import {
   mapClientSettings,
   mapScope,
 } from "#mappings/provider_mappings.js";
+import { providerError } from "#errors.js";
 
 const defaultEndpoint = "https://app.daytona.io/api";
 
@@ -59,11 +59,10 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
 }
 
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "daytona",
     operation: "initialize",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }

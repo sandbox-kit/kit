@@ -45,6 +45,10 @@
     "#config/*.js": {
       "@sandbox-kit/source": "./src/config/*.ts",
       "default": "./dist/config/*.js"
+    },
+    "#errors.js": {
+      "@sandbox-kit/source": "./src/errors.ts",
+      "default": "./dist/errors.js"
     }
   },
   "scripts": {

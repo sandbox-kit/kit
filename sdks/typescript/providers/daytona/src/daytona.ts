@@ -9,7 +9,7 @@ import {
   type OperationOptions,
   type Provider,
   type SandboxInfo,
-  metadataObjectAsMap
+  metadataObjectAsMap,
 } from "@sandbox-kit/sandbox";
 import type {
   Backend,
@@ -20,7 +20,7 @@ import type {
   DeleteOptions,
   PauseOptions,
   StartOptions,
-  StopOptions
+  StopOptions,
 } from "@sandbox-kit/sandbox";
 
 import {
@@ -28,7 +28,7 @@ import {
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapDaytonaError } from "./errors.js";
+import { mapDaytonaError } from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {

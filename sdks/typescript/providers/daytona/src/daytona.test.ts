@@ -27,7 +27,7 @@ import {
   mapCreateRequest,
   type DaytonaCreateParams,
 } from "#mappings/mappings.js";
-import { mapDaytonaError } from "./errors.js";
+import { mapDaytonaError } from "#errors.js";
 
 describe("Daytona mappings", () => {
   it("maps API-key client configuration without exposing the provider", () => {

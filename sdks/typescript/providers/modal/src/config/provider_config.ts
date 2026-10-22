@@ -4,7 +4,6 @@
 import type { ModalClientParams as NativeClientConfig } from "modal";
 import {
   ErrorKind,
-  sandboxError,
   type Config,
   type Scope,
   ConfigFieldAuth,
@@ -16,6 +15,7 @@ import {
   mapOAuthAuth,
   mapTokenPairCredentials,
 } from "#mappings/provider_mappings.js";
+import { providerError } from "#errors.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   const source = config;
@@ -67,11 +67,10 @@ export function captureProviderState(config: Config): ProviderState {
 }
 
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "modal",
     operation: "initialize",
     field,
-    message: "sandbox-kit modal: " + message,
+    message,
   });
 }

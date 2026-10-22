@@ -33,7 +33,7 @@ import {
   mapResources,
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
-import { mapModalError } from "./errors.js";
+import { mapModalError } from "#errors.js";
 
 describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
