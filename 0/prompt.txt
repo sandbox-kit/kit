@@ -1,0 +1,9 @@
+can u check the go examples generate protobufs again install dependency in all go packages again
+
+and see if things are breaking including test
+
+---
+
+earlier we had fixed examples of go to be lean and just have  just one main func  per example
+
+can u check all of them and see if that needs fix + test also might need to revisit for those example which are not changed.
