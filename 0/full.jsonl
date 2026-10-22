@@ -89,3 +89,6 @@
 {"type":"turn_ended","status":"success"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Thursday, Oct 22, 2026, 9:50 PM (UTC+5:30)</timestamp>\n<user_query>\ncan u commit now i have removed some of them\n\nas per my requirement. \n\n</user_query>"}]}}
 {"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git status && git diff && git log -3 --oneline","description":"Review keyword edits before commit"}}]}}
+{"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git add sdks/typescript/contracts/package.json sdks/typescript/sandbox/package.json sdks/typescript/providers/daytona/package.json sdks/typescript/providers/modal/package.json && git commit -m \"$(cat <<'EOF'\nAdd npm keywords to TypeScript package manifests.\n\nImprove registry discoverability for contracts, sandbox, and the Daytona and Modal providers.\nEOF\n)\" && git status -sb","description":"Commit npm keywords only"}}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Committed as `c90c7676` on `fix/provider-shared-validation-endpoint` (not pushed — branch is ahead by 1). Say if you want it pushed."}]}}
+{"type":"turn_ended","status":"success"}

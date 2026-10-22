@@ -1,13 +1,3 @@
-commit and push to this branch.
+can u commit now i have removed some of them
 
-also update the open issue description
-
----
-
-also I want to add keywords for npm 
-
-in package.json what should I add ?
-
----
-
-can u just add it don't commit and push rn i will need to check
+as per my requirement.
