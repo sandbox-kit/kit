@@ -1,0 +1,31 @@
+lets compare typescript and go sdks
+
+what can be avoided in golang + there would be things which are handwritten in golang which can be used frm protobufs we need to remove it.
+
+typescript is iun good place so u can check them for golang sdks behaviour. 
+
+ lemme know.
+
+---
+
+explian me each of them with simple example.
+
+---
+
+what needs an action ?
+
+---
+
+lets do 1 and see if things break or not.
+
+---
+
+cool done
+
+---
+
+typescript needs changes ?
+
+---
+
+explian

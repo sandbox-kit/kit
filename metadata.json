@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5H88KGQD0E6KZSW25NGQ1ZA",
+  "strategy": "manual-commit",
+  "branch": "chore/go-reject-unmapped-protobuf-tags",
+  "checkpoints_count": 7,
+  "files_touched": [
+    "docs/naming.md",
+    "sdks/go/sandbox/support.go",
+    "sdks/go/sandbox/support_test.go",
+    "sdks/go/sandbox/validation_fields.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 103760,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1078656,
+    "output_tokens": 4918,
+    "api_call_count": 3
+  }
+}
