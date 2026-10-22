@@ -43,8 +43,9 @@ These contracts live in the consuming `sandbox` package. SDK clients stay
 private; standard operations require no application mapping callbacks.
 
 In TypeScript, `Provider.initialize` and `Backend` methods take the same public
-`Config` / `CreateOptions` shapes applications use. The core `Client`
-materializes protobuf and runs shared validation before calling the backend.
+shapes applications use (`Config`, `CreateOptions`, and lifecycle options with
+millisecond timeouts). The core `Client` materializes protobuf and runs shared
+create/config validation before calling the backend.
 
 ## Generation boundary
 

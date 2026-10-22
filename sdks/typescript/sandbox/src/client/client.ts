@@ -7,7 +7,7 @@ import {
   type MessageShape,
 } from "@bufbuild/protobuf";
 import { pathToString } from "@bufbuild/protobuf/reflect";
-import { durationFromMs, type Duration } from "@bufbuild/protobuf/wkt";
+import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import { createValidator } from "@bufbuild/protovalidate";
 import {
   ConfigSchema,
@@ -520,7 +520,7 @@ export class Sandbox implements AsyncDisposable {
     return this.#update(
       "start",
       this.#backend.start,
-      wireTimeoutOptions(options),
+      publicTimeoutOptions(options),
       options,
     );
   }
@@ -530,7 +530,7 @@ export class Sandbox implements AsyncDisposable {
       "stop",
       this.#backend.stop,
       {
-        ...wireTimeoutOptions(call),
+        ...publicTimeoutOptions(call),
         ...(force === undefined ? {} : { force }),
       },
       call,
@@ -540,14 +540,14 @@ export class Sandbox implements AsyncDisposable {
     return this.#update(
       "pause",
       this.#backend.pause,
-      wireTimeoutOptions(options),
+      publicTimeoutOptions(options),
       options,
     );
   }
   async terminate(options: TerminateCallOptions = {}): Promise<ExitResult> {
     const { wait, ...call } = options;
-    const wire: TerminateOptions = {
-      ...wireTimeoutOptions(call),
+    const request: TerminateOptions = {
+      ...publicTimeoutOptions(call),
       ...(wait === undefined ? {} : { wait }),
     };
     return this.#serialized(
@@ -562,7 +562,7 @@ export class Sandbox implements AsyncDisposable {
             method.call(
               this.#backend,
               this.id,
-              clone(wire),
+              clone(request),
               operationOptions(call, signal),
             ),
           signal,
@@ -580,7 +580,7 @@ export class Sandbox implements AsyncDisposable {
     return this.#update(
       "archive",
       this.#backend.archive,
-      wireTimeoutOptions(options),
+      publicTimeoutOptions(options),
       options,
     );
   }
@@ -589,7 +589,10 @@ export class Sandbox implements AsyncDisposable {
     return this.#update(
       "delete",
       this.#backend.delete,
-      { ...wireTimeoutOptions(call), ...(wait === undefined ? {} : { wait }) },
+      {
+        ...publicTimeoutOptions(call),
+        ...(wait === undefined ? {} : { wait }),
+      },
       call,
     );
   }
@@ -627,7 +630,7 @@ export class Sandbox implements AsyncDisposable {
           options: OperationOptions,
         ) => Promise<SandboxInfo>)
       | undefined,
-    wire:
+    request:
       | StartOptions
       | StopOptions
       | PauseOptions
@@ -646,7 +649,7 @@ export class Sandbox implements AsyncDisposable {
             method.call(
               this.#backend,
               this.id,
-              clone(wire),
+              clone(request),
               operationOptions(options, signal),
             ),
           signal,
@@ -967,10 +970,11 @@ function materializeClientConfig(input: Config): ConfigWire {
   } as MessageInitShape<typeof ConfigSchema>) as ConfigWire;
 }
 
-function wireTimeoutOptions(options: OperationOptions): { timeout?: Duration } {
-  return options.timeout === undefined
-    ? {}
-    : { timeout: durationFromMs(options.timeout) };
+/** Lifecycle request timeouts stay milliseconds for Backend / providers. */
+function publicTimeoutOptions(options: OperationOptions): {
+  timeout?: number;
+} {
+  return options.timeout === undefined ? {} : { timeout: options.timeout };
 }
 
 /** Materializes plain create options into the generated protobuf message. */

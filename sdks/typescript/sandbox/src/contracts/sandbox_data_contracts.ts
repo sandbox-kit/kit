@@ -68,13 +68,18 @@ export type ObservabilityConfig = StripProto<ProtoObservabilityConfig>;
 export type SandboxInfo = StripProto<ProtoSandboxInfo>;
 export type CreateResult = StripProto<ProtoCreateResult>;
 
-/** Wire lifecycle options (Duration timeouts) for providers / Backend. */
-export type StartOptions = StripProto<ProtoStartOptions>;
-export type StopOptions = StripProto<ProtoStopOptions>;
-export type PauseOptions = StripProto<ProtoPauseOptions>;
-export type TerminateOptions = StripProto<ProtoTerminateOptions>;
-export type ArchiveOptions = StripProto<ProtoArchiveOptions>;
-export type DeleteOptions = StripProto<ProtoDeleteOptions>;
+/**
+ * Public lifecycle options for `Backend` and provider adapters (ms timeouts).
+ * Same duration remapping as {@link CreateOptions}; wire `Duration` stays private.
+ */
+export type StartOptions = DurationFieldsToMs<StripProto<ProtoStartOptions>>;
+export type StopOptions = DurationFieldsToMs<StripProto<ProtoStopOptions>>;
+export type PauseOptions = DurationFieldsToMs<StripProto<ProtoPauseOptions>>;
+export type TerminateOptions = DurationFieldsToMs<
+  StripProto<ProtoTerminateOptions>
+>;
+export type ArchiveOptions = DurationFieldsToMs<StripProto<ProtoArchiveOptions>>;
+export type DeleteOptions = DurationFieldsToMs<StripProto<ProtoDeleteOptions>>;
 export type ExitResult = StripProto<ProtoExitResult>;
 export type MetadataValue = StripProto<ProtoMetadataValue>;
 export type MetadataList = StripProto<ProtoMetadataList>;
