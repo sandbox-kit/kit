@@ -72,8 +72,8 @@ releases local SDK resources only.
 | Region           | `Config.Region` maps to target    |
 
 Organization and target may use SDK environment defaults when omitted. An omitted
-endpoint resolves from `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then
-`https://app.daytona.io/api`. Explicit `Config.Endpoint` takes precedence.
+endpoint defaults to `https://app.daytona.io/api`. Explicit `Config.Endpoint`
+takes precedence. Kit does not read `DAYTONA_API_URL` or `DAYTONA_SERVER_URL`.
 Remote endpoints require HTTPS; HTTP is accepted for localhost or literal loopback
 IPs. See [common configuration](../../../../docs/configuration.md).
 

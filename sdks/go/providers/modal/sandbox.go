@@ -161,9 +161,6 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 	if err := validateProviderCreate(request); err != nil {
 		return plan, err
 	}
-	if err := sandbox.ValidateCreateOptions(request); err != nil {
-		return plan, err
-	}
 	params, rest, err := mapCommonCreateFields(request)
 	if err != nil {
 		return plan, err

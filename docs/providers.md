@@ -26,9 +26,9 @@ client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
 })
 ```
 
-The selected provider validates and maps configuration, constructs its official
-SDK, and returns a private backend. The public client owns that backend and its
-SDK cleanup.
+The public client runs shared config validation, then the selected provider maps
+configuration, constructs its official SDK, and returns a private backend. The
+public client owns that backend and its SDK cleanup.
 
 | Contract                        | Responsibility                                                       |
 | ------------------------------- | -------------------------------------------------------------------- |

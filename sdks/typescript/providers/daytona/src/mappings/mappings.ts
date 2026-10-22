@@ -54,20 +54,14 @@ import {
   mapSandboxInfo as generatedMapSandboxInfo,
 } from "./provider_mappings.js";
 import { validateProviderCreate } from "#checks/provider_checks.js";
-import {
-  mapGeneratedClientConfig,
-  type Environment,
-} from "#config/provider_config.js";
+import { mapGeneratedClientConfig } from "#config/provider_config.js";
 
 export type DaytonaCreateParams =
   | CreateSandboxFromImageParams
   | CreateSandboxFromSnapshotParams;
 
-export function mapClientConfig(
-  config: Config,
-  environment?: Environment,
-): DaytonaConfig {
-  const result = mapGeneratedClientConfig(config, environment);
+export function mapClientConfig(config: Config): DaytonaConfig {
+  const result = mapGeneratedClientConfig(config);
   if (
     config.auth?.bearerToken !== undefined &&
     config.scope?.organizationId === undefined
