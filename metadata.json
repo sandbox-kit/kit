@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5J5BRWVN6N308FCR88RY1CT",
+  "strategy": "manual-commit",
+  "branch": "fix/provider-shared-validation-endpoint",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "sdks/go/contracts/README.md",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/modal/README.md",
+    "sdks/go/sandbox/README.md",
+    "sdks/typescript/contracts/README.md",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/sandbox/README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 95307,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 818432,
+    "output_tokens": 11904,
+    "api_call_count": 2
+  }
+}
