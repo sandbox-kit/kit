@@ -27,9 +27,11 @@ func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
 		if config.Scope.OrganizationId != nil || config.Scope.ProjectId != nil {
 			return params, unsupportedClientField("scope", "Modal only supports app_name and environment scope")
 		}
-		if config.Scope.Environment != nil {
-			params.Environment = *config.Scope.Environment
+		mapped, _, err := mapClientScope(config.Scope)
+		if err != nil {
+			return params, err
 		}
+		params.Environment = mapped.Environment
 	}
 	if auth := config.GetAuth(); auth != nil {
 		switch credentials := auth.Credentials.(type) {
@@ -37,8 +39,12 @@ func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
 			if credentials.TokenPair == nil || credentials.TokenPair.Id == "" || credentials.TokenPair.Secret == "" {
 				return params, invalidClientField("auth.token_pair", "token_pair requires id and secret")
 			}
-			params.TokenID = credentials.TokenPair.Id
-			params.TokenSecret = credentials.TokenPair.Secret
+			mapped, _, err := mapTokenPairCredentials(credentials.TokenPair)
+			if err != nil {
+				return params, err
+			}
+			params.TokenID = mapped.TokenID
+			params.TokenSecret = mapped.TokenSecret
 		case *sandbox.OAuthRefresh:
 			if credentials.OauthRefresh == nil || credentials.OauthRefresh.RefreshToken == "" || credentials.OauthRefresh.ClientId == "" {
 				return params, invalidClientField("auth.oauth_refresh", "oauth_refresh requires refresh_token and client_id")
@@ -46,7 +52,11 @@ func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
 			if credentials.OauthRefresh.ClientSecret != nil && credentials.OauthRefresh.JwtKey != nil {
 				return params, invalidClientField("auth.oauth_refresh", "oauth_refresh accepts only one of client_secret or jwt_key")
 			}
-			params.OAuthCredentials = &_go.OAuthCredentialsParams{RefreshToken: credentials.OauthRefresh.RefreshToken, ClientID: credentials.OauthRefresh.ClientId, ClientSecret: credentials.OauthRefresh.GetClientSecret(), JWTKey: credentials.OauthRefresh.GetJwtKey()}
+			mapped, _, err := mapOAuthAuth(credentials.OauthRefresh)
+			if err != nil {
+				return params, err
+			}
+			params.OAuthCredentials = &mapped
 		default:
 			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit modal: unsupported authentication mode"}, nil)
 		}

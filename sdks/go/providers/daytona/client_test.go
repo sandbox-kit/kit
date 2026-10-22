@@ -60,31 +60,25 @@ func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 	}
 }
 
-func TestEndpointEnvironmentResolutionAndValidation(t *testing.T) {
+func TestEndpointPassThroughAndDefault(t *testing.T) {
 	for _, tc := range []struct {
-		name, api, server string
-		explicit          *string
-		want              string
-		valid             bool
+		name     string
+		explicit *string
+		want     string
 	}{
-		{name: "default", want: "https://app.daytona.io/api", valid: true},
-		{name: "API URL", api: "https://api.example.test", want: "https://api.example.test", valid: true},
-		{name: "server fallback", server: "https://server.example.test", want: "https://server.example.test", valid: true},
-		{name: "API precedence", api: "https://api.example.test", server: "http://bad.example.test", want: "https://api.example.test", valid: true},
-		{name: "insecure API", api: "http://bad.example.test"},
-		{name: "insecure server", server: "http://bad.example.test"},
-		{name: "explicit precedence", api: "http://bad.example.test", explicit: sandbox.Value("https://explicit.example.test"), want: "https://explicit.example.test", valid: true},
-		{name: "local testing", api: "http://127.0.0.1:1234", want: "http://127.0.0.1:1234", valid: true},
+		{name: "default", want: "https://app.daytona.io/api"},
+		{name: "explicit", explicit: sandbox.Value("https://explicit.example.test"), want: "https://explicit.example.test"},
+		{name: "loopback", explicit: sandbox.Value("http://127.0.0.1:1234"), want: "http://127.0.0.1:1234"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			t.Setenv("DAYTONA_API_URL", tc.api)
-			t.Setenv("DAYTONA_SERVER_URL", tc.server)
+			t.Setenv("DAYTONA_API_URL", "https://should-not-use.example/api")
+			t.Setenv("DAYTONA_SERVER_URL", "https://should-not-use-either.example/api")
 			config := &sandbox.Config{Endpoint: tc.explicit}
 			params, err := mapClientConfig(config)
-			if (err == nil) != tc.valid {
-				t.Fatalf("valid=%v error=%v", tc.valid, err)
+			if err != nil {
+				t.Fatal(err)
 			}
-			if tc.valid && params.APIUrl != tc.want {
+			if params.APIUrl != tc.want {
 				t.Fatalf("got %q want %q", params.APIUrl, tc.want)
 			}
 			if config.Endpoint != tc.explicit {

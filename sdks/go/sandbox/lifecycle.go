@@ -32,95 +32,72 @@ func staticLifecycleCapabilities(operations Backend) []LifecycleCapability {
 	}
 	return values
 }
-func (s *Sandbox) Refresh(ctx context.Context) error {
-	var timeout *time.Duration
-	operationContext, cancel, err := s.operationContext(ctx, "refresh", timeout)
+
+func (s *Sandbox) runInfoOp(ctx context.Context, operation string, timeout *time.Duration, invoke func(context.Context) (*SandboxInfo, error)) error {
+	operationContext, cancel, err := s.operationContext(ctx, operation, timeout)
 	if err != nil {
 		return err
 	}
 	defer cancel()
-	capability, ok := s.operations.(SandboxRefresher)
-	if !ok {
-		return s.unsupported("refresh")
-	}
-	info, err := capability.RefreshSandbox(operationContext, s.ID())
+	info, err := invoke(operationContext)
 	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "refresh")
+		return WithErrorContext(err, s.ProviderName(), operation)
 	}
-	if err := s.replaceInfo("refresh", info); err != nil {
-		return err
-	}
-	return nil
+	return s.replaceInfo(operation, info)
 }
+
+func (s *Sandbox) Refresh(ctx context.Context) error {
+	return s.runInfoOp(ctx, "refresh", nil, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxRefresher)
+		if !ok {
+			return nil, s.unsupported("refresh")
+		}
+		return capability.RefreshSandbox(operationContext, s.ID())
+	})
+}
+
 func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 	var timeout *time.Duration
 	if options != nil {
 		timeout = OptionalDuration(options.Timeout)
 	}
-	operationContext, cancel, err := s.operationContext(ctx, "start", timeout)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	capability, ok := s.operations.(SandboxStarter)
-	if !ok {
-		return s.unsupported("start")
-	}
-	info, err := capability.StartSandbox(operationContext, s.ID(), options)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "start")
-	}
-	if err := s.replaceInfo("start", info); err != nil {
-		return err
-	}
-	return nil
+	return s.runInfoOp(ctx, "start", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxStarter)
+		if !ok {
+			return nil, s.unsupported("start")
+		}
+		return capability.StartSandbox(operationContext, s.ID(), options)
+	})
 }
+
 func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 	var timeout *time.Duration
 	if options != nil {
 		timeout = OptionalDuration(options.Timeout)
 	}
-	operationContext, cancel, err := s.operationContext(ctx, "stop", timeout)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	capability, ok := s.operations.(SandboxStopper)
-	if !ok {
-		return s.unsupported("stop")
-	}
-	info, err := capability.StopSandbox(operationContext, s.ID(), options)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "stop")
-	}
-	if err := s.replaceInfo("stop", info); err != nil {
-		return err
-	}
-	return nil
+	return s.runInfoOp(ctx, "stop", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxStopper)
+		if !ok {
+			return nil, s.unsupported("stop")
+		}
+		return capability.StopSandbox(operationContext, s.ID(), options)
+	})
 }
+
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 	var timeout *time.Duration
 	if options != nil {
 		timeout = OptionalDuration(options.Timeout)
 	}
-	operationContext, cancel, err := s.operationContext(ctx, "pause", timeout)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	capability, ok := s.operations.(SandboxPauser)
-	if !ok {
-		return s.unsupported("pause")
-	}
-	info, err := capability.PauseSandbox(operationContext, s.ID(), options)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "pause")
-	}
-	if err := s.replaceInfo("pause", info); err != nil {
-		return err
-	}
-	return nil
+	return s.runInfoOp(ctx, "pause", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxPauser)
+		if !ok {
+			return nil, s.unsupported("pause")
+		}
+		return capability.PauseSandbox(operationContext, s.ID(), options)
+	})
 }
+
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
 	var timeout *time.Duration
 	if options != nil {
@@ -142,53 +119,39 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	s.markTerminal(SandboxStateTerminated, "terminated")
 	return outcome, nil
 }
+
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	var timeout *time.Duration
 	if options != nil {
 		timeout = OptionalDuration(options.Timeout)
 	}
-	operationContext, cancel, err := s.operationContext(ctx, "archive", timeout)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	capability, ok := s.operations.(SandboxArchiver)
-	if !ok {
-		return s.unsupported("archive")
-	}
-	info, err := capability.ArchiveSandbox(operationContext, s.ID(), options)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "archive")
-	}
-	if err := s.replaceInfo("archive", info); err != nil {
-		return err
-	}
-	return nil
+	return s.runInfoOp(ctx, "archive", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxArchiver)
+		if !ok {
+			return nil, s.unsupported("archive")
+		}
+		return capability.ArchiveSandbox(operationContext, s.ID(), options)
+	})
 }
+
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	var timeout *time.Duration
 	if options != nil {
 		timeout = OptionalDuration(options.Timeout)
 	}
-	operationContext, cancel, err := s.operationContext(ctx, "delete", timeout)
-	if err != nil {
-		return err
-	}
-	defer cancel()
-	capability, ok := s.operations.(SandboxDeleter)
-	if !ok {
-		return s.unsupported("delete")
-	}
-	info, err := capability.DeleteSandbox(operationContext, s.ID(), options)
-	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "delete")
-	}
-	if err := s.replaceInfo("delete", info); err != nil {
+	if err := s.runInfoOp(ctx, "delete", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
+		capability, ok := s.operations.(SandboxDeleter)
+		if !ok {
+			return nil, s.unsupported("delete")
+		}
+		return capability.DeleteSandbox(operationContext, s.ID(), options)
+	}); err != nil {
 		return err
 	}
 	s.markTerminal(SandboxStateDeleted, "deleted")
 	return nil
 }
+
 func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "get", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxRefresher)
@@ -198,6 +161,7 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 		return capability.RefreshSandbox(operationContext, id)
 	})
 }
+
 func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "attach", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxAttacher)

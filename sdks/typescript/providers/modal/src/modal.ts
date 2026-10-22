@@ -7,7 +7,7 @@ import {
   LifecycleCapability,
   type OperationOptions,
   type Provider,
-  type SandboxInfo
+  type SandboxInfo,
 } from "@sandbox-kit/sandbox";
 import type {
   Backend,
@@ -15,16 +15,19 @@ import type {
   CreateOptions,
   CreateResult,
   ExitResult,
-  TerminateOptions
+  TerminateOptions,
 } from "@sandbox-kit/sandbox";
 import {
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapModalError } from "./errors.js";
+import { mapModalError } from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
-import { captureProviderState, type ProviderState } from "#config/provider_config.js";
+import {
+  captureProviderState,
+  type ProviderState,
+} from "#config/provider_config.js";
 
 interface NativeModal {
   readonly apps: Pick<ModalClient["apps"], "fromName">;

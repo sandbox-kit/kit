@@ -65,10 +65,11 @@ scope from its environment when using bearer auth.
 
 Remote endpoints require HTTPS. HTTP is accepted only for `localhost` or a
 literal loopback IP, to support local development and mock-server tests. URL
-user information and fragments are rejected. Daytona resolves an omitted endpoint
-from `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then its pinned SDK default
-`https://app.daytona.io/api`; the resolved value is validated before SDK construction.
-Explicit endpoints take precedence. Remote self-hosted endpoints need HTTPS.
+user information and fragments are rejected. Shared config validation runs in
+the Kit client before provider initialization. Daytona uses `Config.Endpoint`
+when set; otherwise it defaults to `https://app.daytona.io/api`. Kit does not
+read Daytona endpoint environment variables. Remote self-hosted endpoints need
+HTTPS.
 
 Initialization does not prove remote credentials are valid. The provider enforces
 account permissions and resource availability when it processes requests.

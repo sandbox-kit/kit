@@ -3,14 +3,13 @@ import {
   type DaytonaConfig,
   type Sandbox as DaytonaSandbox,
 } from "@daytona/sdk";
-import { durationMs } from "@bufbuild/protobuf/wkt";
 import {
   IsolationKind,
   LifecycleCapability,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
-  metadataObjectAsMap
+  metadataObjectAsMap,
 } from "@sandbox-kit/sandbox";
 import type {
   Backend,
@@ -21,16 +20,15 @@ import type {
   DeleteOptions,
   PauseOptions,
   StartOptions,
-  StopOptions
+  StopOptions,
 } from "@sandbox-kit/sandbox";
-import type { Duration } from "@bufbuild/protobuf/wkt";
 
 import {
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapDaytonaError } from "./errors.js";
+import { mapDaytonaError } from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
@@ -74,8 +72,7 @@ class DaytonaBackend extends BackendBase implements Backend {
     try {
       options.signal?.throwIfAborted();
       const params = mapCreateRequest(request);
-      const timeout =
-        options.timeout === undefined ? undefined : options.timeout / 1_000;
+      const timeout = secondsFromMs(options.timeout);
       const sandbox = await this.native.create(
         params,
         timeout === undefined ? undefined : { timeout },
@@ -117,17 +114,17 @@ class DaytonaBackend extends BackendBase implements Backend {
   }
   async start(id: string, request: StartOptions): Promise<SandboxInfo> {
     return this.withSandbox(id, "start", (value) =>
-      value.start(seconds(request.timeout)),
+      value.start(secondsFromMs(request.timeout)),
     );
   }
   async stop(id: string, request: StopOptions): Promise<SandboxInfo> {
     return this.withSandbox(id, "stop", (value) =>
-      value.stop(seconds(request.timeout), request.force),
+      value.stop(secondsFromMs(request.timeout), request.force),
     );
   }
   async pause(id: string, request: PauseOptions): Promise<SandboxInfo> {
     return this.withSandbox(id, "pause", (value) =>
-      value.pause(seconds(request.timeout)),
+      value.pause(secondsFromMs(request.timeout)),
     );
   }
   async archive(id: string, _request: ArchiveOptions): Promise<SandboxInfo> {
@@ -135,7 +132,7 @@ class DaytonaBackend extends BackendBase implements Backend {
   }
   async delete(id: string, request: DeleteOptions): Promise<SandboxInfo> {
     return this.withSandbox(id, "delete", (value) =>
-      value.delete(seconds(request.timeout), request.wait),
+      value.delete(secondsFromMs(request.timeout), request.wait),
     );
   }
   async closeSandbox(_id: string): Promise<void> {}
@@ -163,8 +160,9 @@ class DaytonaBackend extends BackendBase implements Backend {
   }
 }
 
-function seconds(value: Duration | undefined): number | undefined {
-  return value === undefined ? undefined : durationMs(value) / 1_000;
+/** Native Daytona lifecycle APIs take whole seconds; Kit timeouts are ms. */
+function secondsFromMs(value: number | undefined): number | undefined {
+  return value === undefined ? undefined : value / 1_000;
 }
 
 /** Selects Daytona as the provider for the shared Sandbox Kit client. */

@@ -9,6 +9,7 @@ package modal
 
 import (
 	context "context"
+
 	_go "github.com/modal-labs/modal-client/go"
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
@@ -120,8 +121,12 @@ func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*
 }
 
 // Close releases the native SDK client. It does not stop or delete the cloud
-// sandbox.
+// sandbox. The Modal SDK Close call does not return an error; context
+// cancellation is honored before release.
 func (a *backend) Close(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return mapProviderError(err, "close")
+	}
 	a.client.Close()
 	return nil
 }

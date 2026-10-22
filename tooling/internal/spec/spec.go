@@ -152,10 +152,18 @@ type ClientMapping struct {
 	Retained    []string            `yaml:"retained"`
 	Rejected    map[string]string   `yaml:"rejected"`
 	Settings    string              `yaml:"settings"`
+	Defaults    []ClientDefault     `yaml:"defaults"`
 	Environment []ClientEnvironment `yaml:"environment"`
 	Scope       *ClientComponent    `yaml:"scope"`
 	Auth        []ClientComponent   `yaml:"auth"`
 }
+
+// ClientDefault documents a portable config field default applied when omitted.
+type ClientDefault struct {
+	Field string `yaml:"field"`
+	Value string `yaml:"value"`
+}
+
 type ClientEnvironment struct {
 	Field     string   `yaml:"field"`
 	Variables []string `yaml:"variables"`

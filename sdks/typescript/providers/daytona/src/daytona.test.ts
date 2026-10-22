@@ -16,7 +16,7 @@ import {
   CreateFieldNetworkOutboundCidrsEntries,
   CreateFieldProvisioningWaitFor,
   ConfigFieldEndpoint,
-  ConfigFieldScopeProjectId
+  ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { describe, expect, it } from "vitest";
@@ -27,7 +27,7 @@ import {
   mapCreateRequest,
   type DaytonaCreateParams,
 } from "#mappings/mappings.js";
-import { mapDaytonaError } from "./errors.js";
+import { mapDaytonaError } from "#errors.js";
 
 describe("Daytona mappings", () => {
   it("maps API-key client configuration without exposing the provider", () => {
@@ -44,42 +44,41 @@ describe("Daytona mappings", () => {
     });
   });
 
-  it("resolves generated endpoint environment precedence", () => {
-    expect(
-      mapClientConfig(
-        {},
-        {
-          DAYTONA_API_URL: "https://primary.example/api",
-          DAYTONA_SERVER_URL: "https://fallback.example/api",
-        },
-      ),
-    ).toMatchObject({ apiUrl: "https://primary.example/api" });
-    expect(
-      mapClientConfig(
-        {},
-        { DAYTONA_SERVER_URL: "https://fallback.example/api" },
-      ),
-    ).toMatchObject({
-      apiUrl: "https://fallback.example/api",
+  it("uses Config.endpoint or the pinned Daytona default", () => {
+    expect(mapClientConfig({})).toMatchObject({
+      apiUrl: "https://app.daytona.io/api",
     });
+    expect(
+      mapClientConfig({ endpoint: "https://explicit.example/api" }),
+    ).toMatchObject({ apiUrl: "https://explicit.example/api" });
   });
 
-  it("validates generated client configuration before SDK construction", () => {
-    expect(() =>
-      mapClientConfig({ endpoint: "http://remote.example/api" }),
-    ).toThrowError(
-      expect.objectContaining({
-        kind: ErrorKind.InvalidArgument,
-        field: ConfigFieldEndpoint,
-        operation: "initialize",
-      }),
-    );
+  it("rejects unsupported client scope before SDK construction", () => {
     expect(() =>
       mapClientConfig({ scope: { projectId: "unsupported" } }),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
         field: ConfigFieldScopeProjectId,
+        operation: "initialize",
+      }),
+    );
+  });
+
+  it("rejects insecure remote endpoints in Client construction", () => {
+    expect(
+      () =>
+        new Client({
+          provider: new DaytonaProvider(() => {
+            throw new Error("native SDK must not construct");
+          }),
+          endpoint: "http://remote.example/api",
+          auth: { apiKey: { key: "test-only" } },
+        }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldEndpoint,
         operation: "initialize",
       }),
     );

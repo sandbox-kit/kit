@@ -3,3 +3,8 @@ export * from "#contracts/field_paths.js";
 export * from "#contracts/config_paths.js";
 export * from "#metadata/metadata_object.js";
 export * from "#client/client.js";
+export {
+  validCidr,
+  validDomain,
+  validEnvName,
+} from "#internal/net_validate.js";

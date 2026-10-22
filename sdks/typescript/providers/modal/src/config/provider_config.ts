@@ -4,23 +4,21 @@
 import type { ModalClientParams as NativeClientConfig } from "modal";
 import {
   ErrorKind,
-  sandboxError,
-  validateConfig,
   type Config,
   type Scope,
   ConfigFieldAuth,
   ConfigFieldEndpoint,
-  ConfigFieldScopeProjectId
+  ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import {
   mapClientScope,
   mapOAuthAuth,
   mapTokenPairCredentials,
 } from "#mappings/provider_mappings.js";
+import { providerError } from "#errors.js";
 
 export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   const source = config;
-  validateConfig(source, "modal", "initialize");
   const target: NativeClientConfig = {};
   if (source.endpoint !== undefined)
     unsupported(
@@ -36,7 +34,10 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
         "unsupported client configuration field",
       );
     if (source.scope.projectId !== undefined)
-      unsupported(ConfigFieldScopeProjectId, "unsupported client configuration field");
+      unsupported(
+        ConfigFieldScopeProjectId,
+        "unsupported client configuration field",
+      );
   }
   if (source.auth?.tokenPair !== undefined) {
     Object.assign(
@@ -44,10 +45,7 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
       mapTokenPairCredentials(source.auth.tokenPair, "initialize"),
     );
   } else if (source.auth?.oauthRefresh !== undefined) {
-    Object.assign(
-      target,
-      mapOAuthAuth(source.auth.oauthRefresh, "initialize"),
-    );
+    Object.assign(target, mapOAuthAuth(source.auth.oauthRefresh, "initialize"));
   } else if (source.auth !== undefined) {
     unsupported(ConfigFieldAuth, "unsupported authentication mode");
   }
@@ -69,11 +67,10 @@ export function captureProviderState(config: Config): ProviderState {
 }
 
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "modal",
     operation: "initialize",
     field,
-    message: "sandbox-kit modal: " + message,
+    message,
   });
 }

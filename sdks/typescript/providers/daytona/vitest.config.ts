@@ -11,6 +11,10 @@ export default defineConfig({
         find: /^#(mappings|checks|config)\/(.+)\.js$/,
         replacement: path.join(root, "src/$1/$2.ts"),
       },
+      {
+        find: "#errors.js",
+        replacement: path.join(root, "src/errors.ts"),
+      },
     ],
   },
   test: {

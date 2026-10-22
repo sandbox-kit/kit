@@ -1,7 +1,14 @@
 {
   "name": "@sandbox-kit/modal",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "modal provider for sandbox kit",
+  "keywords": [
+    "sandbox-kit",
+    "sandbox",
+    "modal",
+    "sdk",
+    "provider"
+  ],
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",
@@ -45,6 +52,10 @@
     "#config/*.js": {
       "@sandbox-kit/source": "./src/config/*.ts",
       "default": "./dist/config/*.js"
+    },
+    "#errors.js": {
+      "@sandbox-kit/source": "./src/errors.ts",
+      "default": "./dist/errors.js"
     }
   },
   "scripts": {
@@ -54,7 +65,7 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "2.16.0",
-    "@sandbox-kit/sandbox": "0.1.0",
+    "@sandbox-kit/sandbox": "0.1.1",
     "modal": "0.11.1"
   },
   "devDependencies": {

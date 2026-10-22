@@ -8,7 +8,6 @@ import {
   SnapshotKind,
   ValueOrigin,
   WaitCondition,
-  sandboxError,
   type Config,
   type CreateOptions,
   type SandboxInfo,
@@ -54,20 +53,15 @@ import {
   mapSandboxInfo as generatedMapSandboxInfo,
 } from "./provider_mappings.js";
 import { validateProviderCreate } from "#checks/provider_checks.js";
-import {
-  mapGeneratedClientConfig,
-  type Environment,
-} from "#config/provider_config.js";
+import { mapGeneratedClientConfig } from "#config/provider_config.js";
+import { providerError } from "#errors.js";
 
 export type DaytonaCreateParams =
   | CreateSandboxFromImageParams
   | CreateSandboxFromSnapshotParams;
 
-export function mapClientConfig(
-  config: Config,
-  environment?: Environment,
-): DaytonaConfig {
-  const result = mapGeneratedClientConfig(config, environment);
+export function mapClientConfig(config: Config): DaytonaConfig {
+  const result = mapGeneratedClientConfig(config);
   if (
     config.auth?.bearerToken !== undefined &&
     config.scope?.organizationId === undefined
@@ -501,29 +495,26 @@ function nonblank(value: string, field: string): string {
   return value;
 }
 function invalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "daytona",
     operation: "create",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "daytona",
     operation: "create",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }
 function configInvalid(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.InvalidArgument,
-    provider: "daytona",
     operation: "initialize",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }

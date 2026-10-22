@@ -15,7 +15,7 @@ import {
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesCpuLimitCores,
   ConfigFieldAuthTokenPairId,
-  ConfigFieldEndpoint
+  ConfigFieldEndpoint,
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -33,7 +33,7 @@ import {
   mapResources,
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
-import { mapModalError } from "./errors.js";
+import { mapModalError } from "#errors.js";
 
 describe("Modal mappings", () => {
   it("maps token authentication and environment scope", () => {
@@ -53,7 +53,7 @@ describe("Modal mappings", () => {
     });
   });
 
-  it("rejects generated unsupported and malformed client configuration", () => {
+  it("rejects unsupported client endpoint before SDK construction", () => {
     expect(() =>
       mapClientConfig({ endpoint: "https://unsupported.example" }),
     ).toThrowError(
@@ -63,16 +63,24 @@ describe("Modal mappings", () => {
         operation: "initialize",
       }),
     );
-    expect(() =>
-      mapClientConfig({
-        auth: {
-          tokenPair: { id: "", secret: "secret" },
-        },
-      }),
+  });
+
+  it("rejects blank auth credentials in Client construction", () => {
+    expect(
+      () =>
+        new Client({
+          provider: new ModalProvider(() => {
+            throw new Error("native SDK must not construct");
+          }),
+          auth: {
+            tokenPair: { id: "", secret: "secret" },
+          },
+        }),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: ConfigFieldAuthTokenPairId,
+        operation: "initialize",
       }),
     );
   });

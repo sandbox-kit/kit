@@ -161,9 +161,6 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 	if err := validateProviderCreate(request); err != nil {
 		return plan, err
 	}
-	if err := sandbox.ValidateCreateOptions(request); err != nil {
-		return plan, err
-	}
 	params, rest, err := mapCommonCreateFields(request)
 	if err != nil {
 		return plan, err
@@ -254,72 +251,8 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 		}
 		rest.Placement = nil
 	}
-	if request.Network != nil {
-		config := *request.Network
-		switch config.Egress {
-		case sandbox.EgressModeDefault, sandbox.EgressModeAllowAll:
-		case sandbox.EgressModeBlockAll:
-			plan.params.BlockNetwork = true
-		case sandbox.EgressModeRestricted:
-		default:
-			return plan, sandbox.NewError(sandbox.ErrorInfo{
-				Kind:      sandbox.ErrorKindInvalidArgument,
-				Provider:  "modal",
-				Operation: "create",
-				Field:     sandbox.CreateFieldNetworkEgress,
-				Message:   "sandbox-kit modal: unknown egress mode",
-			}, nil)
-		}
-		config.Egress = 0
-		if config.OutboundCidrs != nil {
-			plan.params.OutboundCIDRAllowlist = &sdk.Allowlist{Entries: config.OutboundCidrs.Entries}
-		}
-		config.OutboundCidrs = nil
-		if config.OutboundDomains != nil {
-			plan.params.OutboundDomainAllowlist = &sdk.Allowlist{Entries: config.OutboundDomains.Entries}
-		}
-		config.OutboundDomains = nil
-		if config.InboundCidrs != nil {
-			if len(config.InboundCidrs.Entries) == 0 {
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
-					Kind:      sandbox.ErrorKindUnsupported,
-					Provider:  "modal",
-					Operation: "create",
-					Field:     sandbox.CreateFieldNetworkInboundCidrs,
-					Message:   "sandbox-kit modal: empty inbound deny-all cannot be represented by native allow-all",
-				}, nil)
-			}
-			plan.params.InboundCIDRAllowlist = config.InboundCidrs.Entries
-		}
-		config.InboundCidrs = nil
-		plan.params.I6PN = config.GetPrivateNetwork()
-		plan.params.CustomDomain = config.GetCustomDomain()
-		config.PrivateNetwork, config.CustomDomain = nil, nil
-		for _, port := range config.Ports {
-			switch port.Transport {
-			case sandbox.PortTransportTLS:
-				plan.params.EncryptedPorts = append(plan.params.EncryptedPorts, int(port.Port))
-			case sandbox.PortTransportHTTP2TLS:
-				plan.params.H2Ports = append(plan.params.H2Ports, int(port.Port))
-			case sandbox.PortTransportPlain:
-				plan.params.UnencryptedPorts = append(plan.params.UnencryptedPorts, int(port.Port))
-			default:
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
-					Kind:      sandbox.ErrorKindInvalidArgument,
-					Provider:  "modal",
-					Operation: "create",
-					Field:     sandbox.CreateFieldNetworkPortsTransport,
-					Message:   "sandbox-kit modal: explicit port transport is required",
-				}, nil)
-			}
-		}
-		config.Ports = nil
-		plan.proxy = config.GetProxyReference()
-		config.ProxyReference = nil
-		if err := sandbox.RejectUnmapped("modal network", &config); err != nil {
-			return plan, err
-		}
-		rest.Network = nil
+	if err := planCreateNetwork(request, &plan, &rest); err != nil {
+		return plan, err
 	}
 	if request.Security != nil {
 		config := *request.Security
@@ -352,52 +285,8 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 		}
 		rest.Security = nil
 	}
-	if request.Lifetime != nil {
-		config := *request.Lifetime
-		if config.MaximumLifetime != nil {
-			mapped, _, err := mapLifetimeDuration(&config)
-			if err != nil {
-				return plan, err
-			}
-			plan.params.Timeout = mapped.Timeout
-		}
-		config.MaximumLifetime = nil
-		if config.IdleTerminate != nil {
-			policy := config.IdleTerminate
-			switch policy.Mode {
-			case sandbox.PolicyModeDefault:
-			case sandbox.PolicyModeDisabled:
-				plan.params.IdleTimeout = 0
-			case sandbox.PolicyModeAfter:
-				if policy.After == nil {
-					return plan, sandbox.NewError(sandbox.ErrorInfo{
-						Kind:      sandbox.ErrorKindInvalidArgument,
-						Provider:  "modal",
-						Operation: "create",
-						Field:     sandbox.CreateFieldLifetimeIdleTerminateAfter,
-						Message:   "sandbox-kit modal: idle duration missing",
-					}, nil)
-				}
-				mapped, _, err := mapIdleDuration(policy)
-				if err != nil {
-					return plan, err
-				}
-				plan.params.IdleTimeout = mapped.IdleTimeout
-			default:
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
-					Kind:      sandbox.ErrorKindInvalidArgument,
-					Provider:  "modal",
-					Operation: "create",
-					Field:     sandbox.CreateFieldLifetimeIdleTerminateMode,
-					Message:   "sandbox-kit modal: unknown idle policy",
-				}, nil)
-			}
-		}
-		config.IdleTerminate = nil
-		if err := sandbox.RejectUnmapped("modal lifetime", &config); err != nil {
-			return plan, err
-		}
-		rest.Lifetime = nil
+	if err := planCreateLifetime(request, &plan, &rest); err != nil {
+		return plan, err
 	}
 	if request.Readiness != nil {
 		var err error
@@ -467,3 +356,126 @@ func planCreate(request *sandbox.CreateOptions, scope *sandboxv1.Scope, region s
 	}
 	return plan, nil
 }
+
+func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *sandbox.CreateOptions) error {
+	if request.Network != nil {
+		config := *request.Network
+		switch config.Egress {
+		case sandbox.EgressModeDefault, sandbox.EgressModeAllowAll:
+		case sandbox.EgressModeBlockAll:
+			plan.params.BlockNetwork = true
+		case sandbox.EgressModeRestricted:
+		default:
+			return sandbox.NewError(sandbox.ErrorInfo{
+				Kind:      sandbox.ErrorKindInvalidArgument,
+				Provider:  "modal",
+				Operation: "create",
+				Field:     sandbox.CreateFieldNetworkEgress,
+				Message:   "sandbox-kit modal: unknown egress mode",
+			}, nil)
+		}
+		config.Egress = 0
+		if config.OutboundCidrs != nil {
+			plan.params.OutboundCIDRAllowlist = &sdk.Allowlist{Entries: config.OutboundCidrs.Entries}
+		}
+		config.OutboundCidrs = nil
+		if config.OutboundDomains != nil {
+			plan.params.OutboundDomainAllowlist = &sdk.Allowlist{Entries: config.OutboundDomains.Entries}
+		}
+		config.OutboundDomains = nil
+		if config.InboundCidrs != nil {
+			if len(config.InboundCidrs.Entries) == 0 {
+				return sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindUnsupported,
+					Provider:  "modal",
+					Operation: "create",
+					Field:     sandbox.CreateFieldNetworkInboundCidrs,
+					Message:   "sandbox-kit modal: empty inbound deny-all cannot be represented by native allow-all",
+				}, nil)
+			}
+			plan.params.InboundCIDRAllowlist = config.InboundCidrs.Entries
+		}
+		config.InboundCidrs = nil
+		plan.params.I6PN = config.GetPrivateNetwork()
+		plan.params.CustomDomain = config.GetCustomDomain()
+		config.PrivateNetwork, config.CustomDomain = nil, nil
+		for _, port := range config.Ports {
+			switch port.Transport {
+			case sandbox.PortTransportTLS:
+				plan.params.EncryptedPorts = append(plan.params.EncryptedPorts, int(port.Port))
+			case sandbox.PortTransportHTTP2TLS:
+				plan.params.H2Ports = append(plan.params.H2Ports, int(port.Port))
+			case sandbox.PortTransportPlain:
+				plan.params.UnencryptedPorts = append(plan.params.UnencryptedPorts, int(port.Port))
+			default:
+				return sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindInvalidArgument,
+					Provider:  "modal",
+					Operation: "create",
+					Field:     sandbox.CreateFieldNetworkPortsTransport,
+					Message:   "sandbox-kit modal: explicit port transport is required",
+				}, nil)
+			}
+		}
+		config.Ports = nil
+		plan.proxy = config.GetProxyReference()
+		config.ProxyReference = nil
+		if err := sandbox.RejectUnmapped("modal network", &config); err != nil {
+			return err
+		}
+		rest.Network = nil
+	}
+	return nil
+}
+
+func planCreateLifetime(request *sandbox.CreateOptions, plan *createPlan, rest *sandbox.CreateOptions) error {
+	if request.Lifetime != nil {
+		config := *request.Lifetime
+		if config.MaximumLifetime != nil {
+			mapped, _, err := mapLifetimeDuration(&config)
+			if err != nil {
+				return err
+			}
+			plan.params.Timeout = mapped.Timeout
+		}
+		config.MaximumLifetime = nil
+		if config.IdleTerminate != nil {
+			policy := config.IdleTerminate
+			switch policy.Mode {
+			case sandbox.PolicyModeDefault:
+			case sandbox.PolicyModeDisabled:
+				plan.params.IdleTimeout = 0
+			case sandbox.PolicyModeAfter:
+				if policy.After == nil {
+					return sandbox.NewError(sandbox.ErrorInfo{
+						Kind:      sandbox.ErrorKindInvalidArgument,
+						Provider:  "modal",
+						Operation: "create",
+						Field:     sandbox.CreateFieldLifetimeIdleTerminateAfter,
+						Message:   "sandbox-kit modal: idle duration missing",
+					}, nil)
+				}
+				mapped, _, err := mapIdleDuration(policy)
+				if err != nil {
+					return err
+				}
+				plan.params.IdleTimeout = mapped.IdleTimeout
+			default:
+				return sandbox.NewError(sandbox.ErrorInfo{
+					Kind:      sandbox.ErrorKindInvalidArgument,
+					Provider:  "modal",
+					Operation: "create",
+					Field:     sandbox.CreateFieldLifetimeIdleTerminateMode,
+					Message:   "sandbox-kit modal: unknown idle policy",
+				}, nil)
+			}
+		}
+		config.IdleTerminate = nil
+		if err := sandbox.RejectUnmapped("modal lifetime", &config); err != nil {
+			return err
+		}
+		rest.Lifetime = nil
+	}
+	return nil
+}
+

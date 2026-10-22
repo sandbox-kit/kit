@@ -4,13 +4,11 @@
 import type { DaytonaConfig as NativeClientConfig } from "@daytona/sdk";
 import {
   ErrorKind,
-  sandboxError,
-  validateConfig,
   type Config,
   ConfigFieldAuth,
   ConfigFieldScopeAppName,
   ConfigFieldScopeEnvironment,
-  ConfigFieldScopeProjectId
+  ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import {
   mapAPIKeyCredentials,
@@ -18,36 +16,34 @@ import {
   mapClientSettings,
   mapScope,
 } from "#mappings/provider_mappings.js";
+import { providerError } from "#errors.js";
 
-export type Environment = Readonly<Record<string, string | undefined>>;
+const defaultEndpoint = "https://app.daytona.io/api";
 
-export function mapGeneratedClientConfig(
-  config: Config,
-  environment: Environment = environmentVariables(),
-): NativeClientConfig {
-  let source = config;
-  if (source.endpoint === undefined)
-    source = {
-      ...source,
-      endpoint:
-        environment.DAYTONA_API_URL ??
-        environment.DAYTONA_SERVER_URL ??
-        "https://app.daytona.io/api",
-    };
-  validateConfig(source, "daytona", "initialize");
+export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
+  const source: Config =
+    config.endpoint === undefined
+      ? { ...config, endpoint: defaultEndpoint }
+      : config;
   const target: NativeClientConfig = mapClientSettings(source, "initialize");
   if (source.scope !== undefined) {
     const mapped = mapScope(source.scope, "initialize");
     Object.assign(target, mapped);
     if (source.scope.appName !== undefined)
-      unsupported(ConfigFieldScopeAppName, "unsupported client configuration field");
+      unsupported(
+        ConfigFieldScopeAppName,
+        "unsupported client configuration field",
+      );
     if (source.scope.environment !== undefined)
       unsupported(
         ConfigFieldScopeEnvironment,
         "unsupported client configuration field",
       );
     if (source.scope.projectId !== undefined)
-      unsupported(ConfigFieldScopeProjectId, "unsupported client configuration field");
+      unsupported(
+        ConfigFieldScopeProjectId,
+        "unsupported client configuration field",
+      );
   }
   if (source.auth?.apiKey !== undefined) {
     Object.assign(
@@ -55,29 +51,18 @@ export function mapGeneratedClientConfig(
       mapAPIKeyCredentials(source.auth.apiKey, "initialize"),
     );
   } else if (source.auth?.bearerToken !== undefined) {
-    Object.assign(
-      target,
-      mapBearerAuth(source.auth.bearerToken, "initialize"),
-    );
+    Object.assign(target, mapBearerAuth(source.auth.bearerToken, "initialize"));
   } else if (source.auth !== undefined) {
     unsupported(ConfigFieldAuth, "unsupported authentication mode");
   }
   return target;
 }
 
-function environmentVariables(): Environment {
-  return (
-    (globalThis as { readonly process?: { readonly env?: Environment } })
-      .process?.env ?? {}
-  );
-}
-
 function unsupported(field: string, message: string): never {
-  throw sandboxError({
+  providerError({
     kind: ErrorKind.Unsupported,
-    provider: "daytona",
     operation: "initialize",
     field,
-    message: "sandbox-kit daytona: " + message,
+    message,
   });
 }

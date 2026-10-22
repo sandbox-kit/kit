@@ -24,8 +24,8 @@ sandbox until you stop/delete it or a lifetime policy fires.
 - Default snapshot resources are inherited. CPU/memory/disk overrides require an
   **image** source ([from-image](../create-daytona-from-image/README.md)).
 - Non-default `isolation.kind` values are rejected; class comes from the snapshot.
-- Optional `DAYTONA_API_URL` / `DAYTONA_TARGET` select endpoint and region. When
-  the URL is omitted, Kit tries `DAYTONA_API_URL`, then `DAYTONA_SERVER_URL`, then
+- Optional `DAYTONA_API_URL` / `DAYTONA_TARGET` in `.env` are read by the example
+  and passed as `endpoint` / `region`. When endpoint is omitted, Kit defaults to
   `https://app.daytona.io/api`. Remote endpoints need HTTPS.
 - A create error is not proof that no sandbox was provisioned.
 
@@ -55,7 +55,6 @@ DAYTONA_API_KEY=
 This example sets an explicit API key. Omitting `auth` lets the Daytona SDK
 resolve its supported environment credentials. Bearer auth maps through
 `auth.bearerToken` and requires `scope.organizationId`.
-
 
 ## Warnings
 

@@ -43,7 +43,10 @@ tooling/                   Developer CLI and YAML inventory loaders
 examples/go/<provider>/      One folder per provider, one module per example
 sdks/typescript/contracts/   Generated protobuf wire types (@sandbox-kit/contracts)
 sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
-  src/client/                Client, Sandbox handle, Backend/Provider
+  src/client/                Client runtime split across focused modules:
+                               client.ts (Client + public re-exports),
+                               sandbox.ts (handle), types.ts, errors.ts,
+                               validation.ts, operation.ts (deadlines/signals)
   src/contracts/             Public type aliases over protobuf messages
   src/metadata/              Metadata map helpers
   src/internal/              Package-private duration/oneof/strip helpers

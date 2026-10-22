@@ -11,54 +11,55 @@ import (
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
-	os "os"
 )
+
+const defaultEndpoint = "https://app.daytona.io/api"
 
 // mapClientConfig maps shared client configuration into the native SDK
 // options. Unsupported supplied settings fail before the SDK is constructed.
+// Shared Config validation runs in sandbox.NewClient; this maps only.
+// An omitted endpoint uses defaultEndpoint.
 func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
-	var params types.DaytonaConfig
 	if config == nil {
 		config = &sandboxv1.Config{}
 	}
-	resolved := *config
-	if resolved.Endpoint == nil {
-		value := "https://app.daytona.io/api"
-		if candidate := os.Getenv("DAYTONA_SERVER_URL"); candidate != "" {
-			value = candidate
-		}
-		if candidate := os.Getenv("DAYTONA_API_URL"); candidate != "" {
-			value = candidate
-		}
-		resolved.Endpoint = &value
-	}
-	if err := sandbox.ValidateConfig(&resolved); err != nil {
+	params, _, err := mapClientSettings(config)
+	if err != nil {
 		return params, err
 	}
-	params.APIUrl = *resolved.Endpoint
-	if resolved.Region != nil {
-		params.Target = *resolved.Region
+	if config.Endpoint == nil {
+		params.APIUrl = defaultEndpoint
 	}
-	if resolved.Scope != nil {
-		if resolved.Scope.AppName != nil || resolved.Scope.Environment != nil || resolved.Scope.ProjectId != nil {
+	if config.Scope != nil {
+		if config.Scope.AppName != nil || config.Scope.Environment != nil || config.Scope.ProjectId != nil {
 			return params, unsupportedClientField("scope", "Daytona only supports organization_id scope")
 		}
-		if resolved.Scope.OrganizationId != nil {
-			params.OrganizationID = *resolved.Scope.OrganizationId
+		mapped, _, err := mapScope(config.Scope)
+		if err != nil {
+			return params, err
 		}
+		params.OrganizationID = mapped.OrganizationID
 	}
-	if auth := resolved.GetAuth(); auth != nil {
+	if auth := config.GetAuth(); auth != nil {
 		switch credentials := auth.Credentials.(type) {
 		case *sandbox.APIKey:
 			if credentials.ApiKey == nil || credentials.ApiKey.Key == "" {
 				return params, invalidClientField("auth.api_key", "api_key requires key")
 			}
-			params.APIKey = credentials.ApiKey.Key
+			mapped, _, err := mapAPIKeyCredentials(credentials.ApiKey)
+			if err != nil {
+				return params, err
+			}
+			params.APIKey = mapped.APIKey
 		case *sandbox.BearerToken:
 			if credentials.BearerToken == nil || credentials.BearerToken.Token == "" {
 				return params, invalidClientField("auth.bearer_token", "bearer_token requires token")
 			}
-			params.JWTToken = credentials.BearerToken.Token
+			mapped, _, err := mapBearerAuth(credentials.BearerToken)
+			if err != nil {
+				return params, err
+			}
+			params.JWTToken = mapped.JWTToken
 		default:
 			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
 		}
