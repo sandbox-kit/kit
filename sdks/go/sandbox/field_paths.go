@@ -5,6 +5,13 @@
 //	fmt.Println(CreateFieldResourcesCPUCores) // resources.cpu_cores
 package sandbox
 
+import (
+	"reflect"
+	"strings"
+
+	"google.golang.org/protobuf/reflect/protoreflect"
+)
+
 // CreateFieldName is the canonical path "name".
 const CreateFieldName = "name"
 
@@ -380,79 +387,80 @@ const InfoFieldState = "state"
 const InfoFieldTerminal = "terminal"
 
 // responseFieldPresent reports whether path names a field that is present on
-// the sandbox metadata.
+// the sandbox metadata. Presence follows protobuf descriptors rather than a
+// handwritten field inventory.
 func responseFieldPresent(info *SandboxInfo, path string) bool {
-	if info == nil {
+	if info == nil || path == "" {
 		return false
 	}
-	switch path {
-	case InfoFieldId:
-		return info.Id != ""
-	case InfoFieldProvider:
-		return info.Provider != ""
-	case InfoFieldName:
-		return info.Name != nil
-	case InfoFieldProviderState:
-		return info.ProviderState != nil
-	case InfoFieldRegion:
-		return info.Region != nil
-	case InfoFieldIsolation:
-		return info.Isolation != nil
-	case InfoFieldIsolationKind:
-		if info.Isolation == nil {
+	msg := info.ProtoReflect()
+	parts := strings.Split(path, ".")
+	for i, part := range parts {
+		fd := msg.Descriptor().Fields().ByName(protoreflect.Name(part))
+		if fd == nil {
 			return false
 		}
-		return true
-	case InfoFieldIsolationProviderKind:
-		if info.Isolation == nil {
+		last := i == len(parts)-1
+		switch {
+		case fd.IsMap():
+			if !last {
+				return false
+			}
+			// ProtoReflect.Has is false for empty maps; Kit treats a non-nil empty
+			// map as present (same as clone/origins semantics).
+			return msg.Has(fd) || mapFieldNonNil(msg, fd)
+		case fd.Message() != nil:
+			if !msg.Has(fd) {
+				return false
+			}
+			if last {
+				return true
+			}
+			msg = msg.Get(fd).Message()
+		default:
+			if !last {
+				return false
+			}
+			if fd.HasPresence() {
+				return msg.Has(fd)
+			}
+			if fd.Kind() == protoreflect.StringKind {
+				return msg.Get(fd).String() != ""
+			}
+			// Proto3 enums and other non-presence scalars are present when the
+			// containing message was reached (for example state, isolation.kind).
+			return true
+		}
+	}
+	return false
+}
+
+// mapFieldNonNil reports whether the Go map backing fd is non-nil (including empty).
+func mapFieldNonNil(msg protoreflect.Message, fd protoreflect.FieldDescriptor) bool {
+	value := reflect.ValueOf(msg.Interface())
+	if value.Kind() == reflect.Pointer {
+		if value.IsNil() {
 			return false
 		}
-		return info.Isolation.ProviderKind != nil
-	case InfoFieldIsolationNestedVirtualization:
-		if info.Isolation == nil {
-			return false
-		}
-		return info.Isolation.NestedVirtualization != nil
-	case InfoFieldResources:
-		return info.Resources != nil
-	case InfoFieldResourcesCpuCores:
-		if info.Resources == nil {
-			return false
-		}
-		return info.Resources.CpuCores != nil
-	case InfoFieldResourcesCpuLimitCores:
-		if info.Resources == nil {
-			return false
-		}
-		return info.Resources.CpuLimitCores != nil
-	case InfoFieldResourcesMemoryMib:
-		if info.Resources == nil {
-			return false
-		}
-		return info.Resources.MemoryMib != nil
-	case InfoFieldResourcesMemoryLimitMib:
-		if info.Resources == nil {
-			return false
-		}
-		return info.Resources.MemoryLimitMib != nil
-	case InfoFieldResourcesDiskMib:
-		if info.Resources == nil {
-			return false
-		}
-		return info.Resources.DiskMib != nil
-	case InfoFieldLabels:
-		return info.Labels != nil
-	case InfoFieldCreatedAt:
-		return info.CreatedAt != nil
-	case InfoFieldProviderMetadata:
-		return info.ProviderMetadata != nil
-	case InfoFieldState:
-		return true
-	case InfoFieldTerminal:
-		return info.Terminal != nil
-	default:
+		value = value.Elem()
+	}
+	if value.Kind() != reflect.Struct {
 		return false
 	}
+	name := string(fd.Name())
+	typ := value.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+		if field.PkgPath != "" {
+			continue
+		}
+		if protobufFieldName(field) != name {
+			continue
+		}
+		mapValue := value.Field(i)
+		return mapValue.Kind() == reflect.Map && !mapValue.IsNil()
+	}
+	return false
 }
 
 // validateResponseOrigins checks that every origin names a known field that is

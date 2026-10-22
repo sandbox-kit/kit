@@ -151,12 +151,7 @@ func Value[T any](value T) *T { return &value }
 
 // ValidValueOrigin reports whether origin is a declared ValueOrigin.
 func ValidValueOrigin(origin ValueOrigin) bool {
-	switch origin {
-	case ValueOriginUnknown, ValueOriginProvider, ValueOriginRequest:
-		return true
-	default:
-		return false
-	}
+	return origin.Descriptor().Values().ByNumber(origin.Number()) != nil
 }
 
 // OptionalDuration converts a protobuf duration to a time.Duration pointer.

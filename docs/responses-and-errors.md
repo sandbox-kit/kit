@@ -30,13 +30,17 @@ default:
 ```
 
 Origin keys are shared field names: `id`, `name`, `labels`, `resources`, and so on.
-Nested field paths such as `resources.cpu_cores` are also supported. Origins must
-identify known fields that are present. Optional pointers preserve explicit zero,
-false, and empty strings; non-nil maps and slices preserve empty collections.
-Non-optional strings require a nonempty value. Unknown keys or absent targets produce
-an invalid-response error.
-Missing entries mean unknown. Modal identity is provider-reported, while its
+Nested field paths such as `resources.cpu_cores` are also supported. Optional
+pointers preserve explicit zero, false, and empty strings; non-nil maps and slices
+preserve empty collections. Non-optional strings require a nonempty value.
+Missing origin entries mean unknown. Modal identity is provider-reported, while its
 current name/labels are request-derived. Daytona maps SDK-reported metadata.
+
+Go rejects a response when an origin key is unknown, names an absent field, or uses
+an undeclared `ValueOrigin` (`InvalidResponse` before the handle is returned).
+TypeScript does not walk `origins` on create/get/attach; it only requires a sandbox
+`id` and a matching `provider` when the provider sets one. Align TypeScript with the
+Go check if both SDKs must reject the same invalid origin maps.
 
 ## Handle errors in an application
 
