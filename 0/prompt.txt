@@ -1,0 +1,38 @@
+Now all of this looks good. 
+
+but can we really have good design patterns used ? 
+
+in both the languages.  ?
+
+make code more cleaner, have seperation of concern. 
+making repeatitive code really lean
+
+u are expert in design patterns for golang and typescript think deep think sharp. 
+
+and let us know. 
+
+also there are some methods which have lot of params instead we should pass object / struct in those cases. 
+
+lemme know before that what u want to change.
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+we have use ../errors.js
+
+earlier we avoided using going to parent folder check how we handled with # or similar thing
+
+---
+
++ in function params 
+
+we should instead have type or interface created not just opening object with set of fields with types. 
+
+also make sure u use interface and types as per semantics and do not mix it. 
+
+scan whole project and fix this things.

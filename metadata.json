@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5J3WF3D5H9KM6NC5EQK0WE5",
+  "strategy": "manual-commit",
+  "branch": "fix/provider-shared-validation-endpoint",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/provider_mappings.go",
+    "sdks/go/providers/daytona/sandbox.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/provider.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/metadata.go",
+    "sdks/typescript/providers/daytona/package.json",
+    "sdks/typescript/providers/daytona/src/checks/provider_checks.ts",
+    "sdks/typescript/providers/daytona/src/config/provider_config.ts",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/src/errors.ts",
+    "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
+    "sdks/typescript/providers/daytona/src/mappings/provider_mappings.ts",
+    "sdks/typescript/providers/daytona/vitest.config.ts",
+    "sdks/typescript/providers/modal/package.json",
+    "sdks/typescript/providers/modal/src/checks/provider_checks.ts",
+    "sdks/typescript/providers/modal/src/config/provider_config.ts",
+    "sdks/typescript/providers/modal/src/errors.ts",
+    "sdks/typescript/providers/modal/src/mappings/mappings.ts",
+    "sdks/typescript/providers/modal/src/mappings/provider_mappings.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "sdks/typescript/providers/modal/src/modal.ts",
+    "sdks/typescript/providers/modal/vitest.config.ts",
+    "sdks/typescript/sandbox/src/client/client.ts",
+    "sdks/typescript/sandbox/src/client/sandbox.ts",
+    "sdks/typescript/sandbox/src/client/validation.ts",
+    "sdks/typescript/sandbox/src/index.ts",
+    "sdks/typescript/sandbox/src/internal/net_validate.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 97299,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 7051648,
+    "output_tokens": 44124,
+    "api_call_count": 3
+  }
+}
