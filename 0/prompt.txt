@@ -1,0 +1,51 @@
+earlier we had fixed examples of go to be lean and just have  just one main func  per example
+
+can u check all of them and see if that needs fix + test also might need to revisit for those example which are not changed.
+
+---
+
+now lets go onto second change we had to made
+
+---
+
+now lets go onto second change we had to made
+
+---
+
+we don't need to write generators tbh which is really bad when we think in ai agents era
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+do typescript needs this changes ?
+
+---
+
+what happens in ts if we don't do this vs in golang explain me
+
+---
+
+what u think we should do ?
+
+---
+
+document ig that, thats not done so we know it later. incase we need it.
+
+---
+
+check all the test cases + see if anything is breaking. install dependencies for go examples too. and check every go-sdk related files.
+
+---
+
+what the changes in field_paths did explian with example ?
+
+---
+
+can u show user facing example ?
+
+users don't provide origins like this right ?

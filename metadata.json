@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5HABZ3KF8AR171W4507H0JB",
+  "strategy": "manual-commit",
+  "branch": "chore/go-origins-protobuf-descriptors",
+  "checkpoints_count": 12,
+  "files_touched": [
+    "docs/responses-and-errors.md",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/origins_test.go",
+    "sdks/go/sandbox/sandbox_data_contracts.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 41512,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3781504,
+    "output_tokens": 9192,
+    "api_call_count": 8
+  }
+}
