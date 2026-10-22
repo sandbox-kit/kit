@@ -1,6 +1,19 @@
 # `@sandbox-kit/contracts`
 
-Internal protobuf wire types and Protovalidate descriptors for Sandbox Kit.
+Internal wire types for Sandbox Kit. Applications should not depend on this
+package.
 
-Applications install `@sandbox-kit/sandbox` (and a provider). Do not depend on
-this package directly; the core client consumes it as a private wire dependency.
+Install the public client and a provider instead:
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+# or
+npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
+See [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox)
+for usage.
+
+## License
+
+MIT

@@ -1,112 +1,112 @@
-# Modal provider
+# Modal provider for Go
 
-Independent Go module over the official Modal SDK v0.11.0. Published separately
-from the core `sdks/go/sandbox` client; use it through that shared API. Requires
-Go 1.26.9 or newer and this checkout (local module replacements).
+Modal provider for
+[`sdks/go/sandbox`](https://github.com/sandbox-kit/kit/tree/main/sdks/go/sandbox).
+Use the shared client API; this module supplies `modal.New()`.
 
-## Usage
+Requires Go 1.26.9 or newer, and a Modal token pair.
 
-```go
-import (
-    "context"
-    "os"
-    "time"
+## Install
 
-    "github.com/sandbox-kit/kit/sdks/go/providers/modal"
-    "github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-
-config := &sandbox.Config{
-    Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.TokenPair{
-            TokenPair: &sandbox.TokenPairCredentials{
-                Id:     os.Getenv("MODAL_TOKEN_ID"),
-                Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-            },
-        },
-    },
-    Scope: &sandbox.Scope{
-        AppName:     sandbox.Value("existing-app"),
-        Environment: sandbox.Value("main"),
-    },
-    Timeout: sandbox.Duration(2 * time.Minute),
-}
-client, err := sandbox.NewClient(modal.New(), config)
-if err != nil {
-    return err
-}
-defer client.Close(context.Background())
-
-instance, err := client.Create(ctx, &sandbox.CreateOptions{
-    Source: &sandbox.SandboxSource{
-        Kind: &sandbox.Image{
-            Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
-        },
-    },
-    Resources: &sandbox.Resources{
-        CpuCores:  sandbox.Value(0.5),
-        MemoryMib: sandbox.Value(uint64(512)),
-    },
-    Lifetime: &sandbox.LifetimePolicy{
-        MaximumLifetime: sandbox.Duration(5 * time.Minute),
-    },
-})
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox
+go get github.com/sandbox-kit/kit/sdks/go/providers/modal
 ```
 
-Check `err`, then use `instance.ID()` or `instance.Info()`. Closing the client
-releases local SDK resources only. The app must already exist; Kit does not
-create apps.
+## Quick start
 
-## Examples
+```go
+package main
 
-| Example    | Project                                                                                            |
-| ---------- | -------------------------------------------------------------------------------------------------- |
-| Creation   | [create-modal-sandbox](../../../../examples/go/modal/create-modal-sandbox/README.md)               |
-| Resources  | [create-modal-with-resources](../../../../examples/go/modal/create-modal-with-resources/README.md) |
-| Attach     | [attach-modal-sandbox](../../../../examples/go/modal/attach-modal-sandbox/README.md)               |
-| Full index | [Go Modal examples](../../../../examples/go/README.md)                                             |
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/modal"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{
+			Credentials: &sandbox.TokenPair{
+				TokenPair: &sandbox.TokenPairCredentials{
+					Id:     os.Getenv("MODAL_TOKEN_ID"),
+					Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+				},
+			},
+		},
+		Scope: &sandbox.Scope{
+			AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+			Environment: sandbox.Value("main"),
+		},
+		Timeout: sandbox.Duration(2 * time.Minute),
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Source: &sandbox.SandboxSource{
+			Kind: &sandbox.Image{
+				Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+			},
+		},
+		Resources: &sandbox.Resources{
+			CpuCores:  sandbox.Value(0.5),
+			MemoryMib: sandbox.Value(uint64(512)),
+		},
+		Lifetime: &sandbox.LifetimePolicy{
+			MaximumLifetime: sandbox.Duration(5 * time.Minute),
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(instance.ID())
+}
+```
+
+Closing the client releases local SDK resources only. Reclaim sandboxes with
+idle/max lifetime policies or `Terminate`.
 
 ## Configuration
 
-| Client setting    | Support                                                 |
-| ----------------- | ------------------------------------------------------- |
-| Token pair        | Supported                                               |
-| OAuth refresh     | Supported with client ID and exactly one secret/JWT key |
-| Omitted auth      | Native SDK environment/profile resolution               |
-| Scope             | App name and environment                                |
-| Region            | Default sandbox placement preference                    |
-| Endpoint override | Rejected through the pinned public constructor          |
+| Setting        | Notes                                                      |
+| -------------- | ---------------------------------------------------------- |
+| Token pair     | `Auth` with `TokenPair` (`Id` + `Secret`)                  |
+| OAuth refresh  | Supported with client ID and exactly one secret or JWT key |
+| Omitted `Auth` | Modal SDK environment / profile credentials                |
+| App            | `Scope.AppName` — required                                 |
+| Environment    | `Scope.Environment` (often `main`)                         |
+| Region         | `Config.Region` — default placement preference             |
+| Endpoint       | Not supported                                              |
 
-See [common configuration](../../../../docs/configuration.md).
+## What you can do
 
-Supplied requests require at least 0.125 physical CPU cores and 128 MiB memory.
-CPU precision is 0.001 cores; maximum lifetime is positive whole seconds up to
-24 hours. Positive resource limits require a request and cannot be smaller.
-Omitted values retain provider defaults.
+**Create** from a registry image with runtime (command, workdir, PTY), gVisor or
+Linux VM isolation, CPU/memory, placement, network policy and ports, secrets,
+OIDC workload identity, readiness probes, timeouts, labels, and verbose mode.
 
-The integration also maps supported runtime, isolation, placement, security,
-network, readiness, and observability fields. Default/snapshot/warm-pool sources
-and unsupported fields are rejected. See [creation coverage](../../../../docs/sandbox-creation.md).
+**Lifecycle** on the handle: `Attach`, `Terminate`, and local `Close`.
+Provider-verified `Get` / `Refresh`, start, stop, pause, archive, and delete are
+unsupported.
 
-## Ownership and verification
+When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
+memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
 
-Errors expose shared kinds and preserve native SDK causes. Account permissions,
-quotas, and placement availability remain provider-enforced. `Client.Attach`
-builds a handle from a Modal ID without a remote lookup; handles support
-`Terminate`. Provider-verified `Get`/`Refresh`, restartable stop, start, pause,
-archive, and resource deletion return `ErrorKindUnsupported`. Successful
-termination marks the handle terminal.
+## Examples
 
-```sh
-GOWORK=off go test ./...
-```
+| Example    | Project                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Creation   | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
+| Resources  | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
+| Attach     | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
+| Full index | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
 
-Tests use native SDK doubles without cloud provisioning.
-[Provider YAML](../../../../specs/providers/modal.yaml) inventories checks and
-mapping groups in `provider_checks.go` and `provider_mappings.go`. `sandbox.go`
-owns remaining creation orchestration. Error classification is handwritten in
-`errors.go`.
+## License
 
-See [responses and errors](../../../../docs/responses-and-errors.md),
-[generation](../../../../docs/code-generation.md), and
-[reference verification](../../../../docs/provider-verification.md).
+MIT
