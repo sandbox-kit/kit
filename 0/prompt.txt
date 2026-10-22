@@ -1,0 +1,47 @@
+cool I have updated changes in main
+
+run dependency installation + generate command for typescript and go both
+
+---
+
+install examples dependencies too again for both languages
+
+---
+
+cool now I want to publish (update) all for typescript packages in npm
+
+i have already bump the version.
+
+---
+
+can u confirm by doing dry-runs yourself that evewrything is fine.
+
+---
+
+and when user will install they will get this patch version only right ?
+
+---
+
+I have published it 
+
+but can u check whether the dist was outdated ?
+
+---
+
+yeah I was talking about it those artifacts are what we shouldn't have shipped right ?
+
+---
+
+can u wipe the dist rn we will publish 0.1.2 ?
+
+---
+
+cool bump it
+
+---
+
+rerun all the dependency install .
+
+---
+
++ also this doesn't happen again should we add command in prepublishOnly or anywhere which rm dist ?
