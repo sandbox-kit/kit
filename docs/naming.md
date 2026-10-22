@@ -66,7 +66,7 @@ handwritten aliases such as `sandbox_data_contracts.go` /
 | File                                                     | Purpose                                      |
 | -------------------------------------------------------- | -------------------------------------------- |
 | `create_validation.go`                                   | Shared CreateOptions validation              |
-| `validation_fields.go`                                   | Go↔protobuf field-name maps for validators   |
+| `support.go`                                             | `RejectUnmapped` (protobuf tag → field path) |
 | `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)          |
 | `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field` |
 | `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions       |
