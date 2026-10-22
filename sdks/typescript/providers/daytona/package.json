@@ -2,6 +2,13 @@
   "name": "@sandbox-kit/daytona",
   "version": "0.1.1",
   "description": "daytona provider for sandbox kit",
+  "keywords": [
+    "sandbox-kit",
+    "sandbox",
+    "daytona",
+    "sdk",
+    "provider"
+  ],
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",

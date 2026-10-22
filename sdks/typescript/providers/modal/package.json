@@ -2,6 +2,13 @@
   "name": "@sandbox-kit/modal",
   "version": "0.1.1",
   "description": "modal provider for sandbox kit",
+  "keywords": [
+    "sandbox-kit",
+    "sandbox",
+    "modal",
+    "sdk",
+    "provider"
+  ],
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",

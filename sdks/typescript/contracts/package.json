@@ -2,6 +2,11 @@
   "name": "@sandbox-kit/contracts",
   "version": "0.1.1",
   "description": "internal protobuf wire types for sandbox kit",
+  "keywords": [
+    "sandbox-kit",
+    "protobuf",
+    "contracts"
+  ],
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",

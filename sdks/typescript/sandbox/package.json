@@ -2,6 +2,11 @@
   "name": "@sandbox-kit/sandbox",
   "version": "0.1.1",
   "description": "one pluggable sdk for all your sandbox providers",
+  "keywords": [
+    "sandbox-kit",
+    "sandbox",
+    "sdk"
+  ],
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@11.19.0",
