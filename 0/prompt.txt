@@ -1,0 +1,42 @@
+can u just open a issue in repository mentioning this. 
+
+before that create a branch commit push and create a PR to main
+
+---
+
+2. TS capability model is weaker
+
+explian in simple example
+
+---
+
+what should we do ? before that I have quesiton do all providers has archieve u must look at that and then answer.
+
+---
+
+so we don't have to fix anything right ?
+
+---
+
+3. TS create vs lifecycle option shapes
+
+
+what this is explkian with really good examples
+
+---
+
+whats should we do what u recommend ?
+
+---
+
+what if client side be the Duration ?
+
+---
+
+can't we change the protobuf itself ?
+
+for startoptoins, and al the duration timeout fields to number ?
+
+---
+
+okay as per your recommendation just fix the smell of this

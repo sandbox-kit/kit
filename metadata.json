@@ -1,0 +1,22 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5J02AH2ZX6GY9YAXECK3HBW",
+  "strategy": "manual-commit",
+  "branch": "fix/provider-shared-validation-endpoint",
+  "checkpoints_count": 8,
+  "files_touched": [
+    "docs/providers.md",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/sandbox/src/client/client.ts",
+    "sdks/typescript/sandbox/src/contracts/sandbox_data_contracts.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
