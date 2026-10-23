@@ -1,8 +1,8 @@
 # Sandbox Kit for Go
 
-Create and manage cloud sandboxes from one Go API. Install a provider module
-(`daytona` or `modal`), pass it to `sandbox.NewClient`, then create or open
-sandboxes through the same methods.
+Create and manage cloud sandboxes with a consistent Go client interface. Install
+a provider module (`daytona` or `modal`), pass it to `sandbox.NewClient`, then
+create or open sandboxes through the same client.
 
 Closing a client or handle releases **local** SDK resources only. It does not
 stop, terminate, or delete the remote sandbox.

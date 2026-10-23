@@ -1,7 +1,7 @@
 # `@sandbox-kit/daytona`
 
 Daytona provider for [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox).
-Use the shared client API; this package supplies the `daytona()` provider.
+Use the shared client interface; this package supplies the `daytona()` provider.
 
 ## Install
 

@@ -1,110 +1,101 @@
 # Sandbox Kit
 
-A multi-provider SDK for creating and managing cloud sandboxes from one portable
-API. Install the core client and the provider you need; each provider is a
-separate package that initializes its official SDK. Go and TypeScript share
-contracts, Protovalidate create and client-config rules, error kinds, and the
-same Daytona / Modal example matrix. More providers plug into the core sandbox
-module without being bundled inside it.
+A multi-provider SDK for creating and managing cloud sandboxes. Choose a
+provider, install the core SDK and its provider package, then create and manage
+sandboxes through a consistent client interface. Daytona and Modal are
+supported.
 
-Closing a client or handle releases local SDK resources only. It does not stop,
-terminate, archive, or delete a cloud sandbox. The public API covers client
-setup, creation, and lifecycle against Daytona and Modal. Execution, storage,
-GPU requests, and harness integrations are out of scope.
+## Get started
 
-## Usage
+Packages are not published yet. The commands below are the post-release install
+commands; until publication, use the runnable projects in [Examples](#examples).
 
 ### Go
 
-```go
-import (
-    "context"
-    "fmt"
-    "os"
-    "time"
+Requires Go 1.26.9 or later. Install the core SDK and one provider:
 
-    "github.com/sandbox-kit/kit/sdks/go/providers/daytona"
-    "github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-
-func createSandbox() (result error) {
-    client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
-        Auth: &sandbox.AuthConfig{
-            Credentials: &sandbox.APIKey{
-                ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
-            },
-        },
-        Timeout: sandbox.Duration(2 * time.Minute),
-    })
-    if err != nil {
-        return err
-    }
-    defer func() {
-        if closeErr := client.Close(context.Background()); closeErr != nil {
-            if result == nil {
-                result = closeErr
-            } else {
-                handleError(closeErr)
-            }
-        }
-    }()
-
-    instance, err := client.Create(context.Background(), nil)
-    if err != nil {
-        return err
-    }
-    fmt.Println(instance.ID(), instance.ProviderName())
-    return nil
-}
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
+# or: go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 ```
 
-Pass the provider as the first `NewClient` argument. Wire local `go.mod`
-replacements as in the example modules. Requires Go 1.26.9 or newer.
+Set `DAYTONA_API_KEY`, then create a sandbox:
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+		}},
+		Timeout: sandbox.Duration(2 * time.Minute),
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(instance.ID())
+}
+```
 
 ### TypeScript
 
-```ts
-import { daytona } from "@sandbox-kit/daytona";
-import { Client, type ClientConfig } from "@sandbox-kit/sandbox";
-
-function clientConfig(): ClientConfig {
-  return {
-    provider: daytona(),
-    auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
-    timeout: 120_000,
-  };
-}
-
-await using client = new Client(clientConfig());
-const sandbox = await client.create();
-console.log(sandbox.id, client.providerName);
-```
-
-Install the core client and a provider:
+Requires Node.js 20, 22, or 24.15+. Install the core SDK and one provider:
 
 ```sh
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
 ```
 
-`provider` lives on `ClientConfig`. Prefer `await using`; otherwise call
-`await client.close()` in `finally`. Requires Node.js 20 / 22 / 24.15+ and
-npm 11.19.0. In this checkout, examples use `file:` dependencies on the local
-packages under `sdks/typescript/`.
+Set `DAYTONA_API_KEY`, then create a sandbox:
 
-| Package                  | Role                                                        |
-| ------------------------ | ----------------------------------------------------------- |
-| `@sandbox-kit/sandbox`   | Core client (publish once; more providers depend on this)   |
-| `@sandbox-kit/daytona`   | Daytona provider — published independently (`@daytona/sdk`) |
-| `@sandbox-kit/modal`     | Modal provider — published independently (`modal`)          |
-| `@sandbox-kit/contracts` | Internal wire types — do not depend on this directly        |
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
 
-TypeScript apps use nested auth/source fields and millisecond timeouts on public
-`ClientConfig` / `CreateOptions`. The client materializes protobuf privately
-before validation.
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
 
-Go uses the same module split: `sdks/go/sandbox` is the core module;
-`sdks/go/providers/<name>` are independent modules.
+const sandbox = await client.create();
+console.log(sandbox.id);
+```
+
+Use `await client.close()` in a `finally` block when `await using` is not
+available. Timeouts are milliseconds in TypeScript.
+
+### What gets installed
+
+| Language   | Core SDK                                 | Providers                                                  |
+| ---------- | ---------------------------------------- | ---------------------------------------------------------- |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`          |
+| TypeScript | `@sandbox-kit/sandbox`                   | `@sandbox-kit/daytona`, `@sandbox-kit/modal`              |
+
+Install only the provider you use. The core SDK exposes the shared client
+interface; the provider package connects it to the provider's native SDK. Do
+not install or import the contracts package directly.
+
+Closing a client or sandbox handle releases local SDK resources. It does not
+stop, terminate, archive, or delete the cloud sandbox.
 
 ## Examples
 
