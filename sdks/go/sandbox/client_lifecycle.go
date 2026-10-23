@@ -2,6 +2,7 @@ package sandbox
 
 import (
 	"context"
+	"strings"
 	"sync"
 )
 
@@ -24,7 +25,7 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 		return nil, err
 	}
 	defer release()
-	if id == "" {
+	if strings.TrimSpace(id) == "" {
 		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
 	operationContext, cancel := ctx, func() {}

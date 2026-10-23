@@ -2,12 +2,25 @@ package daytona
 
 import (
 	"testing"
+	"time"
 
 	apiclient "github.com/daytona/clients/api-client-go"
 	daytonasdk "github.com/daytona/clients/sdk-go/pkg/daytona"
 	"github.com/daytona/clients/sdk-go/pkg/types"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
+
+func TestNativeTimeout(t *testing.T) {
+	if nativeTimeout(nil) != 0 {
+		t.Fatal("omitted timeout")
+	}
+	if nativeTimeout(sandbox.Duration(0)) != 0 {
+		t.Fatal("explicit zero timeout")
+	}
+	if nativeTimeout(sandbox.Duration(30*time.Second)) != 30*time.Second {
+		t.Fatal("timeout duration")
+	}
+}
 
 func TestResolvedSandboxClassMapping(t *testing.T) {
 	for _, tc := range []struct {
