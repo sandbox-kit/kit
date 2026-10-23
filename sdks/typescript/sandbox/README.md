@@ -1,8 +1,8 @@
 # `@sandbox-kit/sandbox`
 
-Create and manage cloud sandboxes from one TypeScript API. Pick a provider
-package (`@sandbox-kit/daytona` or `@sandbox-kit/modal`), construct a client,
-then create or open sandboxes through the same methods.
+Create and manage cloud sandboxes with a consistent TypeScript client interface.
+Pick a provider package (`@sandbox-kit/daytona` or `@sandbox-kit/modal`),
+construct a client, then create or open sandboxes through that client.
 
 Closing a client or handle releases **local** SDK resources only. It does not
 stop, terminate, or delete the remote sandbox.
