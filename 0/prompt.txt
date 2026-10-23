@@ -1,0 +1,15 @@
+now that our typescript sdk is good. 
+
+can we do change things around go-sdk ? 
+
+what can be improved ?
+
+---
+
+Fix these before reshaping the API
+
+tell me what u will do onto those and expliain what breaks with example
+
+---
+
+cool fix this
