@@ -1,15 +1,5 @@
-create a branch commit, push to branch and create a PR with nice title and description
+cool commit and push to this branch
 
----
+and then open a issue describing all the chages in this branch. 
 
-Clean the module boundary
-
-now.
-
----
-
-if contracts is same
-
-we are giving name sandboxv1
-
-why so ? ain't sandbox would be good ? or it will mismatch or be duplicate and will cause problems.
++ moving forward how to publish the packages and which all packages needs to be published.
