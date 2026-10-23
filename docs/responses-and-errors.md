@@ -44,10 +44,10 @@ Go check if both SDKs must reject the same invalid origin maps.
 
 ## Handle errors in an application
 
-Initialization, creation, lifecycle operations, and cleanup expose `*sandbox.Error`.
-Its protobuf `ErrorInfo` contains `Kind`, `Provider`, `Operation`, `Field`, `Rule`,
-and `Message`. Optional `StatusCode`, `ProviderCode`, and `ProviderSource`
-retain native machine details when available.
+Initialization, creation, lifecycle operations, and cleanup return `*sandbox.Error`
+with `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and `Message`. Optional
+`StatusCode`, `ProviderCode`, and `ProviderSource` retain native machine details
+when available.
 
 ```go
 var detail *sandbox.Error

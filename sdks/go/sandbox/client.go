@@ -190,9 +190,15 @@ func validateProtoConfig(config *sandboxv1.Config) error {
 
 func secureEndpoint(value string) bool {
 	u, err := url.Parse(value)
-	if err != nil || u.Hostname() == "" || u.User != nil || u.Fragment != "" { return false }
-	if u.Scheme == "https" { return true }
-	if u.Scheme != "http" { return false }
+	if err != nil || u.Hostname() == "" || u.User != nil || u.Fragment != "" {
+		return false
+	}
+	if u.Scheme == "https" {
+		return true
+	}
+	if u.Scheme != "http" {
+		return false
+	}
 	ip, err := netip.ParseAddr(u.Hostname())
 	return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
 }
@@ -200,6 +206,9 @@ func secureEndpoint(value string) bool {
 // ProviderName returns the selected provider identifier, such as "daytona" or
 // "modal".
 func (c *Client) ProviderName() string {
+	if c == nil || c.backend == nil {
+		return ""
+	}
 	return c.backend.Name()
 }
 

@@ -170,7 +170,7 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 		<-ctx.Done()
 		return nil, ctx.Err()
 	}}
-	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{ Timeout: sandbox.Duration(time.Millisecond)})
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{Timeout: sandbox.Duration(time.Millisecond)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,5 +216,94 @@ func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
 	err = instance2.Start(context.Background(), nil)
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
 		t.Fatalf("handle outlived its client: %v", err)
+	}
+}
+
+func TestGetRejectsBlankID(t *testing.T) {
+	backend := &lifecycleBackend{get: func(context.Context, string) (*sandbox.SandboxInfo, error) {
+		t.Fatal("blank id reached the provider")
+		return nil, nil
+	}}
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		name string
+		id   string
+	}{
+		{"empty", ""},
+		{"spaces", "   "},
+		{"tab and newline", "\t\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := client.Get(context.Background(), tc.id)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.InfoFieldId {
+				t.Fatalf("blank id accepted: %v", err)
+			}
+		})
+	}
+}
+
+func TestLifecycleStampsInheritedTimeoutWithoutMutatingCaller(t *testing.T) {
+	var seen time.Duration
+	backend := &lifecycleBackend{start: func(_ context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+		if options.GetTimeout() == nil {
+			t.Fatal("inherited timeout was not forwarded")
+		}
+		seen = options.GetTimeout().AsDuration()
+		return &sandbox.SandboxInfo{Id: id}, nil
+	}}
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{Timeout: sandbox.Duration(2 * time.Second)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := instance.Start(context.Background(), nil); err != nil {
+		t.Fatal(err)
+	}
+	if seen != 2*time.Second {
+		t.Fatalf("provider timeout = %s", seen)
+	}
+}
+
+type stopBackend struct {
+	lifecycleBackend
+	stop func(context.Context, string, *sandbox.StopOptions) (*sandbox.SandboxInfo, error)
+}
+
+func (b *stopBackend) StopSandbox(ctx context.Context, id string, options *sandbox.StopOptions) (*sandbox.SandboxInfo, error) {
+	return b.stop(ctx, id, options)
+}
+
+func TestExplicitZeroTimeoutOverridesClientTimeout(t *testing.T) {
+	backend := &stopBackend{stop: func(ctx context.Context, id string, options *sandbox.StopOptions) (*sandbox.SandboxInfo, error) {
+		if _, hasDeadline := ctx.Deadline(); hasDeadline {
+			t.Fatal("explicit zero added a deadline")
+		}
+		if options.GetTimeout() == nil || options.GetTimeout().AsDuration() != 0 || !options.GetForce() {
+			t.Fatalf("provider options = timeout %v force %v", options.GetTimeout(), options.GetForce())
+		}
+		return &sandbox.SandboxInfo{Id: id}, nil
+	}}
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{Timeout: sandbox.Duration(time.Hour)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	caller := &sandbox.StopOptions{Timeout: sandbox.Duration(0), Force: sandbox.Value(true)}
+	timeout := caller.Timeout
+	if err := instance.Stop(context.Background(), caller); err != nil {
+		t.Fatal(err)
+	}
+	if caller.Timeout != timeout || !caller.GetForce() {
+		t.Fatal("caller options were mutated")
 	}
 }

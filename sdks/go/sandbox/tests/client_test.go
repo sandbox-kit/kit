@@ -63,6 +63,12 @@ func TestClientRejectsInvalidConfigurationBeforeInitialization(t *testing.T) {
 		}
 	}
 }
+func TestNilClientProviderName(t *testing.T) {
+	var client *sandbox.Client
+	if client.ProviderName() != "" {
+		t.Fatal("nil client reported a provider name")
+	}
+}
 func TestClientRejectsNilFactoriesAndProviders(t *testing.T) {
 	var typedNil *testProvider
 	for _, factory := range []sandbox.Provider{nil, typedNil, &testProvider{}, &testProvider{provider: (*creationBackend)(nil)}} {

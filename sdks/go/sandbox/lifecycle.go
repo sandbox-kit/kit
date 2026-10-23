@@ -4,7 +4,11 @@ package sandbox
 
 import (
 	context "context"
+	reflect "reflect"
 	time "time"
+
+	"google.golang.org/protobuf/proto"
+	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
 func staticLifecycleCapabilities(operations Backend) []LifecycleCapability {
@@ -57,52 +61,46 @@ func (s *Sandbox) Refresh(ctx context.Context) error {
 }
 
 func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "start", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxStarter)
 		if !ok {
 			return nil, s.unsupported("start")
 		}
-		return capability.StartSandbox(operationContext, s.ID(), options)
+		return capability.StartSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StartOptions { return &StartOptions{} }, func(cloned *StartOptions) {
+			cloned.Timeout = Duration(*timeout)
+		}))
 	})
 }
 
 func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "stop", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxStopper)
 		if !ok {
 			return nil, s.unsupported("stop")
 		}
-		return capability.StopSandbox(operationContext, s.ID(), options)
+		return capability.StopSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StopOptions { return &StopOptions{} }, func(cloned *StopOptions) {
+			cloned.Timeout = Duration(*timeout)
+		}))
 	})
 }
 
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "pause", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxPauser)
 		if !ok {
 			return nil, s.unsupported("pause")
 		}
-		return capability.PauseSandbox(operationContext, s.ID(), options)
+		return capability.PauseSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *PauseOptions { return &PauseOptions{} }, func(cloned *PauseOptions) {
+			cloned.Timeout = Duration(*timeout)
+		}))
 	})
 }
 
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	operationContext, cancel, err := s.operationContext(ctx, "terminate", timeout)
 	if err != nil {
 		return nil, err
@@ -112,7 +110,9 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	if !ok {
 		return nil, s.unsupported("terminate")
 	}
-	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), options)
+	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *TerminateOptions { return &TerminateOptions{} }, func(cloned *TerminateOptions) {
+		cloned.Timeout = Duration(*timeout)
+	}))
 	if err != nil {
 		return outcome, WithErrorContext(err, s.ProviderName(), "terminate")
 	}
@@ -121,35 +121,64 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 }
 
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "archive", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxArchiver)
 		if !ok {
 			return nil, s.unsupported("archive")
 		}
-		return capability.ArchiveSandbox(operationContext, s.ID(), options)
+		return capability.ArchiveSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *ArchiveOptions { return &ArchiveOptions{} }, func(cloned *ArchiveOptions) {
+			cloned.Timeout = Duration(*timeout)
+		}))
 	})
 }
 
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
-	var timeout *time.Duration
-	if options != nil {
-		timeout = OptionalDuration(options.Timeout)
-	}
+	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	if err := s.runInfoOp(ctx, "delete", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxDeleter)
 		if !ok {
 			return nil, s.unsupported("delete")
 		}
-		return capability.DeleteSandbox(operationContext, s.ID(), options)
+		return capability.DeleteSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
+			cloned.Timeout = Duration(*timeout)
+		}))
 	}); err != nil {
 		return err
 	}
 	s.markTerminal(SandboxStateDeleted, "deleted")
 	return nil
+}
+
+func (s *Sandbox) inheritedTimeout() *time.Duration {
+	if s == nil {
+		return nil
+	}
+	return s.timeout
+}
+
+// effectiveTimeout prefers an explicit operation timeout, including explicit
+// zero. A nil explicit value inherits the client timeout.
+func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *time.Duration {
+	if timeout := OptionalDuration(explicit); timeout != nil {
+		return timeout
+	}
+	return inherited
+}
+
+// providerOptions copies options and records timeout for the provider. A nil
+// timeout leaves the caller value unchanged, including a nil options pointer.
+func providerOptions[T proto.Message](options T, timeout *time.Duration, blank func() T, apply func(T)) T {
+	if timeout == nil {
+		return options
+	}
+	cloned := blank()
+	value := reflect.ValueOf(any(options))
+	if value.Kind() == reflect.Pointer && !value.IsNil() {
+		cloned = proto.Clone(options).(T)
+	}
+	apply(cloned)
+	return cloned
 }
 
 func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {

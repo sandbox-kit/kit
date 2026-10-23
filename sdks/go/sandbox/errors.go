@@ -14,8 +14,8 @@ package sandbox
 import (
 	context "context"
 	errors "errors"
+
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
-	"google.golang.org/protobuf/proto"
 )
 
 // ErrorInfo and ErrorKind are the generated portable protobuf contracts.
@@ -24,26 +24,27 @@ type ErrorInfo = sandboxv1.ErrorInfo
 type ErrorKind = sandboxv1.ErrorKind
 
 const (
-	ErrorKindUnknown = sandboxv1.ErrorKind_ERROR_KIND_UNKNOWN
-	ErrorKindInvalidArgument = sandboxv1.ErrorKind_ERROR_KIND_INVALID_ARGUMENT
-	ErrorKindUnsupported = sandboxv1.ErrorKind_ERROR_KIND_UNSUPPORTED
-	ErrorKindAuthentication = sandboxv1.ErrorKind_ERROR_KIND_AUTHENTICATION
-	ErrorKindPermissionDenied = sandboxv1.ErrorKind_ERROR_KIND_PERMISSION_DENIED
-	ErrorKindNotFound = sandboxv1.ErrorKind_ERROR_KIND_NOT_FOUND
-	ErrorKindAlreadyExists = sandboxv1.ErrorKind_ERROR_KIND_ALREADY_EXISTS
-	ErrorKindConflict = sandboxv1.ErrorKind_ERROR_KIND_CONFLICT
-	ErrorKindRateLimited = sandboxv1.ErrorKind_ERROR_KIND_RATE_LIMITED
-	ErrorKindResourceExhausted = sandboxv1.ErrorKind_ERROR_KIND_RESOURCE_EXHAUSTED
-	ErrorKindTimeout = sandboxv1.ErrorKind_ERROR_KIND_TIMEOUT
-	ErrorKindCanceled = sandboxv1.ErrorKind_ERROR_KIND_CANCELED
-	ErrorKindUnavailable = sandboxv1.ErrorKind_ERROR_KIND_UNAVAILABLE
-	ErrorKindInvalidResponse = sandboxv1.ErrorKind_ERROR_KIND_INVALID_RESPONSE
-	ErrorKindInternal = sandboxv1.ErrorKind_ERROR_KIND_INTERNAL
+	ErrorKindUnknown            = sandboxv1.ErrorKind_ERROR_KIND_UNKNOWN
+	ErrorKindInvalidArgument    = sandboxv1.ErrorKind_ERROR_KIND_INVALID_ARGUMENT
+	ErrorKindUnsupported        = sandboxv1.ErrorKind_ERROR_KIND_UNSUPPORTED
+	ErrorKindAuthentication     = sandboxv1.ErrorKind_ERROR_KIND_AUTHENTICATION
+	ErrorKindPermissionDenied   = sandboxv1.ErrorKind_ERROR_KIND_PERMISSION_DENIED
+	ErrorKindNotFound           = sandboxv1.ErrorKind_ERROR_KIND_NOT_FOUND
+	ErrorKindAlreadyExists      = sandboxv1.ErrorKind_ERROR_KIND_ALREADY_EXISTS
+	ErrorKindConflict           = sandboxv1.ErrorKind_ERROR_KIND_CONFLICT
+	ErrorKindRateLimited        = sandboxv1.ErrorKind_ERROR_KIND_RATE_LIMITED
+	ErrorKindResourceExhausted  = sandboxv1.ErrorKind_ERROR_KIND_RESOURCE_EXHAUSTED
+	ErrorKindTimeout            = sandboxv1.ErrorKind_ERROR_KIND_TIMEOUT
+	ErrorKindCanceled           = sandboxv1.ErrorKind_ERROR_KIND_CANCELED
+	ErrorKindUnavailable        = sandboxv1.ErrorKind_ERROR_KIND_UNAVAILABLE
+	ErrorKindInvalidResponse    = sandboxv1.ErrorKind_ERROR_KIND_INVALID_RESPONSE
+	ErrorKindInternal           = sandboxv1.ErrorKind_ERROR_KIND_INTERNAL
 	ErrorKindFailedPrecondition = sandboxv1.ErrorKind_ERROR_KIND_FAILED_PRECONDITION
 )
 
 // Error exposes portable details and retains the native cause for errors.Is
-// and errors.As.
+// and errors.As. Details are plain fields copied from ErrorInfo. The error
+// value is not a protobuf message.
 //
 // Example:
 //
@@ -52,9 +53,28 @@ const (
 //	    fmt.Println(sandboxErr.Kind, sandboxErr.Field)
 //	}
 type Error struct {
-	// ErrorInfo holds Kind, Provider, Operation, Field, and Message. Switch on
-	// Kind.
-	ErrorInfo
+	// Kind is the shared category. Switch on it.
+	Kind ErrorKind
+	// Provider is the provider identifier, such as "daytona" or "modal". Empty
+	// when the failure is local.
+	Provider string
+	// Operation is the Kit operation, such as "create" or "initialize".
+	Operation string
+	// Field is the canonical field path, such as "resources.cpu_cores". Empty
+	// when no field applies.
+	Field string
+	// Message is the human-readable explanation.
+	Message string
+	// StatusCode is the native HTTP or transport status when the provider
+	// reported one.
+	StatusCode *uint32
+	// ProviderCode is the provider's own error code when one was reported.
+	ProviderCode *string
+	// ProviderSource is the provider component that reported the error, when
+	// available.
+	ProviderSource *string
+	// Rule is a stable validation or policy identifier, when applicable.
+	Rule *string
 	// cause is the original SDK or validator error. Unwrap returns it. It is not
 	// serialized.
 	cause error
@@ -93,16 +113,84 @@ func (e *Error) Unwrap() error {
 //	    Message: "disk overrides are unsupported",
 //	}, cause)
 func NewError(info ErrorInfo, cause error) *Error {
-	owned := proto.Clone(&info).(*sandboxv1.ErrorInfo)
-	if owned.Kind.Descriptor().Values().ByNumber(owned.Kind.Number()) == nil {
-		owned.Kind = ErrorKindUnknown
+	kind := info.Kind
+	if kind.Descriptor().Values().ByNumber(kind.Number()) == nil {
+		kind = ErrorKindUnknown
 	}
 	if errors.Is(cause, context.Canceled) {
-		owned.Kind = ErrorKindCanceled
+		kind = ErrorKindCanceled
 	} else if errors.Is(cause, context.DeadlineExceeded) {
-		owned.Kind = ErrorKindTimeout
+		kind = ErrorKindTimeout
 	}
-	return &Error{ErrorInfo: *owned, cause: cause}
+	return &Error{
+		Kind:           kind,
+		Provider:       info.Provider,
+		Operation:      info.Operation,
+		Field:          info.Field,
+		Message:        info.Message,
+		StatusCode:     copyOptional(info.StatusCode),
+		ProviderCode:   copyOptional(info.ProviderCode),
+		ProviderSource: copyOptional(info.ProviderSource),
+		Rule:           copyOptional(info.Rule),
+		cause:          cause,
+	}
+}
+
+func (e *Error) clone() *Error {
+	if e == nil {
+		return &Error{}
+	}
+	return &Error{
+		Kind:           e.Kind,
+		Provider:       e.Provider,
+		Operation:      e.Operation,
+		Field:          e.Field,
+		Message:        e.Message,
+		StatusCode:     copyOptional(e.StatusCode),
+		ProviderCode:   copyOptional(e.ProviderCode),
+		ProviderSource: copyOptional(e.ProviderSource),
+		Rule:           copyOptional(e.Rule),
+		cause:          e.cause,
+	}
+}
+
+func copyOptional[T any](value *T) *T {
+	if value == nil {
+		return nil
+	}
+	return Value(*value)
+}
+
+// GetStatusCode returns the native status, or 0 when it was not reported.
+func (e *Error) GetStatusCode() uint32 {
+	if e == nil || e.StatusCode == nil {
+		return 0
+	}
+	return *e.StatusCode
+}
+
+// GetProviderCode returns the provider error code, or "" when it was not reported.
+func (e *Error) GetProviderCode() string {
+	if e == nil || e.ProviderCode == nil {
+		return ""
+	}
+	return *e.ProviderCode
+}
+
+// GetProviderSource returns the provider component, or "" when it was not reported.
+func (e *Error) GetProviderSource() string {
+	if e == nil || e.ProviderSource == nil {
+		return ""
+	}
+	return *e.ProviderSource
+}
+
+// GetRule returns the stable rule identifier, or "" when it was not reported.
+func (e *Error) GetRule() string {
+	if e == nil || e.Rule == nil {
+		return ""
+	}
+	return *e.Rule
 }
 
 // WithErrorContext adds provider and operation details without changing an
@@ -117,15 +205,15 @@ func WithErrorContext(err error, provider string, operation string) error {
 		if (provider == "" || existing.Provider == provider) && (operation == "" || existing.Operation == operation) {
 			return err
 		}
-		info := proto.Clone(&existing.ErrorInfo).(*sandboxv1.ErrorInfo)
+		cloned := existing.clone()
+		cloned.cause = err
 		if provider != "" {
-			info.Provider = provider
+			cloned.Provider = provider
 		}
 		if operation != "" {
-			info.Operation = operation
+			cloned.Operation = operation
 		}
-		return &Error{ErrorInfo: *info, cause: err}
+		return cloned
 	}
 	return NewError(ErrorInfo{Kind: ErrorKindUnknown, Provider: provider, Operation: operation, Message: err.Error()}, err)
 }
-
