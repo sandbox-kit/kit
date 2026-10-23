@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5KPN8PX1N4H3SEZHGEBWDP9",
+  "strategy": "manual-commit",
+  "branch": "chore/go-provider-module-boundary",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "proto/kit/sandbox/v1/client.proto",
+    "proto/kit/sandbox/v1/sandbox.proto",
+    "sdks/go/contracts/kit/sandbox/v1/client.pb.go",
+    "sdks/go/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/go.mod",
+    "sdks/go/providers/daytona/provider.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/errors.go",
+    "sdks/go/providers/modal/go.mod",
+    "sdks/go/providers/modal/provider.go",
+    "sdks/go/providers/modal/provider_mappings.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/client_pb.ts",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 302693,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 8375168,
+    "output_tokens": 32753,
+    "api_call_count": 2
+  }
+}
