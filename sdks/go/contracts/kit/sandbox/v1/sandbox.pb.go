@@ -24,7 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// classifies a snapshot. Preserve the numeric values.
+// SnapshotKind classifies a snapshot. Preserve the numeric values.
 type SnapshotKind int32
 
 const (
@@ -86,7 +86,7 @@ func (SnapshotKind) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{0}
 }
 
-// is the isolation class. Preserve the numeric values.
+// IsolationKind is the isolation class. Preserve the numeric values.
 type IsolationKind int32
 
 const (
@@ -145,7 +145,7 @@ func (IsolationKind) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{1}
 }
 
-// controls outbound traffic. Default leaves the policy to the provider.
+// EgressMode controls outbound traffic. Default leaves the policy to the provider.
 type EgressMode int32
 
 const (
@@ -199,7 +199,7 @@ func (EgressMode) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{2}
 }
 
-// is the protocol used for a published port.
+// PortTransport is the protocol used for a published port.
 type PortTransport int32
 
 const (
@@ -252,7 +252,7 @@ func (PortTransport) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{3}
 }
 
-// selects how a secret is exposed to the sandbox.
+// SecretInjection selects how a secret is exposed to the sandbox.
 type SecretInjection int32
 
 const (
@@ -302,7 +302,7 @@ func (SecretInjection) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{4}
 }
 
-// selects whether an automatic action is omitted, disabled, or delayed.
+// PolicyMode selects whether an automatic action is omitted, disabled, or delayed.
 type PolicyMode int32
 
 const (
@@ -352,7 +352,7 @@ func (PolicyMode) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{5}
 }
 
-// is how far creation waits before returning. Ready can require a probe and a positive timeout.
+// WaitCondition is how far creation waits before returning. Ready can require a probe and a positive timeout.
 type WaitCondition int32
 
 const (
@@ -408,7 +408,7 @@ func (WaitCondition) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{6}
 }
 
-// is a portable lifecycle state. ProviderState retains the native value.
+// SandboxState is a portable lifecycle state. ProviderState retains the native value.
 type SandboxState int32
 
 const (
@@ -494,7 +494,7 @@ func (SandboxState) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{7}
 }
 
-// identifies an operation supported by a particular resolved sandbox handle.
+// LifecycleCapability identifies an operation supported by a particular resolved sandbox handle.
 type LifecycleCapability int32
 
 const (
@@ -559,7 +559,7 @@ func (LifecycleCapability) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{8}
 }
 
-// records whether a metadata field came from the provider or from the request.
+// ValueOrigin records whether a metadata field came from the provider or from the request.
 type ValueOrigin int32
 
 const (
@@ -609,7 +609,7 @@ func (ValueOrigin) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{9}
 }
 
-// is the shared error category. It does not imply that a retry is safe.
+// ErrorKind is the shared error category. It does not imply that a retry is safe.
 type ErrorKind int32
 
 const (
@@ -698,17 +698,19 @@ func (ErrorKind) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{10}
 }
 
-// is the creation request. It does not include lifecycle operations or credentials.
+// CreateOptions is the creation request. It does not include lifecycle operations or credentials.
 // Omitted fields use provider defaults. A provider rejects settings it cannot honor.
 //
 // Example:
 //
+//	cpu := 0.5
+//	memory := uint64(512)
 //	options := &CreateOptions{
-//	    Resources: &Resources{CPUCores: Value(0.5), MemoryMiB: Value(uint64(512))},
+//	    Resources: &Resources{CpuCores: &cpu, MemoryMib: &memory},
 //	}
 type CreateOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is an optional display name. Nil uses the provider default. An explicit empty string asks for an unnamed sandbox.
+	// An optional display name. Nil uses the provider default. An explicit empty string asks for an unnamed sandbox.
 	Name *string `protobuf:"bytes,1,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	// selects an image, snapshot, warm pool, or the provider default. Nil means the provider default.
 	Source *SandboxSource `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
@@ -720,9 +722,9 @@ type CreateOptions struct {
 	Resources *Resources `protobuf:"bytes,5,opt,name=resources,proto3" json:"resources,omitempty"`
 	// sets cloud and region preferences. A preference is not a scheduling guarantee.
 	Placement *Placement `protobuf:"bytes,6,opt,name=placement,proto3" json:"placement,omitempty"`
-	// is the process environment. An empty map is explicit; nil means omitted.
+	// The process environment. An empty map is explicit; nil means omitted.
 	Environment map[string]string `protobuf:"bytes,7,rep,name=environment,proto3" json:"environment,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// is caller-supplied labels or tags. An empty map is explicit; nil means omitted.
+	// Caller-supplied labels or tags. An empty map is explicit; nil means omitted.
 	Labels map[string]string `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// sets egress, allowlists, ports, and related network options.
 	Network *NetworkConfig `protobuf:"bytes,9,opt,name=network,proto3" json:"network,omitempty"`
@@ -875,10 +877,10 @@ func (x *CreateOptions) GetProviderOptions() *MetadataObject {
 	return nil
 }
 
-// is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.
+// SandboxSource is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.
 type SandboxSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the selected source. Leaving it unset also means the provider default, which need not be an image.
+	// The selected source. Leaving it unset also means the provider default, which need not be an image.
 	//
 	// Types that are valid to be assigned to Kind:
 	//
@@ -992,7 +994,7 @@ func (*SandboxSource_Snapshot) isSandboxSource_Kind() {}
 
 func (*SandboxSource_WarmPool) isSandboxSource_Kind() {}
 
-// asks the provider to choose its default source.
+// ProviderDefaultSource asks the provider to choose its default source.
 type ProviderDefaultSource struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1029,10 +1031,10 @@ func (*ProviderDefaultSource) Descriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{2}
 }
 
-// is a container image reference, such as "alpine:3.21".
+// ImageSource is a container image reference, such as "alpine:3.21".
 type ImageSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the registry image reference.
+	// The registry image reference.
 	Reference     string `protobuf:"bytes,1,opt,name=reference,proto3" json:"reference,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1075,14 +1077,14 @@ func (x *ImageSource) GetReference() string {
 	return ""
 }
 
-// is an existing snapshot. Reference identifies it. Kind classifies it.
+// SnapshotSource is an existing snapshot. Reference identifies it. Kind classifies it.
 type SnapshotSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the provider snapshot identifier.
+	// The provider snapshot identifier.
 	Reference string `protobuf:"bytes,1,opt,name=reference,proto3" json:"reference,omitempty"`
 	// classifies the snapshot. Default leaves the class to the provider.
 	Kind SnapshotKind `protobuf:"varint,2,opt,name=kind,proto3,enum=kit.sandbox.v1.SnapshotKind" json:"kind,omitempty"`
-	// is a provider-specific kind name when Kind is provider-specific.
+	// A provider-specific kind name when Kind is provider-specific.
 	ProviderKind  *string `protobuf:"bytes,3,opt,name=provider_kind,json=providerKind,proto3,oneof" json:"provider_kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1139,10 +1141,10 @@ func (x *SnapshotSource) GetProviderKind() string {
 	return ""
 }
 
-// is an existing warm pool. Reference identifies it.
+// WarmPoolSource is an existing warm pool. Reference identifies it.
 type WarmPoolSource struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the provider warm-pool identifier.
+	// The provider warm-pool identifier.
 	Reference     string `protobuf:"bytes,1,opt,name=reference,proto3" json:"reference,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1185,10 +1187,10 @@ func (x *WarmPoolSource) GetReference() string {
 	return ""
 }
 
-// is process setup applied when the sandbox starts. Language is a hint, not an install promise.
+// RuntimeConfig is process setup applied when the sandbox starts. Language is a hint, not an install promise.
 type RuntimeConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is a language or toolbox hint. It does not promise that a runtime is installed.
+	// A language or toolbox hint. It does not promise that a runtime is installed.
 	Language         *string  `protobuf:"bytes,1,opt,name=language,proto3,oneof" json:"language,omitempty"`
 	Version          *string  `protobuf:"bytes,2,opt,name=version,proto3,oneof" json:"version,omitempty"`
 	User             *string  `protobuf:"bytes,3,opt,name=user,proto3,oneof" json:"user,omitempty"`
@@ -1271,7 +1273,7 @@ func (x *RuntimeConfig) GetPty() bool {
 	return false
 }
 
-// selects how the sandbox is isolated. Kind default leaves the class to the provider.
+// IsolationConfig selects how the sandbox is isolated. Kind default leaves the class to the provider.
 type IsolationConfig struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Kind                 IsolationKind          `protobuf:"varint,1,opt,name=kind,proto3,enum=kit.sandbox.v1.IsolationKind" json:"kind,omitempty"`
@@ -1332,19 +1334,19 @@ func (x *IsolationConfig) GetNestedVirtualization() bool {
 	return false
 }
 
-// is the requested compute size. Omitted fields use provider defaults.
+// Resources is the requested compute size. Omitted fields use provider defaults.
 // GPU requests and resizing are not creation settings.
 type Resources struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the requested physical CPU count. Modal allows fractions. Daytona requires whole cores.
+	// The requested physical CPU count. Modal allows fractions. Daytona requires whole cores.
 	CpuCores *float64 `protobuf:"fixed64,1,opt,name=cpu_cores,json=cpuCores,proto3,oneof" json:"cpu_cores,omitempty"`
-	// is an optional CPU ceiling. A positive limit requires a request and cannot be smaller than it.
+	// An optional CPU ceiling. A positive limit requires a request and cannot be smaller than it.
 	CpuLimitCores *float64 `protobuf:"fixed64,2,opt,name=cpu_limit_cores,json=cpuLimitCores,proto3,oneof" json:"cpu_limit_cores,omitempty"`
-	// is requested memory in MiB. Providers convert this to the native unit.
+	// Requested memory in MiB. Providers convert this to the native unit.
 	MemoryMib *uint64 `protobuf:"varint,3,opt,name=memory_mib,json=memoryMib,proto3,oneof" json:"memory_mib,omitempty"`
-	// is an optional memory ceiling in MiB. A positive limit requires a request.
+	// An optional memory ceiling in MiB. A positive limit requires a request.
 	MemoryLimitMib *uint64 `protobuf:"varint,4,opt,name=memory_limit_mib,json=memoryLimitMib,proto3,oneof" json:"memory_limit_mib,omitempty"`
-	// is requested disk in MiB. Modal rejects a creation override. Daytona requires whole GiB.
+	// Requested disk in MiB. Modal rejects a creation override. Daytona requires whole GiB.
 	DiskMib       *uint64 `protobuf:"varint,5,opt,name=disk_mib,json=diskMib,proto3,oneof" json:"disk_mib,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1415,14 +1417,14 @@ func (x *Resources) GetDiskMib() uint64 {
 	return 0
 }
 
-// is a placement preference. The provider may still choose another location.
+// Placement is a placement preference. The provider may still choose another location.
 type Placement struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is a cloud name such as aws, gcp, or oci. Supported names depend on the provider.
+	// A cloud name such as aws, gcp, or oci. Supported names depend on the provider.
 	Cloud *string `protobuf:"bytes,1,opt,name=cloud,proto3,oneof" json:"cloud,omitempty"`
 	// lists region preferences in order. It does not promise multi-region support.
 	Regions []string `protobuf:"bytes,2,rep,name=regions,proto3" json:"regions,omitempty"`
-	// is a provider target. Daytona maps the client region here. Per-request placement is unsupported.
+	// A provider target. Daytona maps the client region here. Per-request placement is unsupported.
 	Target        *string `protobuf:"bytes,3,opt,name=target,proto3,oneof" json:"target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1479,7 +1481,7 @@ func (x *Placement) GetTarget() string {
 	return ""
 }
 
-// is an allowlist. A present empty list means deny all. Nil means the list was omitted.
+// StringAllowlist is an allowlist. A present empty list means deny all. Nil means the list was omitted.
 type StringAllowlist struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// lists allowed values. A present empty list means deny all. Nil means the list was omitted.
@@ -1525,7 +1527,7 @@ func (x *StringAllowlist) GetEntries() []string {
 	return nil
 }
 
-// is creation-time networking. Empty allowlists do not mean the same thing as omitted ones.
+// NetworkConfig is creation-time networking. Empty allowlists do not mean the same thing as omitted ones.
 type NetworkConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// selects the outbound policy. Default leaves it to the provider.
@@ -1542,9 +1544,9 @@ type NetworkConfig struct {
 	LinkedSandbox *string `protobuf:"bytes,6,opt,name=linked_sandbox,json=linkedSandbox,proto3,oneof" json:"linked_sandbox,omitempty"`
 	// names a provider-managed proxy.
 	ProxyReference *string `protobuf:"bytes,7,opt,name=proxy_reference,json=proxyReference,proto3,oneof" json:"proxy_reference,omitempty"`
-	// is an outbound proxy URL.
+	// An outbound proxy URL.
 	OutboundProxyUrl *string `protobuf:"bytes,8,opt,name=outbound_proxy_url,json=outboundProxyUrl,proto3,oneof" json:"outbound_proxy_url,omitempty"`
-	// is a custom domain for the sandbox, when the provider supports one.
+	// A custom domain for the sandbox, when the provider supports one.
 	CustomDomain *string `protobuf:"bytes,9,opt,name=custom_domain,json=customDomain,proto3,oneof" json:"custom_domain,omitempty"`
 	// publishes these ports.
 	Ports         []*PortBinding `protobuf:"bytes,10,rep,name=ports,proto3" json:"ports,omitempty"`
@@ -1652,10 +1654,10 @@ func (x *NetworkConfig) GetPorts() []*PortBinding {
 	return nil
 }
 
-// publishes one port. Port is the container port. Transport selects the protocol.
+// PortBinding publishes one port. Port is the container port. Transport selects the protocol.
 type PortBinding struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the port number to publish. Zero leaves the port to the provider; otherwise 1-65535.
+	// The port number to publish. Zero leaves the port to the provider; otherwise 1-65535.
 	Port uint32 `protobuf:"varint,1,opt,name=port,proto3" json:"port,omitempty"`
 	// selects TLS, HTTP/2, or plain transport. Default leaves the choice to the provider.
 	Transport     PortTransport `protobuf:"varint,2,opt,name=transport,proto3,enum=kit.sandbox.v1.PortTransport" json:"transport,omitempty"`
@@ -1707,7 +1709,7 @@ func (x *PortBinding) GetTransport() PortTransport {
 	return PortTransport_PORT_TRANSPORT_DEFAULT
 }
 
-// sets access and secret references. Secrets are provider-managed names, not credential values.
+// SecurityConfig sets access and secret references. Secrets are provider-managed names, not credential values.
 type SecurityConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// requests public access when true. Nil leaves the provider default.
@@ -1771,12 +1773,12 @@ func (x *SecurityConfig) GetSecrets() []*SecretReference {
 	return nil
 }
 
-// names a provider-managed secret and how it is injected.
+// SecretReference names a provider-managed secret and how it is injected.
 type SecretReference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the provider secret name.
+	// The provider secret name.
 	Reference string `protobuf:"bytes,1,opt,name=reference,proto3" json:"reference,omitempty"`
-	// is the environment variable that receives the secret, when injection uses the environment.
+	// The environment variable that receives the secret, when injection uses the environment.
 	EnvironmentVariable *string `protobuf:"bytes,2,opt,name=environment_variable,json=environmentVariable,proto3,oneof" json:"environment_variable,omitempty"`
 	// selects environment injection or an egress placeholder.
 	Injection     SecretInjection `protobuf:"varint,3,opt,name=injection,proto3,enum=kit.sandbox.v1.SecretInjection" json:"injection,omitempty"`
@@ -1835,10 +1837,10 @@ func (x *SecretReference) GetInjection() SecretInjection {
 	return SecretInjection_SECRET_INJECTION_DEFAULT
 }
 
-// is requested at creation. It is not a stop, pause, or delete call.
+// LifetimePolicy is requested at creation. It is not a stop, pause, or delete call.
 type LifetimePolicy struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the maximum lifetime. Nil uses the provider default. Explicit zero means unlimited when the provider supports that.
+	// The maximum lifetime. Nil uses the provider default. Explicit zero means unlimited when the provider supports that.
 	MaximumLifetime *durationpb.Duration `protobuf:"bytes,1,opt,name=maximum_lifetime,json=maximumLifetime,proto3" json:"maximum_lifetime,omitempty"`
 	// requests deletion when the sandbox stops, where the provider supports it.
 	Ephemeral *bool `protobuf:"varint,2,opt,name=ephemeral,proto3,oneof" json:"ephemeral,omitempty"`
@@ -1935,12 +1937,12 @@ func (x *LifetimePolicy) GetStoppedDelete() *AutomaticAction {
 	return nil
 }
 
-// is one idle or stopped policy. Disabled, immediate, and delayed do not share one zero value.
+// AutomaticAction is one idle or stopped policy. Disabled, immediate, and delayed do not share one zero value.
 type AutomaticAction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is default, disabled, or after a delay. Default omits the policy.
+	// Default, disabled, or after a delay. Default omits the policy.
 	Mode PolicyMode `protobuf:"varint,1,opt,name=mode,proto3,enum=kit.sandbox.v1.PolicyMode" json:"mode,omitempty"`
-	// is the delay used when Mode is after. Zero means immediate, not disabled.
+	// The delay used when Mode is after. Zero means immediate, not disabled.
 	After         *durationpb.Duration `protobuf:"bytes,2,opt,name=after,proto3" json:"after,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1990,15 +1992,15 @@ func (x *AutomaticAction) GetAfter() *durationpb.Duration {
 	return nil
 }
 
-// is creation waiting, separate from sandbox lifetime.
+// ProvisioningOptions is creation waiting, separate from sandbox lifetime.
 type ProvisioningOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the client operation deadline, distinct from sandbox lifetime and queue time.
+	// The client operation deadline, distinct from sandbox lifetime and queue time.
 	// Nil and explicit zero add no Kit deadline.
 	Timeout *durationpb.Duration `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	// is how long creation may wait in a provider queue. It is not the sandbox lifetime.
+	// How long creation may wait in a provider queue. It is not the sandbox lifetime.
 	QueueTimeout *durationpb.Duration `protobuf:"bytes,2,opt,name=queue_timeout,json=queueTimeout,proto3" json:"queue_timeout,omitempty"`
-	// is the condition creation waits for before it returns.
+	// The condition creation waits for before it returns.
 	WaitFor       WaitCondition `protobuf:"varint,3,opt,name=wait_for,json=waitFor,proto3,enum=kit.sandbox.v1.WaitCondition" json:"wait_for,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2055,7 +2057,7 @@ func (x *ProvisioningOptions) GetWaitFor() WaitCondition {
 	return WaitCondition_WAIT_CONDITION_DEFAULT
 }
 
-// is the check used when waiting until ready. Set either a TCP port or a command.
+// ReadinessProbe is the check used when waiting until ready. Set either a TCP port or a command.
 type ReadinessProbe struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Check:
@@ -2138,7 +2140,7 @@ func (*ReadinessProbe_TcpPort) isReadinessProbe_Check() {}
 
 func (*ReadinessProbe_Command) isReadinessProbe_Check() {}
 
-// is a command readiness check. Argv is the command and its arguments.
+// CommandProbe is a command readiness check. Argv is the command and its arguments.
 type CommandProbe struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Argv          []string               `protobuf:"bytes,1,rep,name=argv,proto3" json:"argv,omitempty"`
@@ -2183,7 +2185,7 @@ func (x *CommandProbe) GetArgv() []string {
 	return nil
 }
 
-// sets provider logging and telemetry options.
+// ObservabilityConfig sets provider logging and telemetry options.
 type ObservabilityConfig struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Verbose           *bool                  `protobuf:"varint,1,opt,name=verbose,proto3,oneof" json:"verbose,omitempty"`
@@ -2236,10 +2238,10 @@ func (x *ObservabilityConfig) GetTelemetryEndpoint() string {
 	return ""
 }
 
-// is the metadata returned by a provider create call.
+// CreateResult is the metadata returned by a provider create call.
 type CreateResult struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the created sandbox. ID must be present before a public handle is built.
+	// The created sandbox. ID must be present before a public handle is built.
 	Sandbox       *SandboxInfo `protobuf:"bytes,1,opt,name=sandbox,proto3" json:"sandbox,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2282,7 +2284,7 @@ func (x *CreateResult) GetSandbox() *SandboxInfo {
 	return nil
 }
 
-// configures starting a persistent sandbox. Nil timeout inherits Config.Timeout.
+// StartOptions configures starting a persistent sandbox. Nil timeout inherits Config.Timeout.
 type StartOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2327,7 +2329,7 @@ func (x *StartOptions) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// configures a restartable stop. Force requests an immediate provider-native stop.
+// StopOptions configures a restartable stop. Force requests an immediate provider-native stop.
 type StopOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2380,7 +2382,7 @@ func (x *StopOptions) GetForce() bool {
 	return false
 }
 
-// configures a memory-preserving pause. Nil timeout inherits Config.Timeout.
+// PauseOptions configures a memory-preserving pause. Nil timeout inherits Config.Timeout.
 type PauseOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2425,7 +2427,7 @@ func (x *PauseOptions) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// configures permanent completion of the current execution.
+// TerminateOptions configures permanent completion of the current execution.
 type TerminateOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2478,7 +2480,7 @@ func (x *TerminateOptions) GetWait() bool {
 	return false
 }
 
-// configures moving retained sandbox state to provider archive storage.
+// ArchiveOptions configures moving retained sandbox state to provider archive storage.
 type ArchiveOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2523,7 +2525,7 @@ func (x *ArchiveOptions) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// configures irreversible sandbox deletion.
+// DeleteOptions configures irreversible sandbox deletion.
 type DeleteOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
@@ -2576,7 +2578,7 @@ func (x *DeleteOptions) GetWait() bool {
 	return false
 }
 
-// is the result of permanently completing an execution.
+// ExitResult is the result of permanently completing an execution.
 type ExitResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ExitCode      *int32                 `protobuf:"varint,1,opt,name=exit_code,json=exitCode,proto3,oneof" json:"exit_code,omitempty"`
@@ -2621,21 +2623,21 @@ func (x *ExitResult) GetExitCode() int32 {
 	return 0
 }
 
-// is shared metadata. Optional fields stay absent when the provider did not report them.
+// SandboxInfo is shared metadata. Optional fields stay absent when the provider did not report them.
 //
 // Example:
 //
-//	info := instance.Info()
-//	fmt.Println(info.GetID(), info.Origins[InfoFieldName])
+//	info := &SandboxInfo{Id: "sb-1"}
+//	fmt.Println(info.GetId(), info.Origins["name"])
 type SandboxInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the provider sandbox identifier. Creation fails locally when it is empty.
+	// The provider sandbox identifier. Creation fails locally when it is empty.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// is the selected provider identifier.
+	// The selected provider identifier.
 	Provider string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	// is the sandbox name when one is known. Nil means it was not reported.
+	// The sandbox name when one is known. Nil means it was not reported.
 	Name *string `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	// is the provider's own state string. It is not a shared lifecycle state machine.
+	// The provider's own state string. It is not a shared lifecycle state machine.
 	ProviderState    *string                `protobuf:"bytes,4,opt,name=provider_state,json=providerState,proto3,oneof" json:"provider_state,omitempty"`
 	Region           *string                `protobuf:"bytes,5,opt,name=region,proto3,oneof" json:"region,omitempty"`
 	Isolation        *IsolationConfig       `protobuf:"bytes,6,opt,name=isolation,proto3" json:"isolation,omitempty"`
@@ -2645,7 +2647,7 @@ type SandboxInfo struct {
 	ProviderMetadata *MetadataObject        `protobuf:"bytes,10,opt,name=provider_metadata,json=providerMetadata,proto3" json:"provider_metadata,omitempty"`
 	// records where each present field came from. A missing entry means the origin is unknown.
 	Origins map[string]ValueOrigin `protobuf:"bytes,11,rep,name=origins,proto3" json:"origins,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value,enum=kit.sandbox.v1.ValueOrigin"`
-	// is the normalized lifecycle state when Kit can map the provider state.
+	// The normalized lifecycle state when Kit can map the provider state.
 	State SandboxState `protobuf:"varint,12,opt,name=state,proto3,enum=kit.sandbox.v1.SandboxState" json:"state,omitempty"`
 	// reports that execution/resource lifecycle is permanently complete.
 	Terminal      *bool `protobuf:"varint,13,opt,name=terminal,proto3,oneof" json:"terminal,omitempty"`
@@ -2774,35 +2776,35 @@ func (x *SandboxInfo) GetTerminal() bool {
 	return false
 }
 
-// is the portable error detail. The native cause stays on the runtime error and is not serialized.
+// ErrorInfo is the portable error detail. The native cause stays on the runtime error and is not serialized.
 // Unknown classifications do not imply that a retry is safe.
 //
 // Example:
 //
-//	err := NewError(ErrorInfo{
-//	    Kind:    ErrorKindUnsupported,
-//	    Field:   CreateFieldResourcesDiskMiB,
+//	info := &ErrorInfo{
+//	    Kind:    ErrorKind_ERROR_KIND_UNSUPPORTED,
+//	    Field:   "resources.disk_mib",
 //	    Message: "disk overrides are unsupported",
-//	}, cause)
+//	}
 type ErrorInfo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the shared category, such as invalid argument or unsupported.
+	// The shared category, such as invalid argument or unsupported.
 	Kind ErrorKind `protobuf:"varint,1,opt,name=kind,proto3,enum=kit.sandbox.v1.ErrorKind" json:"kind,omitempty"`
-	// is the provider identifier, such as "modal" or "daytona". Empty when the failure is local.
+	// The provider identifier, such as "modal" or "daytona". Empty when the failure is local.
 	Provider string `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	// is the Kit operation, such as "create", "initialize", or "close".
+	// The Kit operation, such as "create", "initialize", or "close".
 	Operation string `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
-	// is the canonical field path involved, such as "resources.cpu_cores". Empty when no field applies.
+	// The canonical field path involved, such as "resources.cpu_cores". Empty when no field applies.
 	Field string `protobuf:"bytes,4,opt,name=field,proto3" json:"field,omitempty"`
-	// is the human-readable explanation.
+	// The human-readable explanation.
 	Message string `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
-	// is the native HTTP or transport status when the provider reported one.
+	// The native HTTP or transport status when the provider reported one.
 	StatusCode *uint32 `protobuf:"varint,6,opt,name=status_code,json=statusCode,proto3,oneof" json:"status_code,omitempty"`
-	// is the provider's own error code when one was reported.
+	// The provider's own error code when one was reported.
 	ProviderCode *string `protobuf:"bytes,7,opt,name=provider_code,json=providerCode,proto3,oneof" json:"provider_code,omitempty"`
-	// is the provider component that reported the error, when available.
+	// The provider component that reported the error, when available.
 	ProviderSource *string `protobuf:"bytes,8,opt,name=provider_source,json=providerSource,proto3,oneof" json:"provider_source,omitempty"`
-	// is a stable portable validation or policy rule identifier, when applicable.
+	// A stable portable validation or policy rule identifier, when applicable.
 	Rule          *string `protobuf:"bytes,9,opt,name=rule,proto3,oneof" json:"rule,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3081,10 +3083,10 @@ func (*MetadataValue_List) isMetadataValue_Value() {}
 
 func (*MetadataValue_Object) isMetadataValue_Value() {}
 
-// is an ordered list of metadata values.
+// MetadataList is an ordered list of metadata values.
 type MetadataList struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the list contents. An empty list is explicit.
+	// The list contents. An empty list is explicit.
 	Values        []*MetadataValue `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3127,10 +3129,10 @@ func (x *MetadataList) GetValues() []*MetadataValue {
 	return nil
 }
 
-// is a string-keyed metadata object. Go exposes this as map[string]any.
+// MetadataObject is a string-keyed metadata object. Go exposes this as map[string]any.
 type MetadataObject struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the object contents. An empty object is explicit.
+	// The object contents. An empty object is explicit.
 	Values        map[string]*MetadataValue `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3528,7 +3530,7 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\x16ERROR_KIND_UNAVAILABLE\x10\f\x12\x1f\n" +
 	"\x1bERROR_KIND_INVALID_RESPONSE\x10\r\x12\x17\n" +
 	"\x13ERROR_KIND_INTERNAL\x10\x0e\x12\"\n" +
-	"\x1eERROR_KIND_FAILED_PRECONDITION\x10\x0fB4Z2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
+	"\x1eERROR_KIND_FAILED_PRECONDITION\x10\x0fBGZEgithub.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
 
 var (
 	file_kit_sandbox_v1_sandbox_proto_rawDescOnce sync.Once

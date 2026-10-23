@@ -8,17 +8,16 @@
 package modal
 
 import (
-	_go "github.com/modal-labs/modal-client/go"
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
-	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
+	sdk "github.com/modal-labs/modal-client/go"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 // mapClientConfig maps shared client configuration into the native SDK
 // options. Unsupported supplied settings fail before the SDK is constructed.
-func mapClientConfig(config *sandboxv1.Config) (_go.ClientParams, error) {
-	var params _go.ClientParams
+func mapClientConfig(config *sandbox.Config) (sdk.ClientParams, error) {
+	var params sdk.ClientParams
 	if config == nil {
-		config = &sandboxv1.Config{}
+		config = &sandbox.Config{}
 	}
 	if config.Endpoint != nil {
 		return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldEndpoint, Message: "sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor"}, nil)

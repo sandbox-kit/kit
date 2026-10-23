@@ -9,7 +9,6 @@ package daytona
 
 import (
 	types "github.com/daytona/clients/sdk-go/pkg/types"
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -19,9 +18,9 @@ const defaultEndpoint = "https://app.daytona.io/api"
 // options. Unsupported supplied settings fail before the SDK is constructed.
 // Shared Config validation runs in sandbox.NewClient; this maps only.
 // An omitted endpoint uses defaultEndpoint.
-func mapClientConfig(config *sandboxv1.Config) (types.DaytonaConfig, error) {
+func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
 	if config == nil {
-		config = &sandboxv1.Config{}
+		config = &sandbox.Config{}
 	}
 	params, _, err := mapClientSettings(config)
 	if err != nil {

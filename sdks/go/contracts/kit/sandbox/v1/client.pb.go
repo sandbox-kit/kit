@@ -27,16 +27,16 @@ const (
 // is not part of this portable message.
 type Config struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is one credential alternative. Nil lets the native SDK resolve its own environment or profile.
+	// One credential alternative. Nil lets the native SDK resolve its own environment or profile.
 	Auth *AuthConfig `protobuf:"bytes,1,opt,name=auth,proto3" json:"auth,omitempty"`
-	// is the provider API URL where the integration supports an override.
+	// The provider API URL where the integration supports an override.
 	// HTTPS is required except for loopback HTTP; that secure_endpoint check stays handwritten.
 	Endpoint *string `protobuf:"bytes,2,opt,name=endpoint,proto3,oneof" json:"endpoint,omitempty"`
-	// is a region or target preference.
+	// A region or target preference.
 	Region *string `protobuf:"bytes,3,opt,name=region,proto3,oneof" json:"region,omitempty"`
-	// is the app, environment, organization, or project scope. JSON name is "context".
+	// The app, environment, organization, or project scope. JSON name is "context".
 	Scope *Scope `protobuf:"bytes,4,opt,name=scope,json=context,proto3" json:"scope,omitempty"`
-	// is the default Kit operation deadline. An explicit creation timeout overrides it.
+	// The default Kit operation deadline. An explicit creation timeout overrides it.
 	// Nil and explicit zero add no Kit deadline.
 	Timeout       *durationpb.Duration `protobuf:"bytes,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -108,12 +108,12 @@ func (x *Config) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
-// holds exactly one credential alternative. When AuthConfig itself is set, one
+// AuthConfig holds exactly one credential alternative. When AuthConfig itself is set, one
 // credential alternative is required. Omitting Config.auth still lets the
 // provider SDK resolve credentials from the environment or a profile.
 type AuthConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the selected credential.
+	// The selected credential.
 	//
 	// Types that are valid to be assigned to Credentials:
 	//
@@ -227,10 +227,10 @@ func (*AuthConfig_BearerToken) isAuthConfig_Credentials() {}
 
 func (*AuthConfig_OauthRefresh) isAuthConfig_Credentials() {}
 
-// is an API-key credential. Daytona uses Key.
+// APIKeyCredentials is an API-key credential. Daytona uses Key.
 type APIKeyCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the secret API key. It is excluded from generated JSON.
+	// The secret API key. It is excluded from generated JSON.
 	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -273,12 +273,12 @@ func (x *APIKeyCredentials) GetKey() string {
 	return ""
 }
 
-// is a token-id and token-secret pair. Modal uses both fields.
+// TokenPairCredentials is a token-id and token-secret pair. Modal uses both fields.
 type TokenPairCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the token identifier.
+	// The token identifier.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// is the token secret. It is excluded from generated JSON.
+	// The token secret. It is excluded from generated JSON.
 	Secret        string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -328,10 +328,10 @@ func (x *TokenPairCredentials) GetSecret() string {
 	return ""
 }
 
-// is a bearer or JWT credential. Daytona also requires an organization.
+// BearerTokenCredentials is a bearer or JWT credential. Daytona also requires an organization.
 type BearerTokenCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the bearer token. It is excluded from generated JSON.
+	// The bearer token. It is excluded from generated JSON.
 	Token         string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -374,16 +374,16 @@ func (x *BearerTokenCredentials) GetToken() string {
 	return ""
 }
 
-// is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
+// OAuthCredentials is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
 type OAuthCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the refresh token. It is excluded from generated JSON.
+	// The refresh token. It is excluded from generated JSON.
 	RefreshToken string `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	// is the OAuth client identifier.
+	// The OAuth client identifier.
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	// is one client secret. Do not set this together with JWTKey.
+	// One client secret. Do not set this together with JWTKey.
 	ClientSecret *string `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3,oneof" json:"client_secret,omitempty"`
-	// is one JWT signing key. Do not set this together with ClientSecret.
+	// One JWT signing key. Do not set this together with ClientSecret.
 	JwtKey        *string `protobuf:"bytes,4,opt,name=jwt_key,json=jwtKey,proto3,oneof" json:"jwt_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -447,16 +447,16 @@ func (x *OAuthCredentials) GetJwtKey() string {
 	return ""
 }
 
-// names the provider scope. Each provider accepts a subset of these fields.
+// Scope names the provider scope. Each provider accepts a subset of these fields.
 type Scope struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// is the Modal app name. The app must already exist.
+	// The Modal app name. The app must already exist.
 	AppName *string `protobuf:"bytes,1,opt,name=app_name,json=appName,proto3,oneof" json:"app_name,omitempty"`
-	// is the Modal environment. The example default is "main".
+	// The Modal environment. The example default is "main".
 	Environment *string `protobuf:"bytes,2,opt,name=environment,proto3,oneof" json:"environment,omitempty"`
-	// is the Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
+	// The Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
 	OrganizationId *string `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
-	// is reserved for providers that scope work to a project. Current providers reject it when supplied.
+	// Reserved for providers that scope work to a project. Current providers reject it when supplied.
 	ProjectId     *string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3,oneof" json:"project_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -581,7 +581,7 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\t_app_nameB\x0e\n" +
 	"\f_environmentB\x12\n" +
 	"\x10_organization_idB\r\n" +
-	"\v_project_idB4Z2github.com/sandbox-kit/kit/sdks/go/sandbox;sandboxb\x06proto3"
+	"\v_project_idBGZEgithub.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
 
 var (
 	file_kit_sandbox_v1_client_proto_rawDescOnce sync.Once

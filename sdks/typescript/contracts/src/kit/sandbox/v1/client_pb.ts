@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kit/sandbox/v1/client.proto.
  */
 export const file_kit_sandbox_v1_client: GenFile = /*@__PURE__*/
-  fileDesc("ChtraXQvc2FuZGJveC92MS9jbGllbnQucHJvdG8SDmtpdC5zYW5kYm94LnYxIssCCgZDb25maWcSKAoEYXV0aBgBIAEoCzIaLmtpdC5zYW5kYm94LnYxLkF1dGhDb25maWcSTQoIZW5kcG9pbnQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gAiAEBEksKBnJlZ2lvbhgDIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAGIAQESLQoFc2NvcGUYBCABKAsyFS5raXQuc2FuZGJveC52MS5TY29wZVIHY29udGV4dBI0Cgd0aW1lb3V0GAUgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgi6SAWqAQIyAEILCglfZW5kcG9pbnRCCQoHX3JlZ2lvbiLCAwoKQXV0aENvbmZpZxI0CgdhcGlfa2V5GAEgASgLMiEua2l0LnNhbmRib3gudjEuQVBJS2V5Q3JlZGVudGlhbHNIABI6Cgp0b2tlbl9wYWlyGAIgASgLMiQua2l0LnNhbmRib3gudjEuVG9rZW5QYWlyQ3JlZGVudGlhbHNIABI+CgxiZWFyZXJfdG9rZW4YAyABKAsyJi5raXQuc2FuZGJveC52MS5CZWFyZXJUb2tlbkNyZWRlbnRpYWxzSAASOQoNb2F1dGhfcmVmcmVzaBgEIAEoCzIgLmtpdC5zYW5kYm94LnYxLk9BdXRoQ3JlZGVudGlhbHNIADq3AbpIswEasAEKGWF1dGhfY3JlZGVudGlhbHNfcmVxdWlyZWQSM2F1dGggY3JlZGVudGlhbHMgYXJlIHJlcXVpcmVkIHdoZW4gYXV0aCBpcyBzdXBwbGllZBpeaGFzKHRoaXMuYXBpX2tleSkgfHwgaGFzKHRoaXMudG9rZW5fcGFpcikgfHwgaGFzKHRoaXMuYmVhcmVyX3Rva2VuKSB8fCBoYXModGhpcy5vYXV0aF9yZWZyZXNoKUINCgtjcmVkZW50aWFscyJYChFBUElLZXlDcmVkZW50aWFscxJDCgNrZXkYASABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJyKiAQoUVG9rZW5QYWlyQ3JlZGVudGlhbHMSQgoCaWQYASABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJxJGCgZzZWNyZXQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJyJfChZCZWFyZXJUb2tlbkNyZWRlbnRpYWxzEkUKBXRva2VuGAEgASgJQja6SDO6ATAKCG5vbmJsYW5rEhFtdXN0IG5vdCBiZSBibGFuaxoRdGhpcy50cmltKCkgIT0gJyci3gMKEE9BdXRoQ3JlZGVudGlhbHMSTQoNcmVmcmVzaF90b2tlbhgBIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnEkkKCWNsaWVudF9pZBgCIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnElIKDWNsaWVudF9zZWNyZXQYAyABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gAiAEBEkwKB2p3dF9rZXkYBCABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gBiAEBOnC6SG0aawoLZXhhY3RseV9vbmUSLnJlcXVpcmVzIGV4YWN0bHkgb25lIG9mIGNsaWVudF9zZWNyZXQsIGp3dF9rZXkaLGhhcyh0aGlzLmNsaWVudF9zZWNyZXQpICE9IGhhcyh0aGlzLmp3dF9rZXkpQhAKDl9jbGllbnRfc2VjcmV0QgoKCF9qd3Rfa2V5Io8DCgVTY29wZRJNCghhcHBfbmFtZRgBIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSACIAQESUAoLZW52aXJvbm1lbnQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gBiAEBElQKD29yZ2FuaXphdGlvbl9pZBgDIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAKIAQESTwoKcHJvamVjdF9pZBgEIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAOIAQFCCwoJX2FwcF9uYW1lQg4KDF9lbnZpcm9ubWVudEISChBfb3JnYW5pemF0aW9uX2lkQg0KC19wcm9qZWN0X2lkQjRaMmdpdGh1Yi5jb20vc2FuZGJveC1raXQva2l0L3Nka3MvZ28vc2FuZGJveDtzYW5kYm94YgZwcm90bzM", [file_buf_validate_validate, file_google_protobuf_duration]);
+  fileDesc("ChtraXQvc2FuZGJveC92MS9jbGllbnQucHJvdG8SDmtpdC5zYW5kYm94LnYxIssCCgZDb25maWcSKAoEYXV0aBgBIAEoCzIaLmtpdC5zYW5kYm94LnYxLkF1dGhDb25maWcSTQoIZW5kcG9pbnQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gAiAEBEksKBnJlZ2lvbhgDIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAGIAQESLQoFc2NvcGUYBCABKAsyFS5raXQuc2FuZGJveC52MS5TY29wZVIHY29udGV4dBI0Cgd0aW1lb3V0GAUgASgLMhkuZ29vZ2xlLnByb3RvYnVmLkR1cmF0aW9uQgi6SAWqAQIyAEILCglfZW5kcG9pbnRCCQoHX3JlZ2lvbiLCAwoKQXV0aENvbmZpZxI0CgdhcGlfa2V5GAEgASgLMiEua2l0LnNhbmRib3gudjEuQVBJS2V5Q3JlZGVudGlhbHNIABI6Cgp0b2tlbl9wYWlyGAIgASgLMiQua2l0LnNhbmRib3gudjEuVG9rZW5QYWlyQ3JlZGVudGlhbHNIABI+CgxiZWFyZXJfdG9rZW4YAyABKAsyJi5raXQuc2FuZGJveC52MS5CZWFyZXJUb2tlbkNyZWRlbnRpYWxzSAASOQoNb2F1dGhfcmVmcmVzaBgEIAEoCzIgLmtpdC5zYW5kYm94LnYxLk9BdXRoQ3JlZGVudGlhbHNIADq3AbpIswEasAEKGWF1dGhfY3JlZGVudGlhbHNfcmVxdWlyZWQSM2F1dGggY3JlZGVudGlhbHMgYXJlIHJlcXVpcmVkIHdoZW4gYXV0aCBpcyBzdXBwbGllZBpeaGFzKHRoaXMuYXBpX2tleSkgfHwgaGFzKHRoaXMudG9rZW5fcGFpcikgfHwgaGFzKHRoaXMuYmVhcmVyX3Rva2VuKSB8fCBoYXModGhpcy5vYXV0aF9yZWZyZXNoKUINCgtjcmVkZW50aWFscyJYChFBUElLZXlDcmVkZW50aWFscxJDCgNrZXkYASABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJyKiAQoUVG9rZW5QYWlyQ3JlZGVudGlhbHMSQgoCaWQYASABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJxJGCgZzZWNyZXQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJyJfChZCZWFyZXJUb2tlbkNyZWRlbnRpYWxzEkUKBXRva2VuGAEgASgJQja6SDO6ATAKCG5vbmJsYW5rEhFtdXN0IG5vdCBiZSBibGFuaxoRdGhpcy50cmltKCkgIT0gJyci3gMKEE9BdXRoQ3JlZGVudGlhbHMSTQoNcmVmcmVzaF90b2tlbhgBIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnEkkKCWNsaWVudF9pZBgCIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnElIKDWNsaWVudF9zZWNyZXQYAyABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gAiAEBEkwKB2p3dF9rZXkYBCABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gBiAEBOnC6SG0aawoLZXhhY3RseV9vbmUSLnJlcXVpcmVzIGV4YWN0bHkgb25lIG9mIGNsaWVudF9zZWNyZXQsIGp3dF9rZXkaLGhhcyh0aGlzLmNsaWVudF9zZWNyZXQpICE9IGhhcyh0aGlzLmp3dF9rZXkpQhAKDl9jbGllbnRfc2VjcmV0QgoKCF9qd3Rfa2V5Io8DCgVTY29wZRJNCghhcHBfbmFtZRgBIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSACIAQESUAoLZW52aXJvbm1lbnQYAiABKAlCNrpIM7oBMAoIbm9uYmxhbmsSEW11c3Qgbm90IGJlIGJsYW5rGhF0aGlzLnRyaW0oKSAhPSAnJ0gBiAEBElQKD29yZ2FuaXphdGlvbl9pZBgDIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAKIAQESTwoKcHJvamVjdF9pZBgEIAEoCUI2ukgzugEwCghub25ibGFuaxIRbXVzdCBub3QgYmUgYmxhbmsaEXRoaXMudHJpbSgpICE9ICcnSAOIAQFCCwoJX2FwcF9uYW1lQg4KDF9lbnZpcm9ubWVudEISChBfb3JnYW5pemF0aW9uX2lkQg0KC19wcm9qZWN0X2lkQkdaRWdpdGh1Yi5jb20vc2FuZGJveC1raXQva2l0L3Nka3MvZ28vY29udHJhY3RzL2tpdC9zYW5kYm94L3YxO3NhbmRib3h2MWIGcHJvdG8z", [file_buf_validate_validate, file_google_protobuf_duration]);
 
 /**
  * Shared client configuration. Provider selection is a language SDK concern and
@@ -23,14 +23,14 @@ export const file_kit_sandbox_v1_client: GenFile = /*@__PURE__*/
  */
 export type Config = Message<"kit.sandbox.v1.Config"> & {
   /**
-   * is one credential alternative. Nil lets the native SDK resolve its own environment or profile.
+   * One credential alternative. Nil lets the native SDK resolve its own environment or profile.
    *
    * @generated from field: kit.sandbox.v1.AuthConfig auth = 1;
    */
   auth?: AuthConfig | undefined;
 
   /**
-   * is the provider API URL where the integration supports an override.
+   * The provider API URL where the integration supports an override.
    * HTTPS is required except for loopback HTTP; that secure_endpoint check stays handwritten.
    *
    * @generated from field: optional string endpoint = 2;
@@ -38,21 +38,21 @@ export type Config = Message<"kit.sandbox.v1.Config"> & {
   endpoint?: string | undefined;
 
   /**
-   * is a region or target preference.
+   * A region or target preference.
    *
    * @generated from field: optional string region = 3;
    */
   region?: string | undefined;
 
   /**
-   * is the app, environment, organization, or project scope. JSON name is "context".
+   * The app, environment, organization, or project scope. JSON name is "context".
    *
    * @generated from field: kit.sandbox.v1.Scope scope = 4 [json_name = "context"];
    */
   scope?: Scope | undefined;
 
   /**
-   * is the default Kit operation deadline. An explicit creation timeout overrides it.
+   * The default Kit operation deadline. An explicit creation timeout overrides it.
    * Nil and explicit zero add no Kit deadline.
    *
    * @generated from field: google.protobuf.Duration timeout = 5;
@@ -68,7 +68,7 @@ export const ConfigSchema: GenMessage<Config> = /*@__PURE__*/
   messageDesc(file_kit_sandbox_v1_client, 0);
 
 /**
- * holds exactly one credential alternative. When AuthConfig itself is set, one
+ * AuthConfig holds exactly one credential alternative. When AuthConfig itself is set, one
  * credential alternative is required. Omitting Config.auth still lets the
  * provider SDK resolve credentials from the environment or a profile.
  *
@@ -76,7 +76,7 @@ export const ConfigSchema: GenMessage<Config> = /*@__PURE__*/
  */
 export type AuthConfig = Message<"kit.sandbox.v1.AuthConfig"> & {
   /**
-   * is the selected credential.
+   * The selected credential.
    *
    * @generated from oneof kit.sandbox.v1.AuthConfig.credentials
    */
@@ -115,13 +115,13 @@ export const AuthConfigSchema: GenMessage<AuthConfig> = /*@__PURE__*/
   messageDesc(file_kit_sandbox_v1_client, 1);
 
 /**
- * is an API-key credential. Daytona uses Key.
+ * APIKeyCredentials is an API-key credential. Daytona uses Key.
  *
  * @generated from message kit.sandbox.v1.APIKeyCredentials
  */
 export type APIKeyCredentials = Message<"kit.sandbox.v1.APIKeyCredentials"> & {
   /**
-   * is the secret API key. It is excluded from generated JSON.
+   * The secret API key. It is excluded from generated JSON.
    *
    * @generated from field: string key = 1;
    */
@@ -136,20 +136,20 @@ export const APIKeyCredentialsSchema: GenMessage<APIKeyCredentials> = /*@__PURE_
   messageDesc(file_kit_sandbox_v1_client, 2);
 
 /**
- * is a token-id and token-secret pair. Modal uses both fields.
+ * TokenPairCredentials is a token-id and token-secret pair. Modal uses both fields.
  *
  * @generated from message kit.sandbox.v1.TokenPairCredentials
  */
 export type TokenPairCredentials = Message<"kit.sandbox.v1.TokenPairCredentials"> & {
   /**
-   * is the token identifier.
+   * The token identifier.
    *
    * @generated from field: string id = 1;
    */
   id: string;
 
   /**
-   * is the token secret. It is excluded from generated JSON.
+   * The token secret. It is excluded from generated JSON.
    *
    * @generated from field: string secret = 2;
    */
@@ -164,13 +164,13 @@ export const TokenPairCredentialsSchema: GenMessage<TokenPairCredentials> = /*@_
   messageDesc(file_kit_sandbox_v1_client, 3);
 
 /**
- * is a bearer or JWT credential. Daytona also requires an organization.
+ * BearerTokenCredentials is a bearer or JWT credential. Daytona also requires an organization.
  *
  * @generated from message kit.sandbox.v1.BearerTokenCredentials
  */
 export type BearerTokenCredentials = Message<"kit.sandbox.v1.BearerTokenCredentials"> & {
   /**
-   * is the bearer token. It is excluded from generated JSON.
+   * The bearer token. It is excluded from generated JSON.
    *
    * @generated from field: string token = 1;
    */
@@ -185,34 +185,34 @@ export const BearerTokenCredentialsSchema: GenMessage<BearerTokenCredentials> = 
   messageDesc(file_kit_sandbox_v1_client, 4);
 
 /**
- * is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
+ * OAuthCredentials is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
  *
  * @generated from message kit.sandbox.v1.OAuthCredentials
  */
 export type OAuthCredentials = Message<"kit.sandbox.v1.OAuthCredentials"> & {
   /**
-   * is the refresh token. It is excluded from generated JSON.
+   * The refresh token. It is excluded from generated JSON.
    *
    * @generated from field: string refresh_token = 1;
    */
   refreshToken: string;
 
   /**
-   * is the OAuth client identifier.
+   * The OAuth client identifier.
    *
    * @generated from field: string client_id = 2;
    */
   clientId: string;
 
   /**
-   * is one client secret. Do not set this together with JWTKey.
+   * One client secret. Do not set this together with JWTKey.
    *
    * @generated from field: optional string client_secret = 3;
    */
   clientSecret?: string | undefined;
 
   /**
-   * is one JWT signing key. Do not set this together with ClientSecret.
+   * One JWT signing key. Do not set this together with ClientSecret.
    *
    * @generated from field: optional string jwt_key = 4;
    */
@@ -227,34 +227,34 @@ export const OAuthCredentialsSchema: GenMessage<OAuthCredentials> = /*@__PURE__*
   messageDesc(file_kit_sandbox_v1_client, 5);
 
 /**
- * names the provider scope. Each provider accepts a subset of these fields.
+ * Scope names the provider scope. Each provider accepts a subset of these fields.
  *
  * @generated from message kit.sandbox.v1.Scope
  */
 export type Scope = Message<"kit.sandbox.v1.Scope"> & {
   /**
-   * is the Modal app name. The app must already exist.
+   * The Modal app name. The app must already exist.
    *
    * @generated from field: optional string app_name = 1;
    */
   appName?: string | undefined;
 
   /**
-   * is the Modal environment. The example default is "main".
+   * The Modal environment. The example default is "main".
    *
    * @generated from field: optional string environment = 2;
    */
   environment?: string | undefined;
 
   /**
-   * is the Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
+   * The Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
    *
    * @generated from field: optional string organization_id = 3;
    */
   organizationId?: string | undefined;
 
   /**
-   * is reserved for providers that scope work to a project. Current providers reject it when supplied.
+   * Reserved for providers that scope work to a project. Current providers reject it when supplied.
    *
    * @generated from field: optional string project_id = 4;
    */

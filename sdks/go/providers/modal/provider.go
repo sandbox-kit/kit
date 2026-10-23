@@ -8,11 +8,11 @@
 package modal
 
 import (
-	context "context"
+	"context"
 
-	_go "github.com/modal-labs/modal-client/go"
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
-	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
+	sdk "github.com/modal-labs/modal-client/go"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+	"google.golang.org/protobuf/proto"
 )
 
 // Provider initializes the provider SDK from shared configuration.
@@ -23,10 +23,10 @@ type Provider struct {
 type backend struct {
 	// client is the initialized native SDK client. It is not part of the public
 	// sandbox API.
-	client *_go.Client
+	client *sdk.Client
 	// scope is the captured app and environment. Later changes to Config do not
 	// affect it.
-	scope *sandboxv1.Scope
+	scope *sandbox.Scope
 	// region is the captured default region preference. Nil means the caller
 	// omitted it.
 	region *string
@@ -58,22 +58,22 @@ func (*backend) Name() string {
 // Example:
 //
 //	backend, err := New().NewClient(config)
-func (*Provider) NewClient(config *sandboxv1.Config) (sandbox.Backend, error) {
+func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
 	backend, err := newBackend(config)
 	return backend, mapProviderError(err, "initialize")
 }
 
 // newBackend maps config, constructs the native SDK, and captures provider
 // state before returning the backend.
-func newBackend(config *sandboxv1.Config) (sandbox.Backend, error) {
+func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
 	if config == nil {
-		config = &sandboxv1.Config{}
+		config = &sandbox.Config{}
 	}
 	params, err := mapClientConfig(config)
 	if err != nil {
 		return nil, err
 	}
-	native, err := _go.NewClientWithOptions(&params)
+	native, err := sdk.NewClientWithOptions(&params)
 	if err != nil {
 		return nil, err
 	}
@@ -84,28 +84,12 @@ func newBackend(config *sandboxv1.Config) (sandbox.Backend, error) {
 
 // captureBackendState copies retained configuration onto the backend. Later
 // changes to the caller config do not affect the copy.
-func captureBackendState(result *backend, config *sandboxv1.Config) {
+func captureBackendState(result *backend, config *sandbox.Config) {
 	if config == nil {
 		return
 	}
 	if config.Scope != nil {
-		result.scope = &sandboxv1.Scope{}
-		if config.Scope.AppName != nil {
-			value := *config.Scope.AppName
-			result.scope.AppName = &value
-		}
-		if config.Scope.Environment != nil {
-			value := *config.Scope.Environment
-			result.scope.Environment = &value
-		}
-		if config.Scope.OrganizationId != nil {
-			value := *config.Scope.OrganizationId
-			result.scope.OrganizationId = &value
-		}
-		if config.Scope.ProjectId != nil {
-			value := *config.Scope.ProjectId
-			result.scope.ProjectId = &value
-		}
+		result.scope = proto.Clone(config.Scope).(*sandbox.Scope)
 	}
 	if config.Region != nil {
 		value := *config.Region

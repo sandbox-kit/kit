@@ -1,10 +1,9 @@
 // Provider field mappings between shared CreateOptions/Config and the native SDK.
 // Inventoried in specs/providers/modal.yaml groups; kept in sync by hand (not emitted).
-//
 package modal
 
 import (
-	_go "github.com/modal-labs/modal-client/go"
+	sdk "github.com/modal-labs/modal-client/go"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	math "math"
 	time "time"
@@ -12,7 +11,7 @@ import (
 
 // mapSandboxIdentity maps native fields for mapSandboxIdentity into shared
 // metadata. It does not invent values the SDK omitted.
-func mapSandboxIdentity(source *_go.Sandbox) (sandbox.SandboxInfo, error) {
+func mapSandboxIdentity(source *sdk.Sandbox) (sandbox.SandboxInfo, error) {
 	target := sandbox.SandboxInfo{}
 	if source == nil {
 		return target, nil
@@ -29,8 +28,8 @@ func mapSandboxIdentity(source *_go.Sandbox) (sandbox.SandboxInfo, error) {
 
 // mapClientScope maps supplied fields for mapClientScope into the native
 // request and returns the fields that were not mapped.
-func mapClientScope(source *sandbox.Scope) (_go.ClientParams, sandbox.Scope, error) {
-	target := _go.ClientParams{}
+func mapClientScope(source *sandbox.Scope) (sdk.ClientParams, sandbox.Scope, error) {
+	target := sdk.ClientParams{}
 	remaining := sandbox.Scope{}
 	if source != nil {
 		remaining = *source
@@ -50,8 +49,8 @@ func mapClientScope(source *sandbox.Scope) (_go.ClientParams, sandbox.Scope, err
 
 // mapCommonCreateFields maps supplied fields for mapCommonCreateFields into
 // the native request and returns the fields that were not mapped.
-func mapCommonCreateFields(source *sandbox.CreateOptions) (_go.SandboxCreateParams, sandbox.CreateOptions, error) {
-	target := _go.SandboxCreateParams{}
+func mapCommonCreateFields(source *sandbox.CreateOptions) (sdk.SandboxCreateParams, sandbox.CreateOptions, error) {
+	target := sdk.SandboxCreateParams{}
 	remaining := sandbox.CreateOptions{}
 	if source != nil {
 		remaining = *source
@@ -81,8 +80,8 @@ func mapCommonCreateFields(source *sandbox.CreateOptions) (_go.SandboxCreatePara
 
 // mapResources maps supplied fields for mapResources into the native request
 // and returns the fields that were not mapped.
-func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.Resources, error) {
-	target := _go.SandboxCreateParams{}
+func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.Resources, error) {
+	target := sdk.SandboxCreateParams{}
 	remaining := sandbox.Resources{}
 	if source != nil {
 		remaining = *source
@@ -143,8 +142,8 @@ func mapResources(source *sandbox.Resources) (_go.SandboxCreateParams, sandbox.R
 
 // mapLifetimeDuration maps supplied fields for mapLifetimeDuration into the
 // native request and returns the fields that were not mapped.
-func mapLifetimeDuration(source *sandbox.LifetimePolicy) (_go.SandboxCreateParams, sandbox.LifetimePolicy, error) {
-	target := _go.SandboxCreateParams{}
+func mapLifetimeDuration(source *sandbox.LifetimePolicy) (sdk.SandboxCreateParams, sandbox.LifetimePolicy, error) {
+	target := sdk.SandboxCreateParams{}
 	remaining := sandbox.LifetimePolicy{}
 	if source != nil {
 		remaining = *source
@@ -167,8 +166,8 @@ func mapLifetimeDuration(source *sandbox.LifetimePolicy) (_go.SandboxCreateParam
 
 // mapIdleDuration maps supplied fields for mapIdleDuration into the native
 // request and returns the fields that were not mapped.
-func mapIdleDuration(source *sandbox.AutomaticAction) (_go.SandboxCreateParams, sandbox.AutomaticAction, error) {
-	target := _go.SandboxCreateParams{}
+func mapIdleDuration(source *sandbox.AutomaticAction) (sdk.SandboxCreateParams, sandbox.AutomaticAction, error) {
+	target := sdk.SandboxCreateParams{}
 	remaining := sandbox.AutomaticAction{}
 	if source != nil {
 		remaining = *source
@@ -191,8 +190,8 @@ func mapIdleDuration(source *sandbox.AutomaticAction) (_go.SandboxCreateParams, 
 
 // mapTokenPairCredentials maps supplied fields for mapTokenPairCredentials
 // into the native request and returns the fields that were not mapped.
-func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (_go.ClientParams, sandbox.TokenPairCredentials, error) {
-	target := _go.ClientParams{}
+func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (sdk.ClientParams, sandbox.TokenPairCredentials, error) {
+	target := sdk.ClientParams{}
 	remaining := sandbox.TokenPairCredentials{}
 	if source != nil {
 		remaining = *source
@@ -215,8 +214,8 @@ func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (_go.ClientPa
 
 // mapOAuthAuth maps supplied fields for mapOAuthAuth into the native request
 // and returns the fields that were not mapped.
-func mapOAuthAuth(source *sandbox.OAuthCredentials) (_go.OAuthCredentialsParams, sandbox.OAuthCredentials, error) {
-	target := _go.OAuthCredentialsParams{}
+func mapOAuthAuth(source *sandbox.OAuthCredentials) (sdk.OAuthCredentialsParams, sandbox.OAuthCredentials, error) {
+	target := sdk.OAuthCredentialsParams{}
 	remaining := sandbox.OAuthCredentials{}
 	if source != nil {
 		remaining = *source
