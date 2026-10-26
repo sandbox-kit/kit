@@ -1,0 +1,208 @@
+commit and push to this branch and update the PR description for this change. 
+
+after that there will be similar issues with go-sdks around concurrency mutex plz find out and fix it
+
+---
+
+any change required again ?
+
+---
+
+fix the design patterns, namings of everything
+
+plz don't change anything within protobufs
+
+---
+
+fix the design patterns, namings of everything in go sdk.
+
+you are design patterns god in golang. u really know how to use proper design pattern and whcih pattern to use instead of creating just functions.
+
+plz don't change anything within protobufs
+
+---
+
+look more o f the code of golang sdk and apply more design patterns to make code very lean. 
+
++ u can also create new folders and files to have better seperation of concern
+
+---
+
+cool can u commit and push to this branch. update desctipion of Pr too.
+
+---
+
+update the PR title
+
+---
+
+install go examples dependency as well as go sdk dependency + also run generate for go
+
+---
+
+can u check go example
+
+the only thing which looks weird is this -> Entires: []string{""}
+
+can u check if there is a way to iimprove else Ig other thing looks good. 
+
+what do u think
+
+---
+
+apart from AllowList constructor ?
+
+---
+
+should we write contracts by hand ? for client ? but then it won't make sense. ? for protobuf
+
+---
+
+can't we by chance make []string{} input allow ? insteald of stringallowlist and all
+
+---
+
+now whats left before publishing this ?
+
+---
+
+can u check if sdks version of provider matches with typescript ?
+
+---
+
+can u check if new version for go-sdk for both providers whcih are matching typscript is avialable if yes install it and then make the changes which needs to be done if there are breaking changes
+
+or any thing which is added to sdk which needs change to our sdk .
+
+---
+
+cool can u again commit and push to this branch only.
+
+---
+
+there are still issue
+
+i think sandboxv1 and all those stuff shouldn't be allowed to import on examples right ? 
+
+CreateField... and all plz check there are things whcih we are able to import ? 
+
+it is that because those are dependency in go it allows to import ?
+
+---
+
+fix this
+
+---
+
+@examples/go/daytona/archive-daytona-sandbox/main.go:20 check here what all is possible and can be write by sandbox.
+
+
+i just want u to check if there is anything which shouldn't be exposed still shouldn't
+
+---
+
+can we make them small letter case ? so even tho it gets exported user can't write it ?
+
+---
+
+does this mean I have to also publish support module ?
+
+---
+
+support is really not a great name is there better name ?
+
+---
+
+what about helper ?
+
+---
+
+okay do it
+
+---
+
+so there are methods and types and things which is basically having same problem in typescript too ? 
+
+there are still things in typescript which user doesn't need but provider needs. and each provider needs same thing.
+
+---
+
+regardless can u commit and push this to current branch
+
+---
+
+also update descritpion of PR
+
+---
+
+do we need sdk like pakcage in typescript aswell ?
+
+---
+
+ConfigFieldRegion
+
+and all this are still accessivle ?
+
+---
+
+sandbox.ConfigFieldRegion
+
+?? where they will use ?
+
+---
+
+InfoFIeldState where all this would be used ?
+
+---
+
+ValidateConfig, ValidateCreateOptions wher e they will be use ?
+
+---
+
+we should not expose this ?
+
+---
+
+cool cool 
+
+can u check the reference sdk docs which i provided to u in this chat or in other chat  - go-sdk of Modal and Daytona
+
+check if there are things around validation, mapping, optoins to create with and havd lifecycle methods we are missing and doing it wrong rn
+
+---
+
+so means no changes required right
+
+---
+
+I'm curious should we use validation library in go and typescript where we are currently checking with if else ?
+
+will that make things easier ?
+
+---
+
+can u open up a issue and write down steps on publishing / updating sdk to package managers.
+
+i think typescript file is also changed so that also needs to update
+
+write down whole steps in descrition. includinghaving diagrams of how code is changed in go-sdks.
+
+---
+
+not sure why this go.work.sum ?
+
+---
+
+check things if anything is wrong or mistake ? 
+
+else install dependency of typescript sdks and its example as well as go sdks and its example
+
+---
+
+go.work leaves out 14 Go example modules, including the KVM, labels, network, secrets, and TTL Daytona examples and the ports, allowlists, and timeout Modal examples. Each of those still has its own go.mod, and their dependencies downloaded with the rest.
+
+why ?
+
+---
+
+but fix it
