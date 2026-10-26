@@ -12,13 +12,13 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 		provider = c.backend.Name()
 	}
 	if ctx == nil {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if c == nil || c.backend == nil {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
 	release, err := c.beginOperation(operation)
 	if err != nil {
@@ -26,7 +26,7 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	}
 	defer release()
 	if strings.TrimSpace(id) == "" {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: sandbox ID is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
 	operationContext, cancel := ctx, func() {}
 	if c.timeout != nil && *c.timeout > 0 {
@@ -58,12 +58,12 @@ func (c *Client) beginOperation(operation string) (func(), error) {
 		provider = c.backend.Name()
 	}
 	if c == nil || c.lifecycle == nil {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
 	c.lifecycle.mu.RLock()
 	if c.lifecycle.closed {
 		c.lifecycle.mu.RUnlock()
-		return nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is closed"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is closed"}, nil)
 	}
 	return c.lifecycle.mu.RUnlock, nil
 }

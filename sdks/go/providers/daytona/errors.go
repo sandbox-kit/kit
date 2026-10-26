@@ -87,5 +87,5 @@ func mapProviderError(err error, operation string) error {
 			}
 		}
 	}
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: kind, Provider: "daytona", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: kind, Provider: "daytona", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
 }

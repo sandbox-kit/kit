@@ -87,7 +87,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		return nil, err
 	}
 	if instance == nil {
-		return nil, sandbox.NewError(sandbox.ErrorInfo{
+		return nil, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidResponse,
 			Provider:  "modal",
 			Operation: "create",
@@ -117,7 +117,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	if info.Labels != nil {
 		info.Origins["labels"] = sandbox.ValueOriginRequest
 	}
-	return &sandbox.CreateResult{Sandbox: &info}, nil
+	return &sandbox.CreateResult{Sandbox: info}, nil
 }
 
 // AttachSandbox constructs a Modal handle from an ID. Modal FromID performs no
@@ -131,7 +131,7 @@ func (a *backend) AttachSandbox(ctx context.Context, id string) (*sandbox.Sandbo
 	if err != nil {
 		return nil, err
 	}
-	return &info, nil
+	return info, nil
 }
 
 // TerminateSandbox permanently finishes a Modal sandbox execution.
@@ -148,7 +148,7 @@ func (a *backend) TerminateSandbox(ctx context.Context, id string, options *sand
 	result := &sandbox.ExitResult{}
 	if wait {
 		if code < math.MinInt32 || code > math.MaxInt32 {
-			return nil, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "modal", Operation: "terminate", Field: "exit_code", Message: "sandbox-kit modal: exit code exceeds the shared int32 range"}, nil)
+			return nil, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "modal", Operation: "terminate", Field: "exit_code", Message: "sandbox-kit modal: exit code exceeds the shared int32 range"}, nil)
 		}
 		result.ExitCode = sandbox.Value(int32(code))
 	}
@@ -169,7 +169,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 	plan.params = params
 	// Modal's API requires app and image; no image or app defaults are invented.
 	if scope.GetAppName() == "" {
-		return plan, sandbox.NewError(sandbox.ErrorInfo{
+		return plan, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidArgument,
 			Provider:  "modal",
 			Operation: "create",
@@ -184,7 +184,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 	}
 	image := request.GetSource().GetImage()
 	if image == nil {
-		return plan, sandbox.NewError(sandbox.ErrorInfo{
+		return plan, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindUnsupported,
 			Provider:  "modal",
 			Operation: "create",
@@ -195,18 +195,18 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 	plan.image = image.Reference
 	rest.Source = nil
 	if request.Runtime != nil {
-		config := *request.Runtime
+		config := cloneMessage(request.Runtime)
 		plan.params.Workdir = config.GetWorkingDirectory()
 		plan.params.Command = config.Entrypoint
 		plan.params.PTY = config.GetPty()
 		config.WorkingDirectory, config.Entrypoint, config.Pty = nil, nil, nil
-		if err := sandbox.RejectUnmapped("modal runtime (language must come from image)", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal runtime (language must come from image)", config); err != nil {
 			return plan, err
 		}
 		rest.Runtime = nil
 	}
 	if request.Isolation != nil {
-		config := *request.Isolation
+		config := cloneMessage(request.Isolation)
 		switch config.Kind {
 		case sandbox.IsolationKindDefault:
 		case sandbox.IsolationKindLinuxVM:
@@ -214,7 +214,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		case sandbox.IsolationKindContainer:
 			plan.params.Runtime = sdk.SandboxRuntimeGVisor
 		default:
-			return plan, sandbox.NewError(sandbox.ErrorInfo{
+			return plan, sandbox.NewError(&sandbox.ErrorInfo{
 				Kind:      sandbox.ErrorKindUnsupported,
 				Provider:  "modal",
 				Operation: "create",
@@ -223,7 +223,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			}, nil)
 		}
 		config.Kind = 0
-		if err := sandbox.RejectUnmapped("modal isolation", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal isolation", config); err != nil {
 			return plan, err
 		}
 		rest.Isolation = nil
@@ -233,7 +233,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		if err != nil {
 			return plan, err
 		}
-		if err := sandbox.RejectUnmapped("modal resources", &remaining); err != nil {
+		if err := sandbox.RejectUnmapped("modal resources", remaining); err != nil {
 			return plan, err
 		}
 		plan.params.CPU, plan.params.CPULimit = resources.CPU, resources.CPULimit
@@ -241,27 +241,27 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		rest.Resources = nil
 	}
 	if request.Placement != nil {
-		config := *request.Placement
+		config := cloneMessage(request.Placement)
 		plan.params.Cloud = config.GetCloud()
 		if config.Regions != nil {
 			plan.params.Regions = config.Regions
 		}
 		config.Cloud, config.Regions = nil, nil
-		if err := sandbox.RejectUnmapped("modal placement", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal placement", config); err != nil {
 			return plan, err
 		}
 		rest.Placement = nil
 	}
-	if err := planCreateNetwork(request, &plan, &rest); err != nil {
+	if err := planCreateNetwork(request, &plan, rest); err != nil {
 		return plan, err
 	}
 	if request.Security != nil {
-		config := *request.Security
+		config := cloneMessage(request.Security)
 		plan.params.IncludeOidcIdentityToken = config.GetWorkloadIdentity()
 		config.WorkloadIdentity = nil
 		for _, secret := range config.Secrets {
 			if secret.EnvironmentVariable != nil {
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
+				return plan, sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindUnsupported,
 					Provider:  "modal",
 					Operation: "create",
@@ -270,7 +270,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 				}, nil)
 			}
 			if secret.Injection != sandbox.SecretInjectionDefault && secret.Injection != sandbox.SecretInjectionEnvironment {
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
+				return plan, sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindUnsupported,
 					Provider:  "modal",
 					Operation: "create",
@@ -281,12 +281,12 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		}
 		plan.secrets = config.Secrets
 		config.Secrets = nil
-		if err := sandbox.RejectUnmapped("modal security", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal security", config); err != nil {
 			return plan, err
 		}
 		rest.Security = nil
 	}
-	if err := planCreateLifetime(request, &plan, &rest); err != nil {
+	if err := planCreateLifetime(request, &plan, rest); err != nil {
 		return plan, err
 	}
 	if request.Readiness != nil {
@@ -302,14 +302,14 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 		rest.Readiness = nil
 	}
 	if request.Provisioning != nil {
-		config := *request.Provisioning
+		config := cloneMessage(request.Provisioning)
 		config.Timeout = nil // Client.Create applies this context deadline.
 		switch config.WaitFor {
 		case sandbox.WaitConditionDefault, sandbox.WaitConditionScheduled:
 		case sandbox.WaitConditionReady:
 			timeout := sandbox.OptionalDuration(request.Provisioning.Timeout)
 			if timeout == nil || *timeout <= 0 {
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
+				return plan, sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "modal",
 					Operation: "create",
@@ -319,7 +319,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			}
 			plan.readyTimeout = *timeout
 			if plan.params.ReadinessProbe == nil {
-				return plan, sandbox.NewError(sandbox.ErrorInfo{
+				return plan, sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "modal",
 					Operation: "create",
@@ -329,7 +329,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			}
 			plan.ready = true
 		default:
-			return plan, sandbox.NewError(sandbox.ErrorInfo{
+			return plan, sandbox.NewError(&sandbox.ErrorInfo{
 				Kind:      sandbox.ErrorKindUnsupported,
 				Provider:  "modal",
 				Operation: "create",
@@ -338,21 +338,21 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			}, nil)
 		}
 		config.WaitFor = 0
-		if err := sandbox.RejectUnmapped("modal creation", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal creation", config); err != nil {
 			return plan, err
 		}
 		rest.Provisioning = nil
 	}
 	if request.Observability != nil {
-		config := *request.Observability
+		config := cloneMessage(request.Observability)
 		plan.params.Verbose = config.GetVerbose()
 		config.Verbose = nil
-		if err := sandbox.RejectUnmapped("modal observability", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal observability", config); err != nil {
 			return plan, err
 		}
 		rest.Observability = nil
 	}
-	if err := sandbox.RejectUnmapped("modal", &rest); err != nil {
+	if err := sandbox.RejectUnmapped("modal", rest); err != nil {
 		return plan, err
 	}
 	return plan, nil
@@ -360,14 +360,14 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 
 func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *sandbox.CreateOptions) error {
 	if request.Network != nil {
-		config := *request.Network
+		config := cloneMessage(request.Network)
 		switch config.Egress {
 		case sandbox.EgressModeDefault, sandbox.EgressModeAllowAll:
 		case sandbox.EgressModeBlockAll:
 			plan.params.BlockNetwork = true
 		case sandbox.EgressModeRestricted:
 		default:
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind:      sandbox.ErrorKindInvalidArgument,
 				Provider:  "modal",
 				Operation: "create",
@@ -386,7 +386,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *s
 		config.OutboundDomains = nil
 		if config.InboundCidrs != nil {
 			if len(config.InboundCidrs.Entries) == 0 {
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindUnsupported,
 					Provider:  "modal",
 					Operation: "create",
@@ -409,7 +409,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *s
 			case sandbox.PortTransportPlain:
 				plan.params.UnencryptedPorts = append(plan.params.UnencryptedPorts, int(port.Port))
 			default:
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "modal",
 					Operation: "create",
@@ -421,7 +421,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *s
 		config.Ports = nil
 		plan.proxy = config.GetProxyReference()
 		config.ProxyReference = nil
-		if err := sandbox.RejectUnmapped("modal network", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal network", config); err != nil {
 			return err
 		}
 		rest.Network = nil
@@ -431,9 +431,9 @@ func planCreateNetwork(request *sandbox.CreateOptions, plan *createPlan, rest *s
 
 func planCreateLifetime(request *sandbox.CreateOptions, plan *createPlan, rest *sandbox.CreateOptions) error {
 	if request.Lifetime != nil {
-		config := *request.Lifetime
+		config := cloneMessage(request.Lifetime)
 		if config.MaximumLifetime != nil {
-			mapped, _, err := mapLifetimeDuration(&config)
+			mapped, _, err := mapLifetimeDuration(config)
 			if err != nil {
 				return err
 			}
@@ -448,7 +448,7 @@ func planCreateLifetime(request *sandbox.CreateOptions, plan *createPlan, rest *
 				plan.params.IdleTimeout = 0
 			case sandbox.PolicyModeAfter:
 				if policy.After == nil {
-					return sandbox.NewError(sandbox.ErrorInfo{
+					return sandbox.NewError(&sandbox.ErrorInfo{
 						Kind:      sandbox.ErrorKindInvalidArgument,
 						Provider:  "modal",
 						Operation: "create",
@@ -462,7 +462,7 @@ func planCreateLifetime(request *sandbox.CreateOptions, plan *createPlan, rest *
 				}
 				plan.params.IdleTimeout = mapped.IdleTimeout
 			default:
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "modal",
 					Operation: "create",
@@ -472,7 +472,7 @@ func planCreateLifetime(request *sandbox.CreateOptions, plan *createPlan, rest *
 			}
 		}
 		config.IdleTerminate = nil
-		if err := sandbox.RejectUnmapped("modal lifetime", &config); err != nil {
+		if err := sandbox.RejectUnmapped("modal lifetime", config); err != nil {
 			return err
 		}
 		rest.Lifetime = nil

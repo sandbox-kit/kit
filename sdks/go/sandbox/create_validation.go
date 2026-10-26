@@ -67,7 +67,7 @@ func rejectNilCreateElements(request *CreateOptions) error {
 func mapProtovalidateError(err error) error {
 	var violations *protovalidate.ValidationError
 	if !errors.As(err, &violations) || len(violations.Violations) == 0 {
-		return NewError(ErrorInfo{
+		return NewError(&ErrorInfo{
 			Kind:    ErrorKindInvalidArgument,
 			Message: "sandbox-kit: invalid configuration",
 		}, err)
@@ -132,5 +132,5 @@ func protovalidateMessageFieldHint(ruleID string) string {
 }
 
 func invalidCreate(field, rule string) error {
-	return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Field: field, Rule: Value(rule), Message: "sandbox-kit: invalid configuration"}, nil)
+	return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Field: field, Rule: Value(rule), Message: "sandbox-kit: invalid configuration"}, nil)
 }

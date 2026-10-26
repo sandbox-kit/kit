@@ -127,7 +127,7 @@ Applications normally receive errors from the client. Custom integrations can
 construct a common error with a protobuf `ErrorInfo` and a runtime cause:
 
 ```go
-err := sandbox.NewError(sandbox.ErrorInfo{
+err := sandbox.NewError(&sandbox.ErrorInfo{
     Kind:      sandbox.ErrorKindUnsupported,
     Provider:  "modal",
     Operation: "create",

@@ -137,7 +137,7 @@ func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Clie
 	provider := ""
 	defer func() { result = WithErrorContext(result, provider, "initialize") }()
 	if missingClientBinding(providerFactory) {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider is required"}, nil)
 	}
 	provider = providerFactory.Name()
 	if err := validateProtoConfig(config); err != nil {
@@ -145,7 +145,7 @@ func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Clie
 	}
 	expected := provider
 	if strings.TrimSpace(expected) == "" {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider name is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider name is required"}, nil)
 	}
 	var timeout *time.Duration
 	if config != nil && config.Timeout != nil {
@@ -157,10 +157,10 @@ func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Clie
 		return nil, err
 	}
 	if missingClientBinding(backend) {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "backend", Message: "sandbox-kit: provider returned no initialized backend"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "backend", Message: "sandbox-kit: provider returned no initialized backend"}, nil)
 	}
 	if actual := backend.Name(); actual != expected {
-		return nil, errors.Join(NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
+		return nil, errors.Join(NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
 	}
 	return &Client{backend: backend, timeout: timeout, lifecycle: &clientLifecycle{}}, nil
 }
@@ -177,7 +177,7 @@ func validateProtoConfig(config *sandboxv1.Config) error {
 		return WithErrorContext(mapProtovalidateError(err), "", "initialize")
 	}
 	if config.Endpoint != nil && !secureEndpoint(*config.Endpoint) {
-		return NewError(ErrorInfo{
+		return NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidArgument,
 			Operation: "initialize",
 			Field:     "endpoint",
@@ -225,7 +225,7 @@ func (c *Client) Close(ctx context.Context) (result error) {
 	}
 	defer func() { result = WithErrorContext(result, provider, "close") }()
 	if ctx == nil {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "close", Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "close", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	return c.closeBackend(ctx)
 }
@@ -245,13 +245,13 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	}
 	defer func() { result = WithErrorContext(result, provider, "create") }()
 	if ctx == nil {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
 	if c == nil || c.backend == nil {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
 	release, err := c.beginOperation("create")
 	if err != nil {
@@ -279,7 +279,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	}
 	creator, ok := c.backend.(SandboxCreator)
 	if !ok {
-		return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: provider, Operation: "create", Field: "", Message: "sandbox-kit: provider does not support sandbox creation"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: provider, Operation: "create", Field: "", Message: "sandbox-kit: provider does not support sandbox creation"}, nil)
 	}
 	response, err := creator.Create(ctx, request)
 	if err != nil {

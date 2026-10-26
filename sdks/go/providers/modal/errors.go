@@ -122,5 +122,5 @@ func mapProviderError(err error, operation string) error {
 			kind = sandbox.ErrorKindAuthentication
 		}
 	}
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: kind, Provider: "modal", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: kind, Provider: "modal", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
 }

@@ -31,7 +31,7 @@ type Sandbox struct {
 // and consistent provider metadata.
 func sandboxFromResponse(backend Backend, response *CreateResult, operation string) (*Sandbox, error) {
 	if response == nil || response.Sandbox == nil || response.Sandbox.Id == "" {
-		return nil, NewError(ErrorInfo{
+		return nil, NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidResponse,
 			Provider:  backend.Name(),
 			Operation: operation,
@@ -42,7 +42,7 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 	info := cloneSandboxInfo(response.Sandbox)
 	name := backend.Name()
 	if info.Provider != "" && info.Provider != name {
-		return nil, NewError(ErrorInfo{
+		return nil, NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidResponse,
 			Provider:  name,
 			Operation: operation,
@@ -144,19 +144,19 @@ func (s *Sandbox) Supports(capability LifecycleCapability) bool {
 
 func (s *Sandbox) operationContext(ctx context.Context, operation string, timeout *time.Duration) (context.Context, context.CancelFunc, error) {
 	if ctx == nil {
-		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
 	if s == nil || s.operations == nil || s.ID() == "" {
-		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
+		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
 	}
 	s.mu.RLock()
 	closed := s.closed
 	s.mu.RUnlock()
 	if closed {
-		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
+		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
 	}
 	clientRelease := func() {}
 	if s.owner != nil {
@@ -168,14 +168,14 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	}
 	if info := s.Info(); info != nil && info.GetTerminal() {
 		clientRelease()
-		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
+		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 	}
 	if timeout == nil {
 		timeout = s.timeout
 	}
 	if timeout != nil && *timeout < 0 {
 		clientRelease()
-		return nil, nil, NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
+		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
 	}
 	operationCtx := ctx
 	baseCancel := func() {}
@@ -189,7 +189,7 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 			<-s.operationGate
 			baseCancel()
 			clientRelease()
-			return nil, nil, NewError(ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
+			return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 		}
 		return operationCtx, func() { <-s.operationGate; baseCancel(); clientRelease() }, nil
 	case <-operationCtx.Done():
@@ -203,7 +203,7 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 // is idempotent.
 func (s *Sandbox) Close(ctx context.Context) error {
 	if ctx == nil {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "close_handle", Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "close_handle", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	if err := ctx.Err(); err != nil {
 		return err
@@ -237,16 +237,16 @@ func (s *Sandbox) markTerminal(state SandboxState, providerState string) {
 }
 
 func (s *Sandbox) unsupported(operation string) error {
-	return NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: provider does not support this sandbox operation"}, nil)
+	return NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: provider does not support this sandbox operation"}, nil)
 }
 
 func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 	if info == nil || info.Id == "" {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: provider returned no sandbox identity"}, nil)
+		return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: provider returned no sandbox identity"}, nil)
 	}
 	provider := s.ProviderName()
 	if info.Provider != "" && info.Provider != provider {
-		return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldProvider, Message: "sandbox-kit: provider returned inconsistent sandbox metadata"}, nil)
+		return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldProvider, Message: "sandbox-kit: provider returned inconsistent sandbox metadata"}, nil)
 	}
 	info.Provider = provider
 	s.mu.Lock()

@@ -29,7 +29,7 @@ func RejectUnmapped(provider string, remaining any) error {
 		value = value.Elem()
 	}
 	if value.Kind() != reflect.Struct {
-		return NewError(ErrorInfo{
+		return NewError(&ErrorInfo{
 			Kind:     ErrorKindInternal,
 			Provider: provider,
 			Message:  "sandbox-kit: invalid configuration support check",
@@ -51,7 +51,7 @@ func RejectUnmapped(provider string, remaining any) error {
 		}
 	}
 	if len(fields) > 0 {
-		return NewError(ErrorInfo{
+		return NewError(&ErrorInfo{
 			Kind:     ErrorKindUnsupported,
 			Provider: provider,
 			Field:    firstPath,

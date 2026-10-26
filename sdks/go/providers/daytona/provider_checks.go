@@ -53,7 +53,7 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request.Security != nil {
 		for _, item := range request.Security.Secrets {
 			if item == nil {
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind:      sandbox.ErrorKindInvalidArgument,
 					Provider:  "daytona",
 					Operation: "create",
@@ -95,7 +95,7 @@ func immediatePolicy(action *sandbox.AutomaticAction) bool {
 }
 
 func incompatibleLifetime() error {
-	return sandbox.NewError(sandbox.ErrorInfo{
+	return sandbox.NewError(&sandbox.ErrorInfo{
 		Kind:      sandbox.ErrorKindInvalidArgument,
 		Provider:  "daytona",
 		Operation: "create",
@@ -105,7 +105,7 @@ func incompatibleLifetime() error {
 }
 
 func providerCheckError(kind sandbox.ErrorKind, field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{
+	return sandbox.NewError(&sandbox.ErrorInfo{
 		Kind:      kind,
 		Provider:  "daytona",
 		Operation: "create",

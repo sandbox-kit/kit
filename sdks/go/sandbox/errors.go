@@ -107,12 +107,15 @@ func (e *Error) Unwrap() error {
 //
 // Example:
 //
-//	err := NewError(ErrorInfo{
+//	err := NewError(&ErrorInfo{
 //	    Kind:    ErrorKindUnsupported,
 //	    Field:   CreateFieldResourcesDiskMib,
 //	    Message: "disk overrides are unsupported",
 //	}, cause)
-func NewError(info ErrorInfo, cause error) *Error {
+func NewError(info *ErrorInfo, cause error) *Error {
+	if info == nil {
+		info = &ErrorInfo{}
+	}
 	kind := info.Kind
 	if kind.Descriptor().Values().ByNumber(kind.Number()) == nil {
 		kind = ErrorKindUnknown
@@ -215,5 +218,5 @@ func WithErrorContext(err error, provider string, operation string) error {
 		}
 		return cloned
 	}
-	return NewError(ErrorInfo{Kind: ErrorKindUnknown, Provider: provider, Operation: operation, Message: err.Error()}, err)
+	return NewError(&ErrorInfo{Kind: ErrorKindUnknown, Provider: provider, Operation: operation, Message: err.Error()}, err)
 }

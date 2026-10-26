@@ -185,7 +185,7 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "get", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxRefresher)
 		if !ok {
-			return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "get", Message: "sandbox-kit: provider does not support sandbox get"}, nil)
+			return nil, NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "get", Message: "sandbox-kit: provider does not support sandbox get"}, nil)
 		}
 		return capability.RefreshSandbox(operationContext, id)
 	})
@@ -195,7 +195,7 @@ func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "attach", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxAttacher)
 		if !ok {
-			return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "attach", Message: "sandbox-kit: provider does not support sandbox attach"}, nil)
+			return nil, NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "attach", Message: "sandbox-kit: provider does not support sandbox attach"}, nil)
 		}
 		return capability.AttachSandbox(operationContext, id)
 	})

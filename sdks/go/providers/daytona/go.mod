@@ -6,6 +6,7 @@ require (
 	github.com/daytona/clients/api-client-go v0.222.0
 	github.com/daytona/clients/sdk-go v0.222.0
 	github.com/sandbox-kit/kit/sdks/go/sandbox v0.0.0
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
@@ -55,7 +56,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 	google.golang.org/grpc v1.83.2 // indirect
-	google.golang.org/protobuf v1.36.12 // indirect
 )
 
 replace github.com/sandbox-kit/kit/sdks/go/sandbox => ../../sandbox

@@ -60,16 +60,16 @@ func mapClientConfig(config *sandbox.Config) (types.DaytonaConfig, error) {
 			}
 			params.JWTToken = mapped.JWTToken
 		default:
-			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
+			return params, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit daytona: unsupported authentication mode"}, nil)
 		}
 	}
 	return params, nil
 }
 
 func invalidClientField(field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
 }
 
 func unsupportedClientField(field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "initialize", Field: field, Message: "sandbox-kit daytona: " + message}, nil)
 }

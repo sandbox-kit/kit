@@ -65,7 +65,7 @@ func TestResolvedCapabilitiesAndPortableState(t *testing.T) {
 		t.Fatal(err)
 	}
 	backend := &backend{}
-	capabilities := backend.SandboxCapabilities(&info)
+	capabilities := backend.SandboxCapabilities(info)
 	contains := func(want sandbox.LifecycleCapability) bool {
 		for _, got := range capabilities {
 			if got == want {
@@ -82,7 +82,7 @@ func TestResolvedCapabilitiesAndPortableState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	capabilities = backend.SandboxCapabilities(&info)
+	capabilities = backend.SandboxCapabilities(info)
 	for _, capability := range capabilities {
 		if capability == sandbox.LifecycleCapabilityArchive || capability == sandbox.LifecycleCapabilityPause {
 			t.Fatalf("GPU capability leaked: %v", capabilities)

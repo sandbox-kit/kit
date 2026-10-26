@@ -468,7 +468,7 @@ func mapFieldNonNil(msg protoreflect.Message, fd protoreflect.FieldDescriptor) b
 func validateResponseOrigins(info *SandboxInfo, operation string) error {
 	for path, origin := range info.Origins {
 		if !validValueOrigin(origin) || !responseFieldPresent(info, path) {
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
+			return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
 		}
 	}
 	return nil

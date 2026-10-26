@@ -20,7 +20,7 @@ func mapClientConfig(config *sandbox.Config) (sdk.ClientParams, error) {
 		config = &sandbox.Config{}
 	}
 	if config.Endpoint != nil {
-		return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldEndpoint, Message: "sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor"}, nil)
+		return params, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldEndpoint, Message: "sandbox-kit modal: Endpoint cannot be configured through this SDK's public client constructor"}, nil)
 	}
 	if config.Scope != nil {
 		if config.Scope.OrganizationId != nil || config.Scope.ProjectId != nil {
@@ -57,16 +57,16 @@ func mapClientConfig(config *sandbox.Config) (sdk.ClientParams, error) {
 			}
 			params.OAuthCredentials = &mapped
 		default:
-			return params, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit modal: unsupported authentication mode"}, nil)
+			return params, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: sandbox.ConfigFieldAuth, Message: "sandbox-kit modal: unsupported authentication mode"}, nil)
 		}
 	}
 	return params, nil
 }
 
 func invalidClientField(field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
 }
 
 func unsupportedClientField(field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "modal", Operation: "initialize", Field: field, Message: "sandbox-kit modal: " + message}, nil)
 }

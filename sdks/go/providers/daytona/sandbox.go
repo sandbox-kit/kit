@@ -73,7 +73,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 		return nil, err
 	}
 	if instance == nil {
-		return nil, sandbox.NewError(sandbox.ErrorInfo{
+		return nil, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidResponse,
 			Provider:  "daytona",
 			Operation: "create",
@@ -88,7 +88,7 @@ func (a *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	if err != nil {
 		return nil, err
 	}
-	return &sandbox.CreateResult{Sandbox: &info}, nil
+	return &sandbox.CreateResult{Sandbox: info}, nil
 }
 
 // RefreshSandbox retrieves current metadata for an existing Daytona sandbox.
@@ -101,20 +101,20 @@ func (a *backend) RefreshSandbox(ctx context.Context, id string) (*sandbox.Sandb
 	if err != nil {
 		return nil, err
 	}
-	return &info, nil
+	return info, nil
 }
 
-func daytonaSandboxInfo(instance *daytona.Sandbox) (sandbox.SandboxInfo, error) {
+func daytonaSandboxInfo(instance *daytona.Sandbox) (*sandbox.SandboxInfo, error) {
 	info, err := mapSandboxInfo(instance)
 	if err != nil {
 		return info, err
 	}
-	if err := applyDaytonaResources(&info, instance); err != nil {
+	if err := applyDaytonaResources(info, instance); err != nil {
 		return info, err
 	}
-	applyDaytonaState(&info, instance)
-	applyDaytonaIsolation(&info, instance)
-	if err := applyDaytonaProviderMetadata(&info, instance); err != nil {
+	applyDaytonaState(info, instance)
+	applyDaytonaIsolation(info, instance)
+	if err := applyDaytonaProviderMetadata(info, instance); err != nil {
 		return info, err
 	}
 	return info, nil
@@ -126,7 +126,7 @@ func applyDaytonaResources(info *sandbox.SandboxInfo, instance *daytona.Sandbox)
 		return err
 	}
 	if resources.CpuCores != nil {
-		info.Resources = &resources
+		info.Resources = resources
 		info.Origins["resources"] = sandbox.ValueOriginProvider
 	}
 	return nil
@@ -256,7 +256,7 @@ func (a *backend) withSandbox(ctx context.Context, id, operation string, mutate 
 		return nil, err
 	}
 	info, err := daytonaSandboxInfo(instance)
-	return &info, err
+	return info, err
 }
 
 func (a *backend) StartSandbox(ctx context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
@@ -284,7 +284,7 @@ func (a *backend) PauseSandbox(ctx context.Context, id string, options *sandbox.
 	timeout := nativeTimeout(options.GetTimeout())
 	return a.withSandbox(ctx, id, "pause", func(ctx context.Context, instance *daytona.Sandbox) error {
 		if instance.SandboxClass == nil || (*instance.SandboxClass != types.SandboxClassLinuxVM && string(*instance.SandboxClass) != "windows") {
-			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "pause", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: pause requires a Linux VM or Windows sandbox"}, nil)
+			return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "pause", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: pause requires a Linux VM or Windows sandbox"}, nil)
 		}
 		if err := instance.PauseWithTimeout(ctx, timeout); err != nil {
 			return mapProviderError(err, "pause")
@@ -296,7 +296,7 @@ func (a *backend) PauseSandbox(ctx context.Context, id string, options *sandbox.
 func (a *backend) ArchiveSandbox(ctx context.Context, id string, _ *sandbox.ArchiveOptions) (*sandbox.SandboxInfo, error) {
 	return a.withSandbox(ctx, id, "archive", func(ctx context.Context, instance *daytona.Sandbox) error {
 		if instance.SandboxClass == nil || *instance.SandboxClass != types.SandboxClassContainer {
-			return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "archive", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: archive requires a container sandbox"}, nil)
+			return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "archive", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: archive requires a container sandbox"}, nil)
 		}
 		if err := instance.Archive(ctx); err != nil {
 			return mapProviderError(err, "archive")
@@ -339,31 +339,31 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 	if err != nil {
 		return plan, err
 	}
-	if err := planCreateRuntime(request, &base, &rest); err != nil {
+	if err := planCreateRuntime(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateIsolation(request, &base, &rest); err != nil {
+	if err := planCreateIsolation(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateSecurity(request, &base, &rest); err != nil {
+	if err := planCreateSecurity(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateNetwork(request, &base, &rest); err != nil {
+	if err := planCreateNetwork(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateLifetime(request, &base, &rest); err != nil {
+	if err := planCreateLifetime(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateProvisioning(request, &base, &rest, &plan); err != nil {
+	if err := planCreateProvisioning(request, &base, rest, &plan); err != nil {
 		return plan, err
 	}
-	if err := planCreateObservability(request, &base, &rest); err != nil {
+	if err := planCreateObservability(request, &base, rest); err != nil {
 		return plan, err
 	}
-	if err := planCreateSource(request, &base, &rest, &plan); err != nil {
+	if err := planCreateSource(request, &base, rest, &plan); err != nil {
 		return plan, err
 	}
-	if err := sandbox.RejectUnmapped("daytona", &rest); err != nil {
+	if err := sandbox.RejectUnmapped("daytona", rest); err != nil {
 		return plan, err
 	}
 	return plan, nil
@@ -373,11 +373,11 @@ func planCreateRuntime(request *sandbox.CreateOptions, base *types.SandboxBasePa
 	if request.Runtime == nil {
 		return nil
 	}
-	config := *request.Runtime
+	config := cloneMessage(request.Runtime)
 	base.User = config.GetUser()
 	base.Language = types.CodeLanguage(config.GetLanguage())
 	config.User, config.Language = nil, nil
-	if err := sandbox.RejectUnmapped("daytona runtime", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona runtime", config); err != nil {
 		return err
 	}
 	rest.Runtime = nil
@@ -388,10 +388,10 @@ func planCreateIsolation(request *sandbox.CreateOptions, base *types.SandboxBase
 	if request.Isolation == nil {
 		return nil
 	}
-	config := *request.Isolation
+	config := cloneMessage(request.Isolation)
 	base.Kvm = config.GetNestedVirtualization()
 	config.NestedVirtualization = nil
-	if err := sandbox.RejectUnmapped("daytona isolation (class comes from snapshot)", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona isolation (class comes from snapshot)", config); err != nil {
 		return err
 	}
 	rest.Isolation = nil
@@ -402,7 +402,7 @@ func planCreateSecurity(request *sandbox.CreateOptions, base *types.SandboxBaseP
 	if request.Security == nil {
 		return nil
 	}
-	config := *request.Security
+	config := cloneMessage(request.Security)
 	base.Public = config.GetPublicAccess()
 	config.PublicAccess = nil
 	if len(config.Secrets) > 0 {
@@ -410,21 +410,21 @@ func planCreateSecurity(request *sandbox.CreateOptions, base *types.SandboxBaseP
 	}
 	for _, secret := range config.Secrets {
 		if secret.GetEnvironmentVariable() == "" {
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create",
 				Field:   sandbox.CreateFieldSecuritySecretsEnvironmentVariable,
 				Message: "sandbox-kit daytona: secret environment variable is required",
 			}, nil)
 		}
 		if secret.Injection != sandbox.SecretInjectionDefault && secret.Injection != sandbox.SecretInjectionEgressPlaceholder {
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 				Field:   sandbox.CreateFieldSecuritySecretsInjection,
 				Message: "sandbox-kit daytona: secret injection must use egress placeholders",
 			}, nil)
 		}
 		if _, exists := base.Secrets[secret.GetEnvironmentVariable()]; exists {
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create",
 				Field:   sandbox.CreateFieldSecuritySecretsEnvironmentVariable,
 				Message: "sandbox-kit daytona: duplicate secret environment variable",
@@ -433,7 +433,7 @@ func planCreateSecurity(request *sandbox.CreateOptions, base *types.SandboxBaseP
 		base.Secrets[secret.GetEnvironmentVariable()] = secret.Reference
 	}
 	config.Secrets = nil
-	if err := sandbox.RejectUnmapped("daytona security", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona security", config); err != nil {
 		return err
 	}
 	rest.Security = nil
@@ -444,9 +444,9 @@ func planCreateNetwork(request *sandbox.CreateOptions, base *types.SandboxBasePa
 	if request.Network == nil {
 		return nil
 	}
-	config := *request.Network
+	config := cloneMessage(request.Network)
 	if config.LinkedSandbox != nil && (request.Lifetime == nil || !request.Lifetime.GetEphemeral()) {
-		return sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkLinkedSandbox, Message: "sandbox-kit daytona: linked sandboxes must be ephemeral"}, nil)
+		return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldNetworkLinkedSandbox, Message: "sandbox-kit daytona: linked sandboxes must be ephemeral"}, nil)
 	}
 	switch config.Egress {
 	case sandbox.EgressModeDefault, sandbox.EgressModeAllowAll:
@@ -454,7 +454,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, base *types.SandboxBasePa
 		base.NetworkBlockAll = true
 	case sandbox.EgressModeRestricted:
 	default:
-		return sandbox.NewError(sandbox.ErrorInfo{
+		return sandbox.NewError(&sandbox.ErrorInfo{
 			Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create",
 			Field:   sandbox.CreateFieldNetworkEgress,
 			Message: "sandbox-kit daytona: unknown egress mode",
@@ -463,7 +463,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, base *types.SandboxBasePa
 	config.Egress = 0
 	if config.OutboundCidrs != nil {
 		if len(config.OutboundCidrs.Entries) == 0 {
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 				Field:   sandbox.CreateFieldNetworkOutboundCidrs,
 				Message: "sandbox-kit daytona: empty CIDR allowlist mapping is not verified",
@@ -475,7 +475,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, base *types.SandboxBasePa
 	config.OutboundCidrs = nil
 	if config.OutboundDomains != nil {
 		if len(config.OutboundDomains.Entries) == 0 {
-			return sandbox.NewError(sandbox.ErrorInfo{
+			return sandbox.NewError(&sandbox.ErrorInfo{
 				Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 				Field:   sandbox.CreateFieldNetworkOutboundDomains,
 				Message: "sandbox-kit daytona: empty domain allowlist mapping is not verified",
@@ -488,7 +488,7 @@ func planCreateNetwork(request *sandbox.CreateOptions, base *types.SandboxBasePa
 	base.LinkedSandbox = config.GetLinkedSandbox()
 	base.OutboundProxyUrl = config.OutboundProxyUrl
 	config.LinkedSandbox, config.OutboundProxyUrl = nil, nil
-	if err := sandbox.RejectUnmapped("daytona network", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona network", config); err != nil {
 		return err
 	}
 	rest.Network = nil
@@ -499,7 +499,7 @@ func planCreateLifetime(request *sandbox.CreateOptions, base *types.SandboxBaseP
 	if request.Lifetime == nil {
 		return nil
 	}
-	config := *request.Lifetime
+	config := cloneMessage(request.Lifetime)
 	base.Ephemeral = config.GetEphemeral()
 	config.Ephemeral = nil
 	if config.MaximumLifetime != nil {
@@ -510,14 +510,14 @@ func planCreateLifetime(request *sandbox.CreateOptions, base *types.SandboxBaseP
 		base.TtlMinutes = &minutes
 	}
 	config.MaximumLifetime = nil
-	mapped, remaining, err := mapLifetimePolicies(&config)
+	mapped, remaining, err := mapLifetimePolicies(config)
 	if err != nil {
 		return err
 	}
 	base.AutoStopInterval, base.AutoPauseInterval = mapped.AutoStopInterval, mapped.AutoPauseInterval
 	base.AutoArchiveInterval, base.AutoDeleteInterval = mapped.AutoArchiveInterval, mapped.AutoDeleteInterval
 	config = remaining
-	if err := sandbox.RejectUnmapped("daytona lifetime", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona lifetime", config); err != nil {
 		return err
 	}
 	rest.Lifetime = nil
@@ -528,7 +528,7 @@ func planCreateProvisioning(request *sandbox.CreateOptions, base *types.SandboxB
 	if request.Provisioning == nil {
 		return nil
 	}
-	config := *request.Provisioning
+	config := cloneMessage(request.Provisioning)
 	if timeout := sandbox.OptionalDuration(config.Timeout); timeout != nil && *timeout > 0 {
 		plan.options = append(plan.options, options.WithTimeout(*timeout))
 	}
@@ -548,14 +548,14 @@ func planCreateProvisioning(request *sandbox.CreateOptions, base *types.SandboxB
 	case sandbox.WaitConditionStarted:
 		plan.options = append(plan.options, options.WithWaitForStart(true))
 	default:
-		return sandbox.NewError(sandbox.ErrorInfo{
+		return sandbox.NewError(&sandbox.ErrorInfo{
 			Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 			Field:   sandbox.CreateFieldProvisioningWaitFor,
 			Message: "sandbox-kit daytona: requested wait condition is unsupported",
 		}, nil)
 	}
 	config.WaitFor = 0
-	if err := sandbox.RejectUnmapped("daytona creation", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona creation", config); err != nil {
 		return err
 	}
 	rest.Provisioning = nil
@@ -566,10 +566,10 @@ func planCreateObservability(request *sandbox.CreateOptions, base *types.Sandbox
 	if request.Observability == nil {
 		return nil
 	}
-	config := *request.Observability
+	config := cloneMessage(request.Observability)
 	base.OtelEndpointOverride = config.TelemetryEndpoint
 	config.TelemetryEndpoint = nil
-	if err := sandbox.RejectUnmapped("daytona observability", &config); err != nil {
+	if err := sandbox.RejectUnmapped("daytona observability", config); err != nil {
 		return err
 	}
 	rest.Observability = nil
@@ -579,7 +579,7 @@ func planCreateObservability(request *sandbox.CreateOptions, base *types.Sandbox
 func planCreateSource(request *sandbox.CreateOptions, base *types.SandboxBaseParams, rest *sandbox.CreateOptions, plan *createPlan) error {
 	source := request.GetSource()
 	if source.GetWarmPool() != nil {
-		return sandbox.NewError(sandbox.ErrorInfo{
+		return sandbox.NewError(&sandbox.ErrorInfo{
 			Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 			Field:   sandbox.CreateFieldSourceWarmPool,
 			Message: "sandbox-kit daytona: explicit warm-pool creation mapping is unavailable",
@@ -592,7 +592,7 @@ func planCreateSource(request *sandbox.CreateOptions, base *types.SandboxBasePar
 			if err != nil {
 				return err
 			}
-			if err := sandbox.RejectUnmapped("daytona resources", &remaining); err != nil {
+			if err := sandbox.RejectUnmapped("daytona resources", remaining); err != nil {
 				return err
 			}
 			params.Resources = &resources
@@ -603,14 +603,14 @@ func planCreateSource(request *sandbox.CreateOptions, base *types.SandboxBasePar
 		params := types.SnapshotParams{SandboxBaseParams: *base}
 		if snapshot := source.GetSnapshot(); snapshot != nil {
 			if snapshot.Kind != sandbox.SnapshotKindDefault {
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 					Field:   sandbox.CreateFieldSourceSnapshotKind,
 					Message: "sandbox-kit daytona: explicit snapshot-kind restore mapping is unavailable",
 				}, nil)
 			}
 			if snapshot.ProviderKind != nil {
-				return sandbox.NewError(sandbox.ErrorInfo{
+				return sandbox.NewError(&sandbox.ErrorInfo{
 					Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "create",
 					Field:   sandbox.CreateFieldSourceSnapshotProviderKind,
 					Message: "sandbox-kit daytona: provider snapshot kind is unsupported",
@@ -637,7 +637,7 @@ func durationMinutesRequirePositive(value time.Duration) (int, error) {
 
 func durationMinutes(value time.Duration, allowZero bool) (int, error) {
 	if value < 0 || value%time.Minute != 0 || value/time.Minute > math.MaxInt32 || (!allowZero && value == 0) {
-		return 0, sandbox.NewError(sandbox.ErrorInfo{
+		return 0, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidArgument,
 			Provider:  "daytona",
 			Operation: "create",

@@ -11,8 +11,8 @@ import (
 
 // mapSandboxIdentity maps native fields for mapSandboxIdentity into shared
 // metadata. It does not invent values the SDK omitted.
-func mapSandboxIdentity(source *sdk.Sandbox) (sandbox.SandboxInfo, error) {
-	target := sandbox.SandboxInfo{}
+func mapSandboxIdentity(source *sdk.Sandbox) (*sandbox.SandboxInfo, error) {
+	target := &sandbox.SandboxInfo{}
 	if source == nil {
 		return target, nil
 	}
@@ -28,15 +28,12 @@ func mapSandboxIdentity(source *sdk.Sandbox) (sandbox.SandboxInfo, error) {
 
 // mapClientScope maps supplied fields for mapClientScope into the native
 // request and returns the fields that were not mapped.
-func mapClientScope(source *sandbox.Scope) (sdk.ClientParams, sandbox.Scope, error) {
+func mapClientScope(source *sandbox.Scope) (sdk.ClientParams, *sandbox.Scope, error) {
 	target := sdk.ClientParams{}
-	remaining := sandbox.Scope{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.Scope{}, nil
 	}
+	remaining := cloneMessage(source)
 	if source.Environment != nil {
 		{
 			value := source.GetEnvironment()
@@ -49,15 +46,12 @@ func mapClientScope(source *sandbox.Scope) (sdk.ClientParams, sandbox.Scope, err
 
 // mapCommonCreateFields maps supplied fields for mapCommonCreateFields into
 // the native request and returns the fields that were not mapped.
-func mapCommonCreateFields(source *sandbox.CreateOptions) (sdk.SandboxCreateParams, sandbox.CreateOptions, error) {
+func mapCommonCreateFields(source *sandbox.CreateOptions) (sdk.SandboxCreateParams, *sandbox.CreateOptions, error) {
 	target := sdk.SandboxCreateParams{}
-	remaining := sandbox.CreateOptions{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.CreateOptions{}, nil
 	}
+	remaining := cloneMessage(source)
 	if source.Name != nil {
 		{
 			value := source.GetName()
@@ -80,21 +74,18 @@ func mapCommonCreateFields(source *sandbox.CreateOptions) (sdk.SandboxCreatePara
 
 // mapResources maps supplied fields for mapResources into the native request
 // and returns the fields that were not mapped.
-func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.Resources, error) {
+func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, *sandbox.Resources, error) {
 	target := sdk.SandboxCreateParams{}
-	remaining := sandbox.Resources{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.Resources{}, nil
 	}
+	remaining := cloneMessage(source)
 	if source.CpuCores != nil {
 		{
 			value := source.GetCpuCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit modal: cpu_cores cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit modal: cpu_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -108,7 +99,7 @@ func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.R
 			value := source.GetCpuLimitCores()
 			scaled := math.Round(value * 1000)
 			if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || value != scaled/1000 || scaled > 4294967295 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuLimitCores, Message: "sandbox-kit modal: cpu_limit_cores cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesCpuLimitCores, Message: "sandbox-kit modal: cpu_limit_cores cannot be represented"}, nil)
 			}
 			if value*1000 < scaled {
 				value = math.Nextafter(value, math.Inf(1))
@@ -121,7 +112,7 @@ func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.R
 		{
 			value := source.GetMemoryMib()
 			if value > 2147483647 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit modal: memory_mib cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit modal: memory_mib cannot be represented"}, nil)
 			}
 			target.MemoryMiB = int(value)
 		}
@@ -131,7 +122,7 @@ func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.R
 		{
 			value := source.GetMemoryLimitMib()
 			if value > 2147483647 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryLimitMib, Message: "sandbox-kit modal: memory_limit_mib cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryLimitMib, Message: "sandbox-kit modal: memory_limit_mib cannot be represented"}, nil)
 			}
 			target.MemoryLimitMiB = int(value)
 		}
@@ -142,20 +133,17 @@ func mapResources(source *sandbox.Resources) (sdk.SandboxCreateParams, sandbox.R
 
 // mapLifetimeDuration maps supplied fields for mapLifetimeDuration into the
 // native request and returns the fields that were not mapped.
-func mapLifetimeDuration(source *sandbox.LifetimePolicy) (sdk.SandboxCreateParams, sandbox.LifetimePolicy, error) {
+func mapLifetimeDuration(source *sandbox.LifetimePolicy) (sdk.SandboxCreateParams, *sandbox.LifetimePolicy, error) {
 	target := sdk.SandboxCreateParams{}
-	remaining := sandbox.LifetimePolicy{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.LifetimePolicy{}, nil
 	}
+	remaining := cloneMessage(source)
 	if source.MaximumLifetime != nil {
 		{
 			value := source.MaximumLifetime.AsDuration()
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 86400 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeMaximumLifetime, Message: "sandbox-kit modal: maximum_lifetime cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeMaximumLifetime, Message: "sandbox-kit modal: maximum_lifetime cannot be represented"}, nil)
 			}
 			target.Timeout = value
 		}
@@ -166,20 +154,17 @@ func mapLifetimeDuration(source *sandbox.LifetimePolicy) (sdk.SandboxCreateParam
 
 // mapIdleDuration maps supplied fields for mapIdleDuration into the native
 // request and returns the fields that were not mapped.
-func mapIdleDuration(source *sandbox.AutomaticAction) (sdk.SandboxCreateParams, sandbox.AutomaticAction, error) {
+func mapIdleDuration(source *sandbox.AutomaticAction) (sdk.SandboxCreateParams, *sandbox.AutomaticAction, error) {
 	target := sdk.SandboxCreateParams{}
-	remaining := sandbox.AutomaticAction{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.AutomaticAction{}, nil
 	}
+	remaining := cloneMessage(source)
 	if source.After != nil {
 		{
 			value := source.After.AsDuration()
 			if value <= 0 || value%time.Second != 0 || value/time.Second > 4294967295 {
-				return target, remaining, sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleTerminateAfter, Message: "sandbox-kit modal: after cannot be represented"}, nil)
+				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "modal", Operation: "create", Field: sandbox.CreateFieldLifetimeIdleTerminateAfter, Message: "sandbox-kit modal: after cannot be represented"}, nil)
 			}
 			target.IdleTimeout = value
 		}
@@ -190,15 +175,12 @@ func mapIdleDuration(source *sandbox.AutomaticAction) (sdk.SandboxCreateParams, 
 
 // mapTokenPairCredentials maps supplied fields for mapTokenPairCredentials
 // into the native request and returns the fields that were not mapped.
-func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (sdk.ClientParams, sandbox.TokenPairCredentials, error) {
+func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (sdk.ClientParams, *sandbox.TokenPairCredentials, error) {
 	target := sdk.ClientParams{}
-	remaining := sandbox.TokenPairCredentials{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.TokenPairCredentials{}, nil
 	}
+	remaining := cloneMessage(source)
 	{
 		value := source.Id
 		target.TokenID = value
@@ -214,15 +196,12 @@ func mapTokenPairCredentials(source *sandbox.TokenPairCredentials) (sdk.ClientPa
 
 // mapOAuthAuth maps supplied fields for mapOAuthAuth into the native request
 // and returns the fields that were not mapped.
-func mapOAuthAuth(source *sandbox.OAuthCredentials) (sdk.OAuthCredentialsParams, sandbox.OAuthCredentials, error) {
+func mapOAuthAuth(source *sandbox.OAuthCredentials) (sdk.OAuthCredentialsParams, *sandbox.OAuthCredentials, error) {
 	target := sdk.OAuthCredentialsParams{}
-	remaining := sandbox.OAuthCredentials{}
-	if source != nil {
-		remaining = *source
-	}
 	if source == nil {
-		return target, remaining, nil
+		return target, &sandbox.OAuthCredentials{}, nil
 	}
+	remaining := cloneMessage(source)
 	{
 		value := source.RefreshToken
 		target.RefreshToken = value

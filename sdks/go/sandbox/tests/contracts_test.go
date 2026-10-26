@@ -16,7 +16,7 @@ func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 	source := "api"
 	info := sandbox.ErrorInfo{Kind: sandbox.ErrorKindRateLimited, Provider: "daytona", Operation: "create", Field: "resources", Message: "limited", StatusCode: &status, ProviderCode: &code, ProviderSource: &source}
 	native := errors.New("native")
-	err := sandbox.NewError(info, native)
+	err := sandbox.NewError(&info, native)
 	status = 500
 	code = "changed"
 	source = "changed"
@@ -28,7 +28,7 @@ func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 
 func TestErrorContextAvoidsRedundantWrapping(t *testing.T) {
 	native := errors.New("native")
-	original := sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindAuthentication, Provider: "modal", Operation: "create", StatusCode: sandbox.Value(uint32(401))}, native)
+	original := sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindAuthentication, Provider: "modal", Operation: "create", StatusCode: sandbox.Value(uint32(401))}, native)
 	if sandbox.WithErrorContext(original, "modal", "create") != original {
 		t.Fatal("complete error was wrapped again")
 	}
