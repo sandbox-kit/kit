@@ -25,3 +25,7 @@ plz don't change anything within protobufs
 look more o f the code of golang sdk and apply more design patterns to make code very lean. 
 
 + u can also create new folders and files to have better seperation of concern
+
+---
+
+cool can u commit and push to this branch. update desctipion of Pr too.
