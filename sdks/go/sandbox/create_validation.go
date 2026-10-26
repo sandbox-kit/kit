@@ -26,8 +26,8 @@ var stableRuleIDs = map[string]string{
 }
 
 // ValidateCreateOptions checks a create request before a provider is contacted.
-// A nil request is valid and means the provider default. Quotas and capacity
-// remain the provider's decision.
+// A nil request passes this check. Daytona treats that as its default snapshot.
+// Modal still requires an image. Quotas and capacity remain the provider's decision.
 func ValidateCreateOptions(request *CreateOptions) error {
 	if request == nil {
 		return nil

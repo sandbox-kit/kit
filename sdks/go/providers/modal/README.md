@@ -2,9 +2,9 @@
 
 Create and manage Modal sandboxes with the shared sandbox client.
 
-Requires Go 1.26.0 or later, a Modal token pair, and an existing Modal app.
-If `Auth` is omitted, the Modal SDK uses credentials it already finds in the
-environment.
+Requires Go 1.26.0 or later and an existing Modal app. Set `Auth` to a token
+pair or OAuth refresh credentials. If `Auth` is omitted, the Modal SDK uses
+credentials it already finds in the environment.
 
 ## Install
 
@@ -57,12 +57,13 @@ Closing the client does not delete the sandbox. Set a lifetime policy, or call
 
 ## Settings
 
-| Setting     | How to set it                     |
-| ----------- | --------------------------------- |
-| Token pair  | `Auth` with `TokenPair`           |
-| App         | `Scope.AppName`, required         |
-| Environment | `Scope.Environment`, often `main` |
-| Region      | `Config.Region`                   |
+| Setting       | How to set it                     |
+| ------------- | --------------------------------- |
+| Token pair    | `Auth` with `TokenPair`           |
+| OAuth refresh | `Auth` with `OAuthRefresh`        |
+| App           | `Scope.AppName`, required         |
+| Environment   | `Scope.Environment`, often `main` |
+| Region        | `Config.Region`                   |
 
 `Config.Endpoint` is not supported.
 

@@ -13,8 +13,8 @@ var _ sandbox.SandboxAttacher = (*backend)(nil)
 var _ sandbox.SandboxTerminator = (*backend)(nil)
 
 // create looks up the app, secrets, and image, then creates the sandbox.
-// A nil request uses provider defaults. The returned metadata is shared,
-// not a Modal object.
+// A nil request becomes an empty request. Modal still requires an image.
+// The returned metadata is shared, not a Modal object.
 func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	if request == nil {
 		request = &sandbox.CreateOptions{}

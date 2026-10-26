@@ -1,9 +1,7 @@
-// Config field-path constants are the Field values on a client configuration error.
-//
-//	fmt.Println(ConfigFieldEndpoint) // endpoint
 package sandbox
 
-// ConfigFieldAuth is the canonical path "auth".
+// ConfigFieldAuth is the Field value "auth" on a client configuration error.
+// Compare Error.Field with the ConfigField constants to see which setting to change.
 const ConfigFieldAuth = "auth"
 
 // ConfigFieldAuthApiKey is the canonical path "auth.api_key".

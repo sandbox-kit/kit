@@ -12,7 +12,7 @@ import (
 type Error struct {
 	// Kind is the category, such as ErrorKindUnsupported or ErrorKindAuthentication.
 	Kind sandboxv1.ErrorKind
-	// Provider is "daytona" or "modal". It is empty when the failure happened before a provider was selected.
+	// Provider is the provider name, such as "daytona" or "modal". It is empty when the failure happened before a provider was selected.
 	Provider string
 	// Operation is the call that failed, such as "create", "get", or "initialize".
 	Operation string

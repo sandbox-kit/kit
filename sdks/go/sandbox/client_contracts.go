@@ -23,7 +23,7 @@ type (
 	APIKey = sandboxv1.AuthConfig_ApiKey
 
 	// TokenPair is the id-and-secret form of AuthConfig.Credentials.
-	// Modal requires a token pair.
+	// Modal accepts a token pair or OAuth refresh. Omitting Auth lets the Modal SDK use credentials it finds in the environment. An API key is rejected.
 	TokenPair = sandboxv1.AuthConfig_TokenPair
 
 	// BearerToken is the bearer-token form of AuthConfig.Credentials.

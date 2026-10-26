@@ -8,5 +8,8 @@
 // lifecycle method the provider supports.
 //
 // When a call fails, use errors.As with [*Error]. Kind is the shared category.
-// Field is the setting to check, such as "resources.cpu_cores".
+// Field names the setting to change, such as "resources.cpu_cores" or "endpoint".
+// Compare it with [CreateFieldResourcesCpuCores], [ConfigFieldEndpoint], and the other field constants.
+//
+// [Client.Create] with a nil request uses Daytona's default snapshot. Modal requires an image.
 package sandbox

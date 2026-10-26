@@ -5,7 +5,8 @@ import "context"
 // SandboxCreator creates sandboxes. Daytona and Modal implement it.
 // Call Client.Create.
 type SandboxCreator interface {
-	// Create creates one sandbox. A nil request uses the provider default.
+	// Create creates one sandbox.
+	// A nil request is Daytona's default snapshot. Modal requires an image in the request.
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
 }
 
