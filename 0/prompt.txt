@@ -1,0 +1,75 @@
+commit and push to this branch and update the PR description for this change. 
+
+after that there will be similar issues with go-sdks around concurrency mutex plz find out and fix it
+
+---
+
+any change required again ?
+
+---
+
+fix the design patterns, namings of everything
+
+plz don't change anything within protobufs
+
+---
+
+fix the design patterns, namings of everything in go sdk.
+
+you are design patterns god in golang. u really know how to use proper design pattern and whcih pattern to use instead of creating just functions.
+
+plz don't change anything within protobufs
+
+---
+
+look more o f the code of golang sdk and apply more design patterns to make code very lean. 
+
++ u can also create new folders and files to have better seperation of concern
+
+---
+
+cool can u commit and push to this branch. update desctipion of Pr too.
+
+---
+
+update the PR title
+
+---
+
+install go examples dependency as well as go sdk dependency + also run generate for go
+
+---
+
+can u check go example
+
+the only thing which looks weird is this -> Entires: []string{""}
+
+can u check if there is a way to iimprove else Ig other thing looks good. 
+
+what do u think
+
+---
+
+apart from AllowList constructor ?
+
+---
+
+should we write contracts by hand ? for client ? but then it won't make sense. ? for protobuf
+
+---
+
+can't we by chance make []string{} input allow ? insteald of stringallowlist and all
+
+---
+
+now whats left before publishing this ?
+
+---
+
+can u check if sdks version of provider matches with typescript ?
+
+---
+
+can u check if new version for go-sdk for both providers whcih are matching typscript is avialable if yes install it and then make the changes which needs to be done if there are breaking changes
+
+or any thing which is added to sdk which needs change to our sdk .
