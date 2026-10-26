@@ -453,3 +453,7 @@ From each of those directories, run GOWORK=off go mod tidy. The version must sti
 From each of the five module directories, run GOWORK=off go test ./....
 
 do this for me
+
+---
+
+Commit that bump and push main. The tags have to point at a commit GitHub already has.
