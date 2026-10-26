@@ -1,0 +1,5 @@
+can u update the root readme
+
+to add typescript content (sdk) first then golang
+
+we have also published sdk in npm all 4 also add download badge + how many downloads have been alrady done.
