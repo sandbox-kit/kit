@@ -379,3 +379,11 @@ have it there.
 + ig comments also matters and shows up variables fucntions methods comment shows up
 
 so write it according to end user can understand it what it is.
+
+---
+
+u must also add more comments to go-sdk
+
+where ever there is still need.
+
+then create a branch, commit push to that branch open a PR to main
