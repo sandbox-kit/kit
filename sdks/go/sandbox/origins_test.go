@@ -6,12 +6,12 @@ func TestValidValueOrigin(t *testing.T) {
 	t.Parallel()
 
 	for _, origin := range []ValueOrigin{ValueOriginUnknown, ValueOriginProvider, ValueOriginRequest} {
-		if !ValidValueOrigin(origin) {
-			t.Fatalf("ValidValueOrigin(%v) = false, want true", origin)
+		if !validValueOrigin(origin) {
+			t.Fatalf("validValueOrigin(%v) = false, want true", origin)
 		}
 	}
-	if ValidValueOrigin(ValueOrigin(99)) {
-		t.Fatal("ValidValueOrigin(99) = true, want false")
+	if validValueOrigin(ValueOrigin(99)) {
+		t.Fatal("validValueOrigin(99) = true, want false")
 	}
 }
 

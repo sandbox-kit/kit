@@ -39,7 +39,7 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 			Message:   "sandbox-kit: provider returned no sandbox identity",
 		}, nil)
 	}
-	info := CloneSandboxInfo(response.Sandbox)
+	info := cloneSandboxInfo(response.Sandbox)
 	name := backend.Name()
 	if info.Provider != "" && info.Provider != name {
 		return nil, NewError(ErrorInfo{
@@ -98,7 +98,7 @@ func (s *Sandbox) Info() *SandboxInfo {
 	if s.info == nil {
 		return nil
 	}
-	info := CloneSandboxInfo(s.info)
+	info := cloneSandboxInfo(s.info)
 	return info
 }
 
@@ -250,7 +250,7 @@ func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 	}
 	info.Provider = provider
 	s.mu.Lock()
-	s.info = CloneSandboxInfo(info)
+	s.info = cloneSandboxInfo(info)
 	s.mu.Unlock()
 	return nil
 }

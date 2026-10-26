@@ -467,7 +467,7 @@ func mapFieldNonNil(msg protoreflect.Message, fd protoreflect.FieldDescriptor) b
 // actually present. A missing origin means the source is unknown.
 func validateResponseOrigins(info *SandboxInfo, operation string) error {
 	for path, origin := range info.Origins {
-		if !ValidValueOrigin(origin) || !responseFieldPresent(info, path) {
+		if !validValueOrigin(origin) || !responseFieldPresent(info, path) {
 			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
 		}
 	}

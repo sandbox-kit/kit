@@ -149,8 +149,8 @@ const (
 // Value returns a pointer to value for optional protobuf scalar fields.
 func Value[T any](value T) *T { return &value }
 
-// ValidValueOrigin reports whether origin is a declared ValueOrigin.
-func ValidValueOrigin(origin ValueOrigin) bool {
+// validValueOrigin reports whether origin is a declared ValueOrigin.
+func validValueOrigin(origin ValueOrigin) bool {
 	return origin.Descriptor().Values().ByNumber(origin.Number()) != nil
 }
 

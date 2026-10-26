@@ -7,7 +7,7 @@ func prepareCreateRequest(request *CreateOptions) (*CreateOptions, error) {
 	if request == nil {
 		request = &CreateOptions{}
 	}
-	copy := CloneCreateOptions(request)
+	copy := cloneCreateOptions(request)
 	if err := ValidateCreateOptions(copy); err != nil {
 		return nil, err
 	}
