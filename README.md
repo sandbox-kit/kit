@@ -10,19 +10,17 @@ supported.
 The TypeScript SDK is published on npm at version 0.1.3. Each badge counts every
 download npm has recorded for that package.
 
-| Package                                                                          | Version                                                                                                                 | Downloads                                                                                                                                        |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fsandbox)](https://www.npmjs.com/package/@sandbox-kit/sandbox)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fsandbox?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/sandbox)     |
-| [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona)     |
-| [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)         | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)         | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)         |
-| [`@sandbox-kit/contracts`](https://www.npmjs.com/package/@sandbox-kit/contracts) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fcontracts)](https://www.npmjs.com/package/@sandbox-kit/contracts) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fcontracts?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/contracts) |
+| Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fsandbox)](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fsandbox?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/sandbox) |
+| [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona) |
+| [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)     |
 
 npm reports **443** downloads of `@sandbox-kit/sandbox`, **383** of
-`@sandbox-kit/daytona`, **363** of `@sandbox-kit/modal`, and **416** of
-`@sandbox-kit/contracts` (**1,605** package downloads in total).
+`@sandbox-kit/daytona`, and **363** of `@sandbox-kit/modal` (**1,189** package
+downloads in total).
 
-Install `@sandbox-kit/sandbox` and one provider. `@sandbox-kit/contracts` is an
-internal dependency of the core SDK.
+Install `@sandbox-kit/sandbox` and one provider.
 
 ## Get started
 
@@ -108,9 +106,7 @@ func main() {
 | Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
 
 Install only the provider you use. The core SDK exposes the shared client
-interface; the provider package connects it to the provider's native SDK. Do
-not install or import the contracts package directly. The Go wire package is
-under `internal`, so an application import does not compile.
+interface; the provider package connects it to the provider's native SDK.
 
 Closing a client or sandbox handle releases local SDK resources. It does not
 stop, terminate, archive, or delete the cloud sandbox.
@@ -277,8 +273,8 @@ GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
 | ------------------ | ---------------------------------------------- |
 | `proto/`           | Portable protobuf contracts                    |
 | `specs/`           | YAML validation and provider inventories       |
-| `sdks/typescript/` | TypeScript SDK, providers, contracts           |
-| `sdks/go/`         | Go SDK, providers, contracts                   |
+| `sdks/typescript/` | TypeScript sandbox package and providers       |
+| `sdks/go/`         | Go sandbox package and providers               |
 | `examples/`        | Independent TypeScript and Go example projects |
 | `tooling/`         | `sandbox-kit` CLI                              |
 | `docs/`            | Guides                                         |
