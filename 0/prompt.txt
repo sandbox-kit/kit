@@ -1,0 +1,64 @@
+cool can u tell me what should I improve in go-sdk before publishing or is it ready to publish ?
+
+---
+
+Move ExampleNewError and ExampleCloneSandboxInfo to sdks/go/sandbox/example_test.go. They currently live under sdks/go/sandbox/tests, so pkg.go.dev will not attach them to the sandbox package.
+Modal's missing image source returns "default/snapshot/pool mappings are not implemented." The README already says an image is required; the error should say that too.
+Every go line is 1.26.9, so importers need that patch or newer. go 1.26.0 is the usual library minimum unless you depend on a fix that landed in 1.26.9.
+
+can u do this cleanup first.
+
+---
+
+not sure but can u check if there are obsolete code which isn't required but still its there for golang remove it ?
+
+---
+
+ok not sure why u suggested earlier to move contract_example_test
+
+as tehre are other test file in tests folder but just that only?
+
+---
+
+so it shows as documentation or somethin ?
+
+---
+
+lets remove all those go doc Example function for now ? 
+
+we will add those later. in different PR ?
+
+---
+
+can u check 1.26.0 doesn;t break
+
+cause if there are providers which support more than this version minimum it will break ?
+
+---
+
+cool create a branch commit push to branch and then open a PR to main. with good descrtiption of changes + title.
+
+---
+
+now in this same branch work only. 
+
+can u check if there are things which we shouldn't expose to users via package in go-sdk but its being exposed rn
+
+---
+
+Should not be part of the application API
+
+make changes
+
+---
+
+cool commit and push to this same branch and also update description of this commit in PR
+
+---
+
+return copies lock value: github.com/sandbox-kit/kit/sdks/go/sandbox.BearerTokenCredentials contains google.golang.org/protobuf/runtime/protoimpl.MessageState contains sync.Mutexcopylocksdefault
+
+there are lot of fields which says this how to fix it ?
+
+
++ work on this branch only /

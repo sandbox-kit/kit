@@ -1,0 +1,52 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5WBVFDP2M3EXW221KFAMM6W",
+  "strategy": "manual-commit",
+  "branch": "chore/go-sdk-minimum-and-modal-error",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/responses-and-errors.md",
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/clone_message.go",
+    "sdks/go/providers/daytona/clone_message_test.go",
+    "sdks/go/providers/daytona/errors.go",
+    "sdks/go/providers/daytona/go.mod",
+    "sdks/go/providers/daytona/lifecycle_test.go",
+    "sdks/go/providers/daytona/provider_checks.go",
+    "sdks/go/providers/daytona/provider_mappings.go",
+    "sdks/go/providers/daytona/sandbox.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/clone_message.go",
+    "sdks/go/providers/modal/clone_message_test.go",
+    "sdks/go/providers/modal/errors.go",
+    "sdks/go/providers/modal/provider_checks.go",
+    "sdks/go/providers/modal/provider_mappings.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/client_lifecycle.go",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/go/sandbox/errors.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/metadata.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/go/sandbox/support.go",
+    "sdks/go/sandbox/tests/contracts_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 135040,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5430656,
+    "output_tokens": 39742,
+    "api_call_count": 1
+  }
+}
