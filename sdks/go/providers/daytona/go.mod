@@ -5,8 +5,8 @@ go 1.26.0
 require (
 	github.com/daytona/clients/api-client-go v0.225.0
 	github.com/daytona/clients/sdk-go v0.225.0
-	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.0.0
-	github.com/sandbox-kit/kit/sdks/go/sandbox v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.0
+	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.0
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -38,7 +38,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.0.0 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.47.0 // indirect
