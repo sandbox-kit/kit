@@ -95,6 +95,142 @@ func ExampleNew_stop() {
 	}
 }
 
+func ExampleNew_info() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	info := instance.Info()
+	fmt.Println(info.GetId(), instance.ProviderName())
+}
+
+func ExampleNew_supports() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if instance.Supports(sandbox.LifecycleCapabilityPause) {
+		err = instance.Pause(context.Background(), nil)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+}
+
+func ExampleNew_start() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = instance.Start(context.Background(), &sandbox.StartOptions{
+		Timeout: sandbox.Duration(time.Minute),
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func ExampleNew_pause() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = instance.Pause(context.Background(), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func ExampleNew_archive() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = instance.Archive(context.Background(), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func ExampleNew_delete() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	err = instance.Delete(context.Background(), &sandbox.DeleteOptions{})
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func ExampleNew_close() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	// Close drops the local handle. The Daytona sandbox keeps running.
+	err = instance.Close(context.Background())
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func ExampleNew_errors() {
 	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
 	if err != nil {
