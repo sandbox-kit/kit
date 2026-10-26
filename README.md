@@ -5,14 +5,59 @@ provider, install the core SDK and its provider package, then create and manage
 sandboxes through a consistent client interface. Daytona and Modal are
 supported.
 
+## npm
+
+The TypeScript SDK is published on npm at version 0.1.3. Each badge counts every
+download npm has recorded for that package.
+
+| Package                                                                          | Version                                                                                                                 | Downloads                                                                                                                                        |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fsandbox)](https://www.npmjs.com/package/@sandbox-kit/sandbox)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fsandbox?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/sandbox)     |
+| [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona)     |
+| [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)         | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)         | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)         |
+| [`@sandbox-kit/contracts`](https://www.npmjs.com/package/@sandbox-kit/contracts) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fcontracts)](https://www.npmjs.com/package/@sandbox-kit/contracts) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fcontracts?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/contracts) |
+
+npm reports **443** downloads of `@sandbox-kit/sandbox`, **383** of
+`@sandbox-kit/daytona`, **363** of `@sandbox-kit/modal`, and **416** of
+`@sandbox-kit/contracts` (**1,605** package downloads in total).
+
+Install `@sandbox-kit/sandbox` and one provider. `@sandbox-kit/contracts` is an
+internal dependency of the core SDK.
+
 ## Get started
 
-Packages are not published yet. The commands below are the post-release install
-commands; until publication, use the runnable projects in [Examples](#examples).
+### TypeScript
+
+Requires Node.js 20, 22, or 24.15+. Install the core SDK and one provider:
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+# or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
+Set `DAYTONA_API_KEY`, then create a sandbox:
+
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
+
+const sandbox = await client.create();
+console.log(sandbox.id);
+```
+
+Use `await client.close()` in a `finally` block when `await using` is not
+available. Timeouts are milliseconds in TypeScript.
 
 ### Go
 
-Requires Go 1.26.0 or later. Install the core SDK and one provider:
+Requires Go 1.26.0 or later. The module proxy has no released versions, so run
+the [Go examples](examples/go/README.md) from a checkout. The module paths are:
 
 ```sh
 go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
@@ -55,40 +100,12 @@ func main() {
 }
 ```
 
-### TypeScript
-
-Requires Node.js 20, 22, or 24.15+. Install the core SDK and one provider:
-
-```sh
-npm install @sandbox-kit/sandbox @sandbox-kit/daytona
-# or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
-```
-
-Set `DAYTONA_API_KEY`, then create a sandbox:
-
-```ts
-import { daytona } from "@sandbox-kit/daytona";
-import { Client } from "@sandbox-kit/sandbox";
-
-await using client = new Client({
-  provider: daytona(),
-  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
-  timeout: 120_000,
-});
-
-const sandbox = await client.create();
-console.log(sandbox.id);
-```
-
-Use `await client.close()` in a `finally` block when `await using` is not
-available. Timeouts are milliseconds in TypeScript.
-
 ### What gets installed
 
 | Language   | Core SDK                                     | Providers                                      |
 | ---------- | -------------------------------------------- | ---------------------------------------------- |
-| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
 | TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`   |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
 
 Install only the provider you use. The core SDK exposes the shared client
 interface; the provider package connects it to the provider's native SDK. Do
@@ -100,26 +117,30 @@ stop, terminate, archive, or delete the cloud sandbox.
 
 ## Examples
 
-Runnable projects live under `examples/go/` and `examples/typescript/`. Each
+Runnable projects live under `examples/typescript/` and `examples/go/`. Each
 selects one provider, loads its own `.env`, and demonstrates one operation.
+
+TypeScript (Daytona):
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-
-# Go (Daytona)
-cd kit/examples/go/daytona/create-daytona-sandbox
-cp .env.example .env   # set DAYTONA_API_KEY
-go run .
-
-# TypeScript (Daytona)
 cd kit/examples/typescript/daytona/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 npm install && npm run build && npm start
 ```
 
+Go (Daytona), from a fresh clone:
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/go/daytona/create-daytona-sandbox
+cp .env.example .env   # set DAYTONA_API_KEY
+go run .
+```
+
 Modal needs a token pair and an existing app:
-[Go](examples/go/modal/create-modal-sandbox/README.md) ·
-[TypeScript](examples/typescript/modal/create-modal-sandbox/README.md).
+[TypeScript](examples/typescript/modal/create-modal-sandbox/README.md) ·
+[Go](examples/go/modal/create-modal-sandbox/README.md).
 
 Creation examples provision real sandboxes. Lifecycle examples use the ID in
 `.env` (stop / terminate / archive / delete can destroy that resource).
@@ -127,49 +148,12 @@ Error-handling examples fail locally and create nothing. Skip copying
 `.env.example` if you already have a configured `.env`.
 
 Full catalog: [examples/README.md](examples/README.md) ·
-[Go](examples/go/README.md) · [TypeScript](examples/typescript/README.md).
+[TypeScript](examples/typescript/README.md) · [Go](examples/go/README.md).
 
 ## Handle errors
 
-Same portable kinds in both languages. Native causes stay on Go `Unwrap` /
-`errors.As` and the TypeScript `cause` property. Kinds do not imply safe retries.
-
-### Go
-
-```go
-import (
-    "errors"
-    "fmt"
-    "os"
-
-    "github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-
-func handleError(err error) {
-    var sandboxError *sandbox.Error
-    if !errors.As(err, &sandboxError) {
-        fmt.Fprintln(os.Stderr, err)
-        return
-    }
-
-    switch sandboxError.Kind {
-    case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
-        fmt.Fprintf(os.Stderr, "Check %s: %s\n", sandboxError.Field, sandboxError.Message)
-    case sandbox.ErrorKindAuthentication:
-        fmt.Fprintln(os.Stderr, "Check your provider credentials.")
-    case sandbox.ErrorKindPermissionDenied:
-        fmt.Fprintln(os.Stderr, "Your account does not have permission for this operation.")
-    case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
-        fmt.Fprintln(os.Stderr, "The provider's rate or resource limit was reached.")
-    case sandbox.ErrorKindCanceled:
-        fmt.Fprintln(os.Stderr, "The operation was canceled.")
-    case sandbox.ErrorKindTimeout:
-        fmt.Fprintln(os.Stderr, "The operation timed out.")
-    default:
-        fmt.Fprintln(os.Stderr, err)
-    }
-}
-```
+Same portable kinds in both languages. Native causes stay on the TypeScript
+`cause` property and on Go `Unwrap` / `errors.As`. Kinds do not imply safe retries.
 
 ### TypeScript
 
@@ -211,15 +195,52 @@ function handleError(error: unknown): void {
 }
 ```
 
+### Go
+
+```go
+import (
+    "errors"
+    "fmt"
+    "os"
+
+    "github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func handleError(err error) {
+    var sandboxError *sandbox.Error
+    if !errors.As(err, &sandboxError) {
+        fmt.Fprintln(os.Stderr, err)
+        return
+    }
+
+    switch sandboxError.Kind {
+    case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
+        fmt.Fprintf(os.Stderr, "Check %s: %s\n", sandboxError.Field, sandboxError.Message)
+    case sandbox.ErrorKindAuthentication:
+        fmt.Fprintln(os.Stderr, "Check your provider credentials.")
+    case sandbox.ErrorKindPermissionDenied:
+        fmt.Fprintln(os.Stderr, "Your account does not have permission for this operation.")
+    case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
+        fmt.Fprintln(os.Stderr, "The provider's rate or resource limit was reached.")
+    case sandbox.ErrorKindCanceled:
+        fmt.Fprintln(os.Stderr, "The operation was canceled.")
+    case sandbox.ErrorKindTimeout:
+        fmt.Fprintln(os.Stderr, "The operation timed out.")
+    default:
+        fmt.Fprintln(os.Stderr, err)
+    }
+}
+```
+
 More detail: [responses and errors](docs/responses-and-errors.md).
 
 ## Configuration
 
-- Go: `NewClient(provider, &Config{...})`. TypeScript: `new Client({ provider, ... })`.
+- TypeScript: `new Client({ provider, ... })`. Go: `NewClient(provider, &Config{...})`.
 - Config covers auth, scope, endpoint, region, and default timeout.
 - Create options cover source, resources, runtime, network, and policies.
-- Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
-  TypeScript: property presence; duration fields are milliseconds.
+- TypeScript: property presence; duration fields are milliseconds.
+  Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
   Daytona: whole cores and whole GiB expressed as MiB.
@@ -238,27 +259,27 @@ Guides: [configuration](docs/configuration.md) ·
 | [Provider architecture](docs/providers.md)                                                                     | Optional modules and SDK boundaries            |
 | [Responses and errors](docs/responses-and-errors.md)                                                           | Origins, error details, native causes          |
 | [Code generation](docs/code-generation.md)                                                                     | Protobuf, YAML inventories, extension workflow |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                              |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                      |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                              |
 
 ## Develop and contribute
 
 From `tooling/` (needs Go 1.26.0+; contract generation needs the Buf CLI):
 
 ```sh
-GOWORK=off go run ./cmd/sandbox-kit test go
-GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
 GOWORK=off go run ./cmd/sandbox-kit test typescript
 GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
+GOWORK=off go run ./cmd/sandbox-kit test go
+GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
 ```
 
 | Path               | Contents                                       |
 | ------------------ | ---------------------------------------------- |
 | `proto/`           | Portable protobuf contracts                    |
 | `specs/`           | YAML validation and provider inventories       |
-| `sdks/go/`         | Go SDK, providers, contracts                   |
 | `sdks/typescript/` | TypeScript SDK, providers, contracts           |
-| `examples/`        | Independent Go and TypeScript example projects |
+| `sdks/go/`         | Go SDK, providers, contracts                   |
+| `examples/`        | Independent TypeScript and Go example projects |
 | `tooling/`         | `sandbox-kit` CLI                              |
 | `docs/`            | Guides                                         |
 
