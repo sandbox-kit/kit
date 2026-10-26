@@ -124,3 +124,7 @@ okay do it
 so there are methods and types and things which is basically having same problem in typescript too ? 
 
 there are still things in typescript which user doesn't need but provider needs. and each provider needs same thing.
+
+---
+
+regardless can u commit and push this to current branch
