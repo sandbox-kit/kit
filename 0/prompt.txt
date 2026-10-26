@@ -1,5 +1,1 @@
-lets bump the version of typescript sdk to 0.1.3
-
-install typescript dependency again for both sdks as well as examples
-
-+ run generate command again.
+cool can u commit and push to main
