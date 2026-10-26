@@ -54,8 +54,7 @@ available. Timeouts are milliseconds in TypeScript.
 
 ### Go
 
-Requires Go 1.26.0 or later. The module proxy has no released versions, so run
-the [Go examples](examples/go/README.md) from a checkout. The module paths are:
+Requires Go 1.26.0 or later. Install the core SDK and one provider:
 
 ```sh
 go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
