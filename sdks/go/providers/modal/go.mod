@@ -3,7 +3,7 @@ module github.com/sandbox-kit/kit/sdks/go/providers/modal
 go 1.26.0
 
 require (
-	github.com/modal-labs/modal-client/go v0.11.0
+	github.com/modal-labs/modal-client/go v0.11.1
 	github.com/sandbox-kit/kit/sdks/go/sandbox v0.0.0
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
