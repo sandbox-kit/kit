@@ -1,0 +1,21 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5WC81T3D1C1T53XR5YSAGPB",
+  "strategy": "manual-commit",
+  "branch": "chore/go-sdk-minimum-and-modal-error",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/go/sandbox/tests/lifecycle_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ]
+}
