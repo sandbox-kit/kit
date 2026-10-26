@@ -3,11 +3,12 @@
 package daytona
 
 import (
+	math "math"
+	time "time"
+
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
 	types "github.com/daytona/clients/sdk-go/pkg/types"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
-	math "math"
-	time "time"
 )
 
 // mapLifetimePolicies maps supplied fields for mapLifetimePolicies into the
@@ -18,37 +19,37 @@ func mapLifetimePolicies(source *sandbox.LifetimePolicy) (types.SandboxBaseParam
 		return target, &sandbox.LifetimePolicy{}, nil
 	}
 	remaining := cloneMessage(source)
-	if err := mapMinutePolicy(source.IdleStop, minutePolicySpec{
+	if err := (minutePolicySpec{
 		field: sandbox.CreateFieldLifetimeIdleStop, label: "idle_stop",
 		allowDisable: true, forbidImmediate: true,
 		set:        func(v int) { target.AutoStopInterval = &v },
 		setDisable: func() { target.AutoStopInterval = sandbox.Value(0) },
-	}); err != nil {
+	}).apply(source.IdleStop); err != nil {
 		return target, remaining, err
 	}
 	remaining.IdleStop = nil
-	if err := mapMinutePolicy(source.IdlePause, minutePolicySpec{
+	if err := (minutePolicySpec{
 		field: sandbox.CreateFieldLifetimeIdlePause, label: "idle_pause",
 		allowDisable: true, forbidImmediate: true,
 		set:        func(v int) { target.AutoPauseInterval = &v },
 		setDisable: func() { target.AutoPauseInterval = sandbox.Value(0) },
-	}); err != nil {
+	}).apply(source.IdlePause); err != nil {
 		return target, remaining, err
 	}
 	remaining.IdlePause = nil
-	if err := mapMinutePolicy(source.StoppedArchive, minutePolicySpec{
+	if err := (minutePolicySpec{
 		field: sandbox.CreateFieldLifetimeStoppedArchive, label: "stopped_archive",
 		allowDisable: false, forbidImmediate: true, maxMinutes: 43200,
 		set: func(v int) { target.AutoArchiveInterval = &v },
-	}); err != nil {
+	}).apply(source.StoppedArchive); err != nil {
 		return target, remaining, err
 	}
 	remaining.StoppedArchive = nil
-	if err := mapMinutePolicy(source.StoppedDelete, minutePolicySpec{
+	if err := (minutePolicySpec{
 		field: sandbox.CreateFieldLifetimeStoppedDelete, label: "stopped_delete",
 		allowDisable: false, forbidImmediate: false,
 		set: func(v int) { target.AutoDeleteInterval = &v },
-	}); err != nil {
+	}).apply(source.StoppedDelete); err != nil {
 		return target, remaining, err
 	}
 	remaining.StoppedDelete = nil
@@ -65,7 +66,7 @@ type minutePolicySpec struct {
 	setDisable      func()
 }
 
-func mapMinutePolicy(policy *sandbox.AutomaticAction, spec minutePolicySpec) error {
+func (spec minutePolicySpec) apply(policy *sandbox.AutomaticAction) error {
 	if policy == nil {
 		return nil
 	}
@@ -127,21 +128,15 @@ func mapCommonCreateFields(source *sandbox.CreateOptions) (types.SandboxBasePara
 	}
 	remaining := cloneMessage(source)
 	if source.Name != nil {
-		{
-			value := source.GetName()
-			target.Name = value
-		}
+		value := source.GetName()
+		target.Name = value
 	}
 	remaining.Name = nil
-	{
-		value := source.Environment
-		target.EnvVars = value
-	}
+	value := source.Environment
+	target.EnvVars = value
 	remaining.Environment = nil
-	{
-		value := source.Labels
-		target.Labels = value
-	}
+	value = source.Labels
+	target.Labels = value
 	remaining.Labels = nil
 	return target, remaining, nil
 }
@@ -155,33 +150,27 @@ func mapResources(source *sandbox.Resources) (types.Resources, *sandbox.Resource
 	}
 	remaining := cloneMessage(source)
 	if source.CpuCores != nil {
-		{
-			value := source.GetCpuCores()
-			if float64(value) != math.Trunc(float64(value)) || value > 2147483647 {
-				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit daytona: cpu_cores cannot be represented"}, nil)
-			}
-			target.CPU = int(value)
+		value := source.GetCpuCores()
+		if float64(value) != math.Trunc(float64(value)) || value > 2147483647 {
+			return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesCpuCores, Message: "sandbox-kit daytona: cpu_cores cannot be represented"}, nil)
 		}
+		target.CPU = int(value)
 	}
 	remaining.CpuCores = nil
 	if source.MemoryMib != nil {
-		{
-			value := source.GetMemoryMib()
-			if value%1024 != 0 || value/1024 > 2147483647 {
-				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit daytona: memory_mib cannot be represented"}, nil)
-			}
-			target.Memory = int(value / 1024)
+		value := source.GetMemoryMib()
+		if value%1024 != 0 || value/1024 > 2147483647 {
+			return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesMemoryMib, Message: "sandbox-kit daytona: memory_mib cannot be represented"}, nil)
 		}
+		target.Memory = int(value / 1024)
 	}
 	remaining.MemoryMib = nil
 	if source.DiskMib != nil {
-		{
-			value := source.GetDiskMib()
-			if value%1024 != 0 || value/1024 > 2147483647 {
-				return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesDiskMib, Message: "sandbox-kit daytona: disk_mib cannot be represented"}, nil)
-			}
-			target.Disk = int(value / 1024)
+		value := source.GetDiskMib()
+		if value%1024 != 0 || value/1024 > 2147483647 {
+			return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidArgument, Provider: "daytona", Operation: "create", Field: sandbox.CreateFieldResourcesDiskMib, Message: "sandbox-kit daytona: disk_mib cannot be represented"}, nil)
 		}
+		target.Disk = int(value / 1024)
 	}
 	remaining.DiskMib = nil
 	return target, remaining, nil
@@ -195,38 +184,23 @@ func mapSandboxInfo(source *daytona.Sandbox) (*sandbox.SandboxInfo, error) {
 		return target, nil
 	}
 	target.Origins = map[string]sandbox.ValueOrigin{}
-	{
-		value := source.ID
-		target.Id = value
-		target.Origins["id"] = sandbox.ValueOriginProvider
+	target.Id = source.ID
+	target.Origins["id"] = sandbox.ValueOriginProvider
+	target.Name = sandbox.Value(source.Name)
+	if target.Name != nil {
+		target.Origins["name"] = sandbox.ValueOriginProvider
 	}
-	{
-		value := source.Name
-		target.Name = sandbox.Value(value)
-		if target.Name != nil {
-			target.Origins["name"] = sandbox.ValueOriginProvider
-		}
+	target.ProviderState = sandbox.Value(string(source.State))
+	if target.ProviderState != nil {
+		target.Origins["provider_state"] = sandbox.ValueOriginProvider
 	}
-	{
-		value := source.State
-		target.ProviderState = sandbox.Value(string(value))
-		if target.ProviderState != nil {
-			target.Origins["provider_state"] = sandbox.ValueOriginProvider
-		}
+	target.Region = sandbox.Value(source.Target)
+	if target.Region != nil {
+		target.Origins["region"] = sandbox.ValueOriginProvider
 	}
-	{
-		value := source.Target
-		target.Region = sandbox.Value(value)
-		if target.Region != nil {
-			target.Origins["region"] = sandbox.ValueOriginProvider
-		}
-	}
-	{
-		value := source.Labels
-		target.Labels = value
-		if target.Labels != nil {
-			target.Origins["labels"] = sandbox.ValueOriginProvider
-		}
+	target.Labels = source.Labels
+	if target.Labels != nil {
+		target.Origins["labels"] = sandbox.ValueOriginProvider
 	}
 	target.Provider = "daytona"
 	return target, nil
@@ -242,24 +216,18 @@ func mapAllocatedResources(source *daytona.Sandbox) (*sandbox.Resources, error) 
 	if !(source.Cpu > 0 && source.Memory > 0 && source.Disk > 0) {
 		return target, nil
 	}
-	{
-		value := source.Cpu
-		target.CpuCores = sandbox.Value(float64(value))
+	value := source.Cpu
+	target.CpuCores = sandbox.Value(float64(value))
+	value = source.Memory
+	if value < 0 || uint64(value) > ^uint64(0)/1024 {
+		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "memory", Message: "sandbox-kit daytona: memory cannot be represented"}, nil)
 	}
-	{
-		value := source.Memory
-		if value < 0 || uint64(value) > ^uint64(0)/1024 {
-			return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "memory", Message: "sandbox-kit daytona: memory cannot be represented"}, nil)
-		}
-		target.MemoryMib = sandbox.Value(uint64(value) * 1024)
+	target.MemoryMib = sandbox.Value(uint64(value) * 1024)
+	value = source.Disk
+	if value < 0 || uint64(value) > ^uint64(0)/1024 {
+		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "disk", Message: "sandbox-kit daytona: disk cannot be represented"}, nil)
 	}
-	{
-		value := source.Disk
-		if value < 0 || uint64(value) > ^uint64(0)/1024 {
-			return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "disk", Message: "sandbox-kit daytona: disk cannot be represented"}, nil)
-		}
-		target.DiskMib = sandbox.Value(uint64(value) * 1024)
-	}
+	target.DiskMib = sandbox.Value(uint64(value) * 1024)
 	return target, nil
 }
 
@@ -272,17 +240,13 @@ func mapClientSettings(source *sandbox.Config) (types.DaytonaConfig, *sandbox.Co
 	}
 	remaining := cloneMessage(source)
 	if source.Endpoint != nil {
-		{
-			value := source.GetEndpoint()
-			target.APIUrl = value
-		}
+		value := source.GetEndpoint()
+		target.APIUrl = value
 	}
 	remaining.Endpoint = nil
 	if source.Region != nil {
-		{
-			value := source.GetRegion()
-			target.Target = value
-		}
+		value := source.GetRegion()
+		target.Target = value
 	}
 	remaining.Region = nil
 	return target, remaining, nil
@@ -296,26 +260,22 @@ func mapAPIKeyCredentials(source *sandbox.APIKeyCredentials) (types.DaytonaConfi
 		return target, &sandbox.APIKeyCredentials{}, nil
 	}
 	remaining := cloneMessage(source)
-	{
-		value := source.Key
-		target.APIKey = value
-	}
+	value := source.Key
+	target.APIKey = value
 	remaining.Key = ""
 	return target, remaining, nil
 }
 
-// mapBearerAuth maps supplied fields for mapBearerAuth into the native request
-// and returns the fields that were not mapped.
-func mapBearerAuth(source *sandbox.BearerTokenCredentials) (types.DaytonaConfig, *sandbox.BearerTokenCredentials, error) {
+// mapBearerTokenCredentials maps supplied fields into the native request and
+// returns the fields that were not mapped.
+func mapBearerTokenCredentials(source *sandbox.BearerTokenCredentials) (types.DaytonaConfig, *sandbox.BearerTokenCredentials, error) {
 	target := types.DaytonaConfig{}
 	if source == nil {
 		return target, &sandbox.BearerTokenCredentials{}, nil
 	}
 	remaining := cloneMessage(source)
-	{
-		value := source.Token
-		target.JWTToken = value
-	}
+	value := source.Token
+	target.JWTToken = value
 	remaining.Token = ""
 	return target, remaining, nil
 }
@@ -329,10 +289,8 @@ func mapScope(source *sandbox.Scope) (types.DaytonaConfig, *sandbox.Scope, error
 	}
 	remaining := cloneMessage(source)
 	if source.OrganizationId != nil {
-		{
-			value := source.GetOrganizationId()
-			target.OrganizationID = value
-		}
+		value := source.GetOrganizationId()
+		target.OrganizationID = value
 	}
 	remaining.OrganizationId = nil
 	return target, remaining, nil

@@ -72,9 +72,9 @@ func TestValidateResponseOrigins(t *testing.T) {
 			CpuCores: Value(1.0),
 		},
 		Origins: map[string]ValueOrigin{
-			InfoFieldId:                 ValueOriginProvider,
-			InfoFieldResourcesCpuCores:  ValueOriginRequest,
-			InfoFieldState:              ValueOriginProvider,
+			InfoFieldId:                ValueOriginProvider,
+			InfoFieldResourcesCpuCores: ValueOriginRequest,
+			InfoFieldState:             ValueOriginProvider,
 		},
 	}
 	if err := validateResponseOrigins(ok, "create"); err != nil {

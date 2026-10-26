@@ -67,7 +67,7 @@ func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 		if !ok {
 			return nil, s.unsupported("start")
 		}
-		return capability.StartSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StartOptions { return &StartOptions{} }, func(cloned *StartOptions) {
+		return capability.StartSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *StartOptions { return &StartOptions{} }, func(cloned *StartOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -80,7 +80,7 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 		if !ok {
 			return nil, s.unsupported("stop")
 		}
-		return capability.StopSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StopOptions { return &StopOptions{} }, func(cloned *StopOptions) {
+		return capability.StopSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *StopOptions { return &StopOptions{} }, func(cloned *StopOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -93,7 +93,7 @@ func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 		if !ok {
 			return nil, s.unsupported("pause")
 		}
-		return capability.PauseSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *PauseOptions { return &PauseOptions{} }, func(cloned *PauseOptions) {
+		return capability.PauseSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *PauseOptions { return &PauseOptions{} }, func(cloned *PauseOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -110,7 +110,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	if !ok {
 		return nil, s.unsupported("terminate")
 	}
-	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *TerminateOptions { return &TerminateOptions{} }, func(cloned *TerminateOptions) {
+	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *TerminateOptions { return &TerminateOptions{} }, func(cloned *TerminateOptions) {
 		cloned.Timeout = Duration(*timeout)
 	}))
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 		if !ok {
 			return nil, s.unsupported("archive")
 		}
-		return capability.ArchiveSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *ArchiveOptions { return &ArchiveOptions{} }, func(cloned *ArchiveOptions) {
+		return capability.ArchiveSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *ArchiveOptions { return &ArchiveOptions{} }, func(cloned *ArchiveOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -144,7 +144,7 @@ func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	if !ok {
 		return s.unsupported("delete")
 	}
-	info, err := capability.DeleteSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
+	info, err := capability.DeleteSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
 		cloned.Timeout = Duration(*timeout)
 	}))
 	if err != nil {
@@ -174,9 +174,9 @@ func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *
 	return inherited
 }
 
-// providerOptions copies options and records timeout for the provider. A nil
-// timeout leaves the caller value unchanged, including a nil options pointer.
-func providerOptions[T proto.Message](options T, timeout *time.Duration, blank func() T, apply func(T)) T {
+// cloneOptionsWithTimeout copies options and records timeout for the provider.
+// A nil timeout leaves the caller value unchanged, including a nil options pointer.
+func cloneOptionsWithTimeout[T proto.Message](options T, timeout *time.Duration, blank func() T, apply func(T)) T {
 	if timeout == nil {
 		return options
 	}

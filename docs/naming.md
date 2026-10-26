@@ -75,9 +75,17 @@ handwritten aliases such as `sandbox_data_contracts.go` /
 | `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions       |
 | `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks              |
 | `config/provider_config.ts`                              | Native SDK configuration assembly (TS)       |
+| `capabilities.go`                                        | Optional backend operation interfaces (Go)   |
+| `creation.go`                                            | Provider create planning (Go)                |
+| `lifecycle.go`                                           | Provider lifecycle calls (Go)                |
+| `metadata.go`                                            | Observed sandbox metadata (Go)               |
+| `operation.go`                                           | Sandbox handle operation gate (Go)           |
 
 Handwritten runtime and provider files own client/orchestration behavior and
-metadata clone helpers. Keep YAML inventories aligned when changing those files.
+metadata clone helpers. Go providers keep SDK calls in `sandbox.go` and the
+create plan in `creation.go`. Daytona also keeps lifecycle calls in
+`lifecycle.go` and observed metadata in `metadata.go`. Keep YAML inventories
+aligned when changing those files.
 
 ## Language conventions
 

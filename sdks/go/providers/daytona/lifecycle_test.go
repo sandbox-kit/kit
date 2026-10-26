@@ -37,7 +37,7 @@ func TestResolvedSandboxClassMapping(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			instance := &daytonasdk.Sandbox{ID: "id", SandboxClass: &tc.class, Gpu: tc.gpu}
-			info, err := daytonaSandboxInfo(instance)
+			info, err := sandboxInfo(instance)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -60,7 +60,7 @@ func TestResolvedSandboxClassMapping(t *testing.T) {
 func TestResolvedCapabilitiesAndPortableState(t *testing.T) {
 	container := types.SandboxClassContainer
 	instance := &daytonasdk.Sandbox{ID: "id", SandboxClass: &container, State: apiclient.SANDBOXSTATE_STARTED}
-	info, err := daytonaSandboxInfo(instance)
+	info, err := sandboxInfo(instance)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestResolvedCapabilitiesAndPortableState(t *testing.T) {
 		t.Fatalf("unexpected state/capabilities: %v %v", info.State, capabilities)
 	}
 	instance.Gpu = 1
-	info, err = daytonaSandboxInfo(instance)
+	info, err = sandboxInfo(instance)
 	if err != nil {
 		t.Fatal(err)
 	}

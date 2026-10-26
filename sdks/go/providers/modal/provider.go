@@ -78,40 +78,40 @@ func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
 		return nil, err
 	}
 	result := &backend{client: native}
-	captureBackendState(result, config)
+	result.capture(config)
 	return result, nil
 }
 
-// captureBackendState copies retained configuration onto the backend. Later
-// changes to the caller config do not affect the copy.
-func captureBackendState(result *backend, config *sandbox.Config) {
+// capture copies retained configuration onto the backend. Later changes to the
+// caller config do not affect the copy.
+func (b *backend) capture(config *sandbox.Config) {
 	if config == nil {
 		return
 	}
 	if config.Scope != nil {
-		result.scope = proto.Clone(config.Scope).(*sandbox.Scope)
+		b.scope = proto.Clone(config.Scope).(*sandbox.Scope)
 	}
 	if config.Region != nil {
 		value := *config.Region
-		result.region = &value
+		b.region = &value
 	}
 }
 
 // Create creates one sandbox through the native SDK and returns shared
 // metadata.
-func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-	response, err := a.create(ctx, request)
+func (b *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
+	response, err := b.create(ctx, request)
 	return response, mapProviderError(err, "create")
 }
 
 // Close releases the native SDK client. It does not stop or delete the cloud
 // sandbox. The Modal SDK Close call does not return an error; context
 // cancellation is honored before release.
-func (a *backend) Close(ctx context.Context) error {
+func (b *backend) Close(ctx context.Context) error {
 	if err := ctx.Err(); err != nil {
 		return mapProviderError(err, "close")
 	}
-	a.client.Close()
+	b.client.Close()
 	return nil
 }
 
