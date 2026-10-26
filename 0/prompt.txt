@@ -303,3 +303,7 @@ ain't that should be change to 0.1.0 ?
 ---
 
 4. test outside the workspace
+
+---
+
+5. Commit that release commit and push main. The tags have to point at a commit GitHub already has.
