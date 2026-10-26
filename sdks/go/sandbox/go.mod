@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	buf.build/go/protovalidate v1.4.0
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.0
-	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.0
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.1
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.1
 	google.golang.org/protobuf v1.36.12
 )
 
