@@ -185,6 +185,18 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	}
 	select {
 	case s.operationGate <- struct{}{}:
+		// Close acquires this gate before marking the handle closed. Recheck
+		// after the gate is held so a call that passed the earlier check cannot
+		// start once Close has finished.
+		s.mu.RLock()
+		closed = s.closed
+		s.mu.RUnlock()
+		if closed {
+			<-s.operationGate
+			baseCancel()
+			clientRelease()
+			return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
+		}
 		if info := s.Info(); info != nil && info.GetTerminal() {
 			<-s.operationGate
 			baseCancel()

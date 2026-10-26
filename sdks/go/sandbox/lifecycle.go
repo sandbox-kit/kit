@@ -135,17 +135,25 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	if err := s.runInfoOp(ctx, "delete", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
-		capability, ok := s.operations.(SandboxDeleter)
-		if !ok {
-			return nil, s.unsupported("delete")
-		}
-		return capability.DeleteSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
-			cloned.Timeout = Duration(*timeout)
-		}))
-	}); err != nil {
+	operationContext, cancel, err := s.operationContext(ctx, "delete", timeout)
+	if err != nil {
 		return err
 	}
+	defer cancel()
+	capability, ok := s.operations.(SandboxDeleter)
+	if !ok {
+		return s.unsupported("delete")
+	}
+	info, err := capability.DeleteSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
+		cloned.Timeout = Duration(*timeout)
+	}))
+	if err != nil {
+		return WithErrorContext(err, s.ProviderName(), "delete")
+	}
+	if err := s.replaceInfo("delete", info); err != nil {
+		return err
+	}
+	// Mark the handle terminal before cancel releases the operation gate.
 	s.markTerminal(SandboxStateDeleted, "deleted")
 	return nil
 }
