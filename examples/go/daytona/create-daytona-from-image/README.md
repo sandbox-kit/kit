@@ -32,7 +32,7 @@ cp .env.example .env
 go run .
 ```
 
-Requires Go 1.26.9+ and this checkout. Skip copying if `.env` already exists.
+Requires Go 1.26.0+ and this checkout. Skip copying if `.env` already exists.
 Local check: `GOWORK=off go test ./...`.
 
 ### Environment

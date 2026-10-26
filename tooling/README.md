@@ -6,7 +6,7 @@ helpers are handwritten under `sdks/`.
 
 ## Usage
 
-Requires Go 1.26.9 or newer. Contract generation and protobuf verification
+Requires Go 1.26.0 or newer. Contract generation and protobuf verification
 require the Buf CLI.
 
 From this directory:
@@ -70,7 +70,7 @@ Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off` ignores the root workspace for each command so every module is
 verified with its own `go.mod` and local replacements. The root `go.work` is for
 working across modules in an editor. Run `go version` in the same terminal to
-confirm Go 1.26.9 or newer; restart the editor's Go language server after upgrading.
+confirm Go 1.26.0 or newer; restart the editor's Go language server after upgrading.
 
 `go work sync` can update dependency versions in individual `go.mod` files.
 After using it, run `GOWORK=off go mod tidy` inside each affected module to update

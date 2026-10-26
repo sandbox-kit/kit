@@ -1,6 +1,6 @@
 module github.com/sandbox-kit/kit/examples/go/daytona/force-stop-daytona-sandbox
 
-go 1.26.9
+go 1.26.0
 
 require (
 	github.com/joho/godotenv v1.5.1

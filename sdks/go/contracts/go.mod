@@ -1,6 +1,6 @@
 module github.com/sandbox-kit/kit/sdks/go/contracts
 
-go 1.26.9
+go 1.26.0
 
 require google.golang.org/protobuf v1.36.12
 

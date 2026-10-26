@@ -8,7 +8,7 @@ with edge cases drawn from Daytona and Modal behavior.
 ## Run one
 
 ```sh
-# Go — requires Go 1.26.9+
+# Go — requires Go 1.26.0+
 cd examples/go/daytona/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 go run .

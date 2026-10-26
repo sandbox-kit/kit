@@ -189,7 +189,7 @@ func planCreate(request *sandbox.CreateOptions, scope *sandbox.Scope, region str
 			Provider:  "modal",
 			Operation: "create",
 			Field:     sandbox.CreateFieldSource,
-			Message:   "sandbox-kit modal: explicit image source is required; default/snapshot/pool mappings are not implemented",
+			Message:   "sandbox-kit modal: an explicit image source is required",
 		}, nil)
 	}
 	plan.image = image.Reference

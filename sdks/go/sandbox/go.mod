@@ -1,6 +1,6 @@
 module github.com/sandbox-kit/kit/sdks/go/sandbox
 
-go 1.26.9
+go 1.26.0
 
 require (
 	buf.build/go/protovalidate v1.4.0

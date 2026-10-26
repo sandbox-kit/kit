@@ -1,6 +1,6 @@
 module github.com/sandbox-kit/kit/sdks/go/providers/daytona
 
-go 1.26.9
+go 1.26.0
 
 require (
 	github.com/daytona/clients/api-client-go v0.222.0

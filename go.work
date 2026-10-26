@@ -1,4 +1,4 @@
-go 1.26.9
+go 1.26.0
 
 use (
 	./examples/go/daytona/create-daytona-ephemeral
