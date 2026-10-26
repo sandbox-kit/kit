@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5WB0ACPXQND916PQX5RT027",
+  "strategy": "manual-commit",
+  "branch": "chore/go-sdk-minimum-and-modal-error",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "sdks/go/sandbox/clone.go",
+    "sdks/go/sandbox/clone_test.go",
+    "sdks/go/sandbox/create.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/origins_test.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/go/sandbox/sandbox_data_contracts.go",
+    "sdks/go/sandbox/tests/contracts_test.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10012,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1573760,
+    "output_tokens": 3392,
+    "api_call_count": 1
+  }
+}
