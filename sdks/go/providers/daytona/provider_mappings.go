@@ -1,5 +1,3 @@
-// Provider field mappings between shared CreateOptions/Config and the native SDK.
-// Inventoried in specs/providers/daytona.yaml groups; kept in sync by hand (not emitted).
 package daytona
 
 import (

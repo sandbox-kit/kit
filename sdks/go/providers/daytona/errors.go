@@ -1,17 +1,9 @@
-// Native Daytona error translation is handwritten.
-// Classification order: existing *sandbox.Error, canceled/deadline causes,
-// DaytonaError code then HTTP status, then unknown.
-// mapProviderError classifies a native SDK error into a shared kind and keeps
-// the original cause.
-//
-// Example:
-//
-//	return mapProviderError(err, "create")
 package daytona
 
 import (
 	context "context"
 	errors "errors"
+
 	errors1 "github.com/daytona/clients/sdk-go/pkg/errors"
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"

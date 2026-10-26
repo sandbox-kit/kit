@@ -1,4 +1,6 @@
-// Package daytona maps shared client and creation configuration to its official SDK.
-// New selects a factory; sandbox.NewClient initializes the SDK from sandbox.Config.
-// The sandbox client owns SDK cleanup through Close.
+// Package daytona connects the sandbox client to Daytona.
+//
+// Pass [New] to sandbox.NewClient. [sandbox.Client.Create] with a nil request
+// uses Daytona's default snapshot. Closing the client releases the local SDK
+// and leaves the Daytona sandbox running.
 package daytona

@@ -74,8 +74,8 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	}
 }
 
-// Close releases this local handle. It never changes the remote sandbox. Close
-// is idempotent.
+// Close releases this local handle. It does not stop, terminate, or delete the cloud sandbox.
+// A second call is safe. A nil handle returns nil. A nil context returns ErrorKindInvalidArgument.
 func (s *Sandbox) Close(ctx context.Context) error {
 	if ctx == nil {
 		return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "close_handle", Field: "context", Message: "sandbox-kit: context is required"}, nil)

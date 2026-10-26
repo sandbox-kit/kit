@@ -1,11 +1,3 @@
-// This file calls the Daytona SDK. creation.go builds the arguments, and
-// metadata.go turns the SDK sandbox into shared metadata.
-//
-// Example:
-//
-//	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{})
-//	instance, err := client.Create(ctx, nil)
-
 package daytona
 
 import (

@@ -1,13 +1,3 @@
-// Client runtime behavior is handwritten. Portable request and response data
-// remains generated from protobuf.
-// Client owns an initialized provider SDK. Create returns a sandbox handle.
-// Close releases the SDK and leaves the cloud sandbox running.
-//
-// Example:
-//
-//	client, err := NewClient(provider, &Config{})
-//	instance, err := client.Create(ctx, nil)
-//	err = client.Close(ctx)
 package sandbox
 
 import (
@@ -24,36 +14,27 @@ import (
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 )
 
-// Backend is the provider identity and local SDK cleanup contract. Operations
-// are optional capabilities.
+// Backend is the open provider connection held by Client.
+// Close releases that connection. It does not stop or delete a cloud sandbox.
 type Backend interface {
-	// Name returns the provider identifier, such as "daytona" or "modal".
+	// Name returns the provider name, "daytona" or "modal".
 	Name() string
-	// Close releases the native SDK. It does not stop or delete the cloud sandbox.
-	//
-	// Example:
-	//
-	//   err := backend.Close(ctx)
-	//
+	// Close releases the provider connection. It does not stop or delete a cloud sandbox.
 	Close(context.Context) error
 }
 
-// Provider initializes the provider SDK from shared configuration.
+// Provider is the value passed to NewClient.
+// Use daytona.New or modal.New.
 type Provider interface {
-	// Name returns the provider identifier selected by this factory.
+	// Name returns the provider name, "daytona" or "modal".
 	Name() string
-	// NewClient builds a backend from shared configuration. Call it through
-	// sandbox.NewClient,
-	// which validates the configuration and owns cleanup.
-	//
-	// Example:
-	//
-	// 	backend, err := provider.NewClient(&config)
-	//
+	// NewClient opens the provider from config.
+	// Call the package NewClient. That checks config and owns cleanup.
 	NewClient(*Config) (Backend, error)
 }
 
-// Client owns its initialized provider SDK. Close it when finished.
+// Client creates and looks up sandboxes.
+// Close releases the local connection. It does not stop or delete a cloud sandbox.
 type Client struct {
 	// backend is the initialized provider SDK. Applications use Client methods
 	// instead of this field.
@@ -79,9 +60,10 @@ func missingClientBinding(binding any) bool {
 	return false
 }
 
-// NewClient validates shared configuration and initializes the selected
-// provider SDK.
-// The returned client owns cleanup. Closing it does not stop the sandbox.
+// NewClient checks config and opens a client for the selected provider.
+// Closing the client releases the provider SDK. It does not stop or delete a sandbox.
+//
+// Pass daytona.New or modal.New as providerFactory.
 //
 // Example:
 //
@@ -158,8 +140,8 @@ func secureEndpoint(value string) bool {
 	return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
 }
 
-// ProviderName returns the selected provider identifier, such as "daytona" or
-// "modal".
+// ProviderName returns "daytona" or "modal".
+// A nil client returns an empty string.
 func (c *Client) ProviderName() string {
 	if c == nil || c.backend == nil {
 		return ""
@@ -167,7 +149,7 @@ func (c *Client) ProviderName() string {
 	return c.backend.Name()
 }
 
-// Close releases the native SDK. It does not stop or delete the cloud sandbox.
+// Close releases the local provider connection. It does not stop or delete the cloud sandbox.
 // A nil client is a no-op. A nil context returns an invalid-argument error.
 //
 // Example:
@@ -185,9 +167,10 @@ func (c *Client) Close(ctx context.Context) (result error) {
 	return c.closeBackend(ctx)
 }
 
-// Create creates one sandbox and returns a handle. A nil request uses provider
-// defaults.
-// Close the client when finished; that does not delete the sandbox.
+// Create creates one sandbox and returns its handle.
+// A nil request uses the provider default. Modal requires an image in CreateOptions.Source.
+// A nil client or a nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
+// Close the client when finished. That does not delete the sandbox.
 //
 // Example:
 //

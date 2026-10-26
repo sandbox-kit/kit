@@ -1,8 +1,3 @@
-// Field-path constants identify create/info settings in errors. Values are canonical protobuf paths.
-//
-// Example:
-//
-//	fmt.Println(CreateFieldResourcesCPUCores) // resources.cpu_cores
 package sandbox
 
 import (
@@ -12,7 +7,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// CreateFieldName is the canonical path "name".
+// CreateFieldName is the Field value "name" on a create error.
+// Compare Error.Field with these constants to see which setting to change.
 const CreateFieldName = "name"
 
 // CreateFieldSource is the canonical path "source".

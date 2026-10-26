@@ -1,20 +1,19 @@
-# Sandbox Kit contracts (Go)
+# Sandbox Kit wire messages
 
-Generated wire types for the Go SDK. The module path is under `internal`, so
-application code cannot import it. The public sandbox package aliases these
-messages.
+This module is installed automatically with the sandbox client. The client
+re-exports the messages a program constructs, including Config, CreateOptions,
+and ErrorInfo.
 
-Install the public client and a provider instead:
+Install the public client and one provider:
 
 ```sh
-go get github.com/sandbox-kit/kit/sdks/go/sandbox
-go get github.com/sandbox-kit/kit/sdks/go/providers/daytona
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 # or
-go get github.com/sandbox-kit/kit/sdks/go/providers/modal
+go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 ```
 
-See [`sdks/go/sandbox`](https://github.com/sandbox-kit/kit/tree/main/sdks/go/sandbox)
-for usage.
+Start with [the sandbox client](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/sandbox).
 
 ## License
 

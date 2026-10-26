@@ -1,12 +1,11 @@
-// Provider field mappings between shared CreateOptions/Config and the native SDK.
-// Inventoried in specs/providers/modal.yaml groups; kept in sync by hand (not emitted).
 package modal
 
 import (
-	sdk "github.com/modal-labs/modal-client/go"
-	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	math "math"
 	time "time"
+
+	sdk "github.com/modal-labs/modal-client/go"
+	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 // mapSandboxIdentity maps native fields for mapSandboxIdentity into shared

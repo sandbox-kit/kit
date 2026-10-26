@@ -1,18 +1,3 @@
-// This file turns a shared creation request into Modal app, image, and secret lookups,
-// then calls the official SDK. Generated mappings cover field conversion. This file
-// covers the call order those mappings cannot express.
-//
-// Example:
-//
-//	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{})
-//	instance, err := client.Create(ctx, &sandbox.CreateOptions{
-//	    Source: &sandbox.SandboxSource{
-//	        Kind: &sandbox.Image{
-//	            Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
-//	        },
-//	    },
-//	})
-
 package modal
 
 import (
@@ -28,8 +13,8 @@ var _ sandbox.SandboxAttacher = (*backend)(nil)
 var _ sandbox.SandboxTerminator = (*backend)(nil)
 
 // create looks up the app, secrets, and image, then creates the sandbox.
-// A nil request uses provider defaults. The returned metadata is shared,
-// not a Modal object.
+// A nil request becomes an empty request. Modal still requires an image.
+// The returned metadata is shared, not a Modal object.
 func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	if request == nil {
 		request = &sandbox.CreateOptions{}

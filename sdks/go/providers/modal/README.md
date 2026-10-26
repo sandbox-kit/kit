@@ -1,111 +1,93 @@
-# Modal provider for Go
+# Modal
 
-Modal provider for
-[`sdks/go/sandbox`](https://github.com/sandbox-kit/kit/tree/main/sdks/go/sandbox).
-Use the shared client interface; this module supplies `modal.New()`.
+Create and manage Modal sandboxes with the shared sandbox client.
 
-Requires Go 1.26.0 or newer, and a Modal token pair.
+Requires Go 1.26.0 or later and an existing Modal app. Set `Auth` to a token
+pair or OAuth refresh credentials. If `Auth` is omitted, the Modal SDK uses
+credentials it already finds in the environment.
 
 ## Install
 
 ```sh
-go get github.com/sandbox-kit/kit/sdks/go/sandbox
-go get github.com/sandbox-kit/kit/sdks/go/providers/modal
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 ```
 
-## Quick start
+## Create a sandbox
 
 ```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	"time"
-
-	"github.com/sandbox-kit/kit/sdks/go/providers/modal"
-	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-
-func main() {
-	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{
-			Credentials: &sandbox.TokenPair{
-				TokenPair: &sandbox.TokenPairCredentials{
-					Id:     os.Getenv("MODAL_TOKEN_ID"),
-					Secret: os.Getenv("MODAL_TOKEN_SECRET"),
-				},
-			},
-		},
-		Scope: &sandbox.Scope{
-			AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
-			Environment: sandbox.Value("main"),
-		},
-		Timeout: sandbox.Duration(2 * time.Minute),
-	})
-	if err != nil {
-		panic(err)
-	}
-	defer client.Close(context.Background())
-
-	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-		Source: &sandbox.SandboxSource{
-			Kind: &sandbox.Image{
-				Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
-			},
-		},
-		Resources: &sandbox.Resources{
-			CpuCores:  sandbox.Value(0.5),
-			MemoryMib: sandbox.Value(uint64(512)),
-		},
-		Lifetime: &sandbox.LifetimePolicy{
-			MaximumLifetime: sandbox.Duration(5 * time.Minute),
-		},
-	})
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(instance.ID())
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+    Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{
+        TokenPair: &sandbox.TokenPairCredentials{
+            Id:     os.Getenv("MODAL_TOKEN_ID"),
+            Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+        },
+    }},
+    Scope: &sandbox.Scope{
+        AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+        Environment: sandbox.Value("main"),
+    },
+    Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+    log.Fatal(err)
 }
+defer client.Close(context.Background())
+
+instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+    Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+        Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+    }},
+    Resources: &sandbox.Resources{
+        CpuCores:  sandbox.Value(0.5),
+        MemoryMib: sandbox.Value(uint64(512)),
+    },
+    Lifetime: &sandbox.LifetimePolicy{
+        MaximumLifetime: sandbox.Duration(5 * time.Minute),
+    },
+})
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(instance.ID())
 ```
 
-Closing the client releases local SDK resources only. Reclaim sandboxes with
-idle/max lifetime policies or `Terminate`.
+Closing the client does not delete the sandbox. Set a lifetime policy, or call
+`Terminate`.
 
-## Configuration
+## Settings
 
-| Setting        | Notes                                                      |
-| -------------- | ---------------------------------------------------------- |
-| Token pair     | `Auth` with `TokenPair` (`Id` + `Secret`)                  |
-| OAuth refresh  | Supported with client ID and exactly one secret or JWT key |
-| Omitted `Auth` | Modal SDK environment / profile credentials                |
-| App            | `Scope.AppName` — required                                 |
-| Environment    | `Scope.Environment` (often `main`)                         |
-| Region         | `Config.Region` — default placement preference             |
-| Endpoint       | Not supported                                              |
+| Setting       | How to set it                     |
+| ------------- | --------------------------------- |
+| Token pair    | `Auth` with `TokenPair`           |
+| OAuth refresh | `Auth` with `OAuthRefresh`        |
+| App           | `Scope.AppName`, required         |
+| Environment   | `Scope.Environment`, often `main` |
+| Region        | `Config.Region`                   |
 
-## What you can do
+`Config.Endpoint` is not supported.
 
-**Create** from a registry image with runtime (command, workdir, PTY), gVisor or
-Linux VM isolation, CPU/memory, placement, network policy and ports, secrets,
-OIDC workload identity, readiness probes, timeouts, labels, and verbose mode.
+## Operations
 
-**Lifecycle** on the handle: `Attach`, `Terminate`, and local `Close`.
-Provider-verified `Get` / `Refresh`, start, stop, pause, archive, and delete are
-unsupported.
+Create from a registry image. You can set the command, working directory, PTY,
+gVisor or Linux VM isolation, CPU and memory, placement, network policy, ports,
+secrets, readiness, timeout, and labels.
 
-When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
-memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
+On the handle: `Attach`, `Terminate`, and `Close`. `Get`, `Refresh`, `Start`,
+`Stop`, `Pause`, `Archive`, and `Delete` are not supported.
+
+When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
+memory. Omitted values keep Modal's defaults. Disk size cannot be raised at
+create time.
 
 ## Examples
 
-| Example    | Project                                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Creation   | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
-| Resources  | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
-| Attach     | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
-| Full index | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
+| Operation | Program                                                                                                                   |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Create    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
+| Resources | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
+| Attach    | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
+| All       | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
 
 ## License
 

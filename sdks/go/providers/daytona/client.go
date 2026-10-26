@@ -1,10 +1,3 @@
-// Native Daytona client setup is handwritten.
-// mapClientConfig turns shared client settings into the native SDK constructor
-// options.
-//
-// Example:
-//
-//	native, err := mapClientConfig(config)
 package daytona
 
 import (

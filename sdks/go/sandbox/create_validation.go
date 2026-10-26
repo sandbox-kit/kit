@@ -25,12 +25,9 @@ var stableRuleIDs = map[string]string{
 	"after_forbids_duration":        "forbids",
 }
 
-// ValidateCreateOptions rejects CreateOptions values the shared contract cannot
-// represent. A nil request is treated as omitted configuration. Account quotas
-// stay with the provider.
-//
-// Portable rules are declared as Protovalidate options on kit.sandbox.v1 messages
-// and evaluated here. Provider-specific checks remain in each provider adapter.
+// ValidateCreateOptions checks a create request before a provider is contacted.
+// A nil request passes this check. Daytona treats that as its default snapshot.
+// Modal still requires an image. Quotas and capacity remain the provider's decision.
 func ValidateCreateOptions(request *CreateOptions) error {
 	if request == nil {
 		return nil
