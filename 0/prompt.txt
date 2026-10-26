@@ -1,0 +1,27 @@
+commit and push to this branch and update the PR description for this change. 
+
+after that there will be similar issues with go-sdks around concurrency mutex plz find out and fix it
+
+---
+
+any change required again ?
+
+---
+
+fix the design patterns, namings of everything
+
+plz don't change anything within protobufs
+
+---
+
+fix the design patterns, namings of everything in go sdk.
+
+you are design patterns god in golang. u really know how to use proper design pattern and whcih pattern to use instead of creating just functions.
+
+plz don't change anything within protobufs
+
+---
+
+look more o f the code of golang sdk and apply more design patterns to make code very lean. 
+
++ u can also create new folders and files to have better seperation of concern

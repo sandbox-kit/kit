@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5WDEPGD7D5N8QN36DSP6EZ2",
+  "strategy": "manual-commit",
+  "branch": "chore/go-sdk-minimum-and-modal-error",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/providers.md",
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/creation.go",
+    "sdks/go/providers/daytona/lifecycle.go",
+    "sdks/go/providers/daytona/lifecycle_test.go",
+    "sdks/go/providers/daytona/metadata.go",
+    "sdks/go/providers/daytona/provider.go",
+    "sdks/go/providers/daytona/provider_mappings.go",
+    "sdks/go/providers/daytona/sandbox.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/creation.go",
+    "sdks/go/providers/modal/precision_test.go",
+    "sdks/go/providers/modal/provider.go",
+    "sdks/go/providers/modal/provider_mappings.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/go/sandbox/capabilities.go",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/operation.go",
+    "sdks/go/sandbox/origins_test.go",
+    "sdks/go/sandbox/sandbox.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 441894,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 16912128,
+    "output_tokens": 97968,
+    "api_call_count": 4
+  }
+}
