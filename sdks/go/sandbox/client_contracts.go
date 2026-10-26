@@ -3,7 +3,7 @@ package sandbox
 import (
 	time "time"
 
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1"
 
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )

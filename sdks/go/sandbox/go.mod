@@ -1,10 +1,11 @@
 module github.com/sandbox-kit/kit/sdks/go/sandbox
 
-go 1.26.9
+go 1.26.0
 
 require (
 	buf.build/go/protovalidate v1.4.0
-	github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.0.0
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.0.0
 	google.golang.org/protobuf v1.36.12
 )
 
@@ -20,4 +21,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
 )
 
-replace github.com/sandbox-kit/kit/sdks/go/contracts => ../contracts
+replace github.com/sandbox-kit/kit/sdks/go/internal/contracts => ../internal/contracts
+
+replace github.com/sandbox-kit/kit/sdks/go/internal/sdk => ../internal/sdk

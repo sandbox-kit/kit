@@ -1,4 +1,4 @@
-go 1.26.9
+go 1.26.0
 
 use (
 	./examples/go/daytona/create-daytona-ephemeral
@@ -36,9 +36,12 @@ use (
 	./examples/go/modal/terminate-modal-sandbox
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
-	./sdks/go/contracts
+	./sdks/go/internal/contracts
+	./sdks/go/internal/sdk
 	./sdks/go/sandbox
 	./tooling
 )
 
-replace github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0 => ./sdks/go/contracts
+replace github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.0.0 => ./sdks/go/internal/contracts
+
+replace github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.0.0 => ./sdks/go/internal/sdk

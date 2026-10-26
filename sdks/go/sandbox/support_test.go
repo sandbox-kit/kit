@@ -3,12 +3,14 @@ package sandbox
 import (
 	"errors"
 	"testing"
+
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 )
 
 func TestRejectUnmappedUsesProtobufFieldName(t *testing.T) {
 	t.Parallel()
 
-	err := RejectUnmapped("test", &Resources{CpuCores: Value(2.0)})
+	err := sdk.RejectUnmapped("test", &Resources{CpuCores: Value(2.0)})
 	if err == nil {
 		t.Fatal("expected unsupported error")
 	}
@@ -28,7 +30,7 @@ func TestRejectUnmappedUsesProtobufNameOverJSONAlias(t *testing.T) {
 	t.Parallel()
 
 	// provisioning serializes as json=creation but proto name stays provisioning.
-	err := RejectUnmapped("test", &CreateOptions{
+	err := sdk.RejectUnmapped("test", &CreateOptions{
 		Provisioning: &ProvisioningOptions{},
 	})
 	if err == nil {
@@ -46,10 +48,10 @@ func TestRejectUnmappedUsesProtobufNameOverJSONAlias(t *testing.T) {
 func TestRejectUnmappedNilRemainder(t *testing.T) {
 	t.Parallel()
 
-	if err := RejectUnmapped("test", (*Resources)(nil)); err != nil {
+	if err := sdk.RejectUnmapped("test", (*Resources)(nil)); err != nil {
 		t.Fatalf("nil remainder: %v", err)
 	}
-	if err := RejectUnmapped("test", &Resources{}); err != nil {
+	if err := sdk.RejectUnmapped("test", &Resources{}); err != nil {
 		t.Fatalf("empty remainder: %v", err)
 	}
 }

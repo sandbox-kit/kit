@@ -74,15 +74,15 @@ func newBackend(config *sandbox.Config) (sandbox.Backend, error) {
 
 // Create creates one sandbox through the native SDK and returns shared
 // metadata.
-func (a *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-	response, err := a.create(ctx, request)
+func (b *backend) Create(ctx context.Context, request *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
+	response, err := b.create(ctx, request)
 	return response, mapProviderError(err, "create")
 }
 
 // Close releases the native SDK client. It does not stop or delete the cloud
 // sandbox.
-func (a *backend) Close(ctx context.Context) error {
-	return mapProviderError(a.client.Close(ctx), "close")
+func (b *backend) Close(ctx context.Context) error {
+	return mapProviderError(b.client.Close(ctx), "close")
 }
 
 var _ sandbox.Provider = (*Provider)(nil)

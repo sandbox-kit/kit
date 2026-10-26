@@ -5,7 +5,7 @@ import "buf/validate/validate.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1";
+option go_package = "github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1;sandboxv1";
 
 // CreateOptions is the creation request. It does not include lifecycle operations or credentials.
 // Omitted fields use provider defaults. A provider rejects settings it cannot honor.

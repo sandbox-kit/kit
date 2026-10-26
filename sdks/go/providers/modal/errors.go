@@ -13,6 +13,7 @@ import (
 	context "context"
 	errors "errors"
 	sdk "github.com/modal-labs/modal-client/go"
+	sandboxsdk "github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,7 +25,7 @@ func mapProviderError(err error, operation string) error {
 	}
 	var local *sandbox.Error
 	if errors.As(err, &local) {
-		return sandbox.WithErrorContext(err, "modal", operation)
+		return sandboxsdk.WithErrorContext(err, "modal", operation)
 	}
 	kind := sandbox.ErrorKindUnknown
 	var statusCode *uint32
@@ -122,5 +123,5 @@ func mapProviderError(err error, operation string) error {
 			kind = sandbox.ErrorKindAuthentication
 		}
 	}
-	return sandbox.NewError(sandbox.ErrorInfo{Kind: kind, Provider: "modal", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
+	return sandbox.NewError(&sandbox.ErrorInfo{Kind: kind, Provider: "modal", Operation: operation, Message: err.Error(), StatusCode: statusCode, ProviderCode: providerCode, ProviderSource: providerSource}, err)
 }

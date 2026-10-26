@@ -581,7 +581,7 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\t_app_nameB\x0e\n" +
 	"\f_environmentB\x12\n" +
 	"\x10_organization_idB\r\n" +
-	"\v_project_idBGZEgithub.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
+	"\v_project_idBPZNgithub.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
 
 var (
 	file_kit_sandbox_v1_client_proto_rawDescOnce sync.Once

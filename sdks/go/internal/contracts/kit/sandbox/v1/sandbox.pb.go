@@ -3530,7 +3530,7 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\x16ERROR_KIND_UNAVAILABLE\x10\f\x12\x1f\n" +
 	"\x1bERROR_KIND_INVALID_RESPONSE\x10\r\x12\x17\n" +
 	"\x13ERROR_KIND_INTERNAL\x10\x0e\x12\"\n" +
-	"\x1eERROR_KIND_FAILED_PRECONDITION\x10\x0fBGZEgithub.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
+	"\x1eERROR_KIND_FAILED_PRECONDITION\x10\x0fBPZNgithub.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
 
 var (
 	file_kit_sandbox_v1_sandbox_proto_rawDescOnce sync.Once

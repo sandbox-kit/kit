@@ -56,10 +56,12 @@ classification stay handwritten. Provider YAML inventories describe checks,
 mapping groups, configuration assembly, and native bindings for humans to keep
 aligned with SDK code.
 
-Provider `sandbox.go` files and provider-named TypeScript files retain
-orchestration the inventories cannot express: app/image/secret lookup, source
-selection, readiness, and remaining network or policy semantics. Adding another
-language requires handwritten typed integration for those operations.
+Provider Go files (`sandbox.go` for SDK calls, `creation.go` for the create
+plan, and `lifecycle.go` / `metadata.go` where a provider observes native
+sandbox state) and provider-named TypeScript files retain orchestration the
+inventories cannot express: app/image/secret lookup, source selection,
+readiness, and remaining network or policy semantics. Adding another language
+requires handwritten typed integration for those operations.
 
 Optional providers depend on their official SDKs. The core sandbox module
 depends on neither provider SDK. Harness integrations, when present, stay

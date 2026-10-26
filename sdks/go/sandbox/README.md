@@ -7,7 +7,7 @@ create or open sandboxes through the same client.
 Closing a client or handle releases **local** SDK resources only. It does not
 stop, terminate, or delete the remote sandbox.
 
-Requires Go 1.26.9 or newer.
+Requires Go 1.26.0 or newer.
 
 ## Install
 

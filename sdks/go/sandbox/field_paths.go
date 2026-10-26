@@ -467,9 +467,20 @@ func mapFieldNonNil(msg protoreflect.Message, fd protoreflect.FieldDescriptor) b
 // actually present. A missing origin means the source is unknown.
 func validateResponseOrigins(info *SandboxInfo, operation string) error {
 	for path, origin := range info.Origins {
-		if !ValidValueOrigin(origin) || !responseFieldPresent(info, path) {
-			return NewError(ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
+		if !validValueOrigin(origin) || !responseFieldPresent(info, path) {
+			return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
 		}
 	}
 	return nil
+}
+
+// protobufFieldName returns the canonical protobuf field name from a generated
+// struct tag. Falls back to the Go field name when the tag is missing.
+func protobufFieldName(field reflect.StructField) string {
+	for _, part := range strings.Split(field.Tag.Get("protobuf"), ",") {
+		if name, ok := strings.CutPrefix(part, "name="); ok && name != "" {
+			return name
+		}
+	}
+	return field.Name
 }

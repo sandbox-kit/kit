@@ -4,7 +4,7 @@ Modal provider for
 [`sdks/go/sandbox`](https://github.com/sandbox-kit/kit/tree/main/sdks/go/sandbox).
 Use the shared client interface; this module supplies `modal.New()`.
 
-Requires Go 1.26.9 or newer, and a Modal token pair.
+Requires Go 1.26.0 or newer, and a Modal token pair.
 
 ## Install
 

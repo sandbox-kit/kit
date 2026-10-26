@@ -4,10 +4,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// CloneCreateOptions returns an owned copy of request that preserves empty maps
+// cloneCreateOptions returns an owned copy of request that preserves empty maps
 // and slices. proto.Clone alone drops empty collections, which would erase
 // explicit presence the contract treats as meaningful.
-func CloneCreateOptions(request *CreateOptions) *CreateOptions {
+func cloneCreateOptions(request *CreateOptions) *CreateOptions {
 	if request == nil {
 		return nil
 	}
@@ -16,8 +16,8 @@ func CloneCreateOptions(request *CreateOptions) *CreateOptions {
 	return out
 }
 
-// CloneSandboxInfo returns an owned copy of info that preserves empty maps.
-func CloneSandboxInfo(info *SandboxInfo) *SandboxInfo {
+// cloneSandboxInfo returns an owned copy of info that preserves empty maps.
+func cloneSandboxInfo(info *SandboxInfo) *SandboxInfo {
 	if info == nil {
 		return nil
 	}

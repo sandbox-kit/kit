@@ -7,36 +7,9 @@ import (
 	"math"
 	"testing"
 
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-	"google.golang.org/protobuf/proto"
 )
-
-func TestCopiedMetadataRetainsNumbersAndOwnership(t *testing.T) {
-	big := uint64(math.MaxUint64)
-	metadata, err := sandbox.MetadataObjectFromMap(map[string]any{"large": big, "signed": int64(9007199254740993), "nested": []any{map[string]any{"bytes": []byte{1, 2}}}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	source := &sandbox.SandboxInfo{Id: "id", ProviderMetadata: metadata, Origins: map[string]sandbox.ValueOrigin{"id": sandbox.ValueOriginProvider}}
-	copied := sandbox.CloneSandboxInfo(source)
-	if !proto.Equal(source, copied) {
-		t.Fatal("types or values changed")
-	}
-	sourceMap, err := sandbox.MetadataObjectAsMap(source.ProviderMetadata)
-	if err != nil {
-		t.Fatal(err)
-	}
-	sourceMap["large"] = uint64(0)
-	sourceMap["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] = 9
-	source.Origins["id"] = sandbox.ValueOriginRequest
-	copiedMap, err := sandbox.MetadataObjectAsMap(copied.ProviderMetadata)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if copiedMap["large"] != big || copiedMap["nested"].([]any)[0].(map[string]any)["bytes"].([]byte)[0] != 1 || copied.Origins["id"] != sandbox.ValueOriginProvider {
-		t.Fatal("copy aliases original")
-	}
-}
 
 func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 	status := uint32(429)
@@ -44,7 +17,7 @@ func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 	source := "api"
 	info := sandbox.ErrorInfo{Kind: sandbox.ErrorKindRateLimited, Provider: "daytona", Operation: "create", Field: "resources", Message: "limited", StatusCode: &status, ProviderCode: &code, ProviderSource: &source}
 	native := errors.New("native")
-	err := sandbox.NewError(info, native)
+	err := sandbox.NewError(&info, native)
 	status = 500
 	code = "changed"
 	source = "changed"
@@ -56,15 +29,15 @@ func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 
 func TestErrorContextAvoidsRedundantWrapping(t *testing.T) {
 	native := errors.New("native")
-	original := sandbox.NewError(sandbox.ErrorInfo{Kind: sandbox.ErrorKindAuthentication, Provider: "modal", Operation: "create", StatusCode: sandbox.Value(uint32(401))}, native)
-	if sandbox.WithErrorContext(original, "modal", "create") != original {
+	original := sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindAuthentication, Provider: "modal", Operation: "create", StatusCode: sandbox.Value(uint32(401))}, native)
+	if sdk.WithErrorContext(original, "modal", "create") != original {
 		t.Fatal("complete error was wrapped again")
 	}
 	outer := fmt.Errorf("outer: %w", original)
-	if sandbox.WithErrorContext(outer, "modal", "create") != outer {
+	if sdk.WithErrorContext(outer, "modal", "create") != outer {
 		t.Fatal("outer cause chain replaced despite complete context")
 	}
-	changed := sandbox.WithErrorContext(original, "daytona", "initialize")
+	changed := sdk.WithErrorContext(original, "daytona", "initialize")
 	var detail *sandbox.Error
 	if !errors.As(changed, &detail) || detail.Provider != "daytona" || detail.Operation != "initialize" || !errors.Is(changed, native) {
 		t.Fatal("context enrichment lost native cause")

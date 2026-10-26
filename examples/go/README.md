@@ -1,7 +1,7 @@
 # Go examples
 
 Independent modules with local replacements for the public SDK and one provider.
-Requires Go 1.26.9 or newer and this checkout.
+Requires Go 1.26.0 or newer and this checkout.
 
 ## Run one
 

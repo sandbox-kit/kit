@@ -77,7 +77,7 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 }
 
 func providerCheckError(kind sandbox.ErrorKind, field, message string) error {
-	return sandbox.NewError(sandbox.ErrorInfo{
+	return sandbox.NewError(&sandbox.ErrorInfo{
 		Kind:      kind,
 		Provider:  "modal",
 		Operation: "create",

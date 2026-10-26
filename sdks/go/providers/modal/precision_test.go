@@ -58,12 +58,12 @@ func TestNativeDurationBounds(t *testing.T) {
 
 func TestStateCapturePreservesPresenceAndOwnership(t *testing.T) {
 	var state backend
-	captureBackendState(&state, &sandbox.Config{})
+	state.capture(&sandbox.Config{})
 	if state.scope != nil || state.region != nil {
 		t.Fatal("absent values became supplied")
 	}
 	config := &sandbox.Config{Scope: &sandbox.Scope{AppName: sandbox.Value("app"), OrganizationId: sandbox.Value("org"), ProjectId: sandbox.Value("project")}, Region: sandbox.Value("")}
-	captureBackendState(&state, config)
+	state.capture(config)
 	if state.scope.Environment != nil || state.region == nil || *state.region != "" || state.scope.GetOrganizationId() != "org" || state.scope.GetProjectId() != "project" {
 		t.Fatal("schema fields or presence lost")
 	}

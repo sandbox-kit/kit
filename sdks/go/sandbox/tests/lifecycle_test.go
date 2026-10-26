@@ -184,6 +184,76 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 	}
 }
 
+func TestDeleteMarksHandleTerminalBeforeAnotherOperation(t *testing.T) {
+	backend := &deleteBackend{lifecycleBackend: lifecycleBackend{start: func(context.Context, string, *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+		t.Fatal("start reached the provider after delete")
+		return nil, nil
+	}}}
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := instance.Delete(context.Background(), nil); err != nil {
+		t.Fatal(err)
+	}
+	if !instance.Info().GetTerminal() || instance.Info().GetState() != sandbox.SandboxStateDeleted {
+		t.Fatal("delete did not retain a terminal handle")
+	}
+	err = instance.Start(context.Background(), nil)
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
+		t.Fatalf("operation ran after delete: %v", err)
+	}
+}
+
+func TestCloseWaitsForTheCurrentOperation(t *testing.T) {
+	entered := make(chan struct{})
+	release := make(chan struct{})
+	var calls int
+	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+		calls++
+		if calls == 1 {
+			close(entered)
+			<-release
+		}
+		return &sandbox.SandboxInfo{Id: id}, nil
+	}}
+	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	done := make(chan error, 1)
+	go func() { done <- instance.Start(context.Background(), nil) }()
+	<-entered
+	closed := make(chan error, 1)
+	go func() { closed <- instance.Close(context.Background()) }()
+	select {
+	case err := <-closed:
+		t.Fatalf("close returned while start still held the handle: %v", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	if err := <-closed; err != nil {
+		t.Fatal(err)
+	}
+	err = instance.Start(context.Background(), nil)
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition || calls != 1 {
+		t.Fatalf("operation ran after close: %v calls=%d", err, calls)
+	}
+}
+
 func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
 	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
 		return &sandbox.SandboxInfo{Id: id}, nil
@@ -269,6 +339,18 @@ func TestLifecycleStampsInheritedTimeoutWithoutMutatingCaller(t *testing.T) {
 	if seen != 2*time.Second {
 		t.Fatalf("provider timeout = %s", seen)
 	}
+}
+
+type deleteBackend struct {
+	lifecycleBackend
+	del func(context.Context, string, *sandbox.DeleteOptions) (*sandbox.SandboxInfo, error)
+}
+
+func (b *deleteBackend) DeleteSandbox(ctx context.Context, id string, options *sandbox.DeleteOptions) (*sandbox.SandboxInfo, error) {
+	if b.del == nil {
+		return &sandbox.SandboxInfo{Id: id}, nil
+	}
+	return b.del(ctx, id, options)
 }
 
 type stopBackend struct {

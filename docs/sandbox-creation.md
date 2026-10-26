@@ -6,8 +6,8 @@ from lifecycle operations on an existing sandbox.
 
 ## Supported creation settings
 
-Go integrations target Modal v0.11.0 and Daytona v0.222.0. TypeScript integrations
-target `modal@0.11.1` and `@daytona/sdk@0.225.0`.
+Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
+(`modal@0.11.1`, `@daytona/sdk@0.225.0`).
 
 | Setting                | Modal                                                                                  | Daytona                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |

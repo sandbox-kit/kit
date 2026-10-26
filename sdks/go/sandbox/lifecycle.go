@@ -7,6 +7,7 @@ import (
 	reflect "reflect"
 	time "time"
 
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"google.golang.org/protobuf/proto"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
@@ -45,7 +46,7 @@ func (s *Sandbox) runInfoOp(ctx context.Context, operation string, timeout *time
 	defer cancel()
 	info, err := invoke(operationContext)
 	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), operation)
+		return sdk.WithErrorContext(err, s.ProviderName(), operation)
 	}
 	return s.replaceInfo(operation, info)
 }
@@ -67,7 +68,7 @@ func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 		if !ok {
 			return nil, s.unsupported("start")
 		}
-		return capability.StartSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StartOptions { return &StartOptions{} }, func(cloned *StartOptions) {
+		return capability.StartSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *StartOptions { return &StartOptions{} }, func(cloned *StartOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -80,7 +81,7 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 		if !ok {
 			return nil, s.unsupported("stop")
 		}
-		return capability.StopSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *StopOptions { return &StopOptions{} }, func(cloned *StopOptions) {
+		return capability.StopSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *StopOptions { return &StopOptions{} }, func(cloned *StopOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -93,7 +94,7 @@ func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 		if !ok {
 			return nil, s.unsupported("pause")
 		}
-		return capability.PauseSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *PauseOptions { return &PauseOptions{} }, func(cloned *PauseOptions) {
+		return capability.PauseSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *PauseOptions { return &PauseOptions{} }, func(cloned *PauseOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -110,11 +111,11 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	if !ok {
 		return nil, s.unsupported("terminate")
 	}
-	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *TerminateOptions { return &TerminateOptions{} }, func(cloned *TerminateOptions) {
+	outcome, err := capability.TerminateSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *TerminateOptions { return &TerminateOptions{} }, func(cloned *TerminateOptions) {
 		cloned.Timeout = Duration(*timeout)
 	}))
 	if err != nil {
-		return outcome, WithErrorContext(err, s.ProviderName(), "terminate")
+		return outcome, sdk.WithErrorContext(err, s.ProviderName(), "terminate")
 	}
 	s.markTerminal(SandboxStateTerminated, "terminated")
 	return outcome, nil
@@ -127,7 +128,7 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 		if !ok {
 			return nil, s.unsupported("archive")
 		}
-		return capability.ArchiveSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *ArchiveOptions { return &ArchiveOptions{} }, func(cloned *ArchiveOptions) {
+		return capability.ArchiveSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *ArchiveOptions { return &ArchiveOptions{} }, func(cloned *ArchiveOptions) {
 			cloned.Timeout = Duration(*timeout)
 		}))
 	})
@@ -135,17 +136,25 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	if err := s.runInfoOp(ctx, "delete", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
-		capability, ok := s.operations.(SandboxDeleter)
-		if !ok {
-			return nil, s.unsupported("delete")
-		}
-		return capability.DeleteSandbox(operationContext, s.ID(), providerOptions(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
-			cloned.Timeout = Duration(*timeout)
-		}))
-	}); err != nil {
+	operationContext, cancel, err := s.operationContext(ctx, "delete", timeout)
+	if err != nil {
 		return err
 	}
+	defer cancel()
+	capability, ok := s.operations.(SandboxDeleter)
+	if !ok {
+		return s.unsupported("delete")
+	}
+	info, err := capability.DeleteSandbox(operationContext, s.ID(), cloneOptionsWithTimeout(options, timeout, func() *DeleteOptions { return &DeleteOptions{} }, func(cloned *DeleteOptions) {
+		cloned.Timeout = Duration(*timeout)
+	}))
+	if err != nil {
+		return sdk.WithErrorContext(err, s.ProviderName(), "delete")
+	}
+	if err := s.replaceInfo("delete", info); err != nil {
+		return err
+	}
+	// Mark the handle terminal before cancel releases the operation gate.
 	s.markTerminal(SandboxStateDeleted, "deleted")
 	return nil
 }
@@ -160,15 +169,15 @@ func (s *Sandbox) inheritedTimeout() *time.Duration {
 // effectiveTimeout prefers an explicit operation timeout, including explicit
 // zero. A nil explicit value inherits the client timeout.
 func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *time.Duration {
-	if timeout := OptionalDuration(explicit); timeout != nil {
+	if timeout := sdk.OptionalDuration(explicit); timeout != nil {
 		return timeout
 	}
 	return inherited
 }
 
-// providerOptions copies options and records timeout for the provider. A nil
-// timeout leaves the caller value unchanged, including a nil options pointer.
-func providerOptions[T proto.Message](options T, timeout *time.Duration, blank func() T, apply func(T)) T {
+// cloneOptionsWithTimeout copies options and records timeout for the provider.
+// A nil timeout leaves the caller value unchanged, including a nil options pointer.
+func cloneOptionsWithTimeout[T proto.Message](options T, timeout *time.Duration, blank func() T, apply func(T)) T {
 	if timeout == nil {
 		return options
 	}
@@ -185,7 +194,7 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "get", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxRefresher)
 		if !ok {
-			return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "get", Message: "sandbox-kit: provider does not support sandbox get"}, nil)
+			return nil, NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "get", Message: "sandbox-kit: provider does not support sandbox get"}, nil)
 		}
 		return capability.RefreshSandbox(operationContext, id)
 	})
@@ -195,7 +204,7 @@ func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "attach", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxAttacher)
 		if !ok {
-			return nil, NewError(ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "attach", Message: "sandbox-kit: provider does not support sandbox attach"}, nil)
+			return nil, NewError(&ErrorInfo{Kind: ErrorKindUnsupported, Provider: c.backend.Name(), Operation: "attach", Message: "sandbox-kit: provider does not support sandbox attach"}, nil)
 		}
 		return capability.AttachSandbox(operationContext, id)
 	})

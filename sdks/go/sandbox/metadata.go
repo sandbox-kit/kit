@@ -35,7 +35,7 @@ func cloneMetadata(source map[string]any) (map[string]any, error) {
 }
 
 func metadataError(message string) error {
-	return NewError(ErrorInfo{
+	return NewError(&ErrorInfo{
 		Kind:    ErrorKindInvalidArgument,
 		Field:   InfoFieldProviderMetadata,
 		Message: message,
