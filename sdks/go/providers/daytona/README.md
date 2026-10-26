@@ -1,118 +1,94 @@
-# Daytona provider for Go
+# Daytona
 
-Daytona provider for
-[`sdks/go/sandbox`](https://github.com/sandbox-kit/kit/tree/main/sdks/go/sandbox).
-Use the shared client interface; this module supplies `daytona.New()`.
+Create and manage Daytona sandboxes with the shared sandbox client.
 
-Requires Go 1.26.0 or newer and a Daytona API key (or credentials your Daytona
-SDK already resolves from the environment).
+Requires Go 1.26.0 or later and a Daytona API key. If `Auth` is omitted, the
+Daytona SDK uses credentials it already finds in the environment.
 
 ## Install
 
 ```sh
-go get github.com/sandbox-kit/kit/sdks/go/sandbox
-go get github.com/sandbox-kit/kit/sdks/go/providers/daytona
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 ```
 
-## Quick start
+## Create a sandbox
 
 ```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"os"
-	"time"
-
-	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
-	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-)
-
-func main() {
-	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
-		Auth: &sandbox.AuthConfig{
-			Credentials: &sandbox.APIKey{
-				ApiKey: &sandbox.APIKeyCredentials{
-					Key: os.Getenv("DAYTONA_API_KEY"),
-				},
-			},
-		},
-		Timeout: sandbox.Duration(2 * time.Minute),
-	})
-	if err != nil {
-		panic(err)
-	}
-	defer client.Close(context.Background())
-
-	// Default snapshot for the target:
-	instance, err := client.Create(context.Background(), nil)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(instance.ID())
+client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+    Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+        ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+    }},
+    Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+    log.Fatal(err)
 }
+defer client.Close(context.Background())
+
+instance, err := client.Create(context.Background(), nil)
+if err != nil {
+    log.Fatal(err)
+}
+fmt.Println(instance.ID())
 ```
 
-Create from an image and size resources:
+A nil create request uses Daytona's default snapshot. To choose an image and
+a size:
 
 ```go
-instance, err := client.Create(ctx, &sandbox.CreateOptions{
-	Source: &sandbox.SandboxSource{
-		Kind: &sandbox.Image{
-			Image: &sandbox.ImageSource{Reference: "python:3.11"},
-		},
-	},
-	Resources: &sandbox.Resources{
-		CpuCores:  sandbox.Value(2.0),
-		MemoryMib: sandbox.Value(uint64(4096)),
-		DiskMib:   sandbox.Value(uint64(8192)),
-	},
+instance, err = client.Create(ctx, &sandbox.CreateOptions{
+    Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+        Image: &sandbox.ImageSource{Reference: "python:3.11"},
+    }},
+    Resources: &sandbox.Resources{
+        CpuCores:  sandbox.Value(2.0),
+        MemoryMib: sandbox.Value(uint64(4096)),
+        DiskMib:   sandbox.Value(uint64(8192)),
+    },
 })
 ```
 
-Closing the client releases local SDK resources only. Daytona keeps the sandbox
-until you stop or delete it, or a lifetime policy fires.
+Closing the client does not delete the sandbox. Stop or delete it, or set a
+lifetime policy.
 
-## Configuration
+## Settings
 
-| Setting         | Notes                                                        |
-| --------------- | ------------------------------------------------------------ |
-| API key         | `Auth` with `APIKey`                                         |
-| Bearer / JWT    | Supported; organization ID required                          |
-| Omitted `Auth`  | Daytona SDK environment credentials                          |
-| Organization    | `Scope.OrganizationId`                                       |
-| Endpoint        | `Config.Endpoint` — defaults to `https://app.daytona.io/api` |
-| Region / target | `Config.Region`                                              |
+| Setting      | How to set it                                                  |
+| ------------ | -------------------------------------------------------------- |
+| API key      | `Auth` with `APIKey`                                           |
+| Bearer token | `Auth` with `BearerToken`, and `Scope.OrganizationId`          |
+| Endpoint     | `Config.Endpoint`. The default is `https://app.daytona.io/api` |
+| Region       | `Config.Region`                                                |
 
-Remote endpoints require HTTPS. HTTP is allowed for localhost or loopback only.
+A remote endpoint uses HTTPS. HTTP is accepted for localhost and loopback
+addresses.
 
-## What you can do
+## Operations
 
-**Create** from the default snapshot, a named snapshot, or a registry image.
-Optional runtime language/user, network allowlists, secrets, labels, TTL,
-ephemeral behavior, and stop/pause/archive/delete policies.
+Create from the default snapshot, a named snapshot, or a registry image. You
+can set the runtime user and language, network allowlists, secrets, labels,
+TTL, ephemeral mode, and stop, pause, archive, and delete policies.
 
-**Lifecycle** on the handle: `Get`, `Refresh`, `Start`, `Stop`, `Pause`,
-`Archive`, `Delete`, and local `Close`. Capability depends on the sandbox class
-(container, VM, Windows, GPU). Check with `instance.Supports(...)` or
-`instance.Capabilities()`.
+On the handle: `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`,
+`Delete`, and `Close`. `Get` checks the ID with Daytona. `Attach` is not
+supported.
 
-Daytona does not support unverified `Attach`. Use `client.Get(ctx, id)` for a
-provider-verified handle.
+CPU is a whole number of cores. Memory and disk are a whole number of GiB,
+written as MiB. A resource override requires an image source. A snapshot create
+uses the snapshot's resources.
 
-CPU requests are whole cores. Memory and disk are whole GiB expressed as MiB.
-Resource overrides on create require an **image** source; snapshot creates
-inherit snapshot resources.
+Check `instance.Supports` before pause or archive. Availability depends on the
+sandbox class.
 
 ## Examples
 
-| Example    | Project                                                                                                                       |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Creation   | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)             |
-| Policies   | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
-| Retrieval  | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)                   |
-| Full index | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
+| Operation | Program                                                                                                                       |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Create    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)             |
+| Policies  | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
+| Look up   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)                   |
+| All       | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
 
 ## License
 

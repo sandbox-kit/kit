@@ -1,6 +1,4 @@
-// Config field-path constants identify client settings in errors. Values are canonical protobuf paths.
-//
-// Example:
+// Config field-path constants are the Field values on a client configuration error.
 //
 //	fmt.Println(ConfigFieldEndpoint) // endpoint
 package sandbox

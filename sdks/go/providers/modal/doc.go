@@ -1,4 +1,7 @@
-// Package modal maps shared client and creation configuration to its official SDK.
-// New selects a factory; sandbox.NewClient initializes the SDK from sandbox.Config.
-// The sandbox client owns SDK cleanup through Close.
+// Package modal connects the sandbox client to Modal.
+//
+// Pass [New] to sandbox.NewClient. Create requires an image. Set Scope.AppName
+// to an existing Modal app. Closing the client releases the local SDK and
+// leaves the Modal sandbox running. Reclaim it with Terminate or a lifetime
+// policy.
 package modal

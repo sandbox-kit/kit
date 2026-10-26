@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-// Sandbox is the handle returned by Client.Create.
-// It exposes identity and a copy of metadata. It does not expose the native SDK object.
-// Lifecycle methods dispatch through private provider capabilities without exposing native SDK objects.
+// Sandbox is the handle for one cloud sandbox.
+// ID and Info describe it. Lifecycle methods change it. Close releases this
+// handle and leaves the cloud sandbox running.
 //
 // Example:
 //
@@ -57,6 +57,7 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 }
 
 // ID returns the provider sandbox identifier.
+// A nil handle returns an empty string.
 func (s *Sandbox) ID() string {
 	if s == nil {
 		return ""
@@ -69,7 +70,8 @@ func (s *Sandbox) ID() string {
 	return s.info.Id
 }
 
-// ProviderName returns the selected provider, such as "daytona" or "modal".
+// ProviderName returns "daytona" or "modal".
+// A nil handle returns an empty string.
 func (s *Sandbox) ProviderName() string {
 	if s == nil {
 		return ""
@@ -82,7 +84,9 @@ func (s *Sandbox) ProviderName() string {
 	return s.info.Provider
 }
 
-// Info returns an owned metadata copy. Changing the result does not change the handle.
+// Info returns a copy of the sandbox metadata.
+// Changing the result does not change the handle. A nil handle returns nil.
+// State is a SandboxState. Origins maps a field path such as InfoFieldId to ValueOriginProvider or ValueOriginRequest.
 //
 // Example:
 //
@@ -105,8 +109,9 @@ type sandboxCapabilityResolver interface {
 	SandboxCapabilities(*SandboxInfo) []LifecycleCapability
 }
 
-// Capabilities returns the operations supported by this provider and resolved
-// sandbox class. A terminal handle has no further lifecycle capabilities.
+// Capabilities lists the lifecycle operations this handle can still perform.
+// Pass a value to Supports, or compare it with LifecycleCapabilityPause and the other capability constants.
+// A closed client, a closed handle, or a terminal sandbox returns nil.
 func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s == nil || s.operations == nil {
 		return nil
@@ -131,7 +136,9 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 	return staticLifecycleCapabilities(s.operations)
 }
 
-// Supports reports whether capability is available for this resolved handle.
+// Supports reports whether this handle can perform capability.
+// Check LifecycleCapabilityPause before Pause and LifecycleCapabilityArchive before Archive.
+// A terminal or closed handle supports nothing.
 func (s *Sandbox) Supports(capability LifecycleCapability) bool {
 	for _, candidate := range s.Capabilities() {
 		if candidate == capability {

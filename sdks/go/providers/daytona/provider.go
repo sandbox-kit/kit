@@ -1,10 +1,3 @@
-// Provider construction and native SDK orchestration are handwritten.
-// New returns a provider factory. Pass it to sandbox.NewClient. The public
-// client owns SDK cleanup.
-//
-// Example:
-//
-//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
 package daytona
 
 import (
@@ -14,7 +7,7 @@ import (
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
-// Provider initializes the provider SDK from shared configuration.
+// Provider is the Daytona provider. Pass New to sandbox.NewClient.
 type Provider struct {
 }
 
@@ -25,7 +18,7 @@ type backend struct {
 	client *daytona.Client
 }
 
-// New returns a provider factory. Pass it to sandbox.NewClient.
+// New returns the Daytona provider. Pass it to sandbox.NewClient.
 //
 // Example:
 //
@@ -34,7 +27,7 @@ func New() *Provider {
 	return &Provider{}
 }
 
-// Name returns this integration's provider identifier.
+// Name returns "daytona".
 func (*Provider) Name() string {
 	return "daytona"
 }
@@ -44,13 +37,8 @@ func (*backend) Name() string {
 	return "daytona"
 }
 
-// NewClient maps config into the official SDK and returns a private backend.
-// Pass the factory from New to sandbox.NewClient instead of calling this
-// directly.
-//
-// Example:
-//
-//	backend, err := New().NewClient(config)
+// NewClient opens the Daytona SDK from config.
+// Pass New to sandbox.NewClient. Calling NewClient directly skips the shared client.
 func (*Provider) NewClient(config *sandbox.Config) (sandbox.Backend, error) {
 	backend, err := newBackend(config)
 	return backend, mapProviderError(err, "initialize")

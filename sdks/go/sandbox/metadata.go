@@ -1,11 +1,3 @@
-// Metadata ownership behavior is handwritten. Metadata contract data remains
-// protobuf-owned during the schema migration.
-// Metadata helpers copy declarative values. They reject SDK objects, nonfinite
-// numbers, and cycles.
-//
-// Example:
-//
-//	copied, err := cloneMetadata(info.ProviderMetadata)
 package sandbox
 
 import (

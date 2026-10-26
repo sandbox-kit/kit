@@ -1,8 +1,7 @@
-// Field-path constants identify create/info settings in errors. Values are canonical protobuf paths.
+// Field-path constants are the Field values on an error.
+// Compare Error.Field with these constants to see which setting to change.
 //
-// Example:
-//
-//	fmt.Println(CreateFieldResourcesCPUCores) // resources.cpu_cores
+//	fmt.Println(CreateFieldResourcesCpuCores) // resources.cpu_cores
 package sandbox
 
 import (

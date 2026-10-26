@@ -1,17 +1,9 @@
-// Native Modal error translation is handwritten.
-// Classification order: existing *sandbox.Error, canceled/deadline causes,
-// native Modal types, then gRPC status codes, then unknown.
-// mapProviderError classifies a native SDK error into a shared kind and keeps
-// the original cause.
-//
-// Example:
-//
-//	return mapProviderError(err, "create")
 package modal
 
 import (
 	context "context"
 	errors "errors"
+
 	sdk "github.com/modal-labs/modal-client/go"
 	sandboxsdk "github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"

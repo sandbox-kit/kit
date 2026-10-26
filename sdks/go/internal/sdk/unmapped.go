@@ -8,10 +8,10 @@ import (
 	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1"
 )
 
-// RejectUnmapped reports fields that remain after a provider maps the ones it supports.
-// Pass the remainder returned by a mapping helper. Reflection checks presence only.
-// ErrorInfo.Field uses the protobuf field name from the generated struct tag
-// (for example CpuCores → cpu_cores).
+// RejectUnmapped reports create or config fields a provider did not accept.
+// Provider packages call it after copying the fields they support. The returned
+// error is ErrorKindUnsupported and Field is the setting the caller should remove,
+// such as "resources.cpu_cores". A nil or empty remainder returns nil.
 func RejectUnmapped(provider string, remaining any) error {
 	value := reflect.ValueOf(remaining)
 	if value.Kind() == reflect.Pointer {

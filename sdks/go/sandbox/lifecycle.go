@@ -1,5 +1,3 @@
-// Sandbox lifecycle behavior is handwritten. Portable option/result types come
-// from protobuf; Backend capability interfaces are optional provider adapters.
 package sandbox
 
 import (
@@ -51,6 +49,9 @@ func (s *Sandbox) runInfoOp(ctx context.Context, operation string, timeout *time
 	return s.replaceInfo(operation, info)
 }
 
+// Refresh loads the sandbox's current metadata from the provider and stores it on this handle.
+// Daytona supports Refresh. Modal returns ErrorKindUnsupported.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Refresh(ctx context.Context) error {
 	return s.runInfoOp(ctx, "refresh", nil, func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxRefresher)
@@ -61,6 +62,10 @@ func (s *Sandbox) Refresh(ctx context.Context) error {
 	})
 }
 
+// Start starts a stopped sandbox and stores the updated metadata on this handle.
+// A nil options value uses the client timeout. Set StartOptions.Timeout to override it.
+// Daytona supports Start. Modal returns ErrorKindUnsupported.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "start", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
@@ -74,6 +79,10 @@ func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
 	})
 }
 
+// Stop stops a sandbox and stores the updated metadata on this handle.
+// Set StopOptions.Force with Value(true) to request an immediate stop. A nil options value uses the client timeout.
+// Daytona supports Stop. Modal returns ErrorKindUnsupported.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "stop", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
@@ -87,6 +96,10 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 	})
 }
 
+// Pause pauses a sandbox and stores the updated metadata on this handle.
+// Call Supports with LifecycleCapabilityPause first. Some Daytona sandbox classes cannot pause.
+// Modal returns ErrorKindUnsupported.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "pause", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
@@ -100,6 +113,10 @@ func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 	})
 }
 
+// Terminate ends a sandbox. The returned ExitResult includes the exit code when Wait is set.
+// Set TerminateOptions.Wait with Value(true) to wait. A nil options value uses the client timeout.
+// Modal supports Terminate. Daytona returns ErrorKindUnsupported. Use Delete or Stop for Daytona.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	operationContext, cancel, err := s.operationContext(ctx, "terminate", timeout)
@@ -121,6 +138,10 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	return outcome, nil
 }
 
+// Archive archives a sandbox and stores the updated metadata on this handle.
+// Call Supports with LifecycleCapabilityArchive first. Some Daytona sandbox classes cannot archive.
+// Modal returns ErrorKindUnsupported.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	return s.runInfoOp(ctx, "archive", timeout, func(operationContext context.Context) (*SandboxInfo, error) {
@@ -134,6 +155,10 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	})
 }
 
+// Delete deletes the cloud sandbox and marks this handle deleted.
+// Close only releases the local handle.
+// Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
 	operationContext, cancel, err := s.operationContext(ctx, "delete", timeout)
@@ -190,6 +215,10 @@ func cloneOptionsWithTimeout[T proto.Message](options T, timeout *time.Duration,
 	return cloned
 }
 
+// Get looks up a sandbox by ID and returns a handle the provider has verified.
+// An empty ID returns ErrorKindInvalidArgument with Field InfoFieldId.
+// Daytona supports Get. Modal returns ErrorKindUnsupported. Use Attach for Modal.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "get", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxRefresher)
@@ -200,6 +229,10 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error) {
 	})
 }
 
+// Attach returns a handle for an existing sandbox ID without asking the provider to look it up.
+// An empty ID returns ErrorKindInvalidArgument with Field InfoFieldId.
+// Modal supports Attach. Daytona returns ErrorKindUnsupported. Use Get for Daytona.
+// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error) {
 	return c.resolveSandbox(ctx, id, "attach", func(operationContext context.Context) (*SandboxInfo, error) {
 		capability, ok := c.backend.(SandboxAttacher)

@@ -1,18 +1,3 @@
-// This file turns a shared creation request into Modal app, image, and secret lookups,
-// then calls the official SDK. Generated mappings cover field conversion. This file
-// covers the call order those mappings cannot express.
-//
-// Example:
-//
-//	client, err := sandbox.NewClient(modal.New(), &sandbox.Config{})
-//	instance, err := client.Create(ctx, &sandbox.CreateOptions{
-//	    Source: &sandbox.SandboxSource{
-//	        Kind: &sandbox.Image{
-//	            Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
-//	        },
-//	    },
-//	})
-
 package modal
 
 import (
