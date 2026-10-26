@@ -1,0 +1,455 @@
+commit and push to this branch and update the PR description for this change. 
+
+after that there will be similar issues with go-sdks around concurrency mutex plz find out and fix it
+
+---
+
+any change required again ?
+
+---
+
+fix the design patterns, namings of everything
+
+plz don't change anything within protobufs
+
+---
+
+fix the design patterns, namings of everything in go sdk.
+
+you are design patterns god in golang. u really know how to use proper design pattern and whcih pattern to use instead of creating just functions.
+
+plz don't change anything within protobufs
+
+---
+
+look more o f the code of golang sdk and apply more design patterns to make code very lean. 
+
++ u can also create new folders and files to have better seperation of concern
+
+---
+
+cool can u commit and push to this branch. update desctipion of Pr too.
+
+---
+
+update the PR title
+
+---
+
+install go examples dependency as well as go sdk dependency + also run generate for go
+
+---
+
+can u check go example
+
+the only thing which looks weird is this -> Entires: []string{""}
+
+can u check if there is a way to iimprove else Ig other thing looks good. 
+
+what do u think
+
+---
+
+apart from AllowList constructor ?
+
+---
+
+should we write contracts by hand ? for client ? but then it won't make sense. ? for protobuf
+
+---
+
+can't we by chance make []string{} input allow ? insteald of stringallowlist and all
+
+---
+
+now whats left before publishing this ?
+
+---
+
+can u check if sdks version of provider matches with typescript ?
+
+---
+
+can u check if new version for go-sdk for both providers whcih are matching typscript is avialable if yes install it and then make the changes which needs to be done if there are breaking changes
+
+or any thing which is added to sdk which needs change to our sdk .
+
+---
+
+cool can u again commit and push to this branch only.
+
+---
+
+there are still issue
+
+i think sandboxv1 and all those stuff shouldn't be allowed to import on examples right ? 
+
+CreateField... and all plz check there are things whcih we are able to import ? 
+
+it is that because those are dependency in go it allows to import ?
+
+---
+
+fix this
+
+---
+
+@examples/go/daytona/archive-daytona-sandbox/main.go:20 check here what all is possible and can be write by sandbox.
+
+
+i just want u to check if there is anything which shouldn't be exposed still shouldn't
+
+---
+
+can we make them small letter case ? so even tho it gets exported user can't write it ?
+
+---
+
+does this mean I have to also publish support module ?
+
+---
+
+support is really not a great name is there better name ?
+
+---
+
+what about helper ?
+
+---
+
+okay do it
+
+---
+
+so there are methods and types and things which is basically having same problem in typescript too ? 
+
+there are still things in typescript which user doesn't need but provider needs. and each provider needs same thing.
+
+---
+
+regardless can u commit and push this to current branch
+
+---
+
+also update descritpion of PR
+
+---
+
+do we need sdk like pakcage in typescript aswell ?
+
+---
+
+ConfigFieldRegion
+
+and all this are still accessivle ?
+
+---
+
+sandbox.ConfigFieldRegion
+
+?? where they will use ?
+
+---
+
+InfoFIeldState where all this would be used ?
+
+---
+
+ValidateConfig, ValidateCreateOptions wher e they will be use ?
+
+---
+
+we should not expose this ?
+
+---
+
+cool cool 
+
+can u check the reference sdk docs which i provided to u in this chat or in other chat  - go-sdk of Modal and Daytona
+
+check if there are things around validation, mapping, optoins to create with and havd lifecycle methods we are missing and doing it wrong rn
+
+---
+
+so means no changes required right
+
+---
+
+I'm curious should we use validation library in go and typescript where we are currently checking with if else ?
+
+will that make things easier ?
+
+---
+
+can u open up a issue and write down steps on publishing / updating sdk to package managers.
+
+i think typescript file is also changed so that also needs to update
+
+write down whole steps in descrition. includinghaving diagrams of how code is changed in go-sdks.
+
+---
+
+not sure why this go.work.sum ?
+
+---
+
+check things if anything is wrong or mistake ? 
+
+else install dependency of typescript sdks and its example as well as go sdks and its example
+
+---
+
+go.work leaves out 14 Go example modules, including the KVM, labels, network, secrets, and TTL Daytona examples and the ports, allowlists, and timeout Modal examples. Each of those still has its own go.mod, and their dependencies downloaded with the rest.
+
+why ?
+
+---
+
+but fix it
+
+---
+
+commit and push to main
+
+---
+
+can u check the .md file which is outdated
+update it
+
+---
+
+commit and push
+
+---
+
+can u only include sandbox-kit/sandbox and providers in readme root don't include contracts or sdk in go
+
+---
+
+cool commit and push
+
+---
+
+like typescript can't we have unsupported in go and remove the need of RejectMapped ?
+
+---
+
+so we don't need RejectUnmapped in typescript ?
+
+---
+
+think deep think crisp. 
+
+should I publish go or is there anything u still need me to fix ?
+
+---
+
+I will publish without CI. 
+
+tell me the steps to do
+
+---
+
+Put the license in each module do it for me
+
+---
+
+2. Point the kit requirements at v0.1.0. Leave every replace line as it is. Leave the example modules at v0.0.0.
+
+---
+
+3. Refresh the sums, then check the versions survived. From each of those four directories:
+
+
+GOWORK=off go mod tidy
+Each kit requirement must still say v0.1.0, including the indirect internal/contracts line in the two providers. If tidy writes v0.0.0 back, put v0.1.0 back by hand and do not tidy again. Restore go.work.sum if it changes, and do not commit it.
+
+---
+
+why we shouldn't install dependency again for golang ?
+
+---
+
+why we shouldn't install dependency again for golang examples ?
+
+---
+
+ain't replace should be 0.1.0 ?
+
+---
+
+That version matches a requirement of exactly v0.0.0. The kit modules now require v0.1.0, and the examples still require v0.0.0. Both modules are in the use list above those lines, and that list is what makes the workspace compile the local directories. Changing the go.work version to v0.1.0 would match the kit modules and stop matching the examples.
+
+do it as per your recommendation
+
+---
+
+ain't we should remove 0.0.0 replace ?
+
+---
+
+install example golang dependency again  so things get upto date
+
+---
+
+4. Test outside the workspace.
+
+---
+
+The direct provider requirement stays v0.0.0. Nothing in the graph asks for a higher provider version, so tidy leaves the version the example already requires. The local replace still builds that provider from this checkout.
+
+ain't that should be change to 0.1.0 ?
+
+---
+
+4. test outside the workspace
+
+---
+
+5. Commit that release commit and push main. The tags have to point at a commit GitHub already has.
+
+---
+
+can u check the README of golang which mentions 0.0.0 should be changed right if there is still old plz change
+
+---
+
+7. Fetch through the public proxy, from a directory outside this repo. Inside the checkout, go.work and replace hide a bad release.
+
+
+cd "$(mktemp -d)"
+go mod init example.com/sandboxkit-check
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@v0.1.0
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@v0.1.0
+go get github.com/sandbox-kit/kit/sdks/go/providers/modal@v0.1.0
+The first request for each module can take a minute while proxy.golang.org fetches the tag.
+
+should i move ahead with this ?
+
+I have already tag and push it
+
+---
+
+give me steps to do
+
+---
+
+8. Update the root README after that go get succeeds. Remove the sentence that says the proxy has no released versions. The go get ...@latest lines can stay. That commit does not need a new tag.
+
+do it for me
+
+---
+
+do it
+
+---
+
+@latest is fine or I should add version thre ?
+
+---
+
+the tempdir created what should I do with that now
+
+---
+
+cool commit this change of readme to main
+
+---
+
+https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/sandbox@v0.1.0
+
+why I can't see it here ?
+
+---
+
+if i update all 5 pkg docs I have to publish again ?
+
+---
+
+I mean the readme in this project .md
+
+---
+
+cool before that can u change all 5 readme of go-lang sdk write it as u are targeting the user of sdk who will use that sdk not the other way. 
+
++ not that things will be shown in pkg.go.dev so u can check best practices based on how it shows in UI there. 
+
+have it there.
+
++ ig comments also matters and shows up variables fucntions methods comment shows up
+
+so write it according to end user can understand it what it is.
+
+---
+
+u must also add more comments to go-sdk
+
+where ever there is still need.
+
+then create a branch, commit push to that branch open a PR to main
+
+---
+
+the only concern I have is did u go against the rule as there was dependency changes
+
+so each pkg will be basically install independently
+
+i mean user have to install sandbox, 
+
+and providers can be install pluggable they don't have to install all of them
+
+i think u made changes which are against it ?
+
+---
+
+can u check this branch didn't make anything wrong ?
+
+---
+
+fix it
+
+also go.work.sum if it needs commit or u should remove the changes which are ther.e
+
+---
+
+the Modal SDK uses
+credentials it already finds in the environment.
+
+meaning give me example
+
+---
+
+does it happen ? or it doesn't ?is there test for this ?
+
+---
+
+cool its in modal documentation right ?
+
+---
+
+now I have push this to main
+
+how to publish new version of golang  ? 
+
+will we need to after the last PR merge ?
+
+---
+
+In these four files, change each github.com/sandbox-kit/kit/sdks/go/... v0.1.0 requirement to v0.1.1:
+sdks/go/internal/sdk/go.mod
+sdks/go/sandbox/go.mod
+sdks/go/providers/daytona/go.mod
+sdks/go/providers/modal/go.mod
+
+do it for me
+
+also change in replace and delete old replace ? not sure if we should delete.
+
++ run dependency install in all go examples again + also run generate go code. + also import of provider version in examples should be updated.
+
+---
+
+From each of those directories, run GOWORK=off go mod tidy. The version must still say v0.1.1 afterward.
+From each of the five module directories, run GOWORK=off go test ./....
+
+do this for me
