@@ -37,6 +37,8 @@ SDK client remain private. Construction uses
 sdks/go/sandbox/            Public SDK module
 sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
+sdks/go/internal/contracts/ Generated Go wire types; only packages under sdks/go can import them
+sdks/go/internal/sdk/       Shared SDK error type and provider helpers
 proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
 tooling/                   Developer CLI and YAML inventory loaders
@@ -62,24 +64,31 @@ imports inside a package use private `#` paths (`#internal/...`, `#mappings/...`
 so apps never depend on package subfolders. Providers depend on
 `@sandbox-kit/sandbox` only.
 
+Go wire messages live in `sdks/go/internal/contracts`. `RejectUnmapped`,
+`OptionalDuration`, and `WithErrorContext` live in `sdks/go/internal/sdk`.
+Application modules cannot import either package. They use the aliases in
+`sdks/go/sandbox` (`CreateOptions`, `Config`, `ErrorInfo`, `NewError`).
+`CreateField`, `ConfigField`, and `InfoField` stay exported so application code
+can match `ErrorInfo.Field`.
+
 Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
 `sandbox_data_contracts.ts`. SDK helpers are handwritten.
 
-| File                                                     | Purpose                                      |
-| -------------------------------------------------------- | -------------------------------------------- |
-| `create_validation.go`                                   | Shared CreateOptions validation              |
-| `support.go`                                             | `RejectUnmapped` (protobuf tag → field path) |
-| `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)          |
-| `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field` |
-| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions       |
-| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks              |
-| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)       |
-| `capabilities.go`                                        | Optional backend operation interfaces (Go)   |
-| `creation.go`                                            | Provider create planning (Go)                |
-| `lifecycle.go`                                           | Provider lifecycle calls (Go)                |
-| `metadata.go`                                            | Observed sandbox metadata (Go)               |
-| `operation.go`                                           | Sandbox handle operation gate (Go)           |
+| File                                                     | Purpose                                                  |
+| -------------------------------------------------------- | -------------------------------------------------------- |
+| `create_validation.go`                                   | Shared CreateOptions validation                          |
+| `sdks/go/internal/sdk`                                   | `RejectUnmapped`, `OptionalDuration`, `WithErrorContext` |
+| `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)                      |
+| `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field`             |
+| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions                   |
+| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks                          |
+| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)                   |
+| `capabilities.go`                                        | Optional backend operation interfaces (Go)               |
+| `creation.go`                                            | Provider create planning (Go)                            |
+| `lifecycle.go`                                           | Provider lifecycle calls (Go)                            |
+| `metadata.go`                                            | Observed sandbox metadata (Go)                           |
+| `operation.go`                                           | Sandbox handle operation gate (Go)                       |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Go providers keep SDK calls in `sandbox.go` and the

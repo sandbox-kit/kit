@@ -21,7 +21,8 @@ require (
 	github.com/kisielk/og-rek v1.3.0 // indirect
 	github.com/modal-labs/modal-client/go v0.11.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/sandbox-kit/kit/sdks/go/contracts v0.0.0 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.0.0 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
@@ -39,4 +40,6 @@ replace github.com/sandbox-kit/kit/sdks/go/sandbox => ../../../../sdks/go/sandbo
 
 replace github.com/sandbox-kit/kit/sdks/go/providers/modal => ../../../../sdks/go/providers/modal
 
-replace github.com/sandbox-kit/kit/sdks/go/contracts => ../../../../sdks/go/contracts
+replace github.com/sandbox-kit/kit/sdks/go/internal/contracts => ../../../../sdks/go/internal/contracts
+
+replace github.com/sandbox-kit/kit/sdks/go/internal/sdk => ../../../../sdks/go/internal/sdk

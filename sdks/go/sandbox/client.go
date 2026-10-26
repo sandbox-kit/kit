@@ -21,7 +21,7 @@ import (
 	time "time"
 
 	"buf.build/go/protovalidate"
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 )
 
 // Backend is the provider identity and local SDK cleanup contract. Operations
@@ -50,7 +50,7 @@ type Provider interface {
 	//
 	// 	backend, err := provider.NewClient(&config)
 	//
-	NewClient(*sandboxv1.Config) (Backend, error)
+	NewClient(*Config) (Backend, error)
 }
 
 // Client owns its initialized provider SDK. Close it when finished.
@@ -88,9 +88,9 @@ func missingClientBinding(binding any) bool {
 //	client, err := NewClient(provider, &Config{
 //	    Timeout: Duration(2 * time.Minute),
 //	})
-func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Client, result error) {
+func NewClient(providerFactory Provider, config *Config) (client *Client, result error) {
 	provider := ""
-	defer func() { result = WithErrorContext(result, provider, "initialize") }()
+	defer func() { result = sdk.WithErrorContext(result, provider, "initialize") }()
 	if missingClientBinding(providerFactory) {
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider is required"}, nil)
 	}
@@ -124,12 +124,12 @@ func NewClient(providerFactory Provider, config *sandboxv1.Config) (client *Clie
 // provider initialization. Portable rules come from Protovalidate options on
 // kit.sandbox.v1.Config; secure_endpoint stays handwritten. Provider-specific
 // support remains provider-owned.
-func validateProtoConfig(config *sandboxv1.Config) error {
+func validateProtoConfig(config *Config) error {
 	if config == nil {
 		return nil
 	}
 	if err := protovalidate.Validate(config); err != nil {
-		return WithErrorContext(mapProtovalidateError(err), "", "initialize")
+		return sdk.WithErrorContext(mapProtovalidateError(err), "", "initialize")
 	}
 	if config.Endpoint != nil && !secureEndpoint(*config.Endpoint) {
 		return NewError(&ErrorInfo{
@@ -178,7 +178,7 @@ func (c *Client) Close(ctx context.Context) (result error) {
 	if c != nil && c.backend != nil {
 		provider = c.backend.Name()
 	}
-	defer func() { result = WithErrorContext(result, provider, "close") }()
+	defer func() { result = sdk.WithErrorContext(result, provider, "close") }()
 	if ctx == nil {
 		return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "close", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
@@ -198,7 +198,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if c != nil && c.backend != nil {
 		provider = c.backend.Name()
 	}
-	defer func() { result = WithErrorContext(result, provider, "create") }()
+	defer func() { result = sdk.WithErrorContext(result, provider, "create") }()
 	if ctx == nil {
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
@@ -217,7 +217,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if err != nil {
 		return nil, err
 	}
-	timeout := OptionalDuration(request.GetProvisioning().GetTimeout())
+	timeout := sdk.OptionalDuration(request.GetProvisioning().GetTimeout())
 	if timeout == nil {
 		timeout = c.timeout
 	}

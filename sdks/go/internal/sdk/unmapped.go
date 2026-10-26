@@ -1,25 +1,17 @@
-package sandbox
+package sdk
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1"
 )
 
 // RejectUnmapped reports fields that remain after a provider maps the ones it supports.
-// Pass the remainder returned by a mapping helper. Reflection checks presence only; it
-// does not call SDK methods. ErrorInfo.Field uses the protobuf field name from the
-// generated struct tag (for example CpuCores → cpu_cores).
-//
-// Example:
-//
-//	native, remaining, err := mapResources(request.Resources)
-//	if err != nil {
-//	    return err
-//	}
-//	if err := sandbox.RejectUnmapped("daytona", remaining); err != nil {
-//	    return err
-//	}
+// Pass the remainder returned by a mapping helper. Reflection checks presence only.
+// ErrorInfo.Field uses the protobuf field name from the generated struct tag
+// (for example CpuCores → cpu_cores).
 func RejectUnmapped(provider string, remaining any) error {
 	value := reflect.ValueOf(remaining)
 	if value.Kind() == reflect.Pointer {
@@ -29,8 +21,8 @@ func RejectUnmapped(provider string, remaining any) error {
 		value = value.Elem()
 	}
 	if value.Kind() != reflect.Struct {
-		return NewError(&ErrorInfo{
-			Kind:     ErrorKindInternal,
+		return NewError(&sandboxv1.ErrorInfo{
+			Kind:     sandboxv1.ErrorKind_ERROR_KIND_INTERNAL,
 			Provider: provider,
 			Message:  "sandbox-kit: invalid configuration support check",
 		}, nil)
@@ -51,8 +43,8 @@ func RejectUnmapped(provider string, remaining any) error {
 		}
 	}
 	if len(fields) > 0 {
-		return NewError(&ErrorInfo{
-			Kind:     ErrorKindUnsupported,
+		return NewError(&sandboxv1.ErrorInfo{
+			Kind:     sandboxv1.ErrorKind_ERROR_KIND_UNSUPPORTED,
 			Provider: provider,
 			Field:    firstPath,
 			Message:  fmt.Sprintf("sandbox-kit %s: unsupported fields: %s", provider, strings.Join(fields, ", ")),

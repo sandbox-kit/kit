@@ -6,6 +6,7 @@ import (
 
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
 	"github.com/daytona/clients/sdk-go/pkg/types"
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
@@ -117,7 +118,7 @@ func (b *backend) DeleteSandbox(ctx context.Context, id string, options *sandbox
 }
 
 func nativeTimeout(value *durationpb.Duration) time.Duration {
-	timeout := sandbox.OptionalDuration(value)
+	timeout := sdk.OptionalDuration(value)
 	if timeout == nil {
 		return 0
 	}

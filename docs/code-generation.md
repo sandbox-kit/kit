@@ -47,10 +47,13 @@ descriptors (including Protovalidate options) from `dist/`. Import wire
 types via `@sandbox-kit/contracts/sandbox` and `@sandbox-kit/contracts/client`
 (or the package root); generated files stay under `src/kit/...` for Buf.
 
-Contract packages are committed under `sdks/<language>/contracts/`. Edit
-`proto/`, then regenerate contracts. Applications use native types from the
-public sandbox package. TypeScript apps depend on `@sandbox-kit/sandbox` (and a
-provider); `@sandbox-kit/contracts` is an internal wire dependency of the SDK.
+Go wire types are committed under `sdks/go/internal/contracts/`. TypeScript
+wire types are committed under `sdks/typescript/contracts/`. Edit `proto/`,
+then regenerate contracts. Applications use native types from the public
+sandbox package. The Go package path contains `internal`, so only modules
+under `sdks/go` can import it. TypeScript apps depend on `@sandbox-kit/sandbox`
+(and a provider); `@sandbox-kit/contracts` is an internal wire dependency of
+the SDK.
 
 ## Inputs
 
@@ -76,8 +79,10 @@ visibility, or operation sequencing.
 ## Response and error contracts
 
 Protobuf owns portable `ErrorInfo` and `ErrorKind`. SDK runtimes alias those
-types and handwrite wrappers (`NewError` / `WithErrorContext` in Go,
-`sandboxError` in TypeScript) plus per-provider classification mappers.
+types and handwrite wrappers (`NewError` in Go, `sandboxError` in TypeScript)
+plus per-provider classification mappers. Go provider helpers
+`WithErrorContext`, `RejectUnmapped`, and `OptionalDuration` live in
+`sdks/go/internal/sdk`.
 
 Handwritten `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
 field paths used by validation, mappings, and errors.

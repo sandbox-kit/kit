@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 	"sync"
+
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 )
 
 func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invoke func(context.Context) (*SandboxInfo, error)) (*Sandbox, error) {
@@ -35,7 +37,7 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	defer cancel()
 	info, err := invoke(operationContext)
 	if err != nil {
-		return nil, WithErrorContext(err, provider, operation)
+		return nil, sdk.WithErrorContext(err, provider, operation)
 	}
 	instance, err := sandboxFromResponse(c.backend, &CreateResult{Sandbox: info}, operation)
 	if err != nil {

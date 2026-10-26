@@ -16,6 +16,7 @@ func main() {
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("copy .env.example to .env and fill in its values: %v", err)
 	}
+
 	config := &sandbox.Config{
 		Auth: &sandbox.AuthConfig{
 			Credentials: &sandbox.APIKey{

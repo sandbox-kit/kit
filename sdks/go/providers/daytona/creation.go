@@ -7,6 +7,7 @@ import (
 
 	"github.com/daytona/clients/sdk-go/pkg/options"
 	"github.com/daytona/clients/sdk-go/pkg/types"
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -51,7 +52,7 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 			return createPlan{}, err
 		}
 	}
-	if err := sandbox.RejectUnmapped("daytona", planned.rest); err != nil {
+	if err := sdk.RejectUnmapped("daytona", planned.rest); err != nil {
 		return createPlan{}, err
 	}
 	return planned.plan, nil
@@ -65,7 +66,7 @@ func (c *creation) runtime() error {
 	c.base.User = config.GetUser()
 	c.base.Language = types.CodeLanguage(config.GetLanguage())
 	config.User, config.Language = nil, nil
-	if err := sandbox.RejectUnmapped("daytona runtime", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona runtime", config); err != nil {
 		return err
 	}
 	c.rest.Runtime = nil
@@ -79,7 +80,7 @@ func (c *creation) isolation() error {
 	config := cloneMessage(c.request.Isolation)
 	c.base.Kvm = config.GetNestedVirtualization()
 	config.NestedVirtualization = nil
-	if err := sandbox.RejectUnmapped("daytona isolation (class comes from snapshot)", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona isolation (class comes from snapshot)", config); err != nil {
 		return err
 	}
 	c.rest.Isolation = nil
@@ -109,7 +110,7 @@ func (c *creation) security() error {
 		c.base.Secrets[secret.GetEnvironmentVariable()] = secret.Reference
 	}
 	config.Secrets = nil
-	if err := sandbox.RejectUnmapped("daytona security", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona security", config); err != nil {
 		return err
 	}
 	c.rest.Security = nil
@@ -152,7 +153,7 @@ func (c *creation) network() error {
 	c.base.LinkedSandbox = config.GetLinkedSandbox()
 	c.base.OutboundProxyUrl = config.OutboundProxyUrl
 	config.LinkedSandbox, config.OutboundProxyUrl = nil, nil
-	if err := sandbox.RejectUnmapped("daytona network", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona network", config); err != nil {
 		return err
 	}
 	c.rest.Network = nil
@@ -181,7 +182,7 @@ func (c *creation) lifetime() error {
 	c.base.AutoStopInterval, c.base.AutoPauseInterval = mapped.AutoStopInterval, mapped.AutoPauseInterval
 	c.base.AutoArchiveInterval, c.base.AutoDeleteInterval = mapped.AutoArchiveInterval, mapped.AutoDeleteInterval
 	config = remaining
-	if err := sandbox.RejectUnmapped("daytona lifetime", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona lifetime", config); err != nil {
 		return err
 	}
 	c.rest.Lifetime = nil
@@ -193,7 +194,7 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	if timeout := sandbox.OptionalDuration(config.Timeout); timeout != nil && *timeout > 0 {
+	if timeout := sdk.OptionalDuration(config.Timeout); timeout != nil && *timeout > 0 {
 		c.plan.options = append(c.plan.options, options.WithTimeout(*timeout))
 	}
 	config.Timeout = nil
@@ -215,7 +216,7 @@ func (c *creation) provisioning() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
 	}
 	config.WaitFor = 0
-	if err := sandbox.RejectUnmapped("daytona creation", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona creation", config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
@@ -229,7 +230,7 @@ func (c *creation) observability() error {
 	config := cloneMessage(c.request.Observability)
 	c.base.OtelEndpointOverride = config.TelemetryEndpoint
 	config.TelemetryEndpoint = nil
-	if err := sandbox.RejectUnmapped("daytona observability", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona observability", config); err != nil {
 		return err
 	}
 	c.rest.Observability = nil
@@ -248,7 +249,7 @@ func (c *creation) source() error {
 			if err != nil {
 				return err
 			}
-			if err := sandbox.RejectUnmapped("daytona resources", remaining); err != nil {
+			if err := sdk.RejectUnmapped("daytona resources", remaining); err != nil {
 				return err
 			}
 			params.Resources = &resources

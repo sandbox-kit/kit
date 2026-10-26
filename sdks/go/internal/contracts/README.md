@@ -1,7 +1,8 @@
 # Sandbox Kit contracts (Go)
 
-Internal protobuf types for Sandbox Kit. Application code should not import this
-module directly.
+Generated wire types for the Go SDK. The module path is under `internal`, so
+application code cannot import it. The public sandbox package aliases these
+messages.
 
 Install the public client and a provider instead:
 

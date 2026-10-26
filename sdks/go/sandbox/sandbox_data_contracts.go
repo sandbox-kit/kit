@@ -1,11 +1,7 @@
 package sandbox
 
 import (
-	"time"
-
-	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/contracts/kit/sandbox/v1"
-
-	"google.golang.org/protobuf/types/known/durationpb"
+	sandboxv1 "github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1"
 )
 
 // Portable sandbox data contracts come from standard protobuf generation.
@@ -152,13 +148,4 @@ func Value[T any](value T) *T { return &value }
 // validValueOrigin reports whether origin is a declared ValueOrigin.
 func validValueOrigin(origin ValueOrigin) bool {
 	return origin.Descriptor().Values().ByNumber(origin.Number()) != nil
-}
-
-// OptionalDuration converts a protobuf duration to a time.Duration pointer.
-func OptionalDuration(value *durationpb.Duration) *time.Duration {
-	if value == nil {
-		return nil
-	}
-	converted := value.AsDuration()
-	return &converted
 }

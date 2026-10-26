@@ -66,6 +66,17 @@ Protovalidate on portable messages and evaluated in each SDK
 (`secure_endpoint` is handwritten); provider checks and Client/Sandbox
 choreography are handwritten.
 
+### Go public surface
+
+Applications import `github.com/sandbox-kit/kit/sdks/go/sandbox` and one
+provider. Generated messages live at
+`github.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1`. Go
+rejects that import from any module outside `sdks/go`. The sandbox package
+aliases the messages (`CreateOptions`, `Config`, `ErrorInfo`). Provider helpers
+`RejectUnmapped`, `OptionalDuration`, and `WithErrorContext` live in
+`sdks/go/internal/sdk`, which has the same import restriction. Applications
+construct errors with `sandbox.NewError`.
+
 ### TypeScript public surface
 
 Applications use handwritten public types from `@sandbox-kit/sandbox`

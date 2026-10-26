@@ -7,6 +7,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -29,14 +30,14 @@ func TestErrorOwnsDetailsAndPreservesCause(t *testing.T) {
 func TestErrorContextAvoidsRedundantWrapping(t *testing.T) {
 	native := errors.New("native")
 	original := sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindAuthentication, Provider: "modal", Operation: "create", StatusCode: sandbox.Value(uint32(401))}, native)
-	if sandbox.WithErrorContext(original, "modal", "create") != original {
+	if sdk.WithErrorContext(original, "modal", "create") != original {
 		t.Fatal("complete error was wrapped again")
 	}
 	outer := fmt.Errorf("outer: %w", original)
-	if sandbox.WithErrorContext(outer, "modal", "create") != outer {
+	if sdk.WithErrorContext(outer, "modal", "create") != outer {
 		t.Fatal("outer cause chain replaced despite complete context")
 	}
-	changed := sandbox.WithErrorContext(original, "daytona", "initialize")
+	changed := sdk.WithErrorContext(original, "daytona", "initialize")
 	var detail *sandbox.Error
 	if !errors.As(changed, &detail) || detail.Provider != "daytona" || detail.Operation != "initialize" || !errors.Is(changed, native) {
 		t.Fatal("context enrichment lost native cause")

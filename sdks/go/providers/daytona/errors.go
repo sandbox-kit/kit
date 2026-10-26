@@ -13,6 +13,7 @@ import (
 	context "context"
 	errors "errors"
 	errors1 "github.com/daytona/clients/sdk-go/pkg/errors"
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	sandbox "github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -22,7 +23,7 @@ func mapProviderError(err error, operation string) error {
 	}
 	var local *sandbox.Error
 	if errors.As(err, &local) {
-		return sandbox.WithErrorContext(err, "daytona", operation)
+		return sdk.WithErrorContext(err, "daytona", operation)
 	}
 	kind := sandbox.ErrorKindUnknown
 	var statusCode *uint32

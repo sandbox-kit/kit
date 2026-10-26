@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/modal-labs/modal-client/go"
+	sandboxsdk "github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -72,7 +73,7 @@ func (c *creation) assemble(scope *sandbox.Scope, region string) error {
 			return err
 		}
 	}
-	return sandbox.RejectUnmapped("modal", c.rest)
+	return sandboxsdk.RejectUnmapped("modal", c.rest)
 }
 
 func (c *creation) app(scope *sandbox.Scope, region string) error {
@@ -103,7 +104,7 @@ func (c *creation) runtime() error {
 	c.plan.params.Command = config.Entrypoint
 	c.plan.params.PTY = config.GetPty()
 	config.WorkingDirectory, config.Entrypoint, config.Pty = nil, nil, nil
-	if err := sandbox.RejectUnmapped("modal runtime (language must come from image)", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal runtime (language must come from image)", config); err != nil {
 		return err
 	}
 	c.rest.Runtime = nil
@@ -125,7 +126,7 @@ func (c *creation) isolation() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldIsolationKind, "requested isolation mapping is unsupported")
 	}
 	config.Kind = 0
-	if err := sandbox.RejectUnmapped("modal isolation", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal isolation", config); err != nil {
 		return err
 	}
 	c.rest.Isolation = nil
@@ -140,7 +141,7 @@ func (c *creation) resources() error {
 	if err != nil {
 		return err
 	}
-	if err := sandbox.RejectUnmapped("modal resources", remaining); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal resources", remaining); err != nil {
 		return err
 	}
 	c.plan.params.CPU, c.plan.params.CPULimit = resources.CPU, resources.CPULimit
@@ -159,7 +160,7 @@ func (c *creation) placement() error {
 		c.plan.params.Regions = config.Regions
 	}
 	config.Cloud, config.Regions = nil, nil
-	if err := sandbox.RejectUnmapped("modal placement", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal placement", config); err != nil {
 		return err
 	}
 	c.rest.Placement = nil
@@ -183,7 +184,7 @@ func (c *creation) security() error {
 	}
 	c.plan.secrets = config.Secrets
 	config.Secrets = nil
-	if err := sandbox.RejectUnmapped("modal security", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal security", config); err != nil {
 		return err
 	}
 	c.rest.Security = nil
@@ -216,7 +217,7 @@ func (c *creation) provisioning() error {
 	switch config.WaitFor {
 	case sandbox.WaitConditionDefault, sandbox.WaitConditionScheduled:
 	case sandbox.WaitConditionReady:
-		timeout := sandbox.OptionalDuration(c.request.Provisioning.Timeout)
+		timeout := sandboxsdk.OptionalDuration(c.request.Provisioning.Timeout)
 		if timeout == nil || *timeout <= 0 {
 			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldProvisioningTimeout, "readiness waiting requires a positive creation timeout")
 		}
@@ -229,7 +230,7 @@ func (c *creation) provisioning() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
 	}
 	config.WaitFor = 0
-	if err := sandbox.RejectUnmapped("modal creation", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal creation", config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
@@ -243,7 +244,7 @@ func (c *creation) observability() error {
 	config := cloneMessage(c.request.Observability)
 	c.plan.params.Verbose = config.GetVerbose()
 	config.Verbose = nil
-	if err := sandbox.RejectUnmapped("modal observability", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal observability", config); err != nil {
 		return err
 	}
 	c.rest.Observability = nil
@@ -295,7 +296,7 @@ func (c *creation) network() error {
 		config.Ports = nil
 		c.plan.proxy = config.GetProxyReference()
 		config.ProxyReference = nil
-		if err := sandbox.RejectUnmapped("modal network", config); err != nil {
+		if err := sandboxsdk.RejectUnmapped("modal network", config); err != nil {
 			return err
 		}
 		c.rest.Network = nil
@@ -334,7 +335,7 @@ func (c *creation) lifetime() error {
 			}
 		}
 		config.IdleTerminate = nil
-		if err := sandbox.RejectUnmapped("modal lifetime", config); err != nil {
+		if err := sandboxsdk.RejectUnmapped("modal lifetime", config); err != nil {
 			return err
 		}
 		c.rest.Lifetime = nil

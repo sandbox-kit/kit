@@ -136,11 +136,13 @@ err := sandbox.NewError(&sandbox.ErrorInfo{
 }, cause)
 ```
 
-`NewError` and `WithErrorContext` are handwritten. The constructor owns a copy
-of the details, including optional pointers. The native cause stays separate
-from the serializable contract. Cancellation and deadline causes override the
-supplied kind (`canceled` / `timeout`). Context enrichment reuses an error when
-its provider/operation already match and copies only when context must change.
+`NewError` is handwritten. The constructor owns a copy of the details,
+including optional pointers. The native cause stays separate from the
+serializable contract. Cancellation and deadline causes override the supplied
+kind (`canceled` / `timeout`). Provider modules add provider and operation
+context through `WithErrorContext` in `sdks/go/internal/sdk`. That helper
+reuses an error when its provider and operation already match, and copies the
+error only when the context must change.
 
 ## Classification
 

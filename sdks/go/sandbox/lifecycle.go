@@ -7,6 +7,7 @@ import (
 	reflect "reflect"
 	time "time"
 
+	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"google.golang.org/protobuf/proto"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
@@ -45,7 +46,7 @@ func (s *Sandbox) runInfoOp(ctx context.Context, operation string, timeout *time
 	defer cancel()
 	info, err := invoke(operationContext)
 	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), operation)
+		return sdk.WithErrorContext(err, s.ProviderName(), operation)
 	}
 	return s.replaceInfo(operation, info)
 }
@@ -114,7 +115,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 		cloned.Timeout = Duration(*timeout)
 	}))
 	if err != nil {
-		return outcome, WithErrorContext(err, s.ProviderName(), "terminate")
+		return outcome, sdk.WithErrorContext(err, s.ProviderName(), "terminate")
 	}
 	s.markTerminal(SandboxStateTerminated, "terminated")
 	return outcome, nil
@@ -148,7 +149,7 @@ func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 		cloned.Timeout = Duration(*timeout)
 	}))
 	if err != nil {
-		return WithErrorContext(err, s.ProviderName(), "delete")
+		return sdk.WithErrorContext(err, s.ProviderName(), "delete")
 	}
 	if err := s.replaceInfo("delete", info); err != nil {
 		return err
@@ -168,7 +169,7 @@ func (s *Sandbox) inheritedTimeout() *time.Duration {
 // effectiveTimeout prefers an explicit operation timeout, including explicit
 // zero. A nil explicit value inherits the client timeout.
 func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *time.Duration {
-	if timeout := OptionalDuration(explicit); timeout != nil {
+	if timeout := sdk.OptionalDuration(explicit); timeout != nil {
 		return timeout
 	}
 	return inherited

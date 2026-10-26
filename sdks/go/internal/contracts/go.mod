@@ -1,4 +1,4 @@
-module github.com/sandbox-kit/kit/sdks/go/contracts
+module github.com/sandbox-kit/kit/sdks/go/internal/contracts
 
 go 1.26.0
 

@@ -85,14 +85,15 @@ available. Timeouts are milliseconds in TypeScript.
 
 ### What gets installed
 
-| Language   | Core SDK                                 | Providers                                                  |
-| ---------- | ---------------------------------------- | ---------------------------------------------------------- |
-| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`          |
-| TypeScript | `@sandbox-kit/sandbox`                   | `@sandbox-kit/daytona`, `@sandbox-kit/modal`              |
+| Language   | Core SDK                                     | Providers                                      |
+| ---------- | -------------------------------------------- | ---------------------------------------------- |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
+| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`   |
 
 Install only the provider you use. The core SDK exposes the shared client
 interface; the provider package connects it to the provider's native SDK. Do
-not install or import the contracts package directly.
+not install or import the contracts package directly. The Go wire package is
+under `internal`, so an application import does not compile.
 
 Closing a client or sandbox handle releases local SDK resources. It does not
 stop, terminate, archive, or delete the cloud sandbox.
