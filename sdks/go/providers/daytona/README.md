@@ -73,7 +73,7 @@ TTL, ephemeral mode, and stop, pause, archive, and delete policies.
 On the handle: `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`,
 `Delete`, and `Close`. `Get` checks the ID with Daytona. `Attach` is not
 supported. Daytona accepts or rejects each lifecycle call for that sandbox.
-`Close` returns without a provider request.
+`Close` does not contact Daytona and does not change the sandbox.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create

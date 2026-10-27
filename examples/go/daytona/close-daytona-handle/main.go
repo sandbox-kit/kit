@@ -1,5 +1,4 @@
-// Close one Daytona sandbox handle. Daytona has no sandbox close, so this
-// returns without a provider request and does not change the cloud sandbox.
+// Close one Daytona sandbox handle. This does not contact Daytona or change the sandbox.
 package main
 
 import (
@@ -46,5 +45,5 @@ func main() {
 	if err := instance.Close(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Closed Daytona sandbox handle %s without a provider request; the cloud sandbox was not changed.\n", instance.ID())
+	fmt.Printf("Closed the handle for Daytona sandbox %s. The sandbox was not changed.\n", instance.ID())
 }

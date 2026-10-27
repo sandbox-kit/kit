@@ -1,4 +1,4 @@
-// Detach one local Modal sandbox object. This does not terminate the cloud sandbox.
+// Close one Modal sandbox handle. This does not terminate the sandbox.
 package main
 
 import (
@@ -46,5 +46,5 @@ func main() {
 	if err := instance.Close(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Detached the local Modal sandbox object %s; the cloud sandbox was not changed.\n", instance.ID())
+	fmt.Printf("Closed the handle for Modal sandbox %s. The sandbox is still running.\n", instance.ID())
 }

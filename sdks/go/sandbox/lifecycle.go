@@ -141,7 +141,7 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 }
 
 // Delete deletes the cloud sandbox and stores the metadata the provider returns.
-// Close calls the provider handle close and does not delete the cloud sandbox.
+// Close does not delete the cloud sandbox.
 // Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {

@@ -4,9 +4,10 @@ Attach by ID, then call **`Sandbox.Close` / `sandbox.close()`**.
 
 ## What this means
 
-Handle close calls Modal `detach` on the local sandbox object for that id. It
-does not terminate the cloud sandbox. The sandbox keeps running until idle
-timeout, max lifetime, entrypoint exit, or an explicit terminate.
+Closing the handle does not terminate the sandbox. The sandbox keeps running
+until idle timeout, max lifetime, entrypoint exit, or an explicit terminate.
+Closing the client closes your connection to Modal. You can keep using the
+handle.
 
 ## Edge cases
 

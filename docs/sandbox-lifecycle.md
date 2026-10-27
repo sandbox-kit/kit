@@ -17,13 +17,13 @@ return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Mi
 ```
 
 An operation-specific timeout overrides `Config.Timeout` / `timeout`. Omitted
-inherits the client default, and explicit zero adds no Kit deadline. Closing the
-client calls the provider SDK close and returns that result. It does not stop
-or delete the cloud sandbox. A later call goes to that SDK.
-`Sandbox.Close` / `sandbox.close()` calls the provider handle close. It does
-not change the remote sandbox and does not block a later call. Daytona has no
-sandbox close, so that call returns without a provider request. Modal detaches
-the local sandbox object for that id.
+inherits the client default, and explicit zero adds no deadline of its own.
+`Client.Close` / `client.close()` closes your connection to Daytona or Modal
+and returns that result. It does not stop or delete the sandbox. A later call
+uses that connection and returns the provider's result.
+`Sandbox.Close` / `sandbox.close()` does not change the sandbox. You can keep
+using the handle. Closing a Daytona handle does not contact Daytona. Closing a
+Modal handle does not terminate the sandbox.
 
 TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
 scoped client when its lifetime matches the current block. Lifecycle call
@@ -36,8 +36,9 @@ const sandbox = await client.create(request);
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Disposing a client closes the provider SDK. Disposing a handle calls that
-provider's handle close. Neither stops, terminates, or deletes the cloud sandbox.
+Disposing a client closes your connection to Daytona or Modal. Disposing a
+handle does not stop, terminate, or delete the sandbox. You can keep using the
+handle.
 
 ## Operation semantics
 

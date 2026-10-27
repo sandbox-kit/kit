@@ -7,8 +7,8 @@ import (
 )
 
 // Sandbox is the handle for one cloud sandbox.
-// ID and Info describe it. Lifecycle methods change it. Close calls the provider
-// handle close. It does not change the cloud sandbox or block a later call.
+// ID and Info describe it. Lifecycle methods change it. Close does not change
+// the cloud sandbox. You can keep using the handle.
 //
 // Example:
 //

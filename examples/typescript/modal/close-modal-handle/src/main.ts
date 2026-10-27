@@ -19,5 +19,5 @@ await using client = new Client({
 const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
 await sandbox.close();
 console.log(
-  `Detached the local Modal sandbox object ${sandbox.id}; the cloud sandbox was not changed.`,
+  `Closed the handle for Modal sandbox ${sandbox.id}. The sandbox is still running.`,
 );

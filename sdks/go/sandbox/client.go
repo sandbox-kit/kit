@@ -16,13 +16,13 @@ import (
 
 // Backend is the open provider connection held by Client.
 // Close releases that connection. It does not stop or delete a cloud sandbox.
-// CloseSandbox is the handle close. A provider with no native sandbox close returns nil.
+// CloseSandbox runs when the caller closes a sandbox handle. It does not stop or delete the cloud sandbox.
 type Backend interface {
 	// Name returns the provider name, "daytona" or "modal".
 	Name() string
 	// Close releases the provider connection. It does not stop or delete a cloud sandbox.
 	Close(context.Context) error
-	// CloseSandbox releases local resources for one sandbox handle.
+	// CloseSandbox runs when the caller closes a sandbox handle.
 	// It does not stop or delete the cloud sandbox.
 	CloseSandbox(context.Context, string) error
 }

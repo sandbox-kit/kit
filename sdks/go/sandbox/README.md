@@ -39,10 +39,10 @@ fmt.Println(instance.ID())
 `Create` with a nil request uses the provider default when that default is
 valid. Daytona uses its default snapshot. Modal requires an image.
 
-`client.Close` closes the provider SDK. `instance.Close` calls the provider
-handle close. Daytona returns without a provider request. Modal detaches the
-local sandbox object. The cloud sandbox keeps running until you stop,
-terminate, archive, or delete it.
+`client.Close` closes your connection to Daytona or Modal. `instance.Close`
+does not stop, terminate, or delete the sandbox, and you can keep using the
+handle. The sandbox keeps running until you stop, terminate, archive, or
+delete it.
 
 ## Choose a provider
 

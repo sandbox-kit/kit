@@ -89,7 +89,7 @@ const fetched = await client.get(id); // provider-verified lookup
 | `archive`        | Archive                                       |
 | `delete`         | Delete (`wait` when supported)                |
 | `terminate`      | Terminate (`wait` when supported)             |
-| `close`          | Provider handle close (not the cloud sandbox) |
+| `close`          | Close the handle. The sandbox keeps running   |
 
 `supports` reports whether the provider implements that operation. An
 unimplemented method throws before the provider call. A provider rejection,

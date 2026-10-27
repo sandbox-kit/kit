@@ -67,7 +67,8 @@ ephemeral behavior, and stop/pause/archive/delete policies.
 
 **Lifecycle** on the handle: `get`, `refresh`, `start`, `stop`, `pause`,
 `archive`, `delete`, and `close`. Daytona accepts or rejects each lifecycle
-call for that sandbox. `close` returns without a provider request.
+call for that sandbox. `close` does not contact Daytona and does not change
+the sandbox.
 
 Daytona does not support unverified `attach`. Use `client.get(id)` for a
 provider-verified handle.

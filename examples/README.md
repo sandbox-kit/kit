@@ -25,10 +25,9 @@ Modal needs a token pair and an existing app:
 
 Creation examples provision real resources. Lifecycle examples use the sandbox
 ID in `.env` (stop / terminate / archive / delete can destroy it).
-Error-handling examples fail locally. `Client.Close` closes the provider SDK.
-`Sandbox.Close` calls the provider handle close and does not change the cloud
-sandbox. Daytona returns without a provider request. Modal detaches the local
-sandbox object.
+Error-handling examples fail locally. `Client.Close` closes your connection to
+Daytona or Modal. `Sandbox.Close` does not change the sandbox, and you can keep
+using the handle.
 
 Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 

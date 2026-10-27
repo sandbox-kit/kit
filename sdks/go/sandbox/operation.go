@@ -43,10 +43,9 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	}
 }
 
-// Close calls the provider handle close. It does not stop, terminate, or delete
-// the cloud sandbox, and it does not block a later call. A provider with no
-// native sandbox close returns nil. A nil handle returns nil. A nil context
-// returns ErrorKindInvalidArgument.
+// Close does not stop, terminate, or delete the cloud sandbox. You can keep
+// using the handle. A nil handle returns nil. A nil context returns
+// ErrorKindInvalidArgument.
 func (s *Sandbox) Close(ctx context.Context) error {
 	if s == nil {
 		if ctx == nil {

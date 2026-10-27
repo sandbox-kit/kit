@@ -14,5 +14,5 @@ await using client = new Client({
 const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 await sandbox.close();
 console.log(
-  `Closed Daytona sandbox handle ${sandbox.id} without a provider request; the cloud sandbox was not changed.`,
+  `Closed the handle for Daytona sandbox ${sandbox.id}. The sandbox was not changed.`,
 );

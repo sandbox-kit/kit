@@ -73,8 +73,7 @@ func (b *backend) Close(ctx context.Context) error {
 	return mapProviderError(b.client.Close(ctx), "close")
 }
 
-// CloseSandbox is the handle close. Daytona has no sandbox close, so this
-// returns without a provider request.
+// CloseSandbox does not contact Daytona and does not change the sandbox.
 func (*backend) CloseSandbox(context.Context, string) error {
 	return nil
 }

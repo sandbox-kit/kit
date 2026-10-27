@@ -4,9 +4,9 @@
 
 ## What this means
 
-Daytona has no sandbox close, so handle close returns without a provider
-request. It does not stop, archive, or delete the sandbox. Client close
-releases the SDK connection.
+Closing the handle does not contact Daytona and does not stop, archive, or
+delete the sandbox. Closing the client closes your connection to Daytona.
+You can keep using the handle. The next call returns Daytona's result.
 
 ## Edge cases
 

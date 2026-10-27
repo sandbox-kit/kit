@@ -61,8 +61,8 @@ idle/max lifetime policies or `terminate`.
 Linux VM isolation, CPU/memory, placement, network policy and ports, secrets,
 OIDC workload identity, readiness probes, timeouts, labels, and verbose mode.
 
-**Lifecycle** on the handle: `attach`, `terminate`, and `close`. `close`
-detaches the local sandbox object and does not terminate it.
+**Lifecycle** on the handle: `attach`, `terminate`, and `close`. `close` does
+not terminate the sandbox.
 Provider-verified `get` / `refresh`, start, stop, pause, archive, and delete are
 unsupported.
 

@@ -103,8 +103,7 @@ func (b *backend) Close(ctx context.Context) error {
 	return nil
 }
 
-// CloseSandbox disconnects the local Modal sandbox object for this id.
-// It does not terminate the cloud sandbox.
+// CloseSandbox does not terminate the Modal sandbox.
 func (b *backend) CloseSandbox(ctx context.Context, id string) error {
 	if err := ctx.Err(); err != nil {
 		return mapProviderError(err, "close")
