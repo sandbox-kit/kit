@@ -4,7 +4,6 @@ import {
   type Sandbox as ModalSandbox,
 } from "modal";
 import {
-  LifecycleCapability,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
@@ -118,10 +117,6 @@ class ModalBackend extends BackendBase implements Backend {
     } catch (error) {
       throw mapModalError(error, "attach");
     }
-  }
-
-  capabilities(): readonly LifecycleCapability[] {
-    return [LifecycleCapability.Terminate];
   }
 
   async terminate(id: string, request: TerminateOptions): Promise<ExitResult> {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
-	"github.com/daytona/clients/sdk-go/pkg/types"
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
@@ -17,22 +16,6 @@ var _ sandbox.SandboxStopper = (*backend)(nil)
 var _ sandbox.SandboxPauser = (*backend)(nil)
 var _ sandbox.SandboxArchiver = (*backend)(nil)
 var _ sandbox.SandboxDeleter = (*backend)(nil)
-
-func (*backend) SandboxCapabilities(info *sandbox.SandboxInfo) []sandbox.LifecycleCapability {
-	capabilities := []sandbox.LifecycleCapability{sandbox.LifecycleCapabilityRefresh, sandbox.LifecycleCapabilityStart, sandbox.LifecycleCapabilityStop, sandbox.LifecycleCapabilityDelete}
-	if info == nil || info.GetTerminal() {
-		return nil
-	}
-	gpu := info.GetProviderMetadata().GetValues()["gpu_count"].GetSignedInteger() > 0
-	isolation := info.GetIsolation()
-	if !gpu && isolation != nil && (isolation.Kind == sandbox.IsolationKindLinuxVM || isolation.GetProviderKind() == "windows") {
-		capabilities = append(capabilities, sandbox.LifecycleCapabilityPause)
-	}
-	if !gpu && isolation != nil && isolation.Kind == sandbox.IsolationKindContainer {
-		capabilities = append(capabilities, sandbox.LifecycleCapabilityArchive)
-	}
-	return capabilities
-}
 
 func (b *backend) nativeSandbox(ctx context.Context, id string) (*daytona.Sandbox, error) {
 	return b.client.Get(ctx, id)
@@ -74,9 +57,6 @@ func (b *backend) StopSandbox(ctx context.Context, id string, options *sandbox.S
 func (b *backend) PauseSandbox(ctx context.Context, id string, options *sandbox.PauseOptions) (*sandbox.SandboxInfo, error) {
 	timeout := nativeTimeout(options.GetTimeout())
 	return b.withSandbox(ctx, id, "pause", func(ctx context.Context, instance *daytona.Sandbox) error {
-		if instance.SandboxClass == nil || (*instance.SandboxClass != types.SandboxClassLinuxVM && string(*instance.SandboxClass) != "windows") {
-			return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "pause", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: pause requires a Linux VM or Windows sandbox"}, nil)
-		}
 		if err := instance.PauseWithTimeout(ctx, timeout); err != nil {
 			return mapProviderError(err, "pause")
 		}
@@ -86,9 +66,6 @@ func (b *backend) PauseSandbox(ctx context.Context, id string, options *sandbox.
 
 func (b *backend) ArchiveSandbox(ctx context.Context, id string, _ *sandbox.ArchiveOptions) (*sandbox.SandboxInfo, error) {
 	return b.withSandbox(ctx, id, "archive", func(ctx context.Context, instance *daytona.Sandbox) error {
-		if instance.SandboxClass == nil || *instance.SandboxClass != types.SandboxClassContainer {
-			return sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindUnsupported, Provider: "daytona", Operation: "archive", Field: sandbox.InfoFieldIsolation, Message: "sandbox-kit daytona: archive requires a container sandbox"}, nil)
-		}
 		if err := instance.Archive(ctx); err != nil {
 			return mapProviderError(err, "archive")
 		}

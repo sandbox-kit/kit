@@ -91,8 +91,9 @@ const fetched = await client.get(id); // provider-verified lookup
 | `terminate`      | Terminate (`wait` when supported)             |
 | `close`          | Drop the local handle (not the cloud sandbox) |
 
-Unsupported operations throw before the provider call. Use `supports(...)` when
-the sandbox class may differ (for example Daytona container vs VM).
+`supports` reports whether the provider implements that operation. A closed or
+terminal handle supports nothing. An unimplemented method throws before the
+provider call.
 
 ## Errors
 

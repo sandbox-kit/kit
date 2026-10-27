@@ -4,8 +4,6 @@ import {
   type Sandbox as DaytonaSandbox,
 } from "@daytona/sdk";
 import {
-  IsolationKind,
-  LifecycleCapability,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
@@ -82,26 +80,6 @@ class DaytonaBackend extends BackendBase implements Backend {
     }
   }
 
-  capabilities(info: SandboxInfo): readonly LifecycleCapability[] {
-    if (info.terminal) return [];
-    const result: LifecycleCapability[] = [
-      LifecycleCapability.Refresh,
-      LifecycleCapability.Start,
-      LifecycleCapability.Stop,
-      LifecycleCapability.Delete,
-    ];
-    const hasGpu = gpuCountAttached(info);
-    if (
-      !hasGpu &&
-      (info.isolation?.kind === IsolationKind.LinuxVm ||
-        info.isolation?.providerKind === "windows")
-    )
-      result.push(LifecycleCapability.Pause);
-    if (!hasGpu && info.isolation?.kind === IsolationKind.Container)
-      result.push(LifecycleCapability.Archive);
-    return result;
-  }
-
   async refresh(id: string): Promise<SandboxInfo> {
     return this.withSandbox(id, "refresh", async (value) => {
       await value.refreshData();
@@ -153,15 +131,6 @@ class DaytonaBackend extends BackendBase implements Backend {
       throw mapDaytonaError(error, "close");
     }
   }
-}
-
-/** gpu_count is stored as a metadata number or integer, not a full metadata map. */
-function gpuCountAttached(info: SandboxInfo): boolean {
-  const entry = info.providerMetadata?.values?.gpu_count?.value;
-  if (entry?.case === "number") return (entry.value ?? 0) > 0;
-  if (entry?.case === "signedInteger" || entry?.case === "unsignedInteger")
-    return (entry.value ?? 0n) > 0n;
-  return false;
 }
 
 /** Native Daytona lifecycle APIs take whole seconds; Kit timeouts are ms. */

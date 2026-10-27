@@ -1,17 +1,16 @@
 # Pause a Daytona sandbox
 
-`Get` a sandbox, check **Pause**, then pause it.
+`Get` a sandbox, then pause it.
 
 ## What this means
 
-Pause is for VM sandbox classes (Linux VM / Windows): it preserves filesystem and
-memory. Container and GPU classes do not support pause—Kit rejects via
-capabilities before the API call. See Daytona's lifecycle docs under
+Pause asks Daytona to freeze the sandbox. Daytona accepts or rejects that
+sandbox. See Daytona's lifecycle docs under
 [sandboxes](https://www.daytona.io/docs/en/sandboxes/).
 
 ## Edge cases
 
-- Using a container sandbox ID fails the capability check.
+- A rejected sandbox returns Daytona's error.
 - Inspect refreshed state after success for the resolved paused/running value.
 - Mutates the target sandbox.
 

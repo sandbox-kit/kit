@@ -49,8 +49,9 @@ keeps running until you stop, terminate, archive, or delete it.
 | [Daytona](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/daytona) | `daytona.New()` | `client.Get`             |
 | [Modal](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/modal)     | `modal.New()`   | `client.Attach`          |
 
-Call `instance.Supports` before a lifecycle method when the sandbox class
-varies. An unsupported method returns an error and does not call the provider.
+`Supports` reports whether the provider implements that operation. A closed or
+terminal handle supports nothing. An unimplemented method returns an error and
+does not call the provider.
 
 ## Read an error
 

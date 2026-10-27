@@ -1,12 +1,12 @@
 // Sandbox handle runtime behavior is handwritten. Lifecycle methods dispatch
-// through optional Backend capabilities.
+// through optional Backend methods.
 
 import {
   SandboxState,
   type ArchiveOptions,
   type DeleteOptions,
   type ExitResult,
-  type LifecycleCapability,
+  LifecycleCapability,
   type PauseOptions,
   type SandboxInfo,
   type StartOptions,
@@ -57,7 +57,6 @@ export class Sandbox implements AsyncDisposable {
   readonly #owner: ClientLifecycle;
   readonly #timeout: number | undefined;
   #info: SandboxInfo;
-  #capabilities: readonly LifecycleCapability[] | undefined;
   #closed = false;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -80,14 +79,7 @@ export class Sandbox implements AsyncDisposable {
   capabilities(): readonly LifecycleCapability[] {
     if (this.#closed || this.#owner.isClosed() || this.#info.terminal)
       return [];
-    const cached = this.#capabilities;
-    if (cached) return cached.slice();
-    const resolve = this.#backend.capabilities;
-    const values = resolve
-      ? [...resolve.call(this.#backend, clone(this.#info))]
-      : [];
-    this.#capabilities = values;
-    return values.slice();
+    return providerCapabilities(this.#backend);
   }
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);
@@ -263,7 +255,6 @@ export class Sandbox implements AsyncDisposable {
   }
   #assignInfo(info: SandboxInfo): void {
     this.#info = info;
-    this.#capabilities = undefined;
   }
   async #serialized<T>(
     operation: string,
@@ -313,4 +304,16 @@ export class Sandbox implements AsyncDisposable {
         message: "sandbox-kit: sandbox lifecycle is terminal",
       });
   }
+}
+
+function providerCapabilities(backend: Backend): LifecycleCapability[] {
+  const values: LifecycleCapability[] = [];
+  if (backend.refresh) values.push(LifecycleCapability.Refresh);
+  if (backend.start) values.push(LifecycleCapability.Start);
+  if (backend.stop) values.push(LifecycleCapability.Stop);
+  if (backend.pause) values.push(LifecycleCapability.Pause);
+  if (backend.terminate) values.push(LifecycleCapability.Terminate);
+  if (backend.archive) values.push(LifecycleCapability.Archive);
+  if (backend.delete) values.push(LifecycleCapability.Delete);
+  return values;
 }

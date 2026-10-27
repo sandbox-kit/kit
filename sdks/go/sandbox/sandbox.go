@@ -24,9 +24,6 @@ type Sandbox struct {
 	closed        bool
 	// info is an owned metadata copy. Info returns another copy so callers cannot mutate this one.
 	info *SandboxInfo
-	// capabilityCache is reused until info is replaced or the lifecycle becomes terminal.
-	capabilityCache []LifecycleCapability
-	capabilityReady bool
 }
 
 // sandboxFromResponse checks that creation returned an identifier
@@ -108,11 +105,7 @@ func (s *Sandbox) Info() *SandboxInfo {
 	return info
 }
 
-type sandboxCapabilityResolver interface {
-	SandboxCapabilities(*SandboxInfo) []LifecycleCapability
-}
-
-// Capabilities lists the lifecycle operations this handle can still perform.
+// Capabilities lists the lifecycle operations this provider implements.
 // Pass a value to Supports, or compare it with LifecycleCapabilityPause and the other capability constants.
 // A closed client, a closed handle, or a terminal sandbox returns nil.
 func (s *Sandbox) Capabilities() []LifecycleCapability {
@@ -122,70 +115,13 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s.owner != nil && s.owner.isClosed() {
 		return nil
 	}
-	snapshot := s.capabilitySnapshot()
-	if snapshot.blocked {
-		return nil
-	}
-	if snapshot.ready {
-		return snapshot.cached
-	}
-	values, ok := s.resolveCapabilities()
-	if !ok {
-		return nil
-	}
-	s.rememberCapabilities(snapshot.live, values)
-	return copyCapabilities(values)
-}
-
-// capabilitySnapshot is the handle state Capabilities reads under one lock.
-// blocked means a closed handle or a missing or terminal record.
-// ready means the saved list still belongs to live.
-type capabilitySnapshot struct {
-	live    *SandboxInfo
-	cached  []LifecycleCapability
-	ready   bool
-	blocked bool
-}
-
-func (s *Sandbox) capabilitySnapshot() capabilitySnapshot {
 	s.mu.RLock()
-	defer s.mu.RUnlock()
-	live := s.info
-	snapshot := capabilitySnapshot{
-		live:    live,
-		blocked: s.closed || live == nil || live.GetTerminal(),
+	blocked := s.closed || s.info == nil || s.info.GetTerminal()
+	s.mu.RUnlock()
+	if blocked {
+		return nil
 	}
-	if snapshot.blocked || !s.capabilityReady {
-		return snapshot
-	}
-	snapshot.ready = true
-	snapshot.cached = copyCapabilities(s.capabilityCache)
-	return snapshot
-}
-
-func (s *Sandbox) resolveCapabilities() ([]LifecycleCapability, bool) {
-	resolver, ok := s.operations.(sandboxCapabilityResolver)
-	if !ok {
-		return staticLifecycleCapabilities(s.operations), true
-	}
-	info := s.Info()
-	if info == nil || info.GetTerminal() {
-		return nil, false
-	}
-	return copyCapabilities(resolver.SandboxCapabilities(info)), true
-}
-
-func (s *Sandbox) rememberCapabilities(live *SandboxInfo, values []LifecycleCapability) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.info == live && !s.closed && !live.GetTerminal() {
-		s.capabilityCache = copyCapabilities(values)
-		s.capabilityReady = true
-	}
-}
-
-func copyCapabilities(values []LifecycleCapability) []LifecycleCapability {
-	return append([]LifecycleCapability(nil), values...)
+	return staticLifecycleCapabilities(s.operations)
 }
 
 // operationView is a locked snapshot of the handle fields a lifecycle call reads.
@@ -210,8 +146,7 @@ func (s *Sandbox) operationView() operationView {
 	return view
 }
 
-// Supports reports whether this handle can perform capability.
-// Check LifecycleCapabilityPause before Pause and LifecycleCapabilityArchive before Archive.
+// Supports reports whether this provider implements capability.
 // A terminal or closed handle supports nothing.
 func (s *Sandbox) Supports(capability LifecycleCapability) bool {
 	for _, candidate := range s.Capabilities() {

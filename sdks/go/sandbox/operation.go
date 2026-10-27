@@ -111,7 +111,6 @@ func (s *Sandbox) markTerminal(state SandboxState, providerState string) {
 	s.info.State = state
 	s.info.Terminal = Value(true)
 	s.info.ProviderState = Value(providerState)
-	s.capabilityReady = false
 }
 
 func (s *Sandbox) unsupported(operation string) error {
@@ -129,7 +128,6 @@ func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 	info.Provider = provider
 	s.mu.Lock()
 	s.info = cloneSandboxInfo(info)
-	s.capabilityReady = false
 	s.mu.Unlock()
 	return nil
 }

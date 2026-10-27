@@ -91,8 +91,7 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 }
 
 // Pause pauses a sandbox and stores the updated metadata on this handle.
-// Call Supports with LifecycleCapabilityPause first. Some Daytona sandbox classes cannot pause.
-// Modal returns ErrorKindUnsupported.
+// Daytona exposes Pause and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
@@ -129,8 +128,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 }
 
 // Archive archives a sandbox and stores the updated metadata on this handle.
-// Call Supports with LifecycleCapabilityArchive first. Some Daytona sandbox classes cannot archive.
-// Modal returns ErrorKindUnsupported.
+// Daytona exposes Archive and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())

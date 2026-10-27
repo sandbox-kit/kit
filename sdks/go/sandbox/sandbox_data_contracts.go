@@ -183,7 +183,7 @@ type (
 	SandboxState = sandboxv1.SandboxState
 
 	// LifecycleCapability names one operation Sandbox.Supports can check.
-	// Check Pause and Archive before calling them. A terminal handle supports nothing further.
+	// The value means the provider implements that operation. A terminal handle supports nothing further.
 	LifecycleCapability = sandboxv1.LifecycleCapability
 
 	// ValueOrigin records whether a metadata field came from the request or the provider.
@@ -296,19 +296,19 @@ const (
 
 	// LifecycleCapabilityUnknown is not a supported operation.
 	LifecycleCapabilityUnknown = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_UNKNOWN
-	// LifecycleCapabilityRefresh is the capability checked before Refresh.
+	// LifecycleCapabilityRefresh means the provider implements Refresh.
 	LifecycleCapabilityRefresh = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_REFRESH
-	// LifecycleCapabilityStart is the capability checked before Start.
+	// LifecycleCapabilityStart means the provider implements Start.
 	LifecycleCapabilityStart = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_START
-	// LifecycleCapabilityStop is the capability checked before Stop.
+	// LifecycleCapabilityStop means the provider implements Stop.
 	LifecycleCapabilityStop = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_STOP
-	// LifecycleCapabilityPause is the capability checked before Pause.
+	// LifecycleCapabilityPause means the provider implements Pause.
 	LifecycleCapabilityPause = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_PAUSE
-	// LifecycleCapabilityTerminate is the capability checked before Terminate.
+	// LifecycleCapabilityTerminate means the provider implements Terminate.
 	LifecycleCapabilityTerminate = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_TERMINATE
-	// LifecycleCapabilityArchive is the capability checked before Archive.
+	// LifecycleCapabilityArchive means the provider implements Archive.
 	LifecycleCapabilityArchive = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_ARCHIVE
-	// LifecycleCapabilityDelete is the capability checked before Delete.
+	// LifecycleCapabilityDelete means the provider implements Delete.
 	LifecycleCapabilityDelete = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_DELETE
 
 	// ValueOriginUnknown means the metadata does not say who set the field.

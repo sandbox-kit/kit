@@ -1,18 +1,16 @@
 # Archive a Daytona sandbox
 
-`Get` a sandbox, check **Archive**, then archive retained container filesystem
-state.
+`Get` a sandbox, then archive it.
 
 ## What this means
 
-Archive moves a stopped container sandbox's filesystem to object storage
-(Daytona auto-archive defaults to 7 days stopped, max 30 days). VM/GPU classes
-do not support archive. See
+Archive asks Daytona to move the sandbox filesystem to object storage. Daytona
+accepts or rejects that sandbox. See
 [persistence](https://www.daytona.io/docs/en/persistence/).
 
 ## Edge cases
 
-- Wrong class → unsupported before the call.
+- A rejected sandbox returns Daytona's error.
 - Archive is not delete; recovery rules are Daytona-specific afterward.
 - Mutates the target sandbox.
 

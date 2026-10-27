@@ -52,10 +52,6 @@ class RecordingBackend implements Backend {
     return { id, provider: this.name, state: SandboxState.Running };
   }
 
-  capabilities(): readonly LifecycleCapability[] {
-    return [LifecycleCapability.Terminate];
-  }
-
   async terminate(_id: string, options: TerminateOptions): Promise<ExitResult> {
     this.terminated = true;
     return options.wait ? { exitCode: 0 } : {};
