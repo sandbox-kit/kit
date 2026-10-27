@@ -1,0 +1,53 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5ZDCFHV3PWZKR2RMJFSV0FD",
+  "strategy": "manual-commit",
+  "branch": "perf/sandbox-sdk-hot-paths",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/configuration.md",
+    "docs/responses-and-errors.md",
+    "docs/sandbox-lifecycle.md",
+    "examples/README.md",
+    "examples/go/README.md",
+    "examples/go/daytona/close-daytona-handle/README.md",
+    "examples/go/daytona/close-daytona-handle/main.go",
+    "examples/go/modal/close-modal-handle/README.md",
+    "examples/go/modal/close-modal-handle/main.go",
+    "examples/typescript/README.md",
+    "examples/typescript/daytona/close-daytona-handle/README.md",
+    "examples/typescript/daytona/close-daytona-handle/src/main.ts",
+    "examples/typescript/modal/close-modal-handle/README.md",
+    "examples/typescript/modal/close-modal-handle/src/main.ts",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/example_test.go",
+    "sdks/go/providers/daytona/provider.go",
+    "sdks/go/providers/modal/README.md",
+    "sdks/go/providers/modal/provider.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/go/sandbox/README.md",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/operation.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/sandbox/README.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 28977,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2461824,
+    "output_tokens": 12051,
+    "api_call_count": 1
+  }
+}
