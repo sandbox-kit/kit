@@ -5,8 +5,9 @@ finishes removal.
 
 ## What this means
 
-Delete irreversibly removes the sandbox resource. After success, Kit marks the
-handle terminal and rejects further lifecycle calls.
+Delete asks Daytona to remove the sandbox. The handle stores the metadata
+Daytona returns. A later lifecycle call goes to Daytona, and Kit returns that
+result.
 
 ## Edge cases
 

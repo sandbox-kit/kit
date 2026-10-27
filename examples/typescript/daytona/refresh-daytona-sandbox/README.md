@@ -9,7 +9,7 @@ or delete the sandbox. Useful after another process may have changed state.
 
 ## Edge cases
 
-- Capabilities can change after refresh if class or terminal state changed.
+- Refresh replaces the metadata on the handle. Capabilities stay the Daytona method list.
 - Not a substitute for lifecycle operations.
 - Requires a live sandbox ID.
 

@@ -183,7 +183,7 @@ type (
 	SandboxState = sandboxv1.SandboxState
 
 	// LifecycleCapability names one operation Sandbox.Supports can check.
-	// The value means the provider implements that operation. A terminal handle supports nothing further.
+	// The value means the provider implements that operation.
 	LifecycleCapability = sandboxv1.LifecycleCapability
 
 	// ValueOrigin records whether a metadata field came from the request or the provider.

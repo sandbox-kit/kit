@@ -1646,7 +1646,6 @@ export const SandboxStateSchema: GenEnum<SandboxState> = /*@__PURE__*/
 
 /**
  * LifecycleCapability identifies a lifecycle operation a provider implements.
- * A closed or terminal handle supports none of them.
  *
  * @generated from enum kit.sandbox.v1.LifecycleCapability
  */

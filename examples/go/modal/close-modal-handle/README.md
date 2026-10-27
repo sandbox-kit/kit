@@ -1,17 +1,18 @@
 # Close a Modal sandbox handle
 
-Attach by ID, then close the **local handle** without terminating the sandbox.
+Attach by ID, then call **`Sandbox.Close` / `sandbox.close()`**.
 
 ## What this means
 
-Handle close only drops local SDK state. The Modal sandbox keeps running until
-idle timeout, max lifetime, entrypoint exit, or an explicit terminate.
+Handle close calls Modal `detach` on the local sandbox object for that id. It
+does not terminate the cloud sandbox. The sandbox keeps running until idle
+timeout, max lifetime, entrypoint exit, or an explicit terminate.
 
 ## Edge cases
 
 - Safe against sandboxes you intend to keep.
 - Closing the client afterward also does not terminate.
-- Do not use the handle after close.
+- A later call on the handle goes to Modal.
 
 ## Run
 
@@ -38,7 +39,7 @@ MODAL_SANDBOX_ID=
 ## Warnings
 
 - Needs an **existing sandbox ID** in `.env`.
-- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+- Handle close does not terminate the cloud sandbox. Client close releases the SDK connection.
 
 ## Related
 

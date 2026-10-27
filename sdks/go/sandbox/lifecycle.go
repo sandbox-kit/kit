@@ -123,7 +123,6 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	if err != nil {
 		return outcome, sdk.WithErrorContext(err, s.ProviderName(), "terminate")
 	}
-	s.markTerminal(SandboxStateTerminated, "terminated")
 	return outcome, nil
 }
 
@@ -141,8 +140,8 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 	})
 }
 
-// Delete deletes the cloud sandbox and marks this handle deleted.
-// Close only releases the local handle.
+// Delete deletes the cloud sandbox and stores the metadata the provider returns.
+// Close calls the provider handle close and does not delete the cloud sandbox.
 // Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
@@ -160,12 +159,7 @@ func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	if err != nil {
 		return sdk.WithErrorContext(err, s.ProviderName(), "delete")
 	}
-	if err := s.replaceInfo("delete", info); err != nil {
-		return err
-	}
-	// Mark the handle terminal before cancel releases the operation gate.
-	s.markTerminal(SandboxStateDeleted, "deleted")
-	return nil
+	return s.replaceInfo("delete", info)
 }
 
 func (s *Sandbox) inheritedTimeout() *time.Duration {

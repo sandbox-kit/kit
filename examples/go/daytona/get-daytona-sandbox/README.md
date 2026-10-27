@@ -7,8 +7,7 @@ Load a provider-verified handle for `DAYTONA_SANDBOX_ID` with
 
 `Get` performs a remote lookup and returns current Daytona metadata (state,
 class, labels, …). Use it when you already have an ID and need a fresh handle.
-Capabilities list the lifecycle methods Daytona implements. A terminal handle
-lists none.
+Capabilities list the lifecycle methods Daytona implements.
 
 ## Edge cases
 

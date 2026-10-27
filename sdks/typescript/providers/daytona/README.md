@@ -66,8 +66,8 @@ Optional runtime language/user, network allowlists, secrets, labels, TTL,
 ephemeral behavior, and stop/pause/archive/delete policies.
 
 **Lifecycle** on the handle: `get`, `refresh`, `start`, `stop`, `pause`,
-`archive`, `delete`, and local `close`. Daytona accepts or rejects each call
-for that sandbox.
+`archive`, `delete`, and `close`. Daytona accepts or rejects each lifecycle
+call for that sandbox. `close` returns without a provider request.
 
 Daytona does not support unverified `attach`. Use `client.get(id)` for a
 provider-verified handle.

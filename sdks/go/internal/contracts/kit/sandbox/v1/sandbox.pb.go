@@ -495,7 +495,6 @@ func (SandboxState) EnumDescriptor() ([]byte, []int) {
 }
 
 // LifecycleCapability identifies a lifecycle operation a provider implements.
-// A closed or terminal handle supports none of them.
 type LifecycleCapability int32
 
 const (

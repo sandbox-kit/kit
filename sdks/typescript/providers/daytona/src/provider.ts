@@ -25,4 +25,5 @@ export abstract class BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<CreateResult>;
   abstract close(options: OperationOptions): Promise<void>;
+  abstract closeSandbox(id: string, options: OperationOptions): Promise<void>;
 }

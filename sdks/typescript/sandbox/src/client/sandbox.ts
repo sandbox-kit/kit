@@ -2,7 +2,6 @@
 // through optional Backend methods.
 
 import {
-  SandboxState,
   type ArchiveOptions,
   type DeleteOptions,
   type ExitResult,
@@ -13,12 +12,7 @@ import {
   type StopOptions,
   type TerminateOptions,
 } from "#contracts/sandbox_data_contracts.js";
-import {
-  ErrorKind,
-  sandboxError,
-  unsupported,
-  withContext,
-} from "#client/errors.js";
+import { unsupported, withContext } from "#client/errors.js";
 import {
   awaitWithSignal,
   clone,
@@ -34,12 +28,6 @@ import type {
   TerminateCallOptions,
 } from "#client/types.js";
 
-/** Coordinates sandbox operations with client closure. */
-export interface ClientLifecycle {
-  begin(operation: string): () => void;
-  isClosed(): boolean;
-}
-
 export const sandboxConstructorToken: unique symbol = Symbol(
   "sandbox-kit.Sandbox",
 );
@@ -47,23 +35,19 @@ export const sandboxConstructorToken: unique symbol = Symbol(
 /** Internal construction inputs for {@link Sandbox}; only Client may call. */
 export interface SandboxInit {
   backend: Backend;
-  owner: ClientLifecycle;
   info: SandboxInfo;
   timeout?: number;
 }
 
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
-  readonly #owner: ClientLifecycle;
   readonly #timeout: number | undefined;
   #info: SandboxInfo;
-  #closed = false;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
     if (token !== sandboxConstructorToken)
       throw new TypeError("Sandbox handles are created by Client");
     this.#backend = init.backend;
-    this.#owner = init.owner;
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
   }
@@ -77,8 +61,6 @@ export class Sandbox implements AsyncDisposable {
     return clone(this.#info);
   }
   capabilities(): readonly LifecycleCapability[] {
-    if (this.#closed || this.#owner.isClosed() || this.#info.terminal)
-      return [];
     return providerCapabilities(this.#backend);
   }
   supports(capability: LifecycleCapability): boolean {
@@ -156,11 +138,6 @@ export class Sandbox implements AsyncDisposable {
             ),
           signal,
         );
-        this.#assignInfo({
-          ...this.#info,
-          state: SandboxState.Terminated,
-          terminal: true,
-        });
         return result;
       },
     );
@@ -186,20 +163,15 @@ export class Sandbox implements AsyncDisposable {
     );
   }
   async close(options: OperationOptions = {}): Promise<void> {
-    if (this.#closed) return;
     await this.#serialized("close", options, this.#timeout, async (signal) => {
-      const close = this.#backend.closeSandbox;
-      if (close)
-        await awaitWithSignal(
-          () =>
-            close.call(
-              this.#backend,
-              this.id,
-              operationOptions(options, signal),
-            ),
-          signal,
-        );
-      this.#closed = true;
+      await awaitWithSignal(
+        () =>
+          this.#backend.closeSandbox(
+            this.id,
+            operationOptions(options, signal),
+          ),
+        signal,
+      );
     });
   }
   async [Symbol.asyncDispose](): Promise<void> {
@@ -250,11 +222,8 @@ export class Sandbox implements AsyncDisposable {
   #storeInfo(info: SandboxInfo): SandboxInfo {
     const stored = clone(info);
     stored.provider = this.providerName;
-    this.#assignInfo(stored);
+    this.#info = stored;
     return clone(stored);
-  }
-  #assignInfo(info: SandboxInfo): void {
-    this.#info = info;
   }
   async #serialized<T>(
     operation: string,
@@ -262,8 +231,6 @@ export class Sandbox implements AsyncDisposable {
     timeout: number | undefined,
     body: (signal: AbortSignal | undefined) => Promise<T>,
   ): Promise<T> {
-    this.#ensureOpen(operation);
-    const releaseClient = this.#owner.begin(operation);
     const previous = this.#tail;
     let unlock!: () => void;
     this.#tail = new Promise<void>((resolve) => {
@@ -275,7 +242,6 @@ export class Sandbox implements AsyncDisposable {
       scoped = operationSignal(options, timeout);
       await awaitWithSignal(() => previous, scoped.signal);
       acquired = true;
-      this.#ensureOpen(operation);
       return await body(scoped.signal);
     } catch (error) {
       throw withContext(error, this.providerName, operation);
@@ -283,26 +249,7 @@ export class Sandbox implements AsyncDisposable {
       scoped?.dispose();
       if (acquired) unlock();
       else void previous.then(unlock, unlock);
-      releaseClient();
     }
-  }
-  #ensureOpen(operation: string): void {
-    if (this.#closed || this.#owner.isClosed())
-      throw sandboxError({
-        kind: ErrorKind.FailedPrecondition,
-        provider: this.providerName,
-        operation,
-        field: "sandbox",
-        message: "sandbox-kit: sandbox handle is closed",
-      });
-    if (operation !== "close" && this.#info.terminal)
-      throw sandboxError({
-        kind: ErrorKind.FailedPrecondition,
-        provider: this.providerName,
-        operation,
-        field: "sandbox",
-        message: "sandbox-kit: sandbox lifecycle is terminal",
-      });
   }
 }
 

@@ -108,7 +108,6 @@ class DaytonaBackend extends BackendBase implements Backend {
       value.delete(secondsFromMs(request.timeout), request.wait),
     );
   }
-  async closeSandbox(_id: string): Promise<void> {}
 
   private async withSandbox(
     id: string,
@@ -123,6 +122,8 @@ class DaytonaBackend extends BackendBase implements Backend {
       throw mapDaytonaError(error, operation);
     }
   }
+
+  async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(_options: OperationOptions): Promise<void> {
     try {

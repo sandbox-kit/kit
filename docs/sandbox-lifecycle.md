@@ -18,12 +18,12 @@ return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Mi
 
 An operation-specific timeout overrides `Config.Timeout` / `timeout`. Omitted
 inherits the client default, and explicit zero adds no Kit deadline. Closing the
-client does not change the cloud sandbox. Do not use handles that depend on its
-SDK after client closure.
-`Sandbox.Close` / `sandbox.close()` closes only the local handle; it never
-changes the remote sandbox. Client and handle closure are idempotent. Handle
-closure waits for operations already running through that handle, and client
-closure waits for operations owned by its handles.
+client calls the provider SDK close and returns that result. It does not stop
+or delete the cloud sandbox. A later call goes to that SDK.
+`Sandbox.Close` / `sandbox.close()` calls the provider handle close. It does
+not change the remote sandbox and does not block a later call. Daytona has no
+sandbox close, so that call returns without a provider request. Modal detaches
+the local sandbox object for that id.
 
 TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
 scoped client when its lifetime matches the current block. Lifecycle call
@@ -36,9 +36,8 @@ const sandbox = await client.create(request);
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Use `await using sandbox = ...` only when the handle itself should become
-unusable at the end of the block. Disposing either object releases local SDK
-resources only; it does not stop, terminate, or delete the cloud sandbox.
+Disposing a client closes the provider SDK. Disposing a handle calls that
+provider's handle close. Neither stops, terminates, or deletes the cloud sandbox.
 
 ## Operation semantics
 
@@ -58,14 +57,12 @@ a call for a particular sandbox, and Kit returns that error. Account
 permissions and dynamically enabled features remain provider-enforced.
 
 `Capabilities` lists the operations the selected provider implements.
-`Supports` checks one of them. A closed handle or a terminal sandbox returns
-an empty list. A refresh that reports a destroyed sandbox marks the handle
-terminal and clears the list.
+`Supports` checks one of them. Close does not clear the list.
 
 `SandboxInfo.State` is Kit's portable lifecycle state. `ProviderState` retains
-the provider's exact value. After successful `Terminate` or `Delete`, Kit marks
-the handle terminal, exposes no further lifecycle capabilities, and rejects
-subsequent lifecycle calls with `ErrorKindFailedPrecondition`.
+the provider's exact value. `Terminal` is present when the provider reports
+that the sandbox is finished. A later lifecycle call still goes to the provider,
+and Kit returns that result.
 
 Each SDK serializes lifecycle transitions on one handle. This does not
 serialize a different handle or process referring to the same remote sandbox. A
@@ -74,16 +71,16 @@ abort signal, or reach its deadline.
 
 ## Provider support
 
-| Operation   | Modal                                  | Daytona   |
-| ----------- | -------------------------------------- | --------- |
+| Operation   | Modal                                  | Daytona     |
+| ----------- | -------------------------------------- | ----------- |
 | Attach      | Supported; ID only, no provider lookup | Unsupported |
-| Refresh/Get | Unsupported                            | Supported |
-| Start       | Unsupported                            | Supported |
-| Stop        | Unsupported                            | Supported |
-| Pause       | Unsupported                            | Supported |
+| Refresh/Get | Unsupported                            | Supported   |
+| Start       | Unsupported                            | Supported   |
+| Stop        | Unsupported                            | Supported   |
+| Pause       | Unsupported                            | Supported   |
 | Terminate   | Supported                              | Unsupported |
-| Archive     | Unsupported                            | Supported |
-| Delete      | Unsupported                            | Supported |
+| Archive     | Unsupported                            | Supported   |
+| Delete      | Unsupported                            | Supported   |
 
 Daytona reports its resolved sandbox class after creation. Kit maps container
 and Linux VM to shared isolation kinds and preserves Windows as a provider-specific

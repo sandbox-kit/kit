@@ -102,7 +102,7 @@ export interface Backend {
     options: OperationOptions,
   ): Promise<SandboxInfo>;
   close(options: OperationOptions): Promise<void>;
-  closeSandbox?(id: string, options: OperationOptions): Promise<void>;
+  closeSandbox(id: string, options: OperationOptions): Promise<void>;
 }
 
 export interface Provider {

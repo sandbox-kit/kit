@@ -89,11 +89,11 @@ const fetched = await client.get(id); // provider-verified lookup
 | `archive`        | Archive                                       |
 | `delete`         | Delete (`wait` when supported)                |
 | `terminate`      | Terminate (`wait` when supported)             |
-| `close`          | Drop the local handle (not the cloud sandbox) |
+| `close`          | Provider handle close (not the cloud sandbox) |
 
-`supports` reports whether the provider implements that operation. A closed or
-terminal handle supports nothing. An unimplemented method throws before the
-provider call.
+`supports` reports whether the provider implements that operation. An
+unimplemented method throws before the provider call. A provider rejection,
+including one from a closed SDK, comes back as that provider's error.
 
 ## Errors
 

@@ -5,10 +5,14 @@ await using client = new Client({
   provider: daytona(),
   auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
   timeout: 120_000,
-  ...(process.env.DAYTONA_API_URL ? { endpoint: process.env.DAYTONA_API_URL } : {}),
+  ...(process.env.DAYTONA_API_URL
+    ? { endpoint: process.env.DAYTONA_API_URL }
+    : {}),
   ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
 });
 
 const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 await sandbox.close();
-console.log(`Closed local handle for Daytona sandbox ${sandbox.id}; the cloud sandbox was not changed.`);
+console.log(
+  `Closed Daytona sandbox handle ${sandbox.id} without a provider request; the cloud sandbox was not changed.`,
+);

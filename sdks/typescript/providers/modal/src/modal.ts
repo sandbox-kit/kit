@@ -131,7 +131,7 @@ class ModalBackend extends BackendBase implements Backend {
     }
   }
 
-  async closeSandbox(id: string): Promise<void> {
+  async closeSandbox(id: string, _options: OperationOptions): Promise<void> {
     try {
       (await this.native.sandboxes.fromId(id)).detach();
     } catch (error) {

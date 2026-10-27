@@ -13,6 +13,7 @@ type lifecycleBackend struct {
 	start     func(context.Context, string, *sandbox.StartOptions) (*sandbox.SandboxInfo, error)
 	get       func(context.Context, string) (*sandbox.SandboxInfo, error)
 	terminate func(context.Context, string, *sandbox.TerminateOptions) (*sandbox.ExitResult, error)
+	closes    int
 }
 
 func (b *lifecycleBackend) TerminateSandbox(ctx context.Context, id string, options *sandbox.TerminateOptions) (*sandbox.ExitResult, error) {
@@ -24,6 +25,10 @@ func (b *lifecycleBackend) TerminateSandbox(ctx context.Context, id string, opti
 
 func (*lifecycleBackend) Name() string                { return "lifecycle" }
 func (*lifecycleBackend) Close(context.Context) error { return nil }
+func (b *lifecycleBackend) CloseSandbox(context.Context, string) error {
+	b.closes++
+	return nil
+}
 func (*lifecycleBackend) Create(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
 	return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "created"}}, nil
 }
@@ -77,9 +82,11 @@ func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 	}
 }
 
-func TestTerminateMakesHandleTerminal(t *testing.T) {
+func TestTerminateLeavesTheNextCallToTheProvider(t *testing.T) {
+	var starts int
 	backend := &lifecycleBackend{
 		start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+			starts++
 			return &sandbox.SandboxInfo{Id: id}, nil
 		},
 		terminate: func(context.Context, string, *sandbox.TerminateOptions) (*sandbox.ExitResult, error) {
@@ -97,13 +104,11 @@ func TestTerminateMakesHandleTerminal(t *testing.T) {
 	if _, err := instance.Terminate(context.Background(), &sandbox.TerminateOptions{Wait: sandbox.Value(true)}); err != nil {
 		t.Fatal(err)
 	}
-	if !instance.Info().GetTerminal() || instance.Info().GetState() != sandbox.SandboxStateTerminated || len(instance.Capabilities()) != 0 {
-		t.Fatal("terminal state was not retained")
+	if instance.Info().GetTerminal() || !instance.Supports(sandbox.LifecycleCapabilityStart) {
+		t.Fatal("terminate changed the handle into a local terminal state")
 	}
-	err = instance.Start(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
-		t.Fatalf("terminal operation was dispatched: %v", err)
+	if err := instance.Start(context.Background(), nil); err != nil || starts != 1 {
+		t.Fatalf("start did not reach the provider: %v calls=%d", err, starts)
 	}
 }
 
@@ -184,11 +189,17 @@ func TestLifecycleInheritsClientTimeout(t *testing.T) {
 	}
 }
 
-func TestDeleteMarksHandleTerminalBeforeAnotherOperation(t *testing.T) {
-	backend := &deleteBackend{lifecycleBackend: lifecycleBackend{start: func(context.Context, string, *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-		t.Fatal("start reached the provider after delete")
-		return nil, nil
-	}}}
+func TestDeleteKeepsProviderMetadataAndCallsAgain(t *testing.T) {
+	var starts int
+	backend := &deleteBackend{
+		del: func(_ context.Context, id string, _ *sandbox.DeleteOptions) (*sandbox.SandboxInfo, error) {
+			return &sandbox.SandboxInfo{Id: id, State: sandbox.SandboxStateDeleted, Terminal: sandbox.Value(true)}, nil
+		},
+		lifecycleBackend: lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+			starts++
+			return &sandbox.SandboxInfo{Id: id}, nil
+		}},
+	}
 	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
 	if err != nil {
 		t.Fatal(err)
@@ -200,26 +211,18 @@ func TestDeleteMarksHandleTerminalBeforeAnotherOperation(t *testing.T) {
 	if err := instance.Delete(context.Background(), nil); err != nil {
 		t.Fatal(err)
 	}
-	if !instance.Info().GetTerminal() || instance.Info().GetState() != sandbox.SandboxStateDeleted {
-		t.Fatal("delete did not retain a terminal handle")
+	if !instance.Info().GetTerminal() || instance.Info().GetState() != sandbox.SandboxStateDeleted || !instance.Supports(sandbox.LifecycleCapabilityStart) {
+		t.Fatal("delete did not keep the provider metadata")
 	}
-	err = instance.Start(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
-		t.Fatalf("operation ran after delete: %v", err)
+	if err := instance.Start(context.Background(), nil); err != nil || starts != 1 {
+		t.Fatalf("start did not reach the provider: %v calls=%d", err, starts)
 	}
 }
 
-func TestCloseWaitsForTheCurrentOperation(t *testing.T) {
-	entered := make(chan struct{})
-	release := make(chan struct{})
-	var calls int
+func TestCloseLeavesTheNextCallToTheProvider(t *testing.T) {
+	var starts int
 	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-		calls++
-		if calls == 1 {
-			close(entered)
-			<-release
-		}
+		starts++
 		return &sandbox.SandboxInfo{Id: id}, nil
 	}}
 	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
@@ -230,62 +233,23 @@ func TestCloseWaitsForTheCurrentOperation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	done := make(chan error, 1)
-	go func() { done <- instance.Start(context.Background(), nil) }()
-	<-entered
-	closed := make(chan error, 1)
-	go func() { closed <- instance.Close(context.Background()) }()
-	select {
-	case err := <-closed:
-		t.Fatalf("close returned while start still held the handle: %v", err)
-	case <-time.After(50 * time.Millisecond):
+	if err := instance.Close(context.Background()); err != nil || backend.closes != 1 {
+		t.Fatalf("handle close did not reach the provider: %v calls=%d", err, backend.closes)
 	}
-	close(release)
-	if err := <-done; err != nil {
+	if !instance.Supports(sandbox.LifecycleCapabilityStart) {
+		t.Fatal("handle close cleared provider capabilities")
+	}
+	if err := instance.Start(context.Background(), nil); err != nil || starts != 1 {
+		t.Fatalf("start did not reach the provider after handle close: %v calls=%d", err, starts)
+	}
+	if err := client.Close(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if err := <-closed; err != nil {
-		t.Fatal(err)
+	if !instance.Supports(sandbox.LifecycleCapabilityStart) {
+		t.Fatal("client close cleared provider capabilities")
 	}
-	err = instance.Start(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition || calls != 1 {
-		t.Fatalf("operation ran after close: %v calls=%d", err, calls)
-	}
-}
-
-func TestClosedHandleAndClientRejectLifecycleOperations(t *testing.T) {
-	backend := &lifecycleBackend{start: func(_ context.Context, id string, _ *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-		return &sandbox.SandboxInfo{Id: id}, nil
-	}}
-	client, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
-	instance, _ := client.Create(context.Background(), nil)
-	if err := instance.Close(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if err := instance.Close(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if len(instance.Capabilities()) != 0 {
-		t.Fatal("closed handle still advertises capabilities")
-	}
-	err := instance.Start(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
-		t.Fatalf("closed handle accepted operation: %v", err)
-	}
-
-	client2, _ := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
-	instance2, _ := client2.Create(context.Background(), nil)
-	if err := client2.Close(context.Background()); err != nil {
-		t.Fatal(err)
-	}
-	if len(instance2.Capabilities()) != 0 {
-		t.Fatal("handle whose client is closed still advertises capabilities")
-	}
-	err = instance2.Start(context.Background(), nil)
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
-		t.Fatalf("handle outlived its client: %v", err)
+	if err := instance.Start(context.Background(), nil); err != nil || starts != 2 {
+		t.Fatalf("start did not reach the provider after client close: %v calls=%d", err, starts)
 	}
 }
 
