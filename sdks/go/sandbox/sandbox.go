@@ -24,6 +24,9 @@ type Sandbox struct {
 	closed        bool
 	// info is an owned metadata copy. Info returns another copy so callers cannot mutate this one.
 	info *SandboxInfo
+	// capabilityCache is reused until info is replaced or the lifecycle becomes terminal.
+	capabilityCache []LifecycleCapability
+	capabilityReady bool
 }
 
 // sandboxFromResponse checks that creation returned an identifier
@@ -116,24 +119,72 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s == nil || s.operations == nil {
 		return nil
 	}
-	s.mu.RLock()
-	closed := s.closed
-	s.mu.RUnlock()
-	if closed {
-		return nil
-	}
 	if s.owner != nil && s.owner.isClosed() {
 		return nil
 	}
-	info := s.Info()
-	if info == nil || info.GetTerminal() {
+	s.mu.RLock()
+	closed := s.closed
+	live := s.info
+	terminal := live != nil && live.GetTerminal()
+	ready := s.capabilityReady && !closed && live != nil && !terminal
+	var cached []LifecycleCapability
+	if ready {
+		cached = append([]LifecycleCapability(nil), s.capabilityCache...)
+	}
+	s.mu.RUnlock()
+	if closed || live == nil || terminal {
 		return nil
 	}
-	if resolver, ok := s.operations.(sandboxCapabilityResolver); ok {
-		values := resolver.SandboxCapabilities(info)
-		return append([]LifecycleCapability(nil), values...)
+	if ready {
+		return cached
 	}
-	return staticLifecycleCapabilities(s.operations)
+	var values []LifecycleCapability
+	if resolver, ok := s.operations.(sandboxCapabilityResolver); ok {
+		info := s.Info()
+		if info == nil || info.GetTerminal() {
+			return nil
+		}
+		values = append([]LifecycleCapability(nil), resolver.SandboxCapabilities(info)...)
+	} else {
+		values = staticLifecycleCapabilities(s.operations)
+	}
+	s.mu.Lock()
+	if s.info == live && !s.closed && !live.GetTerminal() {
+		s.capabilityCache = append([]LifecycleCapability(nil), values...)
+		s.capabilityReady = true
+	}
+	s.mu.Unlock()
+	return append([]LifecycleCapability(nil), values...)
+}
+
+// operationView is a locked snapshot of the handle fields a lifecycle call reads.
+// id is empty when metadata is missing. The snapshot does not clone that metadata.
+type operationView struct {
+	id       string
+	closed   bool
+	terminal bool
+	hasInfo  bool
+}
+
+func (s *Sandbox) operationView() operationView {
+	if s == nil {
+		return operationView{}
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	view := operationView{closed: s.closed, hasInfo: s.info != nil}
+	if view.hasInfo {
+		view.id = s.info.Id
+		view.terminal = s.info.GetTerminal()
+	}
+	return view
+}
+
+// lifecycleFlags reads handle state without cloning sandbox metadata.
+// The bools are closed, terminal, and whether metadata is present.
+func (s *Sandbox) lifecycleFlags() (closed bool, terminal bool, hasInfo bool) {
+	view := s.operationView()
+	return view.closed, view.terminal, view.hasInfo
 }
 
 // Supports reports whether this handle can perform capability.

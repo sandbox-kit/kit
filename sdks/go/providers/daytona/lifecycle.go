@@ -23,12 +23,7 @@ func (*backend) SandboxCapabilities(info *sandbox.SandboxInfo) []sandbox.Lifecyc
 	if info == nil || info.GetTerminal() {
 		return nil
 	}
-	gpu := false
-	if metadata, err := sandbox.MetadataObjectAsMap(info.GetProviderMetadata()); err == nil {
-		if count, ok := metadata["gpu_count"].(int64); ok {
-			gpu = count > 0
-		}
-	}
+	gpu := info.GetProviderMetadata().GetValues()["gpu_count"].GetSignedInteger() > 0
 	isolation := info.GetIsolation()
 	if !gpu && isolation != nil && (isolation.Kind == sandbox.IsolationKindLinuxVM || isolation.GetProviderKind() == "windows") {
 		capabilities = append(capabilities, sandbox.LifecycleCapabilityPause)

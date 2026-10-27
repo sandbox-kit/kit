@@ -9,7 +9,6 @@ import {
   type OperationOptions,
   type Provider,
   type SandboxInfo,
-  metadataObjectAsMap,
 } from "@sandbox-kit/sandbox";
 import type {
   Backend,
@@ -91,11 +90,7 @@ class DaytonaBackend extends BackendBase implements Backend {
       LifecycleCapability.Stop,
       LifecycleCapability.Delete,
     ];
-    const metadata = metadataObjectAsMap(info.providerMetadata);
-    const gpuCount = metadata?.gpu_count;
-    const hasGpu =
-      (typeof gpuCount === "number" && gpuCount > 0) ||
-      (typeof gpuCount === "bigint" && gpuCount > 0n);
+    const hasGpu = gpuCountAttached(info);
     if (
       !hasGpu &&
       (info.isolation?.kind === IsolationKind.LinuxVm ||
@@ -158,6 +153,15 @@ class DaytonaBackend extends BackendBase implements Backend {
       throw mapDaytonaError(error, "close");
     }
   }
+}
+
+/** gpu_count is stored as a metadata number or integer, not a full metadata map. */
+function gpuCountAttached(info: SandboxInfo): boolean {
+  const entry = info.providerMetadata?.values?.gpu_count?.value;
+  if (entry?.case === "number") return (entry.value ?? 0) > 0;
+  if (entry?.case === "signedInteger" || entry?.case === "unsignedInteger")
+    return (entry.value ?? 0n) > 0n;
+  return false;
 }
 
 /** Native Daytona lifecycle APIs take whole seconds; Kit timeouts are ms. */

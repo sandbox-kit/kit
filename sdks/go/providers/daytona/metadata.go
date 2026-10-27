@@ -22,9 +22,7 @@ func sandboxInfo(native *daytona.Sandbox) (*sandbox.SandboxInfo, error) {
 	}
 	observed.state()
 	observed.isolation()
-	if err := observed.metadata(); err != nil {
-		return info, err
-	}
+	observed.metadata()
 	return info, nil
 }
 
@@ -58,67 +56,71 @@ func (s *observedSandbox) isolation() {
 	s.info.Origins["isolation"] = sandbox.ValueOriginProvider
 }
 
-func (s *observedSandbox) metadata() error {
-	metadata := map[string]any{}
+func (s *observedSandbox) metadata() {
+	values := make(map[string]*sandbox.MetadataValue, 18)
 	if s.native.Gpu > 0 {
-		metadata["gpu_count"] = int64(s.native.Gpu)
+		values["gpu_count"] = metadataInt(int64(s.native.Gpu))
 	}
 	if s.native.GpuType != nil {
-		metadata["gpu_type"] = string(*s.native.GpuType)
+		values["gpu_type"] = metadataText(string(*s.native.GpuType))
 	}
 	if s.native.DesiredState != nil {
-		metadata["desired_state"] = string(*s.native.DesiredState)
+		values["desired_state"] = metadataText(string(*s.native.DesiredState))
 	}
 	if s.native.ErrorReason != nil {
-		metadata["error_reason"] = *s.native.ErrorReason
+		values["error_reason"] = metadataText(*s.native.ErrorReason)
 	}
 	if s.native.Recoverable != nil {
-		metadata["recoverable"] = *s.native.Recoverable
+		values["recoverable"] = metadataBool(*s.native.Recoverable)
 	}
 	if s.native.Spot {
-		metadata["spot"] = true
+		values["spot"] = metadataBool(true)
 	}
 	if s.native.SpotEvictedAt != nil {
-		metadata["spot_evicted_at"] = *s.native.SpotEvictedAt
+		values["spot_evicted_at"] = metadataText(*s.native.SpotEvictedAt)
 	}
 	if s.native.BackupState != nil {
-		metadata["backup_state"] = *s.native.BackupState
+		values["backup_state"] = metadataText(*s.native.BackupState)
 	}
 	if s.native.BackupCreatedAt != nil {
-		metadata["backup_created_at"] = *s.native.BackupCreatedAt
+		values["backup_created_at"] = metadataText(*s.native.BackupCreatedAt)
 	}
 	if s.native.UpdatedAt != nil {
-		metadata["updated_at"] = *s.native.UpdatedAt
+		values["updated_at"] = metadataText(*s.native.UpdatedAt)
 	}
 	if s.native.LastActivityAt != nil {
-		metadata["last_activity_at"] = *s.native.LastActivityAt
+		values["last_activity_at"] = metadataText(*s.native.LastActivityAt)
 	}
 	if s.native.AutoDestroyAt != nil {
-		metadata["auto_destroy_at"] = *s.native.AutoDestroyAt
+		values["auto_destroy_at"] = metadataText(*s.native.AutoDestroyAt)
 	}
 	if s.native.QueueTimedOutAt != nil {
-		metadata["queue_timed_out_at"] = *s.native.QueueTimedOutAt
+		values["queue_timed_out_at"] = metadataText(*s.native.QueueTimedOutAt)
 	}
 	if s.native.Snapshot != nil {
-		metadata["snapshot"] = *s.native.Snapshot
+		values["snapshot"] = metadataText(*s.native.Snapshot)
 	}
 	if s.native.WarmPoolId != nil {
-		metadata["warm_pool_id"] = *s.native.WarmPoolId
+		values["warm_pool_id"] = metadataText(*s.native.WarmPoolId)
 	}
-	metadata["auto_stop_interval_minutes"] = int64(s.native.AutoStopInterval)
-	metadata["auto_pause_interval_minutes"] = int64(s.native.AutoPauseInterval)
-	metadata["auto_archive_interval_minutes"] = int64(s.native.AutoArchiveInterval)
-	metadata["auto_delete_interval_minutes"] = int64(s.native.AutoDeleteInterval)
-	if len(metadata) == 0 {
-		return nil
-	}
-	object, err := sandbox.MetadataObjectFromMap(metadata)
-	if err != nil {
-		return err
-	}
-	s.info.ProviderMetadata = object
+	values["auto_stop_interval_minutes"] = metadataInt(int64(s.native.AutoStopInterval))
+	values["auto_pause_interval_minutes"] = metadataInt(int64(s.native.AutoPauseInterval))
+	values["auto_archive_interval_minutes"] = metadataInt(int64(s.native.AutoArchiveInterval))
+	values["auto_delete_interval_minutes"] = metadataInt(int64(s.native.AutoDeleteInterval))
+	s.info.ProviderMetadata = &sandbox.MetadataObject{Values: values}
 	s.info.Origins[sandbox.InfoFieldProviderMetadata] = sandbox.ValueOriginProvider
-	return nil
+}
+
+func metadataInt(value int64) *sandbox.MetadataValue {
+	return &sandbox.MetadataValue{Value: &sandbox.MetadataSignedInteger{SignedInteger: value}}
+}
+
+func metadataText(value string) *sandbox.MetadataValue {
+	return &sandbox.MetadataValue{Value: &sandbox.MetadataText{Text: value}}
+}
+
+func metadataBool(value bool) *sandbox.MetadataValue {
+	return &sandbox.MetadataValue{Value: &sandbox.MetadataBoolean{Boolean: value}}
 }
 
 func (s *observedSandbox) state() {

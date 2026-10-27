@@ -10,6 +10,7 @@ import {
   WaitCondition,
   type Config,
   type CreateOptions,
+  type MetadataValue,
   type SandboxInfo,
   CreateFieldIsolation,
   CreateFieldNetwork,
@@ -37,7 +38,6 @@ import {
   CreateFieldLifetimeIdleTerminate,
   CreateFieldObservabilityTelemetryEndpoint,
 } from "@sandbox-kit/sandbox";
-import { metadataObjectFromMap } from "@sandbox-kit/sandbox";
 import {
   type CreateSandboxBaseParams,
   type CreateSandboxFromImageParams,
@@ -402,15 +402,17 @@ export function mapSandboxInfo(
     resultMutable(result).terminal = true;
     origins.terminal = ValueOrigin.Provider;
   }
-  const metadata: Record<string, string | number | boolean> = {};
-  if (value.gpu > 0) metadata.gpu_count = value.gpu;
-  if (value.gpuType !== undefined) metadata.gpu_type = String(value.gpuType);
+  const metadata: { [key: string]: MetadataValue } = {};
+  if (value.gpu > 0) metadata.gpu_count = scalarMetadata(value.gpu);
+  if (value.gpuType !== undefined)
+    metadata.gpu_type = scalarMetadata(String(value.gpuType));
   if (value.desiredState !== undefined)
-    metadata.desired_state = String(value.desiredState);
+    metadata.desired_state = scalarMetadata(String(value.desiredState));
   if (value.errorReason !== undefined)
-    metadata.error_reason = value.errorReason;
-  if (value.recoverable !== undefined) metadata.recoverable = value.recoverable;
-  if (value.spot === true) metadata.spot = true;
+    metadata.error_reason = scalarMetadata(value.errorReason);
+  if (value.recoverable !== undefined)
+    metadata.recoverable = scalarMetadata(value.recoverable);
+  if (value.spot === true) metadata.spot = scalarMetadata(true);
   for (const [key, entry] of [
     ["spot_evicted_at", value.spotEvictedAt],
     ["backup_state", value.backupState],
@@ -422,20 +424,17 @@ export function mapSandboxInfo(
     ["snapshot", value.snapshot],
     ["warm_pool_id", value.warmPoolId],
   ] as const)
-    if (entry !== undefined) metadata[key] = String(entry);
+    if (entry !== undefined) metadata[key] = scalarMetadata(String(entry));
   for (const [key, entry] of [
     ["auto_stop_interval_minutes", value.autoStopInterval],
     ["auto_pause_interval_minutes", value.autoPauseInterval],
     ["auto_archive_interval_minutes", value.autoArchiveInterval],
     ["auto_delete_interval_minutes", value.autoDeleteInterval],
   ] as const)
-    if (entry !== undefined) metadata[key] = entry;
+    if (entry !== undefined) metadata[key] = scalarMetadata(entry);
   if (Object.keys(metadata).length > 0) {
-    const providerMetadata = metadataObjectFromMap(metadata);
-    if (providerMetadata !== undefined) {
-      resultMutable(result).providerMetadata = providerMetadata;
-      origins.provider_metadata = ValueOrigin.Provider;
-    }
+    resultMutable(result).providerMetadata = { values: metadata };
+    origins.provider_metadata = ValueOrigin.Provider;
   }
   if (value.createdAt !== undefined) {
     const date = new Date(value.createdAt);
@@ -488,6 +487,21 @@ function mapState(value: string | undefined): SandboxState {
     default:
       return SandboxState.Unknown;
   }
+}
+
+/** Scalar metadata for fields this provider just read. Matches the public map conversion. */
+function scalarMetadata(value: string | number | boolean): MetadataValue {
+  if (typeof value === "boolean") return { value: { case: "boolean", value } };
+  if (typeof value === "string") return { value: { case: "text", value } };
+  if (!Number.isFinite(value)) {
+    throw new Error("sandbox-kit: metadata numbers must be finite");
+  }
+  if (Number.isInteger(value)) {
+    const asBigInt = BigInt(value);
+    if (value < 0) return { value: { case: "signedInteger", value: asBigInt } };
+    return { value: { case: "unsignedInteger", value: asBigInt } };
+  }
+  return { value: { case: "number", value } };
 }
 
 function nonblank(value: string, field: string): string {

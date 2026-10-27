@@ -5,40 +5,42 @@ import (
 	"time"
 )
 
-func (s *Sandbox) operationContext(ctx context.Context, operation string, timeout *time.Duration) (context.Context, context.CancelFunc, error) {
+func (s *Sandbox) operationContext(ctx context.Context, operation string, timeout *time.Duration) (context.Context, context.CancelFunc, string, error) {
 	if ctx == nil {
-		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: operation, Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
 	if err := ctx.Err(); err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
-	if s == nil || s.operations == nil || s.ID() == "" {
-		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
+	if s == nil || s.operations == nil {
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
 	}
-	s.mu.RLock()
-	closed := s.closed
-	s.mu.RUnlock()
-	if closed {
-		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
+	view := s.operationView()
+	if view.id == "" {
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
+	}
+	if view.closed {
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
 	}
 	clientRelease := func() {}
 	if s.owner != nil {
 		var err error
 		clientRelease, err = s.owner.beginOperation(operation)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, "", err
 		}
 	}
-	if info := s.Info(); info != nil && info.GetTerminal() {
+	view = s.operationView()
+	if view.terminal {
 		clientRelease()
-		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 	}
 	if timeout == nil {
 		timeout = s.timeout
 	}
 	if timeout != nil && *timeout < 0 {
 		clientRelease()
-		return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
 	}
 	operationCtx := ctx
 	baseCancel := func() {}
@@ -51,26 +53,26 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 		// Close acquires this gate before marking the handle closed. Recheck
 		// after the gate is held so a call that passed the earlier check cannot
 		// start once Close has finished.
-		s.mu.RLock()
-		closed = s.closed
-		s.mu.RUnlock()
-		if closed {
+		view = s.operationView()
+		if view.closed {
 			<-s.operationGate
 			baseCancel()
 			clientRelease()
-			return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
+			return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox handle is closed"}, nil)
 		}
-		if info := s.Info(); info != nil && info.GetTerminal() {
+		if view.terminal {
 			<-s.operationGate
 			baseCancel()
 			clientRelease()
-			return nil, nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
+			return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: s.ProviderName(), Operation: operation, Message: "sandbox-kit: sandbox lifecycle is terminal"}, nil)
 		}
-		return operationCtx, func() { <-s.operationGate; baseCancel(); clientRelease() }, nil
+		// Read the id after the gate is held. replaceInfo cannot run until this
+		// operation releases the gate, so the provider call uses this snapshot.
+		return operationCtx, func() { <-s.operationGate; baseCancel(); clientRelease() }, view.id, nil
 	case <-operationCtx.Done():
 		baseCancel()
 		clientRelease()
-		return nil, nil, operationCtx.Err()
+		return nil, nil, "", operationCtx.Err()
 	}
 }
 
@@ -109,6 +111,7 @@ func (s *Sandbox) markTerminal(state SandboxState, providerState string) {
 	s.info.State = state
 	s.info.Terminal = Value(true)
 	s.info.ProviderState = Value(providerState)
+	s.capabilityReady = false
 }
 
 func (s *Sandbox) unsupported(operation string) error {
@@ -126,6 +129,7 @@ func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 	info.Provider = provider
 	s.mu.Lock()
 	s.info = cloneSandboxInfo(info)
+	s.capabilityReady = false
 	s.mu.Unlock()
 	return nil
 }

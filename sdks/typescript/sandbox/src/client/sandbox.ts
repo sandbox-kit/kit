@@ -57,6 +57,7 @@ export class Sandbox implements AsyncDisposable {
   readonly #owner: ClientLifecycle;
   readonly #timeout: number | undefined;
   #info: SandboxInfo;
+  #capabilities: readonly LifecycleCapability[] | undefined;
   #closed = false;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -79,7 +80,14 @@ export class Sandbox implements AsyncDisposable {
   capabilities(): readonly LifecycleCapability[] {
     if (this.#closed || this.#owner.isClosed() || this.#info.terminal)
       return [];
-    return this.#backend.capabilities?.(clone(this.#info)) ?? [];
+    const cached = this.#capabilities;
+    if (cached) return cached.slice();
+    const resolve = this.#backend.capabilities;
+    const values = resolve
+      ? [...resolve.call(this.#backend, clone(this.#info))]
+      : [];
+    this.#capabilities = values;
+    return values;
   }
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);
@@ -101,8 +109,7 @@ export class Sandbox implements AsyncDisposable {
             ),
           signal,
         );
-        this.#info = clone({ ...info, provider: this.providerName });
-        return this.info();
+        return this.#storeInfo(info);
       },
     );
   }
@@ -152,16 +159,16 @@ export class Sandbox implements AsyncDisposable {
             method.call(
               this.#backend,
               this.id,
-              clone(request),
+              { ...request },
               operationOptions(call, signal),
             ),
           signal,
         );
-        this.#info = {
+        this.#assignInfo({
           ...this.#info,
           state: SandboxState.Terminated,
           terminal: true,
-        };
+        });
         return result;
       },
     );
@@ -239,15 +246,24 @@ export class Sandbox implements AsyncDisposable {
             method.call(
               this.#backend,
               this.id,
-              clone(request),
+              { ...request },
               operationOptions(options, signal),
             ),
           signal,
         );
-        this.#info = clone({ ...info, provider: this.providerName });
-        return this.info();
+        return this.#storeInfo(info);
       },
     );
+  }
+  #storeInfo(info: SandboxInfo): SandboxInfo {
+    const stored = clone(info);
+    stored.provider = this.providerName;
+    this.#assignInfo(stored);
+    return clone(stored);
+  }
+  #assignInfo(info: SandboxInfo): void {
+    this.#info = info;
+    this.#capabilities = undefined;
   }
   async #serialized<T>(
     operation: string,
