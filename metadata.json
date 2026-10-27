@@ -1,0 +1,58 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5Z540BR0V7MM5FPAENKWQPR",
+  "strategy": "manual-commit",
+  "branch": "perf/sandbox-sdk-hot-paths",
+  "checkpoints_count": 9,
+  "files_touched": [
+    "docs/sandbox-lifecycle.md",
+    "examples/go/daytona/archive-daytona-sandbox/README.md",
+    "examples/go/daytona/archive-daytona-sandbox/main.go",
+    "examples/go/daytona/get-daytona-sandbox/README.md",
+    "examples/go/daytona/pause-daytona-sandbox/README.md",
+    "examples/go/daytona/pause-daytona-sandbox/main.go",
+    "examples/go/daytona/stop-daytona-sandbox/README.md",
+    "examples/typescript/daytona/archive-daytona-sandbox/README.md",
+    "examples/typescript/daytona/archive-daytona-sandbox/src/main.ts",
+    "examples/typescript/daytona/get-daytona-sandbox/README.md",
+    "examples/typescript/daytona/pause-daytona-sandbox/README.md",
+    "examples/typescript/daytona/pause-daytona-sandbox/src/main.ts",
+    "examples/typescript/daytona/stop-daytona-sandbox/README.md",
+    "proto/kit/sandbox/v1/sandbox.proto",
+    "sdks/go/internal/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/lifecycle.go",
+    "sdks/go/providers/daytona/lifecycle_test.go",
+    "sdks/go/providers/daytona/sandbox_test.go",
+    "sdks/go/sandbox/README.md",
+    "sdks/go/sandbox/capabilities.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/operation.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/go/sandbox/sandbox_data_contracts.go",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/modal/src/modal.ts",
+    "sdks/typescript/sandbox/README.md",
+    "sdks/typescript/sandbox/src/client/client.test.ts",
+    "sdks/typescript/sandbox/src/client/sandbox.ts",
+    "sdks/typescript/sandbox/src/client/types.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 428497,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 14775680,
+    "output_tokens": 88035,
+    "api_call_count": 8
+  }
+}

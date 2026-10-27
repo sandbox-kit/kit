@@ -1,0 +1,51 @@
+should I merge this branch gto main 
+
+verify changes onces and lemme know
+
+---
+
+okay fix things whcih are bed.
+
++ I see we are still doing cloneSandboxInfo and cloneCreateOptions
+
+do we need that too ?
+
+---
+
+can u review I dthink u over did it ?
+
+---
+
+ig lifecycle capablity ws never about runtime ? 
+
+it just meant that if particular providers supports that lifecycle event right ?
+
+---
+
+The one runtime change is terminal. After Terminate or Delete, the handle drops the whole list and later lifecycle calls fail with ErrorKindFailedPrecondition.
+
+why we need this ?
+
+---
+
+explian with examples
+
+---
+
+ig this is completely wrong logic
+
+all we had to do was if with supports and capablities function -> that this provider supports. 
+
+other things should be lightweight right ? 
+
+currently what happens if there is no capablity but still it calls one of capablity ?
+
+---
+
+what do u recommend ? as this is some concern
+
+can u check daytona and Modal sdk and lemme know
+
+---
+
+fix it
