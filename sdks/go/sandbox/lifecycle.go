@@ -186,60 +186,61 @@ func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *
 	return inherited
 }
 
-// A nil timeout leaves the caller value unchanged, including a nil options pointer.
-// A recorded timeout is a new message so the provider cannot mutate the caller.
-func startOptionsForCall(options *StartOptions, timeout *time.Duration) *StartOptions {
+// optionsWithTimeout passes options through when no timeout is recorded, including a nil pointer.
+// Otherwise build returns a new message so the provider cannot mutate the caller.
+func optionsWithTimeout[T any](options *T, timeout *time.Duration, build func(*durationpb.Duration, *T) *T) *T {
 	if timeout == nil {
 		return options
 	}
-	return &StartOptions{Timeout: Duration(*timeout)}
+	return build(Duration(*timeout), options)
+}
+
+func startOptionsForCall(options *StartOptions, timeout *time.Duration) *StartOptions {
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *StartOptions) *StartOptions {
+		return &StartOptions{Timeout: recorded}
+	})
 }
 
 func stopOptionsForCall(options *StopOptions, timeout *time.Duration) *StopOptions {
-	if timeout == nil {
-		return options
-	}
-	cloned := &StopOptions{Timeout: Duration(*timeout)}
-	if options != nil {
-		cloned.Force = copyOptionalBool(options.Force)
-	}
-	return cloned
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *StopOptions) *StopOptions {
+		cloned := &StopOptions{Timeout: recorded}
+		if options != nil {
+			cloned.Force = copyOptionalBool(options.Force)
+		}
+		return cloned
+	})
 }
 
 func pauseOptionsForCall(options *PauseOptions, timeout *time.Duration) *PauseOptions {
-	if timeout == nil {
-		return options
-	}
-	return &PauseOptions{Timeout: Duration(*timeout)}
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *PauseOptions) *PauseOptions {
+		return &PauseOptions{Timeout: recorded}
+	})
 }
 
 func terminateOptionsForCall(options *TerminateOptions, timeout *time.Duration) *TerminateOptions {
-	if timeout == nil {
-		return options
-	}
-	cloned := &TerminateOptions{Timeout: Duration(*timeout)}
-	if options != nil {
-		cloned.Wait = copyOptionalBool(options.Wait)
-	}
-	return cloned
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *TerminateOptions) *TerminateOptions {
+		cloned := &TerminateOptions{Timeout: recorded}
+		if options != nil {
+			cloned.Wait = copyOptionalBool(options.Wait)
+		}
+		return cloned
+	})
 }
 
 func archiveOptionsForCall(options *ArchiveOptions, timeout *time.Duration) *ArchiveOptions {
-	if timeout == nil {
-		return options
-	}
-	return &ArchiveOptions{Timeout: Duration(*timeout)}
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *ArchiveOptions) *ArchiveOptions {
+		return &ArchiveOptions{Timeout: recorded}
+	})
 }
 
 func deleteOptionsForCall(options *DeleteOptions, timeout *time.Duration) *DeleteOptions {
-	if timeout == nil {
-		return options
-	}
-	cloned := &DeleteOptions{Timeout: Duration(*timeout)}
-	if options != nil {
-		cloned.Wait = copyOptionalBool(options.Wait)
-	}
-	return cloned
+	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *DeleteOptions) *DeleteOptions {
+		cloned := &DeleteOptions{Timeout: recorded}
+		if options != nil {
+			cloned.Wait = copyOptionalBool(options.Wait)
+		}
+		return cloned
+	})
 }
 
 func copyOptionalBool(value *bool) *bool {

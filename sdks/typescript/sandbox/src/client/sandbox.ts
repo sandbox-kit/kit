@@ -87,7 +87,7 @@ export class Sandbox implements AsyncDisposable {
       ? [...resolve.call(this.#backend, clone(this.#info))]
       : [];
     this.#capabilities = values;
-    return values;
+    return values.slice();
   }
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);

@@ -404,34 +404,37 @@ export function mapSandboxInfo(
   }
   const metadata: { [key: string]: MetadataValue } = {};
   if (value.gpu > 0) metadata.gpu_count = scalarMetadata(value.gpu);
-  if (value.gpuType !== undefined)
-    metadata.gpu_type = scalarMetadata(String(value.gpuType));
-  if (value.desiredState !== undefined)
-    metadata.desired_state = scalarMetadata(String(value.desiredState));
-  if (value.errorReason !== undefined)
-    metadata.error_reason = scalarMetadata(value.errorReason);
+  assignText(metadata, "gpu_type", value.gpuType);
+  assignText(metadata, "desired_state", value.desiredState);
+  assignText(metadata, "error_reason", value.errorReason);
   if (value.recoverable !== undefined)
     metadata.recoverable = scalarMetadata(value.recoverable);
   if (value.spot === true) metadata.spot = scalarMetadata(true);
-  for (const [key, entry] of [
-    ["spot_evicted_at", value.spotEvictedAt],
-    ["backup_state", value.backupState],
-    ["backup_created_at", value.backupCreatedAt],
-    ["updated_at", value.updatedAt],
-    ["last_activity_at", value.lastActivityAt],
-    ["auto_destroy_at", value.autoDestroyAt],
-    ["queue_timed_out_at", value.queueTimedOutAt],
-    ["snapshot", value.snapshot],
-    ["warm_pool_id", value.warmPoolId],
-  ] as const)
-    if (entry !== undefined) metadata[key] = scalarMetadata(String(entry));
-  for (const [key, entry] of [
-    ["auto_stop_interval_minutes", value.autoStopInterval],
-    ["auto_pause_interval_minutes", value.autoPauseInterval],
-    ["auto_archive_interval_minutes", value.autoArchiveInterval],
-    ["auto_delete_interval_minutes", value.autoDeleteInterval],
-  ] as const)
-    if (entry !== undefined) metadata[key] = scalarMetadata(entry);
+  assignText(metadata, "spot_evicted_at", value.spotEvictedAt);
+  assignText(metadata, "backup_state", value.backupState);
+  assignText(metadata, "backup_created_at", value.backupCreatedAt);
+  assignText(metadata, "updated_at", value.updatedAt);
+  assignText(metadata, "last_activity_at", value.lastActivityAt);
+  assignText(metadata, "auto_destroy_at", value.autoDestroyAt);
+  assignText(metadata, "queue_timed_out_at", value.queueTimedOutAt);
+  assignText(metadata, "snapshot", value.snapshot);
+  assignText(metadata, "warm_pool_id", value.warmPoolId);
+  assignNumber(metadata, "auto_stop_interval_minutes", value.autoStopInterval);
+  assignNumber(
+    metadata,
+    "auto_pause_interval_minutes",
+    value.autoPauseInterval,
+  );
+  assignNumber(
+    metadata,
+    "auto_archive_interval_minutes",
+    value.autoArchiveInterval,
+  );
+  assignNumber(
+    metadata,
+    "auto_delete_interval_minutes",
+    value.autoDeleteInterval,
+  );
   if (Object.keys(metadata).length > 0) {
     resultMutable(result).providerMetadata = { values: metadata };
     origins.provider_metadata = ValueOrigin.Provider;
@@ -487,6 +490,22 @@ function mapState(value: string | undefined): SandboxState {
     default:
       return SandboxState.Unknown;
   }
+}
+
+function assignText(
+  metadata: { [key: string]: MetadataValue },
+  key: string,
+  value: unknown,
+): void {
+  if (value !== undefined) metadata[key] = scalarMetadata(String(value));
+}
+
+function assignNumber(
+  metadata: { [key: string]: MetadataValue },
+  key: string,
+  value: number | undefined,
+): void {
+  if (value !== undefined) metadata[key] = scalarMetadata(value);
 }
 
 /** Scalar metadata for fields this provider just read. Matches the public map conversion. */

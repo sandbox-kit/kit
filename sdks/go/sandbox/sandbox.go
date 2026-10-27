@@ -122,38 +122,69 @@ func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s.owner != nil && s.owner.isClosed() {
 		return nil
 	}
-	s.mu.RLock()
-	closed := s.closed
-	live := s.info
-	terminal := live != nil && live.GetTerminal()
-	ready := s.capabilityReady && !closed && live != nil && !terminal
-	var cached []LifecycleCapability
-	if ready {
-		cached = append([]LifecycleCapability(nil), s.capabilityCache...)
-	}
-	s.mu.RUnlock()
-	if closed || live == nil || terminal {
+	snapshot := s.capabilitySnapshot()
+	if snapshot.blocked {
 		return nil
 	}
-	if ready {
-		return cached
+	if snapshot.ready {
+		return snapshot.cached
 	}
-	var values []LifecycleCapability
-	if resolver, ok := s.operations.(sandboxCapabilityResolver); ok {
-		info := s.Info()
-		if info == nil || info.GetTerminal() {
-			return nil
-		}
-		values = append([]LifecycleCapability(nil), resolver.SandboxCapabilities(info)...)
-	} else {
-		values = staticLifecycleCapabilities(s.operations)
+	values, ok := s.resolveCapabilities()
+	if !ok {
+		return nil
 	}
+	s.rememberCapabilities(snapshot.live, values)
+	return copyCapabilities(values)
+}
+
+// capabilitySnapshot is the handle state Capabilities reads under one lock.
+// blocked means a closed handle or a missing or terminal record.
+// ready means the saved list still belongs to live.
+type capabilitySnapshot struct {
+	live    *SandboxInfo
+	cached  []LifecycleCapability
+	ready   bool
+	blocked bool
+}
+
+func (s *Sandbox) capabilitySnapshot() capabilitySnapshot {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	live := s.info
+	snapshot := capabilitySnapshot{
+		live:    live,
+		blocked: s.closed || live == nil || live.GetTerminal(),
+	}
+	if snapshot.blocked || !s.capabilityReady {
+		return snapshot
+	}
+	snapshot.ready = true
+	snapshot.cached = copyCapabilities(s.capabilityCache)
+	return snapshot
+}
+
+func (s *Sandbox) resolveCapabilities() ([]LifecycleCapability, bool) {
+	resolver, ok := s.operations.(sandboxCapabilityResolver)
+	if !ok {
+		return staticLifecycleCapabilities(s.operations), true
+	}
+	info := s.Info()
+	if info == nil || info.GetTerminal() {
+		return nil, false
+	}
+	return copyCapabilities(resolver.SandboxCapabilities(info)), true
+}
+
+func (s *Sandbox) rememberCapabilities(live *SandboxInfo, values []LifecycleCapability) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	if s.info == live && !s.closed && !live.GetTerminal() {
-		s.capabilityCache = append([]LifecycleCapability(nil), values...)
+		s.capabilityCache = copyCapabilities(values)
 		s.capabilityReady = true
 	}
-	s.mu.Unlock()
+}
+
+func copyCapabilities(values []LifecycleCapability) []LifecycleCapability {
 	return append([]LifecycleCapability(nil), values...)
 }
 
@@ -163,7 +194,6 @@ type operationView struct {
 	id       string
 	closed   bool
 	terminal bool
-	hasInfo  bool
 }
 
 func (s *Sandbox) operationView() operationView {
@@ -172,19 +202,12 @@ func (s *Sandbox) operationView() operationView {
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	view := operationView{closed: s.closed, hasInfo: s.info != nil}
-	if view.hasInfo {
+	view := operationView{closed: s.closed}
+	if s.info != nil {
 		view.id = s.info.Id
 		view.terminal = s.info.GetTerminal()
 	}
 	return view
-}
-
-// lifecycleFlags reads handle state without cloning sandbox metadata.
-// The bools are closed, terminal, and whether metadata is present.
-func (s *Sandbox) lifecycleFlags() (closed bool, terminal bool, hasInfo bool) {
-	view := s.operationView()
-	return view.closed, view.terminal, view.hasInfo
 }
 
 // Supports reports whether this handle can perform capability.
