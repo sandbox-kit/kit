@@ -1,0 +1,22 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5Y2AFGC7TKJ00MW1N0X4DWV",
+  "strategy": "manual-commit",
+  "branch": "perf/sandbox-sdk-hot-paths",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
+    "sdks/typescript/sandbox/src/client/sandbox.ts",
+    "sdks/typescript/sandbox/src/internal/duration_ms.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
