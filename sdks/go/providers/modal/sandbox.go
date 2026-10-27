@@ -84,8 +84,8 @@ func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	return &sandbox.CreateResult{Sandbox: info}, nil
 }
 
-// AttachSandbox constructs a Modal handle from an ID. Modal FromID performs no
-// provider request, so this deliberately does not implement SandboxRefresher.
+// AttachSandbox builds a handle from an ID. Modal does not look the sandbox up,
+// so this does not refresh metadata.
 func (b *backend) AttachSandbox(ctx context.Context, id string) (*sandbox.SandboxInfo, error) {
 	instance, err := b.client.Sandboxes.FromID(ctx, id, nil)
 	if err != nil {

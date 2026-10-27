@@ -1,12 +1,10 @@
 # Responses and errors
 
-Protobuf defines `SandboxInfo`, `ValueOrigin`, `ErrorInfo`, and `ErrorKind`.
-Validation failures include an optional stable `rule` identifier so applications
-do not need to parse human-readable messages. Examples include `finite`,
-`nonblank`, `exclusive_minimum`, `known_enum`, and cross-field operation names.
-Error wrappers, cause chaining, and provider classification are handwritten per
-language. YAML inventories describe response mappings and validation for humans
-to keep aligned with that handwritten code.
+A failed call gives you `ErrorInfo` with a stable `ErrorKind`. Validation
+failures also include a `rule` such as `finite`, `nonblank`,
+`exclusive_minimum`, or `known_enum`, so you can branch on that instead of the
+message text. `Info()` returns `SandboxInfo`. `Origins` tells you whether a
+field came from the provider or from the settings you passed.
 
 ## Response presence and origin
 

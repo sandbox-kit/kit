@@ -103,6 +103,18 @@ func (b *backend) Close(ctx context.Context) error {
 	return nil
 }
 
+// CloseSandbox does not terminate the Modal sandbox.
+func (b *backend) CloseSandbox(ctx context.Context, id string) error {
+	if err := ctx.Err(); err != nil {
+		return mapProviderError(err, "close")
+	}
+	instance, err := b.client.Sandboxes.FromID(ctx, id, nil)
+	if err != nil {
+		return mapProviderError(err, "close")
+	}
+	return mapProviderError(instance.Detach(), "close")
+}
+
 var _ sandbox.Provider = (*Provider)(nil)
 var _ sandbox.Backend = (*backend)(nil)
 var _ sandbox.SandboxCreator = (*backend)(nil)

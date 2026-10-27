@@ -224,7 +224,7 @@ func ExampleNew_close() {
 		fmt.Println(err)
 		return
 	}
-	// Close drops the local handle. The Daytona sandbox keeps running.
+	// Close leaves the Daytona sandbox running.
 	err = instance.Close(context.Background())
 	if err != nil {
 		fmt.Println(err)

@@ -39,8 +39,10 @@ fmt.Println(instance.ID())
 `Create` with a nil request uses the provider default when that default is
 valid. Daytona uses its default snapshot. Modal requires an image.
 
-`client.Close` and `instance.Close` release local resources. The cloud sandbox
-keeps running until you stop, terminate, archive, or delete it.
+`client.Close` closes your connection to Daytona or Modal. `instance.Close`
+does not stop, terminate, or delete the sandbox, and you can keep using the
+handle. The sandbox keeps running until you stop, terminate, archive, or
+delete it.
 
 ## Choose a provider
 
@@ -49,8 +51,10 @@ keeps running until you stop, terminate, archive, or delete it.
 | [Daytona](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/daytona) | `daytona.New()` | `client.Get`             |
 | [Modal](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/modal)     | `modal.New()`   | `client.Attach`          |
 
-Call `instance.Supports` before a lifecycle method when the sandbox class
-varies. An unsupported method returns an error and does not call the provider.
+`Supports` reports whether the provider implements that operation. An
+unimplemented method returns an error and does not call the provider. A
+provider rejection, including one from a closed SDK, comes back as that
+provider's error.
 
 ## Read an error
 

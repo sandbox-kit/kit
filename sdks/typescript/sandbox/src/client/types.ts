@@ -16,7 +16,6 @@ import type {
   CreateResult,
   DeleteOptions,
   ExitResult,
-  LifecycleCapability,
   PauseOptions,
   SandboxInfo,
   StartOptions,
@@ -103,8 +102,7 @@ export interface Backend {
     options: OperationOptions,
   ): Promise<SandboxInfo>;
   close(options: OperationOptions): Promise<void>;
-  closeSandbox?(id: string, options: OperationOptions): Promise<void>;
-  capabilities?(info: SandboxInfo): readonly LifecycleCapability[];
+  closeSandbox(id: string, options: OperationOptions): Promise<void>;
 }
 
 export interface Provider {

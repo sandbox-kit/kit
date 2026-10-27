@@ -89,10 +89,11 @@ const fetched = await client.get(id); // provider-verified lookup
 | `archive`        | Archive                                       |
 | `delete`         | Delete (`wait` when supported)                |
 | `terminate`      | Terminate (`wait` when supported)             |
-| `close`          | Drop the local handle (not the cloud sandbox) |
+| `close`          | Close the handle. The sandbox keeps running   |
 
-Unsupported operations throw before the provider call. Use `supports(...)` when
-the sandbox class may differ (for example Daytona container vs VM).
+`supports` reports whether the provider implements that operation. An
+unimplemented method throws before the provider call. A provider rejection,
+including one from a closed SDK, comes back as that provider's error.
 
 ## Errors
 

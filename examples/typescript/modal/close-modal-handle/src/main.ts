@@ -18,4 +18,6 @@ await using client = new Client({
 
 const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
 await sandbox.close();
-console.log(`Modal handle closed locally: ${sandbox.id} (remote sandbox unchanged)`);
+console.log(
+  `Closed the handle for Modal sandbox ${sandbox.id}. The sandbox is still running.`,
+);

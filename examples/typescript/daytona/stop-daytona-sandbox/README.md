@@ -4,14 +4,13 @@
 
 ## What this means
 
-Stop leaves a retained sandbox that can usually be started again. Containers keep
-the filesystem; VMs clear memory on stop. **Ephemeral** sandboxes are deleted when
-they stop. GPU sandboxes may be destroyed on stop by Daytona design. See
+Stop asks Daytona to stop the sandbox. A retained sandbox can usually be started
+again. An ephemeral sandbox can be deleted by its policy. See
 [persistence](https://www.daytona.io/docs/en/persistence/).
 
 ## Edge cases
 
-- Always check `Supports(Stop)` for the resolved class.
+- Daytona applies its own stop rules, including ephemeral deletion.
 - Ephemeral + stop deletes the sandbox.
 - **Mutates** the ID in `.env`.
 

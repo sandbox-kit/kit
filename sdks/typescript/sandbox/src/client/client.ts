@@ -19,11 +19,7 @@ import {
   operationOptions,
   operationSignal,
 } from "#client/operation.js";
-import {
-  Sandbox,
-  sandboxConstructorToken,
-  type ClientLifecycle,
-} from "#client/sandbox.js";
+import { Sandbox, sandboxConstructorToken } from "#client/sandbox.js";
 import type { Backend, ClientConfig, OperationOptions } from "#client/types.js";
 import { validateConfig, validateCreateOptions } from "#client/validation.js";
 
@@ -51,13 +47,6 @@ export class Client implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #providerName: string;
   readonly #timeout: number | undefined;
-  readonly #lifecycle: ClientLifecycle;
-  #active = 0;
-  #closing = false;
-  #closed = false;
-  #closePromise: Promise<void> | undefined;
-  #drain: Promise<void> | undefined;
-  #resolveDrain: (() => void) | undefined;
   constructor(config: ClientConfig) {
     if (!config.provider?.name?.trim())
       throw sandboxError({
@@ -70,10 +59,6 @@ export class Client implements AsyncDisposable {
     validateConfig(config, config.provider.name, "initialize");
     this.#providerName = config.provider.name;
     this.#timeout = config.timeout;
-    this.#lifecycle = {
-      begin: (operation) => this.#begin(operation),
-      isClosed: () => this.#closing || this.#closed,
-    };
     try {
       const { provider: _provider, ...shared } = config;
       this.#backend = config.provider.initialize(shared);
@@ -121,7 +106,6 @@ export class Client implements AsyncDisposable {
     options: OperationOptions,
     fetch: (options: OperationOptions) => Promise<SandboxInfo>,
   ): Promise<Sandbox> {
-    const release = this.#begin(operation);
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
       scoped = operationSignal(options, this.#timeout);
@@ -139,7 +123,6 @@ export class Client implements AsyncDisposable {
       );
       return new Sandbox(sandboxConstructorToken, {
         backend: this.#backend,
-        owner: this.#lifecycle,
         info: { ...info, id, provider: this.providerName },
         ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
       });
@@ -147,14 +130,12 @@ export class Client implements AsyncDisposable {
       throw withContext(error, this.providerName, operation);
     } finally {
       scoped?.dispose();
-      release();
     }
   }
   async create(
     request: CreateOptions = {},
     options: OperationOptions = {},
   ): Promise<Sandbox> {
-    const release = this.#begin("create");
     const timeout =
       options.timeout ?? request.provisioning?.timeout ?? this.#timeout;
     let scoped: ReturnType<typeof operationSignal> | undefined;
@@ -209,7 +190,6 @@ export class Client implements AsyncDisposable {
         });
       return new Sandbox(sandboxConstructorToken, {
         backend: this.#backend,
-        owner: this.#lifecycle,
         info: { ...result.sandbox, provider: this.providerName },
         ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
       });
@@ -217,33 +197,17 @@ export class Client implements AsyncDisposable {
       throw withContext(error, this.providerName, "create");
     } finally {
       scoped?.dispose();
-      release();
     }
   }
-  close(options: OperationOptions = {}): Promise<void> {
-    if (this.#closePromise) return this.#closePromise;
-    this.#closing = true;
-    this.#closePromise = this.#close(options);
-    return this.#closePromise;
-  }
-  async #close(options: OperationOptions): Promise<void> {
+  async close(options: OperationOptions = {}): Promise<void> {
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {
       scoped = operationSignal(options, this.#timeout);
-      if (this.#active > 0) {
-        this.#drain ??= new Promise<void>((resolve) => {
-          this.#resolveDrain = resolve;
-        });
-        await awaitWithSignal(() => this.#drain!, scoped.signal);
-      }
       await awaitWithSignal(
         () => this.#backend.close(operationOptions(options, scoped?.signal)),
         scoped.signal,
       );
-      this.#closed = true;
     } catch (error) {
-      this.#closePromise = undefined;
-      this.#closing = false;
       throw withContext(error, this.providerName, "close");
     } finally {
       scoped?.dispose();
@@ -251,27 +215,5 @@ export class Client implements AsyncDisposable {
   }
   async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
-  }
-  #begin(operation: string): () => void {
-    if (this.#closing || this.#closed)
-      throw sandboxError({
-        kind: ErrorKind.FailedPrecondition,
-        provider: this.providerName,
-        operation,
-        field: "client",
-        message: "sandbox-kit: client is closed",
-      });
-    this.#active++;
-    let released = false;
-    return () => {
-      if (released) return;
-      released = true;
-      this.#active--;
-      if (this.#active === 0) {
-        this.#resolveDrain?.();
-        this.#resolveDrain = undefined;
-        this.#drain = undefined;
-      }
-    };
   }
 }

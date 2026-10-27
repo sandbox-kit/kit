@@ -6,7 +6,7 @@
 
 Waited deletion ([delete-daytona-sandbox](../delete-daytona-sandbox/README.md))
 blocks until Daytona finishes. Non-waited deletion returns after the delete is
-accepted; the handle may not yet report a terminal state.
+accepted. The handle stores the metadata Daytona returns with that response.
 
 ## Edge cases
 

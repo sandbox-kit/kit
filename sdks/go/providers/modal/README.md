@@ -73,8 +73,9 @@ Create from a registry image. You can set the command, working directory, PTY,
 gVisor or Linux VM isolation, CPU and memory, placement, network policy, ports,
 secrets, readiness, timeout, and labels.
 
-On the handle: `Attach`, `Terminate`, and `Close`. `Get`, `Refresh`, `Start`,
-`Stop`, `Pause`, `Archive`, and `Delete` are not supported.
+On the handle: `Attach`, `Terminate`, and `Close`. `Close` does not terminate
+the sandbox. `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`, and
+`Delete` are not supported.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at

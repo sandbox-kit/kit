@@ -73,6 +73,11 @@ func (b *backend) Close(ctx context.Context) error {
 	return mapProviderError(b.client.Close(ctx), "close")
 }
 
+// CloseSandbox does not contact Daytona and does not change the sandbox.
+func (*backend) CloseSandbox(context.Context, string) error {
+	return nil
+}
+
 var _ sandbox.Provider = (*Provider)(nil)
 var _ sandbox.Backend = (*backend)(nil)
 var _ sandbox.SandboxCreator = (*backend)(nil)

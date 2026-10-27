@@ -20,7 +20,7 @@ warm-pool sources are not mapped and are rejected if supplied.
   at the provider.
 - Resource overrides still need an image source; snapshot create inherits the
   snapshot's CPU/memory/disk.
-- Class (and therefore later capabilities) comes from the snapshot you pick.
+- The snapshot supplies the sandbox class as metadata. Capabilities stay the methods Daytona implements.
 
 ## Run
 

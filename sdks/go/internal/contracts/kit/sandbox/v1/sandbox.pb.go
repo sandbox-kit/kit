@@ -494,7 +494,7 @@ func (SandboxState) EnumDescriptor() ([]byte, []int) {
 	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{7}
 }
 
-// LifecycleCapability identifies an operation supported by a particular resolved sandbox handle.
+// LifecycleCapability identifies a lifecycle operation a provider implements.
 type LifecycleCapability int32
 
 const (

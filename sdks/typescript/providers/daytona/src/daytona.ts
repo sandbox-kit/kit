@@ -4,12 +4,9 @@ import {
   type Sandbox as DaytonaSandbox,
 } from "@daytona/sdk";
 import {
-  IsolationKind,
-  LifecycleCapability,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
-  metadataObjectAsMap,
 } from "@sandbox-kit/sandbox";
 import type {
   Backend,
@@ -83,30 +80,6 @@ class DaytonaBackend extends BackendBase implements Backend {
     }
   }
 
-  capabilities(info: SandboxInfo): readonly LifecycleCapability[] {
-    if (info.terminal) return [];
-    const result: LifecycleCapability[] = [
-      LifecycleCapability.Refresh,
-      LifecycleCapability.Start,
-      LifecycleCapability.Stop,
-      LifecycleCapability.Delete,
-    ];
-    const metadata = metadataObjectAsMap(info.providerMetadata);
-    const gpuCount = metadata?.gpu_count;
-    const hasGpu =
-      (typeof gpuCount === "number" && gpuCount > 0) ||
-      (typeof gpuCount === "bigint" && gpuCount > 0n);
-    if (
-      !hasGpu &&
-      (info.isolation?.kind === IsolationKind.LinuxVm ||
-        info.isolation?.providerKind === "windows")
-    )
-      result.push(LifecycleCapability.Pause);
-    if (!hasGpu && info.isolation?.kind === IsolationKind.Container)
-      result.push(LifecycleCapability.Archive);
-    return result;
-  }
-
   async refresh(id: string): Promise<SandboxInfo> {
     return this.withSandbox(id, "refresh", async (value) => {
       await value.refreshData();
@@ -135,7 +108,6 @@ class DaytonaBackend extends BackendBase implements Backend {
       value.delete(secondsFromMs(request.timeout), request.wait),
     );
   }
-  async closeSandbox(_id: string): Promise<void> {}
 
   private async withSandbox(
     id: string,
@@ -150,6 +122,8 @@ class DaytonaBackend extends BackendBase implements Backend {
       throw mapDaytonaError(error, operation);
     }
   }
+
+  async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(_options: OperationOptions): Promise<void> {
     try {

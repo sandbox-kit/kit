@@ -41,9 +41,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if !instance.Supports(sandbox.LifecycleCapabilityPause) {
-		log.Fatalf("sandbox %s is not a pause-capable VM", instance.ID())
-	}
 	if err := instance.Pause(context.Background(), nil); err != nil {
 		log.Fatal(err)
 	}

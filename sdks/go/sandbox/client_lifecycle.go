@@ -3,7 +3,6 @@ package sandbox
 import (
 	"context"
 	"strings"
-	"sync"
 
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 )
@@ -22,11 +21,6 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	if c == nil || c.backend == nil {
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
-	release, err := c.beginOperation(operation)
-	if err != nil {
-		return nil, err
-	}
-	defer release()
 	if strings.TrimSpace(id) == "" {
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: sandbox ID is required"}, nil)
 	}
@@ -43,51 +37,6 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	if err != nil {
 		return nil, err
 	}
-	instance.timeout, instance.owner = c.timeout, c
+	instance.timeout = c.timeout
 	return instance, nil
-}
-
-// clientLifecycle prevents provider cleanup from racing an in-flight operation.
-// It is runtime-only and emitted as an opaque field on Client.
-type clientLifecycle struct {
-	mu     sync.RWMutex
-	closed bool
-}
-
-func (c *Client) beginOperation(operation string) (func(), error) {
-	provider := ""
-	if c != nil && c.backend != nil {
-		provider = c.backend.Name()
-	}
-	if c == nil || c.lifecycle == nil {
-		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
-	}
-	c.lifecycle.mu.RLock()
-	if c.lifecycle.closed {
-		c.lifecycle.mu.RUnlock()
-		return nil, NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Provider: provider, Operation: operation, Field: "client", Message: "sandbox-kit: client is closed"}, nil)
-	}
-	return c.lifecycle.mu.RUnlock, nil
-}
-
-func (c *Client) closeBackend(ctx context.Context) error {
-	if c == nil || c.backend == nil || c.lifecycle == nil {
-		return nil
-	}
-	c.lifecycle.mu.Lock()
-	defer c.lifecycle.mu.Unlock()
-	if c.lifecycle.closed {
-		return nil
-	}
-	c.lifecycle.closed = true
-	return c.backend.Close(ctx)
-}
-
-func (c *Client) isClosed() bool {
-	if c == nil || c.lifecycle == nil {
-		return true
-	}
-	c.lifecycle.mu.RLock()
-	defer c.lifecycle.mu.RUnlock()
-	return c.lifecycle.closed
 }

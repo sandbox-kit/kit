@@ -42,9 +42,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if !instance.Supports(sandbox.LifecycleCapabilityArchive) {
-		log.Fatalf("sandbox %s is not an archive-capable container", instance.ID())
-	}
 	if err := instance.Archive(context.Background(), nil); err != nil {
 		log.Fatal(err)
 	}

@@ -52,7 +52,7 @@ sandbox ID in `.env`. Closing a client or handle is local-only. Modal setup:
 | [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | archive lifecycle operation       |
 | [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                   |
 | [request-daytona-deletion](daytona/request-daytona-deletion/README.md)         | non-waited deletion               |
-| [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | local handle cleanup              |
+| [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | close the handle; sandbox keeps running |
 
 ### Modal
 
@@ -80,7 +80,7 @@ sandbox ID in `.env`. Closing a client or handle is local-only. Modal setup:
 | [terminate-modal-sandbox](modal/terminate-modal-sandbox/README.md)           | waited termination                         |
 | [terminate-modal-with-timeout](modal/terminate-modal-with-timeout/README.md) | waited terminate with timeout              |
 | [request-modal-termination](modal/request-modal-termination/README.md)       | non-waited termination                     |
-| [close-modal-handle](modal/close-modal-handle/README.md)                     | local handle cleanup                       |
+| [close-modal-handle](modal/close-modal-handle/README.md)                     | close the handle; sandbox keeps running    |
 
 ## Verify all TypeScript projects
 

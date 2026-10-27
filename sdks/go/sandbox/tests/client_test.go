@@ -24,7 +24,8 @@ func (f *testProvider) NewClient(config *sandbox.Config) (sandbox.Backend, error
 	f.config = config
 	return f.provider, f.err
 }
-func (p *creationBackend) Close(context.Context) error { return nil }
+func (p *creationBackend) Close(context.Context) error                { return nil }
+func (p *creationBackend) CloseSandbox(context.Context, string) error { return nil }
 func newTestClient(provider sandbox.Backend) (*sandbox.Client, error) {
 	return sandbox.NewClient(&testProvider{provider: provider}, &sandbox.Config{})
 }
@@ -153,14 +154,17 @@ func (nameOnly) Name() string { return "random" }
 type cleanupBackend struct {
 	name       string
 	closed     int
+	creates    int
 	closeError error
 }
 
 func (p *cleanupBackend) Name() string { return p.name }
-func (*cleanupBackend) Create(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
+func (p *cleanupBackend) Create(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
+	p.creates++
 	return nil, nil
 }
-func (p *cleanupBackend) Close(context.Context) error { p.closed++; return p.closeError }
+func (p *cleanupBackend) Close(context.Context) error                { p.closed++; return p.closeError }
+func (p *cleanupBackend) CloseSandbox(context.Context, string) error { return nil }
 func TestClientCleanupAndInvalidBackendIdentity(t *testing.T) {
 	expected := errors.New("cleanup failure")
 	provider := &cleanupBackend{name: "other", closeError: expected}
@@ -181,20 +185,19 @@ func TestClientCleanupAndInvalidBackendIdentity(t *testing.T) {
 	if provider.closed != 1 {
 		t.Fatal("owned SDK cleanup not delegated")
 	}
-	if err := client.Close(context.Background()); err != nil || provider.closed != 1 {
-		t.Fatalf("close is not idempotent: %v, calls=%d", err, provider.closed)
+	if err := client.Close(context.Background()); !errors.Is(err, expected) || provider.closed != 2 {
+		t.Fatalf("second close did not reach the provider: %v, calls=%d", err, provider.closed)
 	}
-	_, err = client.Create(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindFailedPrecondition {
-		t.Fatalf("closed client accepted an operation: %v", err)
+	if _, err = client.Create(context.Background(), nil); provider.creates != 1 {
+		t.Fatalf("create did not reach the provider after close: %v calls=%d", err, provider.creates)
 	}
 }
 
 type managementBackend struct{}
 
-func (*managementBackend) Name() string                { return "test" }
-func (*managementBackend) Close(context.Context) error { return nil }
+func (*managementBackend) Name() string                               { return "test" }
+func (*managementBackend) Close(context.Context) error                { return nil }
+func (*managementBackend) CloseSandbox(context.Context, string) error { return nil }
 
 func TestCreationIsAnOptionalBackendCapability(t *testing.T) {
 	client, err := sandbox.NewClient(&testProvider{provider: &managementBackend{}}, &sandbox.Config{})

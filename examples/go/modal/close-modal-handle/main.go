@@ -1,4 +1,4 @@
-// Release one local Modal sandbox handle without changing the remote sandbox.
+// Close one Modal sandbox handle. This does not terminate the sandbox.
 package main
 
 import (
@@ -46,5 +46,5 @@ func main() {
 	if err := instance.Close(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Modal handle closed locally: %s (remote sandbox unchanged)\n", instance.ID())
+	fmt.Printf("Closed the handle for Modal sandbox %s. The sandbox is still running.\n", instance.ID())
 }

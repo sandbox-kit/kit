@@ -31,6 +31,7 @@ import {
 class RecordingBackend implements Backend {
   readonly name = "test";
   closeCalls = 0;
+  closeSandboxCalls = 0;
   createCalls = 0;
   terminated = false;
   lastCreateRequest: CreateOptions | undefined;
@@ -48,12 +49,12 @@ class RecordingBackend implements Backend {
     this.closeCalls++;
   }
 
-  async attach(id: string): Promise<SandboxInfo> {
-    return { id, provider: this.name, state: SandboxState.Running };
+  async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {
+    this.closeSandboxCalls++;
   }
 
-  capabilities(): readonly LifecycleCapability[] {
-    return [LifecycleCapability.Terminate];
+  async attach(id: string): Promise<SandboxInfo> {
+    return { id, provider: this.name, state: SandboxState.Running };
   }
 
   async terminate(_id: string, options: TerminateOptions): Promise<ExitResult> {
@@ -115,10 +116,10 @@ describe("Client cleanup", () => {
     expect(backend.closeCalls).toBe(1);
   });
 
-  it("makes close idempotent", async () => {
+  it("sends each close to the provider", async () => {
     const { client, backend } = fixture();
     await Promise.all([client.close(), client.close()]);
-    expect(backend.closeCalls).toBe(1);
+    expect(backend.closeCalls).toBe(2);
   });
 
   it("supports explicit async disposal", async () => {
@@ -136,30 +137,32 @@ describe("Client cleanup", () => {
     expect(backend.closeCalls).toBe(1);
   });
 
-  it("rejects operations after close without deleting a sandbox", async () => {
+  it("calls the provider again after close", async () => {
     const { client, backend } = fixture();
     await client.close();
-    await expect(client.create()).rejects.toMatchObject({
-      kind: ErrorKind.FailedPrecondition,
-      operation: "create",
-    });
-    expect(backend.createCalls).toBe(0);
+    await expect(client.create()).resolves.toBeDefined();
+    expect(backend.closeCalls).toBe(1);
+    expect(backend.createCalls).toBe(1);
+    await client.close();
+    expect(backend.closeCalls).toBe(2);
   });
 
-  it("invalidates handles when their owning client closes", async () => {
+  it("leaves a handle usable after its client closes", async () => {
     const { client, backend } = fixture();
     const sandbox = await client.attach("sandbox-existing");
     await client.close();
 
-    await expect(sandbox.terminate()).rejects.toMatchObject({
-      kind: ErrorKind.FailedPrecondition,
-      operation: "terminate",
-    });
-    expect(backend.terminated).toBe(false);
+    await expect(sandbox.terminate()).resolves.toEqual({});
+    expect(backend.terminated).toBe(true);
+    expect(sandbox.supports(LifecycleCapability.Terminate)).toBe(true);
   });
 
   it("supports management-only providers without a create capability", async () => {
-    const backend: Backend = { name: "manage", close: async () => {} };
+    const backend: Backend = {
+      name: "manage",
+      close: async () => {},
+      closeSandbox: async () => {},
+    };
     const client = new Client({
       provider: { name: backend.name, initialize: () => backend },
     });
@@ -370,7 +373,7 @@ describe("Operation cancellation", () => {
     expect(backend.createCalls).toBe(0);
   });
 
-  it("releases client operation bookkeeping after invalid timeout input", async () => {
+  it("closes the provider after a rejected create", async () => {
     const { client, backend } = fixture();
 
     await expect(client.create({}, { timeout: -1 })).rejects.toMatchObject({
@@ -416,6 +419,14 @@ describe("Operation cancellation", () => {
 });
 
 describe("Sandbox lifecycle", () => {
+  it("calls handle close on every provider", async () => {
+    const { client, backend } = fixture();
+    const sandbox = await client.attach("sandbox-existing");
+    await sandbox.close();
+    expect(backend.closeSandboxCalls).toBe(1);
+    expect(sandbox.supports(LifecycleCapability.Terminate)).toBe(true);
+  });
+
   it("attaches, reports capabilities, and terminates through the provider", async () => {
     const { client, backend } = fixture();
     const sandbox = await client.attach("sandbox-existing");
@@ -424,11 +435,9 @@ describe("Sandbox lifecycle", () => {
       exitCode: 0,
     });
     expect(backend.terminated).toBe(true);
-    expect(sandbox.capabilities()).toEqual([]);
-    await expect(sandbox.terminate()).rejects.toMatchObject({
-      kind: ErrorKind.FailedPrecondition,
-      operation: "terminate",
-    });
+    expect(sandbox.supports(LifecycleCapability.Terminate)).toBe(true);
+    expect(sandbox.info().terminal).toBeUndefined();
+    await expect(sandbox.terminate()).resolves.toEqual({});
   });
 
   it("rejects lifecycle operations absent from the selected provider", async () => {
@@ -451,6 +460,7 @@ describe("Sandbox lifecycle", () => {
     const backend: Backend = {
       name: "serial",
       close: async () => {},
+      closeSandbox: async () => {},
       attach: async (id) => ({
         id,
         provider: "serial",
@@ -490,6 +500,7 @@ describe("Sandbox lifecycle", () => {
     const backend: Backend = {
       name: "serial-cancel",
       close: async () => {},
+      closeSandbox: async () => {},
       attach: async (id) => ({
         id,
         provider: "serial-cancel",

@@ -1,4 +1,4 @@
-// Close one local Daytona sandbox handle without changing the cloud sandbox.
+// Close one Daytona sandbox handle. This does not contact Daytona or change the sandbox.
 package main
 
 import (
@@ -45,5 +45,5 @@ func main() {
 	if err := instance.Close(context.Background()); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Closed local handle for Daytona sandbox %s; the cloud sandbox was not changed.\n", instance.ID())
+	fmt.Printf("Closed the handle for Daytona sandbox %s. The sandbox was not changed.\n", instance.ID())
 }

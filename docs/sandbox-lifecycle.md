@@ -17,13 +17,13 @@ return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Mi
 ```
 
 An operation-specific timeout overrides `Config.Timeout` / `timeout`. Omitted
-inherits the client default, and explicit zero adds no Kit deadline. Closing the
-client does not change the cloud sandbox. Do not use handles that depend on its
-SDK after client closure.
-`Sandbox.Close` / `sandbox.close()` closes only the local handle; it never
-changes the remote sandbox. Client and handle closure are idempotent. Handle
-closure waits for operations already running through that handle, and client
-closure waits for operations owned by its handles.
+inherits the client default, and explicit zero adds no deadline of its own.
+`Client.Close` / `client.close()` closes your connection to Daytona or Modal
+and returns that result. It does not stop or delete the sandbox. A later call
+uses that connection and returns the provider's result.
+`Sandbox.Close` / `sandbox.close()` does not change the sandbox. You can keep
+using the handle. Closing a Daytona handle does not contact Daytona. Closing a
+Modal handle does not terminate the sandbox.
 
 TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
 scoped client when its lifetime matches the current block. Lifecycle call
@@ -36,15 +36,15 @@ const sandbox = await client.create(request);
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Use `await using sandbox = ...` only when the handle itself should become
-unusable at the end of the block. Disposing either object releases local SDK
-resources only; it does not stop, terminate, or delete the cloud sandbox.
+Disposing a client closes your connection to Daytona or Modal. Disposing a
+handle does not stop, terminate, or delete the sandbox. You can keep using the
+handle.
 
 ## Operation semantics
 
 `Start` enters the running state from a provider-supported retained state.
-`Stop` requests a restartable stop where the sandbox class supports one; an
-ephemeral provider resource can still be destroyed by its configured policy.
+`Stop` requests a stop. An ephemeral sandbox can still be destroyed by its
+configured policy.
 `Pause` requests a provider memory-preserving transition; successful return
 means the provider left its pausing transition and callers should inspect the
 returned handle metadata for the resolved state. `Terminate` permanently finishes
@@ -52,20 +52,18 @@ an execution without promising deletion of its provider record. `Archive` moves
 retained state to provider archive storage. `Delete` irreversibly removes the
 provider sandbox resource. These meanings are not aliases.
 
-Unsupported operations return `ErrorKindUnsupported` before an operation call
-when Kit knows the selected provider or resolved sandbox class cannot honor the
-intent. Account permissions and dynamically enabled features remain
-provider-enforced.
+Unsupported operations return `ErrorKindUnsupported` before a provider call
+when the selected provider does not implement them. Daytona accepts or rejects
+a call for a particular sandbox, and Kit returns that error. Account
+permissions and dynamically enabled features remain provider-enforced.
 
-`Capabilities` returns support for the selected provider and the sandbox's
-resolved isolation class. `Supports` is the convenient single-capability check.
-Capabilities can change after `Refresh` when the provider reports a different
-resolved class or terminal state.
+`Capabilities` lists the operations the selected provider implements.
+`Supports` checks one of them. Close does not clear the list.
 
 `SandboxInfo.State` is Kit's portable lifecycle state. `ProviderState` retains
-the provider's exact value. After successful `Terminate` or `Delete`, Kit marks
-the handle terminal, exposes no further lifecycle capabilities, and rejects
-subsequent lifecycle calls with `ErrorKindFailedPrecondition`.
+the provider's exact value. `Terminal` is present when the provider reports
+that the sandbox is finished. A later lifecycle call still goes to the provider,
+and Kit returns that result.
 
 Each SDK serializes lifecycle transitions on one handle. This does not
 serialize a different handle or process referring to the same remote sandbox. A
@@ -74,23 +72,22 @@ abort signal, or reach its deadline.
 
 ## Provider support
 
-| Operation   | Modal                                  | Daytona container                               | Daytona Linux/Windows VM   | Daytona GPU                    |
-| ----------- | -------------------------------------- | ----------------------------------------------- | -------------------------- | ------------------------------ |
-| Attach      | Supported; ID only, no provider lookup | Unsupported                                     | Unsupported                | Unsupported                    |
-| Refresh/Get | Unsupported                            | Supported                                       | Supported                  | Supported                      |
-| Start       | Unsupported                            | Supported                                       | Supported                  | Provider-enforced              |
-| Stop        | Unsupported                            | Supported; filesystem retained unless ephemeral | Supported; memory cleared  | Destructive by provider design |
-| Pause       | Unsupported                            | Unsupported                                     | Supported; memory retained | Unsupported                    |
-| Terminate   | Supported                              | Unsupported                                     | Unsupported                | Unsupported                    |
-| Archive     | Unsupported                            | Supported                                       | Unsupported                | Unsupported                    |
-| Delete      | Unsupported                            | Supported                                       | Supported                  | Supported                      |
+| Operation   | Modal                                  | Daytona     |
+| ----------- | -------------------------------------- | ----------- |
+| Attach      | Supported; ID only, no provider lookup | Unsupported |
+| Refresh/Get | Unsupported                            | Supported   |
+| Start       | Unsupported                            | Supported   |
+| Stop        | Unsupported                            | Supported   |
+| Pause       | Unsupported                            | Supported   |
+| Terminate   | Supported                              | Unsupported |
+| Archive     | Unsupported                            | Supported   |
+| Delete      | Unsupported                            | Supported   |
 
 Daytona reports its resolved sandbox class after creation. Kit maps container
 and Linux VM to shared isolation kinds and preserves Windows as a provider-specific
 kind. GPU allocation is provider metadata and does not replace the underlying
-isolation class. Snapshot references can
-select a class that was not knowable from `CreateOptions`, so lifecycle checks
-use current provider metadata rather than the original request.
+isolation class. Whether a sandbox accepts pause, archive, or stop is Daytona's
+decision.
 
 Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 `Terminate` maps to Modal termination; it is deliberately not presented as

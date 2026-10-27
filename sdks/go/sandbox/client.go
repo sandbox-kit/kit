@@ -16,11 +16,15 @@ import (
 
 // Backend is the open provider connection held by Client.
 // Close releases that connection. It does not stop or delete a cloud sandbox.
+// CloseSandbox runs when the caller closes a sandbox handle. It does not stop or delete the cloud sandbox.
 type Backend interface {
 	// Name returns the provider name, "daytona" or "modal".
 	Name() string
 	// Close releases the provider connection. It does not stop or delete a cloud sandbox.
 	Close(context.Context) error
+	// CloseSandbox runs when the caller closes a sandbox handle.
+	// It does not stop or delete the cloud sandbox.
+	CloseSandbox(context.Context, string) error
 }
 
 // Provider is the value passed to NewClient.
@@ -42,8 +46,6 @@ type Client struct {
 	// timeout is a copy of Config.Timeout. Nil adds no Kit deadline. An explicit
 	// zero also adds none.
 	timeout *time.Duration
-	// lifecycle coordinates operations with idempotent client closure.
-	lifecycle *clientLifecycle
 }
 
 // missingClientBinding reports whether a provider or backend value is missing.
@@ -99,7 +101,7 @@ func NewClient(providerFactory Provider, config *Config) (client *Client, result
 	if actual := backend.Name(); actual != expected {
 		return nil, errors.Join(NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
 	}
-	return &Client{backend: backend, timeout: timeout, lifecycle: &clientLifecycle{}}, nil
+	return &Client{backend: backend, timeout: timeout}, nil
 }
 
 // validateProtoConfig validates the generated client contract before native
@@ -164,7 +166,10 @@ func (c *Client) Close(ctx context.Context) (result error) {
 	if ctx == nil {
 		return NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "close", Field: "context", Message: "sandbox-kit: context is required"}, nil)
 	}
-	return c.closeBackend(ctx)
+	if c == nil || c.backend == nil {
+		return nil
+	}
+	return c.backend.Close(ctx)
 }
 
 // Create creates one sandbox and returns its handle.
@@ -191,12 +196,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if c == nil || c.backend == nil {
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: provider, Operation: "create", Field: "client", Message: "sandbox-kit: client is not initialized"}, nil)
 	}
-	release, err := c.beginOperation("create")
-	if err != nil {
-		return nil, err
-	}
-	defer release()
-	request, err = prepareCreateRequest(request)
+	request, err := prepareCreateRequest(request)
 	if err != nil {
 		return nil, err
 	}
@@ -228,6 +228,5 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 		return nil, err
 	}
 	instance.timeout = c.timeout
-	instance.owner = c
 	return instance, nil
 }

@@ -1,25 +1,18 @@
 # Client configuration
 
 Construct a Go client with `sandbox.NewClient(provider, &sandbox.Config{...})`
-or a TypeScript client with `new Client({...})`. The selected provider
-initializes its official SDK from portable configuration.
+or a TypeScript client with `new Client({ provider, ... })`.
 
-Provider selection is never part of the portable `Config` message. Go passes the
-provider as a separate `NewClient` argument; TypeScript attaches it on
-`ClientConfig` (`Config` plus `provider`).
+Pass the provider separately from the other settings. In Go it is the first
+argument to `NewClient`. In TypeScript it is the `provider` field.
 
-TypeScript config is a public facade: nested auth (`auth: { apiKey: { key } }` /
-`tokenPair` / `bearerToken` / `oauthRefresh`), optional `scope` / `endpoint` /
-`region`, and `timeout` as a **millisecond number**. The client materializes
-protobuf privately before Protovalidate.
+TypeScript auth is nested: `auth: { apiKey: { key } }`, `tokenPair`,
+`bearerToken`, or `oauthRefresh`. You can also set `scope`, `endpoint`,
+`region`, and `timeout` in milliseconds.
 
-The constructors have the same ownership and validation semantics while
-following each language's conventions: Go returns `(*Client, error)`, and
-TypeScript throws on invalid synchronous construction. Shared Config rules come
-from Protovalidate on `client.proto` (`ValidateConfig`); `secure_endpoint` is
-handwritten. Go callers defer `client.Close(ctx)`; TypeScript callers use
-`await client.close()` or scope the client with `await using`. None of these
-cleanup forms changes the remote sandbox lifecycle.
+Go returns `(*Client, error)`. TypeScript throws when the settings are invalid.
+Call `client.Close(ctx)` in Go, or `await client.close()` or `await using` in
+TypeScript. Closing the client does not stop or delete the sandbox.
 
 ## Configuration fields
 
@@ -76,19 +69,17 @@ account permissions and resource availability when it processes requests.
 
 ## Ownership and deadlines
 
-The client owns its initialized SDK. Call `client.Close(ctx)` in Go or
-`await client.close()` in TypeScript when finished. This releases SDK resources
-without stopping or deleting sandboxes. Close is idempotent and waits for client
-operations already running through that client. Do not use its handles after
-client closure. Closing one sandbox handle does not close the client or change
-the remote sandbox.
+Call `client.Close(ctx)` in Go or `await client.close()` in TypeScript when you
+are finished with the client. That closes your connection to Daytona or Modal.
+The sandboxes keep running. You can keep using a handle; the next call returns
+the provider's result. Closing one handle does not close the client or change
+the sandbox.
 
-Captured client state copies supplied scope and region values, preserving
-omission and explicit values. Later mutations of the original configuration do
-not change captured state. Kit also copies creation requests and returned
-metadata.
+Changing the config object after you create the client does not change the
+client. Editing the create options you passed, or the metadata you read back,
+does not change the handle.
 
-`Config.Timeout` / `timeout` is the default Kit deadline for provider operations.
+`Config.Timeout` / `timeout` is the default deadline for provider operations.
 A creation request can override it with `CreateOptions.Provisioning.Timeout` /
 `provisioning.timeout`; lifecycle options can override it with their
 operation-specific `Timeout` / `timeout`. Explicit zero adds no Kit deadline. An
@@ -106,10 +97,5 @@ Construction, operation, and cleanup failures expose shared error details.
 Native SDK and validator errors remain accessible through the cause chain.
 See [responses and errors](responses-and-errors.md).
 
-Configuration types and contracts come from
-[`client.proto`](../proto/kit/sandbox/v1/client.proto) (Protovalidate options;
-`secure_endpoint` is handwritten),
-[client rules](../specs/client.yaml), and provider YAML.
-See [Go examples](../examples/go/README.md),
-[TypeScript examples](../examples/typescript/README.md), and
-[generation](code-generation.md).
+See [Go examples](../examples/go/README.md) and
+[TypeScript examples](../examples/typescript/README.md).

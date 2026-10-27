@@ -8,7 +8,7 @@ the exit code.
 `terminate` ends the sandbox execution. Modal also ends sandboxes when max
 timeout or idle timeout fires, or when the entrypoint exits. See
 [Sandboxes](https://modal.com/docs/guide/sandboxes). Waiting returns an exit
-result when available; Kit then marks the handle terminal.
+result when available. A later call goes to Modal, and Kit returns that result.
 
 ## Edge cases
 

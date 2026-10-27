@@ -39,7 +39,7 @@ type SandboxStopper interface {
 }
 
 // SandboxPauser pauses a sandbox.
-// Daytona implements it for sandbox classes that can pause. Call Sandbox.Supports before Sandbox.Pause.
+// Daytona implements it and accepts or rejects the sandbox. Modal does not.
 type SandboxPauser interface {
 	// PauseSandbox pauses the sandbox identified by id.
 	PauseSandbox(context.Context, string, *PauseOptions) (*SandboxInfo, error)
@@ -53,7 +53,7 @@ type SandboxTerminator interface {
 }
 
 // SandboxArchiver archives a sandbox.
-// Daytona implements it for sandbox classes that can archive. Call Sandbox.Supports before Sandbox.Archive.
+// Daytona implements it and accepts or rejects the sandbox. Modal does not.
 type SandboxArchiver interface {
 	// ArchiveSandbox archives the sandbox identified by id.
 	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)

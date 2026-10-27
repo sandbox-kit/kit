@@ -514,7 +514,7 @@ enum SandboxState {
   SANDBOX_STATE_DELETED = 13;
   SANDBOX_STATE_ERROR = 14;
 }
-// LifecycleCapability identifies an operation supported by a particular resolved sandbox handle.
+// LifecycleCapability identifies a lifecycle operation a provider implements.
 enum LifecycleCapability {
   LIFECYCLE_CAPABILITY_UNKNOWN = 0;
   LIFECYCLE_CAPABILITY_REFRESH = 1;

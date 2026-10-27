@@ -1,18 +1,18 @@
 # Close a Daytona sandbox handle
 
-`Get` a sandbox, then **`Sandbox.Close` / `sandbox.close()`** to drop the local
-handle only.
+`Get` a sandbox, then call **`Sandbox.Close` / `sandbox.close()`**.
 
 ## What this means
 
-Handle close does not stop, archive, or delete the Daytona sandbox. Client close
-likewise only releases the SDK connection.
+Closing the handle does not contact Daytona and does not stop, archive, or
+delete the sandbox. Closing the client closes your connection to Daytona.
+You can keep using the handle. The next call returns Daytona's result.
 
 ## Edge cases
 
 - Safe against a sandbox you want to keep running or stopped.
-- Do not use the handle after close (or after client close).
-- Close is idempotent and waits for in-flight ops on that handle.
+- A later call on the handle goes to Daytona.
+- Client close releases the SDK connection. A later call returns Daytona's result.
 
 ## Run
 
@@ -37,7 +37,7 @@ DAYTONA_SANDBOX_ID=
 ## Warnings
 
 - Needs an **existing sandbox ID** in `.env`.
-- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+- Handle close does not change the cloud sandbox. Client close releases the SDK connection.
 
 ## Related
 

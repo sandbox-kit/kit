@@ -1645,7 +1645,7 @@ export const SandboxStateSchema: GenEnum<SandboxState> = /*@__PURE__*/
   enumDesc(file_kit_sandbox_v1_sandbox, 7);
 
 /**
- * LifecycleCapability identifies an operation supported by a particular resolved sandbox handle.
+ * LifecycleCapability identifies a lifecycle operation a provider implements.
  *
  * @generated from enum kit.sandbox.v1.LifecycleCapability
  */

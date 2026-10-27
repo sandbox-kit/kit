@@ -7,8 +7,8 @@ import (
 )
 
 // Sandbox is the handle for one cloud sandbox.
-// ID and Info describe it. Lifecycle methods change it. Close releases this
-// handle and leaves the cloud sandbox running.
+// ID and Info describe it. Lifecycle methods change it. Close does not change
+// the cloud sandbox. You can keep using the handle.
 //
 // Example:
 //
@@ -20,8 +20,6 @@ type Sandbox struct {
 	operations    Backend
 	timeout       *time.Duration
 	operationGate chan struct{}
-	owner         *Client
-	closed        bool
 	// info is an owned metadata copy. Info returns another copy so callers cannot mutate this one.
 	info *SandboxInfo
 }
@@ -59,15 +57,7 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 // ID returns the provider sandbox identifier.
 // A nil handle returns an empty string.
 func (s *Sandbox) ID() string {
-	if s == nil {
-		return ""
-	}
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	if s.info == nil {
-		return ""
-	}
-	return s.info.Id
+	return s.currentID()
 }
 
 // ProviderName returns "daytona" or "modal".
@@ -105,40 +95,28 @@ func (s *Sandbox) Info() *SandboxInfo {
 	return info
 }
 
-type sandboxCapabilityResolver interface {
-	SandboxCapabilities(*SandboxInfo) []LifecycleCapability
-}
-
-// Capabilities lists the lifecycle operations this handle can still perform.
+// Capabilities lists the lifecycle operations this provider implements.
 // Pass a value to Supports, or compare it with LifecycleCapabilityPause and the other capability constants.
-// A closed client, a closed handle, or a terminal sandbox returns nil.
 func (s *Sandbox) Capabilities() []LifecycleCapability {
-	if s == nil || s.operations == nil {
+	if s == nil || s.operations == nil || s.currentID() == "" {
 		return nil
-	}
-	s.mu.RLock()
-	closed := s.closed
-	s.mu.RUnlock()
-	if closed {
-		return nil
-	}
-	if s.owner != nil && s.owner.isClosed() {
-		return nil
-	}
-	info := s.Info()
-	if info == nil || info.GetTerminal() {
-		return nil
-	}
-	if resolver, ok := s.operations.(sandboxCapabilityResolver); ok {
-		values := resolver.SandboxCapabilities(info)
-		return append([]LifecycleCapability(nil), values...)
 	}
 	return staticLifecycleCapabilities(s.operations)
 }
 
-// Supports reports whether this handle can perform capability.
-// Check LifecycleCapabilityPause before Pause and LifecycleCapabilityArchive before Archive.
-// A terminal or closed handle supports nothing.
+func (s *Sandbox) currentID() string {
+	if s == nil {
+		return ""
+	}
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if s.info == nil {
+		return ""
+	}
+	return s.info.Id
+}
+
+// Supports reports whether this provider implements capability.
 func (s *Sandbox) Supports(capability LifecycleCapability) bool {
 	for _, candidate := range s.Capabilities() {
 		if candidate == capability {

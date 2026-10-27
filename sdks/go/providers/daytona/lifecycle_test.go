@@ -57,35 +57,14 @@ func TestResolvedSandboxClassMapping(t *testing.T) {
 	}
 }
 
-func TestResolvedCapabilitiesAndPortableState(t *testing.T) {
+func TestResolvedPortableState(t *testing.T) {
 	container := types.SandboxClassContainer
 	instance := &daytonasdk.Sandbox{ID: "id", SandboxClass: &container, State: apiclient.SANDBOXSTATE_STARTED}
 	info, err := sandboxInfo(instance)
 	if err != nil {
 		t.Fatal(err)
 	}
-	backend := &backend{}
-	capabilities := backend.SandboxCapabilities(info)
-	contains := func(want sandbox.LifecycleCapability) bool {
-		for _, got := range capabilities {
-			if got == want {
-				return true
-			}
-		}
-		return false
-	}
-	if info.State != sandbox.SandboxStateRunning || !contains(sandbox.LifecycleCapabilityArchive) || contains(sandbox.LifecycleCapabilityPause) {
-		t.Fatalf("unexpected state/capabilities: %v %v", info.State, capabilities)
-	}
-	instance.Gpu = 1
-	info, err = sandboxInfo(instance)
-	if err != nil {
-		t.Fatal(err)
-	}
-	capabilities = backend.SandboxCapabilities(info)
-	for _, capability := range capabilities {
-		if capability == sandbox.LifecycleCapabilityArchive || capability == sandbox.LifecycleCapabilityPause {
-			t.Fatalf("GPU capability leaked: %v", capabilities)
-		}
+	if info.State != sandbox.SandboxStateRunning {
+		t.Fatalf("unexpected state: %v", info.State)
 	}
 }

@@ -7,12 +7,12 @@ Load a provider-verified handle for `DAYTONA_SANDBOX_ID` with
 
 `Get` performs a remote lookup and returns current Daytona metadata (state,
 class, labels, …). Use it when you already have an ID and need a fresh handle.
-Capabilities on the handle reflect the **resolved class now**.
+Capabilities list the lifecycle methods Daytona implements.
 
 ## Edge cases
 
 - Unknown or deleted IDs fail at the provider (`NotFound` or similar).
-- Class (and capabilities) can differ from what you assumed at create time.
+- The resolved class can differ from what you assumed at create time.
 - Does not change the cloud sandbox.
 
 ## Run

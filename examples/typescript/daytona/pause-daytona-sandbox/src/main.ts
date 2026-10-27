@@ -1,18 +1,5 @@
 import { daytona } from "@sandbox-kit/daytona";
-import {
-  Client,
-  LifecycleCapability,
-  type Sandbox,
-} from "@sandbox-kit/sandbox";
-
-function assertCapability(
-  sandbox: Sandbox,
-  capability: LifecycleCapability,
-): void {
-  if (!sandbox.supports(capability)) {
-    throw new Error(`sandbox ${sandbox.id} does not support ${capability}`);
-  }
-}
+import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider: daytona(),
@@ -23,6 +10,5 @@ await using client = new Client({
 });
 
 const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
-assertCapability(sandbox, LifecycleCapability.Pause);
 const info = await sandbox.pause();
 console.log(`Daytona pause completed: ${sandbox.id} (${info.state}, native ${info.providerState ?? "unknown"})`);
