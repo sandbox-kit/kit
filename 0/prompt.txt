@@ -1,0 +1,119 @@
+should I merge this branch gto main 
+
+verify changes onces and lemme know
+
+---
+
+okay fix things whcih are bed.
+
++ I see we are still doing cloneSandboxInfo and cloneCreateOptions
+
+do we need that too ?
+
+---
+
+can u review I dthink u over did it ?
+
+---
+
+ig lifecycle capablity ws never about runtime ? 
+
+it just meant that if particular providers supports that lifecycle event right ?
+
+---
+
+The one runtime change is terminal. After Terminate or Delete, the handle drops the whole list and later lifecycle calls fail with ErrorKindFailedPrecondition.
+
+why we need this ?
+
+---
+
+explian with examples
+
+---
+
+ig this is completely wrong logic
+
+all we had to do was if with supports and capablities function -> that this provider supports. 
+
+other things should be lightweight right ? 
+
+currently what happens if there is no capablity but still it calls one of capablity ?
+
+---
+
+what do u recommend ? as this is some concern
+
+can u check daytona and Modal sdk and lemme know
+
+---
+
+fix it
+
+---
+
+commit and push to this branch.
+
+---
+
+can u also update the PR description and both the issue descritpion which is open
+
+on steps to do for launching + chnages made for both sdks
+
+---
+
+Daytona accepts or rejects pause, archive, and stop for that sandbox, and Kit returns that error.
+
+if provider rejects the lifecycle event incase lets say delete then again pause same sandbox instance. 
+
+do we have unify error response for it or we response what  provider response ?
+
+---
+
+can we do somethin like don't track terminal on our side ?
+
+just have it lightweight and response with whatever is returned from providers ? 
+
+its much better unify way instead of doing this
+
+---
+
+i think we should also do same with close don't handle it ourselves ?
+
+---
+
+there will be lot of obsolete code after this changes can u remove it 
+
+things were written certain way due to this
+
+Fix that and make it minimal
+
+---
+
+client.close what it does now and sandbox.close what it does now ?
+
+can u check rn
+
+---
+
+do we need to change anything here
+
+can u look at both providers referecne sdk and lemme know ?
+
+---
+
+so no changes ?
+
+---
+
+while daytona doesn't have close sandbox
+
+ain't will unify contracts break in code when things are change. just having method there which doesn't do anythin makes more sense ?
+
+---
+
+make changes
+
+---
+
+does examples readme, .md and anything need changes after this ?
