@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M5Y3Q169W694K7G63AQ3EVKN",
+  "strategy": "manual-commit",
+  "branch": "perf/sandbox-sdk-hot-paths",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "sdks/go/providers/daytona/metadata.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
+    "sdks/typescript/sandbox/src/client/sandbox.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 70441,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3792896,
+    "output_tokens": 26826,
+    "api_call_count": 3
+  }
+}

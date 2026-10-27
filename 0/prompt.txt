@@ -1,0 +1,47 @@
+in go and typescript sdk what optimization can be made more ?
+
+---
+
+are u sure about all this ?
+
+---
+
+okay fix it
+
+---
+
+cna u review it if things are good changes
+
++ if there are other similar performance improvements plz do it.
+
+---
+
+cool keep on doing changes of optmization + also review it. 
+
+don't make wrong changes
+
+---
+
+create a branch, commit, push to that branch create a PR to main with good descrition and title of PR
+
+---
+
+explian each changes in description of PR with diagrams in very simple language + also with examples
+
+---
+
+Unable to render rich display
+
+why it shows in desription of PR
+
+---
+
+is there any obsolete code + outdated .md with  changes made so far in this branch. 
+
+then plz update it
+
+---
+
+can u make the changes u have made in this branch more clean, use design patterns. 
+
+write clean code.
