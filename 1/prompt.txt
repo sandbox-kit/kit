@@ -1,0 +1,21 @@
+in go and typescript sdk what optimization can be made more ?
+
+---
+
+are u sure about all this ?
+
+---
+
+okay fix it
+
+---
+
+cna u review it if things are good changes
+
++ if there are other similar performance improvements plz do it.
+
+---
+
+cool keep on doing changes of optmization + also review it. 
+
+don't make wrong changes

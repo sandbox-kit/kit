@@ -3,8 +3,15 @@
   "checkpoint_id": "01M5Y2AFGC7TKJ00MW1N0X4DWV",
   "strategy": "manual-commit",
   "branch": "perf/sandbox-sdk-hot-paths",
-  "checkpoints_count": 2,
+  "checkpoints_count": 7,
   "files_touched": [
+    "sdks/go/providers/daytona/lifecycle.go",
+    "sdks/go/providers/daytona/metadata.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/metadata.go",
+    "sdks/go/sandbox/metadata_object.go",
+    "sdks/go/sandbox/operation.go",
+    "sdks/go/sandbox/sandbox.go",
     "sdks/typescript/providers/daytona/src/daytona.ts",
     "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
     "sdks/typescript/sandbox/src/client/sandbox.ts",
@@ -17,6 +24,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
-  ]
+  ],
+  "token_usage": {
+    "input_tokens": 147359,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 10023936,
+    "output_tokens": 79907,
+    "api_call_count": 3
+  }
 }
