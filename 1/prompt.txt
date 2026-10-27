@@ -19,3 +19,7 @@ cna u review it if things are good changes
 cool keep on doing changes of optmization + also review it. 
 
 don't make wrong changes
+
+---
+
+create a branch, commit, push to that branch create a PR to main with good descrition and title of PR
