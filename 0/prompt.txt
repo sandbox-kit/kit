@@ -1,17 +1,3 @@
-think u are the human engineer of this sdk.  worlds best sdk builder.
+create a branch, commit push to that branch make a PR to main. 
 
-what are the things u would improve in this. 
-
-there would be things which are basically overkilled and u would improve.
-
----
-
-it was decided we have proto generated to user side earliuer remove  that requirement of changing and tell me others again
-
----
-
-Drop provenance and the metadata budget walk. SandboxInfo.origins records whether each field came from the request or the provider. MetadataValue reimplements JSON so integers survive, with a depth cap, a node cap, and a byte cap. Callers do not need a per-field origin map. The adapter can fill provider metadata without that walk.
-
-
-
-do this first.
+then update the two open issue with changes happend in both go and typescript sdk
