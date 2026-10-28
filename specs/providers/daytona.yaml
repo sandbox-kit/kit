@@ -151,7 +151,6 @@ groups:
           cast: integer,
         }
   - name: mapSandboxInfo
-    origin: provider
     direction: response
     source:
       name: Sandbox

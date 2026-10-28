@@ -1,12 +1,5 @@
 package sandbox
 
-import (
-	"reflect"
-	"strings"
-
-	"google.golang.org/protobuf/reflect/protoreflect"
-)
-
 // CreateFieldName is the Field value "name" on a create error.
 // Compare Error.Field with these constants to see which setting to change.
 const CreateFieldName = "name"
@@ -373,110 +366,8 @@ const InfoFieldCreatedAt = "created_at"
 // InfoFieldProviderMetadata is the canonical path "provider_metadata".
 const InfoFieldProviderMetadata = "provider_metadata"
 
-// InfoFieldOrigins is the canonical path "origins".
-const InfoFieldOrigins = "origins"
-
 // InfoFieldState is the canonical path "state".
 const InfoFieldState = "state"
 
 // InfoFieldTerminal is the canonical path "terminal".
 const InfoFieldTerminal = "terminal"
-
-// responseFieldPresent reports whether path names a field that is present on
-// the sandbox metadata. Presence follows protobuf descriptors rather than a
-// handwritten field inventory.
-func responseFieldPresent(info *SandboxInfo, path string) bool {
-	if info == nil || path == "" {
-		return false
-	}
-	msg := info.ProtoReflect()
-	parts := strings.Split(path, ".")
-	for i, part := range parts {
-		fd := msg.Descriptor().Fields().ByName(protoreflect.Name(part))
-		if fd == nil {
-			return false
-		}
-		last := i == len(parts)-1
-		switch {
-		case fd.IsMap():
-			if !last {
-				return false
-			}
-			// ProtoReflect.Has is false for empty maps; Kit treats a non-nil empty
-			// map as present (same as clone/origins semantics).
-			return msg.Has(fd) || mapFieldNonNil(msg, fd)
-		case fd.Message() != nil:
-			if !msg.Has(fd) {
-				return false
-			}
-			if last {
-				return true
-			}
-			msg = msg.Get(fd).Message()
-		default:
-			if !last {
-				return false
-			}
-			if fd.HasPresence() {
-				return msg.Has(fd)
-			}
-			if fd.Kind() == protoreflect.StringKind {
-				return msg.Get(fd).String() != ""
-			}
-			// Proto3 enums and other non-presence scalars are present when the
-			// containing message was reached (for example state, isolation.kind).
-			return true
-		}
-	}
-	return false
-}
-
-// mapFieldNonNil reports whether the Go map backing fd is non-nil (including empty).
-func mapFieldNonNil(msg protoreflect.Message, fd protoreflect.FieldDescriptor) bool {
-	value := reflect.ValueOf(msg.Interface())
-	if value.Kind() == reflect.Pointer {
-		if value.IsNil() {
-			return false
-		}
-		value = value.Elem()
-	}
-	if value.Kind() != reflect.Struct {
-		return false
-	}
-	name := string(fd.Name())
-	typ := value.Type()
-	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		if field.PkgPath != "" {
-			continue
-		}
-		if protobufFieldName(field) != name {
-			continue
-		}
-		mapValue := value.Field(i)
-		return mapValue.Kind() == reflect.Map && !mapValue.IsNil()
-	}
-	return false
-}
-
-// validateResponseOrigins checks that every origin names a known field that is
-// actually present. A missing origin means the source is unknown.
-func validateResponseOrigins(info *SandboxInfo, operation string) error {
-	for path, origin := range info.Origins {
-		if !validValueOrigin(origin) || !responseFieldPresent(info, path) {
-			return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: info.Provider, Operation: operation, Field: "origins." + path, Message: "sandbox-kit: origin must describe a known, present response field"}, nil)
-		}
-	}
-	return nil
-}
-
-// protobufFieldName returns the canonical protobuf field name from a generated
-// struct tag. Falls back to the Go field name when the tag is missing.
-func protobufFieldName(field reflect.StructField) string {
-	for _, part := range strings.Split(field.Tag.Get("protobuf"), ",") {
-		if name, ok := strings.CutPrefix(part, "name="); ok && name != "" {
-			return name
-		}
-	}
-	return field.Name
-}

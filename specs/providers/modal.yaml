@@ -84,7 +84,6 @@ runtime:
 groups:
   - name: mapSandboxIdentity
     direction: response
-    origin: provider
     source:
       name: Sandbox
       bindings:

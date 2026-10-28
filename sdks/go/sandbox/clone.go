@@ -72,9 +72,6 @@ func preserveSandboxInfoCollections(src, dst *SandboxInfo) {
 	if src.Labels != nil && dst.Labels == nil {
 		dst.Labels = map[string]string{}
 	}
-	if src.Origins != nil && dst.Origins == nil {
-		dst.Origins = map[string]ValueOrigin{}
-	}
 	if src.ProviderMetadata != nil && dst.ProviderMetadata != nil {
 		preserveMetadataObject(src.ProviderMetadata, dst.ProviderMetadata)
 	}

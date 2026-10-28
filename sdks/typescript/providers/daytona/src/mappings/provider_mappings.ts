@@ -4,7 +4,6 @@
 import {
   ErrorKind,
   PolicyMode,
-  ValueOrigin,
   type SandboxInfo,
   type Scope,
   CreateFieldLifetimeIdlePause,
@@ -14,11 +13,6 @@ import {
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesDiskMib,
   CreateFieldResourcesMemoryMib,
-  InfoFieldId,
-  InfoFieldLabels,
-  InfoFieldName,
-  InfoFieldProviderState,
-  InfoFieldRegion,
 } from "@sandbox-kit/sandbox";
 import type {
   APIKeyCredentials,
@@ -226,41 +220,34 @@ export function mapSandboxInfo(
 ): Partial<SandboxInfo> {
   const target: Mutable<Partial<SandboxInfo>> = {};
   if (source === undefined) return target;
-  const origins: Record<string, ValueOrigin> = {};
-  target.origins = origins;
   {
     if (source.id !== undefined) {
       const value = source.id;
       target.id = value;
-      origins[InfoFieldId] = ValueOrigin.Provider;
     }
   }
   {
     if (source.name !== undefined) {
       const value = source.name;
       target.name = value;
-      origins[InfoFieldName] = ValueOrigin.Provider;
     }
   }
   {
     if (source.state !== undefined) {
       const value = source.state;
       target.providerState = String(value);
-      origins[InfoFieldProviderState] = ValueOrigin.Provider;
     }
   }
   {
     if (source.target !== undefined) {
       const value = source.target;
       target.region = value;
-      origins[InfoFieldRegion] = ValueOrigin.Provider;
     }
   }
   {
     if (source.labels !== undefined) {
       const value = source.labels;
       target.labels = { ...value };
-      origins[InfoFieldLabels] = ValueOrigin.Provider;
     }
   }
   target.provider = "daytona";

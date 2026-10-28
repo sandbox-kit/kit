@@ -48,9 +48,6 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 		}, nil)
 	}
 	info.Provider = name
-	if err := validateResponseOrigins(info, operation); err != nil {
-		return nil, err
-	}
 	return &Sandbox{operations: backend, info: info, operationGate: make(chan struct{}, 1)}, nil
 }
 
@@ -76,12 +73,12 @@ func (s *Sandbox) ProviderName() string {
 
 // Info returns a copy of the sandbox metadata.
 // Changing the result does not change the handle. A nil handle returns nil.
-// State is a SandboxState. Origins maps a field path such as InfoFieldId to ValueOriginProvider or ValueOriginRequest.
+// State is a SandboxState.
 //
 // Example:
 //
 //	info := instance.Info()
-//	fmt.Println(info.GetID(), info.Origins[InfoFieldId])
+//	fmt.Println(info.GetId(), info.GetState())
 func (s *Sandbox) Info() *SandboxInfo {
 	if s == nil {
 		return nil

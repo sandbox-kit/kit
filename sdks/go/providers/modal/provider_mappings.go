@@ -15,10 +15,7 @@ func mapSandboxIdentity(source *sdk.Sandbox) (*sandbox.SandboxInfo, error) {
 	if source == nil {
 		return target, nil
 	}
-	target.Origins = map[string]sandbox.ValueOrigin{}
-	value := source.SandboxID
-	target.Id = value
-	target.Origins["id"] = sandbox.ValueOriginProvider
+	target.Id = source.SandboxID
 	target.Provider = "modal"
 	return target, nil
 }

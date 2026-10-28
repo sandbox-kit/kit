@@ -20,4 +20,4 @@ const sandbox = await client.create({
 });
 const info = sandbox.info();
 console.log(`Daytona sandbox created: ${sandbox.id} (auto-pause disabled, deletion 10 minutes after stopping)`);
-console.log(`ID origin: ${info.origins?.id ?? "unknown"}; resource origin: ${info.origins?.resources ?? "unknown"}`);
+console.log(`id ${info.id}; resources reported: ${info.resources !== undefined}`);

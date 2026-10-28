@@ -121,7 +121,7 @@ type (
 	ExitResult = sandboxv1.ExitResult
 
 	// SandboxInfo is the metadata for one sandbox.
-	// Sandbox.Info returns a copy. State is a SandboxState. Origins records who set each field.
+	// Sandbox.Info returns a copy. State is a SandboxState.
 	SandboxInfo = sandboxv1.SandboxInfo
 
 	// MetadataValue is one metadata value: a boolean, text, number, bytes, list, or object.
@@ -155,7 +155,7 @@ type (
 	MetadataList = sandboxv1.MetadataList
 
 	// MetadataObject is a string-keyed metadata map.
-	// Build one with MetadataObjectFromMap and read one with MetadataObjectAsMap.
+	// Adapters fill Values directly. Read one with MetadataObjectAsMap.
 	MetadataObject = sandboxv1.MetadataObject
 
 	// SnapshotKind classifies a SnapshotSource.
@@ -185,10 +185,6 @@ type (
 	// LifecycleCapability names one operation Sandbox.Supports can check.
 	// The value means the provider implements that operation.
 	LifecycleCapability = sandboxv1.LifecycleCapability
-
-	// ValueOrigin records whether a metadata field came from the request or the provider.
-	// SandboxInfo.Origins maps a field path, such as InfoFieldId, to a ValueOrigin.
-	ValueOrigin = sandboxv1.ValueOrigin
 )
 
 const (
@@ -310,20 +306,8 @@ const (
 	LifecycleCapabilityArchive = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_ARCHIVE
 	// LifecycleCapabilityDelete means the provider implements Delete.
 	LifecycleCapabilityDelete = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_DELETE
-
-	// ValueOriginUnknown means the metadata does not say who set the field.
-	ValueOriginUnknown = sandboxv1.ValueOrigin_VALUE_ORIGIN_UNKNOWN
-	// ValueOriginProvider means the provider set the field.
-	ValueOriginProvider = sandboxv1.ValueOrigin_VALUE_ORIGIN_PROVIDER
-	// ValueOriginRequest means the create request set the field.
-	ValueOriginRequest = sandboxv1.ValueOrigin_VALUE_ORIGIN_REQUEST
 )
 
 // Value pointers an optional field so the provider can tell a set value from an omitted one.
 // Use it for explicit zero as well as nonzero values.
 func Value[T any](value T) *T { return &value }
-
-// validValueOrigin reports whether origin is a declared ValueOrigin.
-func validValueOrigin(origin ValueOrigin) bool {
-	return origin.Descriptor().Values().ByNumber(origin.Number()) != nil
-}

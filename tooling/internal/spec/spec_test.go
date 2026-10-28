@@ -1,7 +1,6 @@
 package spec
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,7 +9,7 @@ import (
 func TestRepositorySpecs(t *testing.T) {
 	root := filepath.Join("..", "..", "..", "specs")
 	contracts, err := LoadContracts(root)
-	if err != nil || contracts.CopyMaxDepth != 64 {
+	if err != nil || contracts.MetadataMessage != "MetadataObject" || contracts.ErrorMessage != "ErrorInfo" {
 		t.Fatalf("invalid common contracts spec: %v", err)
 	}
 	validation, err := LoadValidation(root)
@@ -59,15 +58,18 @@ func TestRejectsInvalidDocuments(t *testing.T) {
 	}
 }
 
-func TestRejectsInvalidContractDepth(t *testing.T) {
+func TestRejectsInvalidContracts(t *testing.T) {
 	root := t.TempDir()
-	for _, depth := range []int{0, 257} {
-		body := fmt.Sprintf("version: 1\ncopy_max_depth: %d\ncopy_max_nodes: 16384\ncopy_max_bytes: 1048576\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\norigin_enum: ValueOrigin\n", depth)
+	for _, body := range []string{
+		"version: 9\nmetadata_message: MetadataObject\nerror_message: ErrorInfo\n",
+		"version: 1\nmetadata_message: Other\nerror_message: ErrorInfo\n",
+		"version: 1\nmetadata_message: MetadataObject\nerror_message: Other\n",
+	} {
 		if err := os.WriteFile(filepath.Join(root, "contracts.yaml"), []byte(body), 0600); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := LoadContracts(root); err == nil {
-			t.Fatal("invalid depth accepted")
+			t.Fatalf("accepted invalid contracts %q", body)
 		}
 	}
 }

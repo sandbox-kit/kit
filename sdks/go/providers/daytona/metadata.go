@@ -33,7 +33,6 @@ func (s *observedSandbox) resources() error {
 	}
 	if resources.CpuCores != nil {
 		s.info.Resources = resources
-		s.info.Origins["resources"] = sandbox.ValueOriginProvider
 	}
 	return nil
 }
@@ -53,7 +52,6 @@ func (s *observedSandbox) isolation() {
 		isolation.ProviderKind = sandbox.Value(string(*s.native.SandboxClass))
 	}
 	s.info.Isolation = isolation
-	s.info.Origins["isolation"] = sandbox.ValueOriginProvider
 }
 
 func (s *observedSandbox) metadata() {
@@ -85,7 +83,6 @@ func (s *observedSandbox) metadata() {
 	putInt(values, "auto_archive_interval_minutes", native.AutoArchiveInterval)
 	putInt(values, "auto_delete_interval_minutes", native.AutoDeleteInterval)
 	s.info.ProviderMetadata = &sandbox.MetadataObject{Values: values}
-	s.info.Origins[sandbox.InfoFieldProviderMetadata] = sandbox.ValueOriginProvider
 }
 
 func putText[T ~string](values map[string]*sandbox.MetadataValue, key string, value *T) {

@@ -6,7 +6,6 @@ import {
   SandboxState,
   SecretInjection,
   SnapshotKind,
-  ValueOrigin,
   WaitCondition,
   type Config,
   type CreateOptions,
@@ -371,7 +370,6 @@ export function mapSandboxInfo(
   operation = "create",
 ): SandboxInfo {
   const mapped = generatedMapSandboxInfo(value, operation);
-  const origins: Record<string, ValueOrigin> = { ...(mapped.origins ?? {}) };
   const state = mapState(
     value.state === undefined ? undefined : String(value.state),
   );
@@ -381,12 +379,10 @@ export function mapSandboxInfo(
     provider: "daytona",
     state,
     labels: mapped.labels ?? {},
-    origins,
   };
   const resources = generatedMapAllocatedResources(value, operation);
   if (Object.keys(resources).length > 0) {
     resultMutable(result).resources = resources;
-    origins.resources = ValueOrigin.Provider;
   }
   if (value.sandboxClass !== undefined) {
     const native = String(value.sandboxClass);
@@ -396,11 +392,9 @@ export function mapSandboxInfo(
         : native === "linux-vm"
           ? { kind: IsolationKind.LinuxVm }
           : { kind: IsolationKind.ProviderSpecific, providerKind: native };
-    origins.isolation = ValueOrigin.Provider;
   }
   if (state === SandboxState.Deleted) {
     resultMutable(result).terminal = true;
-    origins.terminal = ValueOrigin.Provider;
   }
   const metadata: { [key: string]: MetadataValue } = {};
   if (value.gpu > 0) metadata.gpu_count = scalarMetadata(value.gpu);
@@ -437,13 +431,11 @@ export function mapSandboxInfo(
   );
   if (Object.keys(metadata).length > 0) {
     resultMutable(result).providerMetadata = { values: metadata };
-    origins.provider_metadata = ValueOrigin.Provider;
   }
   if (value.createdAt !== undefined) {
     const date = new Date(value.createdAt);
     if (!Number.isNaN(date.valueOf())) {
       resultMutable(result).createdAt = date;
-      origins.created_at = ValueOrigin.Provider;
     }
   }
   return result;

@@ -70,7 +70,7 @@ separate, independently published modules.
 ## Behavior
 
 Creation, verified retrieval, or explicit attachment returns a shared sandbox
-handle with metadata origins. Errors expose common kinds and preserve SDK or
+handle with sandbox metadata. Errors expose common kinds and preserve SDK or
 validator causes. Metadata is copied before exposure.
 Closing a client releases SDK resources and leaves cloud sandboxes running.
 Handles must not be used after their owning client closes. Closing a sandbox

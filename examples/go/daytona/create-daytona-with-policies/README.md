@@ -1,7 +1,7 @@
 # Create a Daytona sandbox with lifetime policies
 
 Create with **idle pause disabled** and **stopped-delete after 10 minutes**, then
-print metadata origins for `id` and `resources`.
+print the sandbox id and whether resources were reported.
 
 ## What this means
 
@@ -27,7 +27,7 @@ Kit's [policy matrix](../../../../docs/sandbox-creation.md#policy-semantics)
 - Immediate stop/pause/archive and disabled archive/delete at create are rejected
   by the current Kit mapping.
 - Positive stop and pause delays cannot both be set.
-- Origins: `id` is usually provider-reported; resources may be absent or allocated.
+- Resources may be absent until the provider reports an allocation.
 
 ## Run
 

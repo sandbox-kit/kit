@@ -4,7 +4,7 @@ type ProtoKey = "$typeName" | "$unknown";
 
 /**
  * True for proto3 map fields (`{ [key: string]: V }`), including non-string
- * values such as `map<string, ValueOrigin>`. Not true for plain messages.
+ * values such as `map<string, string>`. Not true for plain messages.
  */
 type IsProtoMap<T> = T extends object
   ? string extends keyof T

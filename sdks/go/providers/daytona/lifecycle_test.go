@@ -44,9 +44,6 @@ func TestResolvedSandboxClassMapping(t *testing.T) {
 			if info.GetIsolation().Kind != tc.kind || info.GetIsolation().GetProviderKind() != tc.providerKind {
 				t.Fatalf("unexpected isolation: %#v", info.Isolation)
 			}
-			if info.Origins[sandbox.InfoFieldIsolation] != sandbox.ValueOriginProvider {
-				t.Fatal("resolved class origin missing")
-			}
 			if tc.gpu > 0 {
 				metadata, err := sandbox.MetadataObjectAsMap(info.GetProviderMetadata())
 				if err != nil || metadata["gpu_count"] != int64(1) {

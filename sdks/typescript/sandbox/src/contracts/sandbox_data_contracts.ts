@@ -18,7 +18,6 @@ import {
   SandboxState as ProtoSandboxState,
   SecretInjection as ProtoSecretInjection,
   SnapshotKind as ProtoSnapshotKind,
-  ValueOrigin as ProtoValueOrigin,
   WaitCondition as ProtoWaitCondition,
   type ArchiveOptions as ProtoArchiveOptions,
   type CreateOptions as ProtoCreateOptions,
@@ -175,6 +174,3 @@ export type SandboxState = (typeof SandboxState)[keyof typeof SandboxState];
 export const LifecycleCapability = protoEnum(ProtoLifecycleCapability);
 export type LifecycleCapability =
   (typeof LifecycleCapability)[keyof typeof LifecycleCapability];
-
-export const ValueOrigin = protoEnum(ProtoValueOrigin);
-export type ValueOrigin = (typeof ValueOrigin)[keyof typeof ValueOrigin];

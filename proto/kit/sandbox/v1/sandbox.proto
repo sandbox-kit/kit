@@ -530,7 +530,7 @@ enum LifecycleCapability {
 // Example:
 //
 //	info := &SandboxInfo{Id: "sb-1"}
-//	fmt.Println(info.GetId(), info.Origins["name"])
+//	fmt.Println(info.GetId())
 message SandboxInfo {
   // The provider sandbox identifier. Creation fails locally when it is empty.
   string id = 1;
@@ -546,18 +546,12 @@ message SandboxInfo {
   map<string, string> labels = 8;
   google.protobuf.Timestamp created_at = 9;
   MetadataObject provider_metadata = 10;
-  // records where each present field came from. A missing entry means the origin is unknown.
-  map<string, ValueOrigin> origins = 11;
+  reserved 11;
+  reserved "origins";
   // The normalized lifecycle state when Kit can map the provider state.
   SandboxState state = 12;
   // reports that execution/resource lifecycle is permanently complete.
   optional bool terminal = 13;
-}
-// ValueOrigin records whether a metadata field came from the provider or from the request.
-enum ValueOrigin {
-  VALUE_ORIGIN_UNKNOWN = 0;
-  VALUE_ORIGIN_PROVIDER = 1;
-  VALUE_ORIGIN_REQUEST = 2;
 }
 // ErrorKind is the shared error category. It does not imply that a retry is safe.
 enum ErrorKind {
@@ -627,7 +621,7 @@ message MetadataList {
   // The list contents. An empty list is explicit.
   repeated MetadataValue values = 1;
 }
-// MetadataObject is a string-keyed metadata object. Go exposes this as map[string]any.
+// MetadataObject is a string-keyed metadata object. Adapters fill values directly.
 message MetadataObject {
   // The object contents. An empty object is explicit.
   map<string, MetadataValue> values = 1;

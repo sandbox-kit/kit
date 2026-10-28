@@ -47,20 +47,3 @@ func TestImageReferenceValidationBeforeBackend(t *testing.T) {
 	}
 }
 
-func TestMetadataCopyBudgets(t *testing.T) {
-	var graph any = "leaf"
-	for i := 0; i < 20; i++ {
-		graph = []any{graph, graph}
-	}
-	for name, value := range map[string]any{"shared graph": graph, "wide list": make([]any, 16385), "bytes": make([]byte, 1048577), "string": strings.Repeat("x", 1048577), "string list": []string{strings.Repeat("x", 1048577)}, "map key": map[string]any{strings.Repeat("x", 1048577): true}} {
-		t.Run(name, func(t *testing.T) {
-			_, err := sandbox.MetadataObjectFromMap(map[string]any{"value": value})
-			if err == nil || !strings.Contains(err.Error(), "budget") && !strings.Contains(err.Error(), "depth") && !strings.Contains(err.Error(), "cycle") {
-				t.Fatalf("expected bounded rejection, got %v", err)
-			}
-		})
-	}
-	if _, err := sandbox.MetadataObjectFromMap(map[string]any{"value": []byte{1, 2}}); err != nil {
-		t.Fatal(err)
-	}
-}

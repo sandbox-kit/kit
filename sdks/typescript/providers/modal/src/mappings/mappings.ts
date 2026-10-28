@@ -13,7 +13,6 @@ import {
   PortTransport,
   SecretInjection,
   SandboxState,
-  ValueOrigin,
   WaitCondition,
   type Config,
   type CreateOptions,
@@ -358,25 +357,20 @@ export function mapSandboxInfo(
   request?: CreateOptions,
 ): SandboxInfo {
   const mapped = generatedMapSandboxIdentity(value);
-  const origins: Record<string, ValueOrigin> = { ...(mapped.origins ?? {}) };
   const result: SandboxInfo = {
     id: mapped.id ?? value.sandboxId,
     provider: "modal",
     state: SandboxState.Running,
     labels: {},
-    origins,
   };
   if (request?.name !== undefined) {
     mutable(result).name = request.name;
-    origins.name = ValueOrigin.Request;
   }
   if (request?.labels !== undefined) {
     mutable(result).labels = { ...request.labels };
-    origins.labels = ValueOrigin.Request;
   }
   if (request?.isolation !== undefined) {
     mutable(result).isolation = { ...request.isolation };
-    origins.isolation = ValueOrigin.Request;
   }
   return result;
 }

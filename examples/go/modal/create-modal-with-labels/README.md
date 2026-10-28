@@ -11,7 +11,7 @@ when mapping.
 ## Edge cases
 
 - Do not put secrets in labels or example env values committed to git.
-- Origins on name/labels may be request-derived in returned metadata.
+- Name and labels on the returned metadata are the values from the create request.
 
 ## Run
 

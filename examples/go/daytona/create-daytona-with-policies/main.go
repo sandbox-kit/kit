@@ -52,5 +52,5 @@ func main() {
 	}
 	fmt.Printf("Daytona sandbox created: %s (auto-pause disabled, deletion 10 minutes after stopping)\n", instance.ID())
 	info := instance.Info()
-	fmt.Printf("ID origin: %s; resource origin: %s\n", info.Origins["id"], info.Origins["resources"])
+	fmt.Printf("id %s; resources reported: %t\n", info.GetId(), info.Resources != nil)
 }

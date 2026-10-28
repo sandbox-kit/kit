@@ -24,5 +24,5 @@ const sandbox = await client.create({
 const info = sandbox.info();
 console.log(`Modal sandbox created: ${sandbox.id} (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)`);
 console.log(
-  `ID origin: ${info.origins?.id ?? "unknown"}; allocated resources reported: ${info.resources !== undefined}`,
+  `id ${info.id}; allocated resources reported: ${info.resources !== undefined}`,
 );
