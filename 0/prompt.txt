@@ -1,0 +1,22 @@
+cool I have made changes and I want to publish update both the sdk go and typescript. 
+
+before that would u like to update anything?
+
+---
+
+internal/sdk are u sure ? it has no changes no even documentation ? and proto / contract it depends on
+
+---
+
+it if fine if we just update there version itself ? to make it consistent ?
+
+---
+
+okay make golang-sdk ready for publishing. DON"T PUBLISH but make it ready
+
+bump version, install dependency, example dependey, provider imports change version in examples. 
+do all of it
+
+---
+
+cool are u sure this is good ? and I should commit, push and tag ?
