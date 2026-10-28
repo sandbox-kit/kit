@@ -1,11 +1,3 @@
-I think can u commit whole thing and push to main
+cool commit and push to main
 
-then we will create tag and push tags ?
-
----
-
-I have tagged and push now ?
-
----
-
-now lets do the changes for typescript bump, run generate command for it, install dependency + also exanples dependency. do all the updates.
+then we will publish before that is there any changes u wanna make ?
