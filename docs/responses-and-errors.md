@@ -3,10 +3,9 @@
 A failed call gives you `ErrorInfo` with a stable `ErrorKind`. Validation
 failures also include a `rule` such as `finite`, `nonblank`,
 `exclusive_minimum`, or `known_enum`, so you can branch on that instead of the
-message text. `Info()` returns `SandboxInfo`. `Origins` tells you whether a
-field came from the provider or from the settings you passed.
+message text. `Info()` returns `SandboxInfo`.
 
-## Response presence and origin
+## Response presence
 
 `Client.Create` returns a `Sandbox`. `Info()` returns an independent metadata
 copy. Unavailable optional fields stay absent; allocations are not filled from
@@ -17,28 +16,12 @@ info := instance.Info()
 if info.Resources != nil {
     fmt.Println(info.Resources.GetCpuCores())
 }
-switch info.Origins[sandbox.InfoFieldName] {
-case sandbox.ValueOriginProvider:
-    // Reported by the SDK.
-case sandbox.ValueOriginRequest:
-    // Derived from creation settings.
-default:
-    // Origin is unknown.
-}
 ```
 
-Origin keys are shared field names: `id`, `name`, `labels`, `resources`, and so on.
-Nested field paths such as `resources.cpu_cores` are also supported. Optional
-pointers preserve explicit zero, false, and empty strings; non-nil maps and slices
-preserve empty collections. Non-optional strings require a nonempty value.
-Missing origin entries mean unknown. Modal identity is provider-reported, while its
-current name/labels are request-derived. Daytona maps SDK-reported metadata.
-
-Go rejects a response when an origin key is unknown, names an absent field, or uses
-an undeclared `ValueOrigin` (`InvalidResponse` before the handle is returned).
-TypeScript does not walk `origins` on create/get/attach; it only requires a sandbox
-`id` and a matching `provider` when the provider sets one. Align TypeScript with the
-Go check if both SDKs must reject the same invalid origin maps.
+Optional pointers preserve explicit zero, false, and empty strings; non-nil maps
+and slices preserve empty collections. Non-optional strings require a nonempty
+value. A create or lookup fails locally when the provider returns no sandbox id.
+When the provider sets `provider`, it must match the selected provider.
 
 ## Handle errors in an application
 
@@ -165,19 +148,15 @@ TypeScript returns independent metadata through `structuredClone`, preserving
 its native `bigint`, `Date`, byte-array, collection, and optional-property
 representations.
 
-`MetadataObject` and `MetadataValue` describe exact signed/unsigned integers,
-finite numbers, strings, booleans, bytes, lists, and objects. An empty value
-represents null. Go exposes metadata as `map[string]any` and supports primitive
-integer/float types, `[]byte`, `[]string`, `[]any`, and nested `map[string]any`.
-Unsupported objects, nonfinite values, cycles, and excessive depth are rejected.
-`specs/contracts.yaml` limits each metadata map copy to depth 64, 16,384 visited
-values (including containers and string-list entries), and 1 MiB of string,
-map-key, and byte-slice payload. These are traversal and payload limits;
-container allocation overhead is separate.
+`MetadataObject` and `MetadataValue` describe signed and unsigned integers,
+numbers, strings, booleans, bytes, lists, and objects. An empty value represents
+null. Provider adapters fill `MetadataObject.Values` directly.
+`MetadataObjectAsMap` reads that object as a Go map. TypeScript create options
+accept a plain object and materialize it to the same protobuf message.
 
-Ordinary JSON decoding into `map[string]any` can still change numeric types;
-the guarantee applies to native values and their owned copies. No new transport
-or runtime serialization codec is introduced.
+Ordinary JSON decoding into `map[string]any` can still change numeric types.
+The owned copy keeps the types stored on `MetadataValue`. No new transport or
+runtime serialization codec is introduced.
 
 ## Completion and retries
 

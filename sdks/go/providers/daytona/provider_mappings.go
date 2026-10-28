@@ -181,25 +181,11 @@ func mapSandboxInfo(source *daytona.Sandbox) (*sandbox.SandboxInfo, error) {
 	if source == nil {
 		return target, nil
 	}
-	target.Origins = map[string]sandbox.ValueOrigin{}
 	target.Id = source.ID
-	target.Origins["id"] = sandbox.ValueOriginProvider
 	target.Name = sandbox.Value(source.Name)
-	if target.Name != nil {
-		target.Origins["name"] = sandbox.ValueOriginProvider
-	}
 	target.ProviderState = sandbox.Value(string(source.State))
-	if target.ProviderState != nil {
-		target.Origins["provider_state"] = sandbox.ValueOriginProvider
-	}
 	target.Region = sandbox.Value(source.Target)
-	if target.Region != nil {
-		target.Origins["region"] = sandbox.ValueOriginProvider
-	}
 	target.Labels = source.Labels
-	if target.Labels != nil {
-		target.Origins["labels"] = sandbox.ValueOriginProvider
-	}
 	target.Provider = "daytona"
 	return target, nil
 }

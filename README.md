@@ -252,7 +252,7 @@ Guides: [configuration](docs/configuration.md) ·
 | [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                        |
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                      |
 | [Provider architecture](docs/providers.md)                                                                     | Optional modules and SDK boundaries            |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Origins, error details, native causes          |
+| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details, native causes                   |
 | [Code generation](docs/code-generation.md)                                                                     | Protobuf, YAML inventories, extension workflow |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                      |
 | [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                              |

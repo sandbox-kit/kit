@@ -3,12 +3,10 @@
 
 import {
   ErrorKind,
-  ValueOrigin,
   type SandboxInfo,
   type Scope,
   CreateFieldResourcesMemoryLimitMib,
   CreateFieldResourcesMemoryMib,
-  InfoFieldId,
   CreateFieldLifetimeIdleTerminateAfter,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldResourcesCpuCores,
@@ -37,13 +35,10 @@ export function mapSandboxIdentity(
 ): Partial<SandboxInfo> {
   const target: Mutable<Partial<SandboxInfo>> = {};
   if (source === undefined) return target;
-  const origins: Record<string, ValueOrigin> = {};
-  target.origins = origins;
   {
     if (source.sandboxId !== undefined) {
       const value = source.sandboxId;
       target.id = value;
-      origins[InfoFieldId] = ValueOrigin.Provider;
     }
   }
   target.provider = "modal";

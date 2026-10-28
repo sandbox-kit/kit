@@ -87,15 +87,13 @@ plus per-provider classification mappers. Go provider helpers
 Handwritten `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
 field paths used by validation, mappings, and errors.
 
-`specs/contracts.yaml` identifies the shared metadata, error, and origin
-declarations and the copy depth, visited-node, and payload-byte limits.
-Portable messages come from standard protobuf generation into contract packages;
+`specs/contracts.yaml` names the shared metadata and error messages.
+Portable messages come from standard protobuf generation into contract packages.
 SDK runtimes alias them and keep handwritten clone helpers (for example Go
 `clone.go` and TypeScript metadata helpers).
 
 Provider error classification is not generated: Modal and Daytona mappers live
-in handwritten `errors.go` / `errors.ts`. Response groups declare
-`origin: provider|request` for mapped metadata; unavailable fields receive no
+in handwritten `errors.go` / `errors.ts`. Unavailable fields receive no
 fabricated values.
 
 See [responses and errors](responses-and-errors.md) for the public contract,

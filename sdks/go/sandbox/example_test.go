@@ -56,12 +56,10 @@ func ExampleNewError() {
 	// resources.disk_mib
 }
 
-func ExampleMetadataObjectFromMap() {
-	object, err := sandbox.MetadataObjectFromMap(map[string]any{"team": "platform"})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+func ExampleMetadataObjectAsMap() {
+	object := &sandbox.MetadataObject{Values: map[string]*sandbox.MetadataValue{
+		"team": {Value: &sandbox.MetadataText{Text: "platform"}},
+	}}
 	values, err := sandbox.MetadataObjectAsMap(object)
 	if err != nil {
 		fmt.Println(err)

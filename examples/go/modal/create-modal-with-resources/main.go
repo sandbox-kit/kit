@@ -55,5 +55,5 @@ func main() {
 	}
 	fmt.Printf("Modal sandbox created: %s (requested 0.5 CPU cores, 512 MiB, 5-minute lifetime)\n", instance.ID())
 	info := instance.Info()
-	fmt.Printf("ID origin: %s; allocated resources reported: %t\n", info.Origins["id"], info.Resources != nil)
+	fmt.Printf("id %s; allocated resources reported: %t\n", info.GetId(), info.Resources != nil)
 }

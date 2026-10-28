@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"testing"
 
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
@@ -48,52 +47,6 @@ func TestErrorContextAvoidsRedundantWrapping(t *testing.T) {
 	}
 }
 
-func TestResponseOriginRequiresKnownPresentField(t *testing.T) {
-	for _, tc := range []struct {
-		name  string
-		info  *sandbox.SandboxInfo
-		valid bool
-	}{
-		{"absent name", &sandbox.SandboxInfo{Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginProvider}}, false},
-		{"unknown path", &sandbox.SandboxInfo{Origins: map[string]sandbox.ValueOrigin{"misspelled": sandbox.ValueOriginProvider}}, false},
-		{"missing nested value", &sandbox.SandboxInfo{Resources: &sandbox.Resources{}, Origins: map[string]sandbox.ValueOrigin{"resources.cpu_cores": sandbox.ValueOriginProvider}}, false},
-		{"explicit empty name", &sandbox.SandboxInfo{Name: sandbox.Value(""), Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginProvider}}, true},
-		{"empty map", &sandbox.SandboxInfo{Labels: map[string]string{}, Origins: map[string]sandbox.ValueOrigin{"labels": sandbox.ValueOriginProvider}}, true},
-		{"explicit zero", &sandbox.SandboxInfo{Resources: &sandbox.Resources{CpuCores: sandbox.Value(0.0)}, Origins: map[string]sandbox.ValueOrigin{"resources.cpu_cores": sandbox.ValueOriginProvider}}, true},
-		{"explicit false", &sandbox.SandboxInfo{Isolation: &sandbox.IsolationConfig{NestedVirtualization: sandbox.Value(false)}, Origins: map[string]sandbox.ValueOrigin{"isolation.nested_virtualization": sandbox.ValueOriginProvider}}, true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			tc.info.Id = "id"
-			client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-				return &sandbox.CreateResult{Sandbox: tc.info}, nil
-			}})
-			_, err := client.Create(context.Background(), nil)
-			if (err == nil) != tc.valid {
-				t.Fatalf("valid=%v err=%v", tc.valid, err)
-			}
-		})
-	}
-}
-
-func TestInvalidMetadataNeverReachesBackend(t *testing.T) {
-	cyclic := map[string]any{}
-	cyclic["self"] = cyclic
-	for _, value := range []any{cyclic, math.NaN(), make(chan int)} {
-		called := false
-		client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-			called = true
-			return nil, nil
-		}})
-		options, err := sandbox.MetadataObjectFromMap(map[string]any{"value": value})
-		if err == nil {
-			_, err = client.Create(context.Background(), &sandbox.CreateOptions{ProviderOptions: options})
-		}
-		if err == nil || called {
-			t.Fatalf("invalid metadata reached provider or was accepted: %v", err)
-		}
-	}
-}
-
 func TestLocalErrorDetailsAndOriginalValidator(t *testing.T) {
 	client, _ := newTestClient(&creationBackend{})
 	_, err := client.Create(context.Background(), &sandbox.CreateOptions{Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)}})
@@ -109,15 +62,15 @@ func TestLocalErrorDetailsAndOriginalValidator(t *testing.T) {
 	}
 }
 
-func TestResponseAvailabilityAndOrigins(t *testing.T) {
-	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id", Name: sandbox.Value("requested"), Origins: map[string]sandbox.ValueOrigin{"name": sandbox.ValueOriginRequest}}}
+func TestResponseAvailability(t *testing.T) {
+	response := &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id", Name: sandbox.Value("requested")}}
 	client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) { return response, nil }})
 	instance, err := client.Create(context.Background(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	info := instance.Info()
-	if info.Resources != nil || info.Region != nil || info.Origins["name"] != sandbox.ValueOriginRequest {
+	if info.Resources != nil || info.Region != nil || info.GetName() != "requested" {
 		t.Fatal("missing fields became fabricated")
 	}
 	bad, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) { return nil, nil }})
@@ -125,21 +78,5 @@ func TestResponseAvailabilityAndOrigins(t *testing.T) {
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidResponse {
 		t.Fatal("invalid response not classified")
-	}
-}
-
-func TestTypedMetadataCyclesAndUnknownResponseOrigins(t *testing.T) {
-	cyclic := map[string]any{}
-	cyclic["self"] = cyclic
-	if _, err := sandbox.MetadataObjectFromMap(cyclic); err == nil {
-		t.Fatal("typed metadata cycle accepted")
-	}
-	client, _ := newTestClient(&creationBackend{call: func(context.Context, *sandbox.CreateOptions) (*sandbox.CreateResult, error) {
-		return &sandbox.CreateResult{Sandbox: &sandbox.SandboxInfo{Id: "id", Origins: map[string]sandbox.ValueOrigin{"id": 99}}}, nil
-	}})
-	_, err := client.Create(context.Background(), nil)
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidResponse {
-		t.Fatal("unknown response origin accepted")
 	}
 }

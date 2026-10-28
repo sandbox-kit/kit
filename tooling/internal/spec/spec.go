@@ -94,7 +94,6 @@ type Comparison struct {
 }
 type Group struct {
 	ErrorPath string       `yaml:"error_path"`
-	Origin    string       `yaml:"origin"`
 	When      []Comparison `yaml:"when"`
 	Name      string       `yaml:"name"`
 	Source    Type         `yaml:"source"`
@@ -228,18 +227,14 @@ func LoadClient(root string) (Client, error) {
 
 type Contracts struct {
 	Version         int    `yaml:"version"`
-	CopyMaxDepth    int    `yaml:"copy_max_depth"`
-	CopyMaxNodes    int    `yaml:"copy_max_nodes"`
-	CopyMaxBytes    int    `yaml:"copy_max_bytes"`
 	MetadataMessage string `yaml:"metadata_message"`
 	ErrorMessage    string `yaml:"error_message"`
-	OriginEnum      string `yaml:"origin_enum"`
 }
 
 func LoadContracts(root string) (Contracts, error) {
 	var c Contracts
 	err := decode(filepath.Join(root, "contracts.yaml"), &c)
-	if err == nil && (c.Version != 1 || c.CopyMaxDepth < 1 || c.CopyMaxDepth > 256 || c.CopyMaxNodes < 1 || c.CopyMaxBytes < 1 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo" || c.OriginEnum != "ValueOrigin") {
+	if err == nil && (c.Version != 1 || c.MetadataMessage != "MetadataObject" || c.ErrorMessage != "ErrorInfo") {
 		err = fmt.Errorf("invalid response/error contracts spec")
 	}
 	return c, err

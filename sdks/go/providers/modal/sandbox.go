@@ -73,13 +73,6 @@ func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	info.Labels = plan.params.Tags
 	if request.Isolation != nil {
 		info.Isolation = proto.Clone(request.Isolation).(*sandbox.IsolationConfig)
-		info.Origins[sandbox.InfoFieldIsolation] = sandbox.ValueOriginRequest
-	}
-	if info.Name != nil {
-		info.Origins["name"] = sandbox.ValueOriginRequest
-	}
-	if info.Labels != nil {
-		info.Origins["labels"] = sandbox.ValueOriginRequest
 	}
 	return &sandbox.CreateResult{Sandbox: info}, nil
 }

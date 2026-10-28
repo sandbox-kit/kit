@@ -320,9 +320,6 @@ export const InfoFieldCreatedAt = "created_at" as const;
 /** Canonical path "provider_metadata". */
 export const InfoFieldProviderMetadata = "provider_metadata" as const;
 
-/** Canonical path "origins". */
-export const InfoFieldOrigins = "origins" as const;
-
 /** Canonical path "state". */
 export const InfoFieldState = "state" as const;
 
