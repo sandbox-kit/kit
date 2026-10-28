@@ -1,6 +1,6 @@
 {
   "name": "@sandbox-kit/contracts",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "internal protobuf wire types for sandbox kit",
   "keywords": [
     "sandbox-kit",

@@ -7,7 +7,7 @@ supported.
 
 ## npm
 
-The TypeScript SDK is published on npm at version 0.1.3. Each badge counts every
+The TypeScript SDK is published on npm at version 0.1.4. Each badge counts every
 download npm has recorded for that package.
 
 | Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
