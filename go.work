@@ -56,6 +56,6 @@ use (
 	./tooling
 )
 
-replace github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.1 => ./sdks/go/internal/contracts
+replace github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.2 => ./sdks/go/internal/contracts
 
-replace github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.1 => ./sdks/go/internal/sdk
+replace github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.2 => ./sdks/go/internal/sdk
