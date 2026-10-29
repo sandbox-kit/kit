@@ -6,7 +6,8 @@ import {
   type MessageInitShape,
   type MessageShape,
 } from "@bufbuild/protobuf";
-import { pathToString } from "@bufbuild/protobuf/reflect";
+import { type Path } from "@bufbuild/protobuf/reflect";
+import { ConfigFieldEndpoint } from "#contracts/config_paths.js";
 import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import { createValidator } from "@bufbuild/protovalidate";
 import {
@@ -119,6 +120,28 @@ export function validateCreateOptions(
   reportValidationResult(result, provider, operation);
 }
 
+/** Canonical protobuf path: field names only, without list indexes or oneof names. */
+function canonicalFieldPath(path: Path): string {
+  const names: string[] = [];
+  for (const element of path) {
+    if (element.kind === "field") names.push(element.name);
+  }
+  return names.join(".");
+}
+
+/**
+ * A constraint that names one field reports that field. A constraint that names
+ * several fields stays on the parent message.
+ */
+function specificRuleField(path: string, ruleID: string): string {
+  const hint = messageFieldHint(ruleID);
+  if (path === "") return hint;
+  if (hint === "" || hint.includes(",")) return path;
+  if (hint === path || hint.startsWith(`${path}.`)) return hint;
+  if (!hint.includes(".")) return `${path}.${hint}`;
+  return path;
+}
+
 function messageFieldHint(ruleID: string): string {
   switch (ruleID) {
     case "cpu_limit":
@@ -165,7 +188,7 @@ export function validateConfig(
     validationError({
       provider,
       operation,
-      field: "endpoint",
+      field: ConfigFieldEndpoint,
       rule: "secure_endpoint",
       message: "must use HTTPS except for loopback HTTP development endpoints",
     });
@@ -192,11 +215,8 @@ function reportValidationResult(
   }
   const violation = result.violations[0]!;
   const ruleID = violation.ruleId;
-  let field = pathToString(violation.field);
+  const field = specificRuleField(canonicalFieldPath(violation.field), ruleID);
   const rule = stableRuleIDs[ruleID] ?? ruleID;
-  if (!field) {
-    field = messageFieldHint(ruleID);
-  }
   validationError({
     provider,
     operation,

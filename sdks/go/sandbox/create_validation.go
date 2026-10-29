@@ -47,14 +47,14 @@ func rejectNilCreateElements(request *CreateOptions) error {
 	if network := request.Network; network != nil {
 		for _, port := range network.Ports {
 			if port == nil {
-				return invalidCreate("network.ports", "required")
+				return invalidCreate(CreateFieldNetworkPorts, "required")
 			}
 		}
 	}
 	if security := request.Security; security != nil {
 		for _, secret := range security.Secrets {
 			if secret == nil {
-				return invalidCreate("security.secrets", "required")
+				return invalidCreate(CreateFieldSecuritySecrets, "required")
 			}
 		}
 	}
@@ -71,13 +71,10 @@ func mapProtovalidateError(err error) error {
 	}
 	violation := violations.Violations[0]
 	ruleID := violation.Proto.GetRuleId()
-	field := protovalidateFieldPath(violation)
+	field := specificRuleField(protovalidateFieldPath(violation), ruleID)
 	rule := ruleID
 	if mapped, ok := stableRuleIDs[ruleID]; ok {
 		rule = mapped
-	}
-	if field == "" {
-		field = protovalidateMessageFieldHint(ruleID)
 	}
 	return invalidCreate(field, rule)
 }
@@ -92,6 +89,11 @@ func protovalidateFieldPath(violation *protovalidate.Violation) string {
 	}
 	parts := make([]string, 0, len(path.GetElements()))
 	for _, element := range path.GetElements() {
+		// Field number 0 is a oneof name, such as readiness.check. Canonical
+		// paths name the message or the selected field, and omit list indexes.
+		if element.GetFieldNumber() == 0 {
+			continue
+		}
 		name := element.GetFieldName()
 		if name == "" {
 			continue
@@ -99,6 +101,25 @@ func protovalidateFieldPath(violation *protovalidate.Violation) string {
 		parts = append(parts, name)
 	}
 	return strings.Join(parts, ".")
+}
+
+// specificRuleField keeps a multi-field constraint on its parent message and
+// names the single field a one-field constraint checks.
+func specificRuleField(path, ruleID string) string {
+	hint := protovalidateMessageFieldHint(ruleID)
+	if path == "" {
+		return hint
+	}
+	if hint == "" || strings.Contains(hint, ",") {
+		return path
+	}
+	if hint == path || strings.HasPrefix(hint, path+".") {
+		return hint
+	}
+	if !strings.Contains(hint, ".") {
+		return path + "." + hint
+	}
+	return path
 }
 
 // protovalidateMessageFieldHint recovers inventory-style field paths for

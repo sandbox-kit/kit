@@ -368,3 +368,6 @@ const InfoFieldState = "state"
 
 // InfoFieldTerminal is the canonical path "terminal".
 const InfoFieldTerminal = "terminal"
+
+// ResultFieldExitCode is the canonical path "exit_code" on ExitResult.
+const ResultFieldExitCode = "exit_code"

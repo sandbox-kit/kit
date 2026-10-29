@@ -24,7 +24,7 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 		timeout = s.timeout
 	}
 	if timeout != nil && *timeout < 0 {
-		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: "timeout", Message: "sandbox-kit: timeout cannot be negative"}, nil)
+		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Provider: s.ProviderName(), Operation: operation, Field: ConfigFieldTimeout, Message: "sandbox-kit: timeout cannot be negative"}, nil)
 	}
 	operationCtx := ctx
 	baseCancel := func() {}

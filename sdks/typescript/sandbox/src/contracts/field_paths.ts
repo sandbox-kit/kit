@@ -322,3 +322,6 @@ export const InfoFieldState = "state" as const;
 
 /** Canonical path "terminal". */
 export const InfoFieldTerminal = "terminal" as const;
+
+/** Canonical path "exit_code" on ExitResult. */
+export const ResultFieldExitCode = "exit_code" as const;

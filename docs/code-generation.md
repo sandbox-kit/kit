@@ -82,11 +82,11 @@ Protobuf owns portable `ErrorInfo` and `ErrorKind`. SDK runtimes alias those
 types and handwrite wrappers (`NewError` in Go, `sandboxError` in TypeScript)
 plus per-provider classification mappers. Go provider helpers
 `WithErrorContext`, `RejectUnmapped`, and `OptionalDuration` live in
-`sdks/go/internal/sdk`. `RejectUnmapped` sets `Field` to the parent path plus
-the leftover protobuf name.
+`sdks/go/internal/sdk`. `RejectUnmapped` sets `Provider` to the provider name
+and `Field` to the parent path plus the leftover protobuf name.
 
-Handwritten `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
-field paths used by validation, mappings, and errors.
+Handwritten `CreateField*`, `ConfigField*`, `InfoField*`, and `ResultField*`
+constants are the field paths used by validation, mappings, and errors.
 
 `specs/contracts.yaml` names the shared metadata and error messages.
 Portable messages come from standard protobuf generation into contract packages.
@@ -115,6 +115,10 @@ messages:
 
 Field rules include `minimum`, `exclusive_minimum`, `maximum`, `finite`,
 `nonblank`, `min_items`, `format: http_url`, and `each` for list elements.
+The error field is the protobuf path. A message constraint that names one
+field uses that field, such as `resources.cpu_limit_cores`. A constraint that
+names several fields uses their parent message. List indexes and oneof names
+are omitted.
 Serialization policy is separate from validation. Client representation metadata
 marks credential fields `sensitive`, which excludes them from Go JSON output
 without treating secrecy as a value-validity rule.

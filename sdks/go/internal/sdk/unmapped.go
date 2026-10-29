@@ -9,11 +9,12 @@ import (
 )
 
 // RejectUnmapped reports create or config fields a provider did not accept.
-// Provider packages call it after copying the fields they support. parent is
-// the canonical path of the message being checked, such as "resources".
-// The returned error is ErrorKindUnsupported and Field joins that parent with
-// the leftover protobuf name, such as "resources.cpu_cores". An empty parent
-// leaves a top-level name unchanged. A nil or empty remainder returns nil.
+// Provider packages call it after copying the fields they support. provider is
+// the provider name stored on Error.Provider, such as "daytona". parent is the
+// canonical path of the message being checked, such as "resources". The
+// returned error is ErrorKindUnsupported and Field joins that parent with the
+// leftover protobuf name, such as "resources.cpu_cores". An empty parent leaves
+// a top-level name unchanged. A nil or empty remainder returns nil.
 func RejectUnmapped(provider, parent string, remaining any) error {
 	value := reflect.ValueOf(remaining)
 	if value.Kind() == reflect.Pointer {

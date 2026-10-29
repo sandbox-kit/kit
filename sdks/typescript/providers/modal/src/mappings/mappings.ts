@@ -35,7 +35,9 @@ import {
   CreateFieldSecuritySecretsEnvironmentVariable,
   CreateFieldSecuritySecretsInjection,
   CreateFieldSource,
+  ConfigFieldRegion,
   ConfigFieldScopeAppName,
+  ConfigFieldTimeout,
   CreateFieldName,
   CreateFieldNetworkInboundCidrs,
   CreateFieldNetworkProxyReference,
@@ -75,7 +77,11 @@ export interface ModalCreatePlan {
 export function mapClientConfig(config: Config): ModalClientParams {
   const result = mapGeneratedClientConfig(config);
   if (config.timeout !== undefined)
-    result.timeoutMs = finiteDurationMs(config.timeout, "timeout", true);
+    result.timeoutMs = finiteDurationMs(
+      config.timeout,
+      ConfigFieldTimeout,
+      true,
+    );
   return result;
 }
 
@@ -94,7 +100,7 @@ export function mapCreateRequest(
   if (request.name !== undefined)
     params.name = nonblank(request.name, CreateFieldName);
   if (config.region !== undefined)
-    params.regions = [nonblankConfig(config.region, "region")];
+    params.regions = [nonblankConfig(config.region, ConfigFieldRegion)];
   mapRuntime(request, params);
   mapIsolation(request, params);
   mapResources(request, params);

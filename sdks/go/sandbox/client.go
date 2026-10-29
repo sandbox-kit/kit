@@ -76,7 +76,7 @@ func NewClient(providerFactory Provider, config *Config) (client *Client, result
 	provider := ""
 	defer func() { result = sdk.WithErrorContext(result, provider, "initialize") }()
 	if missingClientBinding(providerFactory) {
-		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: ConfigFieldProvider, Message: "sandbox-kit: provider is required"}, nil)
 	}
 	provider = providerFactory.Name()
 	if err := validateProtoConfig(config); err != nil {
@@ -84,7 +84,7 @@ func NewClient(providerFactory Provider, config *Config) (client *Client, result
 	}
 	expected := provider
 	if strings.TrimSpace(expected) == "" {
-		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: "provider", Message: "sandbox-kit: provider name is required"}, nil)
+		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidArgument, Operation: "initialize", Field: ConfigFieldProvider, Message: "sandbox-kit: provider name is required"}, nil)
 	}
 	var timeout *time.Duration
 	if config != nil && config.Timeout != nil {
@@ -99,7 +99,7 @@ func NewClient(providerFactory Provider, config *Config) (client *Client, result
 		return nil, NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "backend", Message: "sandbox-kit: provider returned no initialized backend"}, nil)
 	}
 	if actual := backend.Name(); actual != expected {
-		return nil, errors.Join(NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: "provider", Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
+		return nil, errors.Join(NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: expected, Operation: "initialize", Field: ConfigFieldProvider, Message: fmt.Sprintf("sandbox-kit: initialized backend %q differs from selected provider %q", actual, expected)}, nil), backend.Close(context.Background()))
 	}
 	return &Client{backend: backend, timeout: timeout}, nil
 }
@@ -119,7 +119,7 @@ func validateProtoConfig(config *Config) error {
 		return NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidArgument,
 			Operation: "initialize",
-			Field:     "endpoint",
+			Field:     ConfigFieldEndpoint,
 			Rule:      Value("secure_endpoint"),
 			Message:   "sandbox-kit: endpoint must use HTTPS except for loopback HTTP development endpoints",
 		}, nil)

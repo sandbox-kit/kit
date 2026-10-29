@@ -69,7 +69,7 @@ func (c *creation) runtime() error {
 	if config.Version != nil || config.WorkingDirectory != nil || config.Entrypoint != nil || config.Pty != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldRuntime, "runtime version, working directory, entrypoint, and PTY are not mapped by Daytona")
 	}
-	if err := sdk.RejectUnmapped("daytona runtime", sandbox.CreateFieldRuntime, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldRuntime, config); err != nil {
 		return err
 	}
 	c.rest.Runtime = nil
@@ -86,7 +86,7 @@ func (c *creation) isolation() error {
 	}
 	c.base.Kvm = config.GetNestedVirtualization()
 	config.Kind, config.ProviderKind, config.NestedVirtualization = 0, nil, nil
-	if err := sdk.RejectUnmapped("daytona isolation", sandbox.CreateFieldIsolation, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldIsolation, config); err != nil {
 		return err
 	}
 	c.rest.Isolation = nil
@@ -119,7 +119,7 @@ func (c *creation) security() error {
 	if config.WorkloadIdentity != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldSecurityWorkloadIdentity, "Daytona workload identity is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona security", sandbox.CreateFieldSecurity, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldSecurity, config); err != nil {
 		return err
 	}
 	c.rest.Security = nil
@@ -165,7 +165,7 @@ func (c *creation) network() error {
 	if config.InboundCidrs != nil || config.PrivateNetwork != nil || config.ProxyReference != nil || config.CustomDomain != nil || config.Ports != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "one or more Daytona network fields are not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona network", sandbox.CreateFieldNetwork, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldNetwork, config); err != nil {
 		return err
 	}
 	c.rest.Network = nil
@@ -197,7 +197,7 @@ func (c *creation) lifetime() error {
 	if config.IdleTerminate != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetimeIdleTerminate, "Daytona idle termination is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona lifetime", sandbox.CreateFieldLifetime, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldLifetime, config); err != nil {
 		return err
 	}
 	c.rest.Lifetime = nil
@@ -231,7 +231,7 @@ func (c *creation) provisioning() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
 	}
 	config.WaitFor = 0
-	if err := sdk.RejectUnmapped("daytona creation", sandbox.CreateFieldProvisioning, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldProvisioning, config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
@@ -248,7 +248,7 @@ func (c *creation) observability() error {
 	if config.Verbose != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservabilityVerbose, "Daytona verbose creation is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona observability", sandbox.CreateFieldObservability, config); err != nil {
+	if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldObservability, config); err != nil {
 		return err
 	}
 	c.rest.Observability = nil
@@ -267,7 +267,10 @@ func (c *creation) source() error {
 			if err != nil {
 				return err
 			}
-			if err := sdk.RejectUnmapped("daytona resources", sandbox.CreateFieldResources, remaining); err != nil {
+			if remaining.CpuLimitCores != nil || remaining.MemoryLimitMib != nil {
+				return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResources, "Daytona resource limits are not mapped")
+			}
+			if err := sdk.RejectUnmapped("daytona", sandbox.CreateFieldResources, remaining); err != nil {
 				return err
 			}
 			params.Resources = &resources

@@ -13,6 +13,9 @@ import {
   WaitCondition,
   CreateFieldLifetime,
   CreateFieldLifetimeMaximumLifetime,
+  CreateFieldResources,
+  InfoFieldResourcesDiskMib,
+  InfoFieldResourcesMemoryMib,
   CreateFieldPlacement,
   CreateFieldProvisioningQueueTimeout,
   CreateFieldNetworkLinkedSandbox,
@@ -31,6 +34,7 @@ import {
   mapCreateRequest,
   type DaytonaCreateParams,
 } from "#mappings/mappings.js";
+import { mapAllocatedResources } from "#mappings/provider_mappings.js";
 import { mapDaytonaError } from "#errors.js";
 
 describe("Daytona mappings", () => {
@@ -174,6 +178,36 @@ describe("Daytona mappings", () => {
         scope: { organizationId: "organization-1" },
       }),
     ).toMatchObject({ jwtToken: "jwt", organizationId: "organization-1" });
+  });
+
+  it("reports canonical fields for resource limits and unstorable allocations", () => {
+    expect(() =>
+      mapCreateRequest({
+        source: { image: { reference: "image" } },
+        resources: { cpuLimitCores: 2 },
+      }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldResources,
+      }),
+    );
+    expect(() =>
+      mapAllocatedResources({ cpu: 1, memory: 1.5, disk: 1 } as DaytonaSandbox),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidResponse,
+        field: InfoFieldResourcesMemoryMib,
+      }),
+    );
+    expect(() =>
+      mapAllocatedResources({ cpu: 1, memory: 1, disk: 1.5 } as DaytonaSandbox),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidResponse,
+        field: InfoFieldResourcesDiskMib,
+      }),
+    );
   });
 
   it("reports canonical fields for invalid durations and bearer scope", () => {

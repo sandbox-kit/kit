@@ -98,6 +98,24 @@ func TestUnsupportedFieldsUseCanonicalPaths(t *testing.T) {
 			field:   sandbox.CreateFieldLifetimeMaximumLifetime,
 		},
 		{
+			name: "cpu limit",
+			request: &sandbox.CreateOptions{
+				Source:    &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}},
+				Resources: &sandbox.Resources{CpuLimitCores: sandbox.Value(2.0)},
+			},
+			kind:  sandbox.ErrorKindUnsupported,
+			field: sandbox.CreateFieldResources,
+		},
+		{
+			name: "memory limit",
+			request: &sandbox.CreateOptions{
+				Source:    &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}},
+				Resources: &sandbox.Resources{MemoryLimitMib: sandbox.Value(uint64(2048))},
+			},
+			kind:  sandbox.ErrorKindUnsupported,
+			field: sandbox.CreateFieldResources,
+		},
+		{
 			name:    "queue timeout",
 			request: &sandbox.CreateOptions{Provisioning: &sandbox.ProvisioningOptions{QueueTimeout: sandbox.Duration(30 * time.Second)}},
 			kind:    sandbox.ErrorKindInvalidArgument,

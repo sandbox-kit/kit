@@ -21,6 +21,9 @@ func TestRejectUnmappedUsesProtobufFieldName(t *testing.T) {
 	if kitErr.Field != "cpu_cores" {
 		t.Fatalf("Field = %q, want cpu_cores", kitErr.Field)
 	}
+	if kitErr.Provider != "test" {
+		t.Fatalf("Provider = %q, want test", kitErr.Provider)
+	}
 	nested := sdk.RejectUnmapped("test", "resources", &Resources{CpuCores: Value(2.0)})
 	if !errors.As(nested, &kitErr) || kitErr.Field != "resources.cpu_cores" {
 		t.Fatalf("nested Field = %#v", kitErr)

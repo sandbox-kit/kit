@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  CreateFieldLifetimeIdleStopAfter,
   CreateFieldLifetimeIdleStopMode,
+  CreateFieldNetwork,
   CreateFieldProvisioningTimeout,
+  CreateFieldReadiness,
   CreateFieldResourcesCpuCores,
+  CreateFieldResourcesCpuLimitCores,
+  CreateFieldSecuritySecretsReference,
   CreateFieldSourceImageReference,
 } from "#contracts/field_paths.js";
 import {
@@ -13,6 +18,7 @@ import {
 
 import {
   Client,
+  EgressMode,
   ErrorKind,
   PolicyMode,
   validateCreateOptions,
@@ -191,7 +197,37 @@ describe("Shared request validation", () => {
     ).toThrow(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeIdleStopAfter,
         rule: "requires_any",
+      }),
+    );
+    expect(() =>
+      validateCreateOptions({
+        resources: { cpuCores: 2, cpuLimitCores: 1 },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldResourcesCpuLimitCores,
+        rule: "limit",
+      }),
+    );
+    expect(() =>
+      validateCreateOptions({
+        network: { egress: EgressMode.Restricted },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldNetwork,
+      }),
+    );
+    expect(() =>
+      validateCreateOptions({ readiness: {} } as CreateOptions),
+    ).toThrow(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldReadiness,
       }),
     );
   });
@@ -233,7 +269,7 @@ describe("Shared request validation", () => {
       client.create({ security: { secrets: [{ reference: "" }] } }),
     ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
-      field: "security.secrets[0].reference",
+      field: CreateFieldSecuritySecretsReference,
       message: "sandbox-kit: must not be blank",
     });
     expect(backend.createCalls).toBe(0);

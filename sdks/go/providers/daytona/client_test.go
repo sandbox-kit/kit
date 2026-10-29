@@ -81,6 +81,27 @@ func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 	}
 }
 
+func TestAuthReportsTheMissingCredential(t *testing.T) {
+	cases := []struct {
+		name   string
+		config *sandbox.Config
+		field  string
+	}{
+		{"missing key", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{}}}, sandbox.ConfigFieldAuthApiKey},
+		{"blank key", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{}}}}, sandbox.ConfigFieldAuthApiKeyKey},
+		{"blank bearer", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.BearerToken{BearerToken: &sandbox.BearerTokenCredentials{}}}}, sandbox.ConfigFieldAuthBearerTokenToken},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := mapClientConfig(tc.config)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != tc.field || detail.Provider != "daytona" {
+				t.Fatalf("error = %v detail = %#v", err, detail)
+			}
+		})
+	}
+}
+
 func TestEndpointPassThroughAndDefault(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
