@@ -141,6 +141,9 @@ func (c *creation) resources() error {
 	if err != nil {
 		return err
 	}
+	if remaining.DiskMib != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesDiskMib, "Modal disk override is unsupported")
+	}
 	if err := sandboxsdk.RejectUnmapped("modal resources", remaining); err != nil {
 		return err
 	}
@@ -160,6 +163,9 @@ func (c *creation) placement() error {
 		c.plan.params.Regions = config.Regions
 	}
 	config.Cloud, config.Regions = nil, nil
+	if config.Target != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldPlacementTarget, "Modal placement target is unsupported")
+	}
 	if err := sandboxsdk.RejectUnmapped("modal placement", config); err != nil {
 		return err
 	}
@@ -214,6 +220,10 @@ func (c *creation) provisioning() error {
 	}
 	config := cloneMessage(c.request.Provisioning)
 	config.Timeout = nil // Client.Create applies this context deadline.
+	if config.QueueTimeout != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningQueueTimeout, "Modal queue timeout is unsupported")
+	}
+	config.QueueTimeout = nil
 	switch config.WaitFor {
 	case sandbox.WaitConditionDefault, sandbox.WaitConditionScheduled:
 	case sandbox.WaitConditionReady:
@@ -244,6 +254,9 @@ func (c *creation) observability() error {
 	config := cloneMessage(c.request.Observability)
 	c.plan.params.Verbose = config.GetVerbose()
 	config.Verbose = nil
+	if config.TelemetryEndpoint != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservabilityTelemetryEndpoint, "per-sandbox telemetry endpoint is unsupported")
+	}
 	if err := sandboxsdk.RejectUnmapped("modal observability", config); err != nil {
 		return err
 	}

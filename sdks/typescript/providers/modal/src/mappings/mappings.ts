@@ -38,6 +38,7 @@ import {
   CreateFieldName,
   CreateFieldNetworkInboundCidrs,
   CreateFieldNetworkProxyReference,
+  CreateFieldObservabilityTelemetryEndpoint,
   CreateFieldProvisioningQueueTimeout,
   CreateFieldResourcesCpuLimitCores,
   CreateFieldResourcesDiskMib,
@@ -345,7 +346,7 @@ function mapObservability(r: CreateOptions, p: SandboxCreateParams): void {
   if (v.verbose !== undefined) p.verbose = v.verbose;
   if (v.telemetryEndpoint !== undefined)
     unsupported(
-      "observability.telemetryEndpoint",
+      CreateFieldObservabilityTelemetryEndpoint,
       "per-sandbox telemetry endpoint is unsupported",
     );
 }

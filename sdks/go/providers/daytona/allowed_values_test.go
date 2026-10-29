@@ -47,3 +47,35 @@ func TestDocumentedCreationRules(t *testing.T) {
 		})
 	}
 }
+
+func TestUnsupportedFieldsUseCanonicalPaths(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		request *sandbox.CreateOptions
+		field   string
+	}{
+		{
+			name:    "idle terminate",
+			request: &sandbox.CreateOptions{Lifetime: &sandbox.LifetimePolicy{IdleTerminate: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled}}},
+			field:   sandbox.CreateFieldLifetimeIdleTerminate,
+		},
+		{
+			name:    "verbose",
+			request: &sandbox.CreateOptions{Observability: &sandbox.ObservabilityConfig{Verbose: sandbox.Value(true)}},
+			field:   sandbox.CreateFieldObservabilityVerbose,
+		},
+		{
+			name:    "workload identity",
+			request: &sandbox.CreateOptions{Security: &sandbox.SecurityConfig{WorkloadIdentity: sandbox.Value(true)}},
+			field:   sandbox.CreateFieldSecurityWorkloadIdentity,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := planCreate(tc.request)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != tc.field {
+				t.Fatalf("error = %v detail = %#v", err, detail)
+			}
+		})
+	}
+}

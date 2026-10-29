@@ -12,10 +12,16 @@ import {
   CreateFieldLifetimeIdleTerminateAfter,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldNetworkInboundCidrsEntries,
+  CreateFieldObservabilityTelemetryEndpoint,
+  CreateFieldPlacementTarget,
+  CreateFieldProvisioningQueueTimeout,
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesCpuLimitCores,
+  CreateFieldResourcesDiskMib,
   ConfigFieldAuthTokenPairId,
   ConfigFieldEndpoint,
+  ConfigFieldScopeOrganizationId,
+  ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -63,6 +69,58 @@ describe("Modal mappings", () => {
         operation: "initialize",
       }),
     );
+  });
+
+  it("reports canonical fields for unsupported settings", () => {
+    const config = { scope: { appName: "app" } };
+    const image = { source: { image: { reference: "alpine:3.21" } } };
+    const cases = [
+      {
+        run: () =>
+          mapCreateRequest({ ...image, resources: { diskMib: 1024n } }, config),
+        field: CreateFieldResourcesDiskMib,
+      },
+      {
+        run: () =>
+          mapCreateRequest({ ...image, placement: { target: "us" } }, config),
+        field: CreateFieldPlacementTarget,
+      },
+      {
+        run: () =>
+          mapCreateRequest(
+            { ...image, provisioning: { queueTimeout: 60_000 } },
+            config,
+          ),
+        field: CreateFieldProvisioningQueueTimeout,
+      },
+      {
+        run: () =>
+          mapCreateRequest(
+            {
+              ...image,
+              observability: { telemetryEndpoint: "https://otel.example" },
+            },
+            config,
+          ),
+        field: CreateFieldObservabilityTelemetryEndpoint,
+      },
+      {
+        run: () => mapClientConfig({ scope: { organizationId: "org" } }),
+        field: ConfigFieldScopeOrganizationId,
+      },
+      {
+        run: () => mapClientConfig({ scope: { projectId: "project" } }),
+        field: ConfigFieldScopeProjectId,
+      },
+    ];
+    for (const item of cases) {
+      expect(item.run).toThrowError(
+        expect.objectContaining({
+          kind: ErrorKind.Unsupported,
+          field: item.field,
+        }),
+      );
+    }
   });
 
   it("rejects blank auth credentials in Client construction", () => {

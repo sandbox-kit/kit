@@ -8,6 +8,7 @@ import {
   type Scope,
   ConfigFieldAuth,
   ConfigFieldEndpoint,
+  ConfigFieldScopeOrganizationId,
   ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import {
@@ -30,7 +31,7 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
     Object.assign(target, mapped);
     if (source.scope.organizationId !== undefined)
       unsupported(
-        "scope.organizationId",
+        ConfigFieldScopeOrganizationId,
         "unsupported client configuration field",
       );
     if (source.scope.projectId !== undefined)

@@ -110,6 +110,9 @@ func (c *creation) security() error {
 		c.base.Secrets[secret.GetEnvironmentVariable()] = secret.Reference
 	}
 	config.Secrets = nil
+	if config.WorkloadIdentity != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldSecurityWorkloadIdentity, "Daytona workload identity is not mapped")
+	}
 	if err := sdk.RejectUnmapped("daytona security", config); err != nil {
 		return err
 	}
@@ -182,6 +185,9 @@ func (c *creation) lifetime() error {
 	c.base.AutoStopInterval, c.base.AutoPauseInterval = mapped.AutoStopInterval, mapped.AutoPauseInterval
 	c.base.AutoArchiveInterval, c.base.AutoDeleteInterval = mapped.AutoArchiveInterval, mapped.AutoDeleteInterval
 	config = remaining
+	if config.IdleTerminate != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetimeIdleTerminate, "Daytona idle termination is not mapped")
+	}
 	if err := sdk.RejectUnmapped("daytona lifetime", config); err != nil {
 		return err
 	}
@@ -230,6 +236,9 @@ func (c *creation) observability() error {
 	config := cloneMessage(c.request.Observability)
 	c.base.OtelEndpointOverride = config.TelemetryEndpoint
 	config.TelemetryEndpoint = nil
+	if config.Verbose != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservabilityVerbose, "Daytona verbose creation is not mapped")
+	}
 	if err := sdk.RejectUnmapped("daytona observability", config); err != nil {
 		return err
 	}

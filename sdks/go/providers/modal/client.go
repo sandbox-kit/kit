@@ -41,8 +41,11 @@ func (s *clientSettings) applyScope() error {
 	if s.source.Scope == nil {
 		return nil
 	}
-	if s.source.Scope.OrganizationId != nil || s.source.Scope.ProjectId != nil {
-		return unsupportedClientField("scope", "Modal only supports app_name and environment scope")
+	if s.source.Scope.OrganizationId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeOrganizationId, "unsupported client configuration field")
+	}
+	if s.source.Scope.ProjectId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeProjectId, "unsupported client configuration field")
 	}
 	mapped, _, err := mapScope(s.source.Scope)
 	if err != nil {
