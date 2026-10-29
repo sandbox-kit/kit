@@ -1,0 +1,96 @@
+what u think can be still improved in sdks ?
+
+---
+
+explian me with examples whats happensing
+
+---
+
+check modal and daytona sdk of typescript and golang
+
+there is always differences based on languages.
+
+---
+
+cool now again tell me what should I improve in golang and tyepscript sdk now u know langauge differences are fine.
+
+---
+
+explian with examples
+
+---
+
+One request, two answers
+
+
+what exactly happens in this ?
+
+---
+
+so what u recommend ?
+
+---
+
+why placement(on create)  and region (on config) both exisit
+
+---
+
+can we have if its run on placement. 
+
+then it fires for that request that region regardless of provider ? and cause currently If I set Region in Config for Modal it will give error right ?
+
+so instead in config if not set have that region for every request if placement is set for that request have that region ?
+
+---
+
+instead just fix that placement on daytona gets rejected in both ? 
+
+right.
+
+---
+
+can u checkis there any similar errors ?
+
+---
+
+first things first why we have providerOptions public.
+
+---
+
+should we remove it. if it comes again and in need we will introduce ?
+
+---
+
+do it
+
+---
+
+cool create a branch commit and push to branch create a PR with good title and explianing changes in description
+
+---
+
+cool now now can u suggest what similar to placement like field issue u were suggesting to improve
+
+---
+
+cool do it
+
+---
+
+cool commit and push to this branch
+
+---
+
+cool can u now check what still needs to be improved in both the sdks ?
+
+---
+
+fix it
+
+---
+
+cool do u want to improve anything related to it. ?
+
+or with changes in this branch there will be code which became obsolete so u might need to remove it. 
+
++ if there is .md, docs, readme which is outdated update it .
