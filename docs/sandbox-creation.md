@@ -24,8 +24,8 @@ Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
 Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
-explicit snapshot kinds are not mapped. Supplied unsupported fields and
-`ProviderOptions` are rejected before native creation calls.
+explicit snapshot kinds are not mapped. Supplied unsupported fields are
+rejected before native creation calls.
 
 ## Presence, units, and limits
 
@@ -35,7 +35,7 @@ optional scalar as supplied, including zero or false, and
 
 TypeScript `CreateOptions` is the public creation request: nested exclusive
 fields (`source: { image: … }`, `readiness: { tcpPort }` / `{ command }`),
-`string[]` allowlists, plain `environment` / `labels` / `providerOptions` maps,
+`string[]` allowlists, plain `environment` / `labels` maps,
 and **millisecond** duration fields (`timeout`, `after`, `maximumLifetime`).
 Property presence and `undefined` mark omission. The client materializes
 protobuf privately before Protovalidate.

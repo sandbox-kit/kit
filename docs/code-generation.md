@@ -154,7 +154,8 @@ checks:
 
 Supported formats include `absolute_path`, `http_url`, `cidr`, `domain`, and
 `env_name`. Policy relationships use `exclusive_policies` and
-`forbid_policy_with`. Dynamic account quotas, permissions, and capacity remain
+`forbid_policy_with`. `unsupported: true` rejects the path when the caller
+supplies it. Dynamic account quotas, permissions, and capacity remain
 provider-enforced.
 
 ## Typed field mappings

@@ -37,7 +37,6 @@ import type {
 } from "#contracts/sandbox_data_contracts.js";
 import { materializeDurationFields } from "#internal/duration_ms.js";
 import type { StripProto } from "#internal/strip_proto.js";
-import { metadataObjectFromMap } from "#metadata/metadata_object.js";
 import { ErrorKind, sandboxError } from "#client/errors.js";
 import type { AuthInput, Config } from "#client/types.js";
 
@@ -221,7 +220,7 @@ function materializeClientConfig(input: Config): ConfigWire {
 
 /** Materializes plain create options into the generated protobuf message. */
 function materializeCreateOptions(input: CreateOptions): CreateOptionsWire {
-  const { source, readiness, providerOptions, network, ...rest } = input;
+  const { source, readiness, network, ...rest } = input;
   const withDurations = materializeDurationFields(rest);
   return create(CreateOptionsSchema, {
     ...withDurations,
@@ -232,9 +231,6 @@ function materializeCreateOptions(input: CreateOptions): CreateOptionsWire {
     ...(readiness === undefined
       ? {}
       : { readiness: { check: readinessCheck(readiness) } }),
-    ...(providerOptions === undefined
-      ? {}
-      : { providerOptions: metadataObjectFromMap(providerOptions) }),
   } as unknown as MessageInitShape<
     typeof CreateOptionsSchema
   >) as CreateOptionsWire;

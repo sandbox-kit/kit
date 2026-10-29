@@ -63,9 +63,6 @@ func preserveCreateOptionsCollections(src, dst *CreateOptions) {
 			}
 		}
 	}
-	if src.ProviderOptions != nil && dst.ProviderOptions != nil {
-		preserveMetadataObject(src.ProviderOptions, dst.ProviderOptions)
-	}
 }
 
 func preserveSandboxInfoCollections(src, dst *SandboxInfo) {

@@ -263,9 +263,6 @@ export const CreateFieldObservabilityVerbose = "observability.verbose" as const;
 /** Canonical path "observability.telemetry_endpoint". */
 export const CreateFieldObservabilityTelemetryEndpoint = "observability.telemetry_endpoint" as const;
 
-/** Canonical path "provider_options". */
-export const CreateFieldProviderOptions = "provider_options" as const;
-
 /** Canonical path "id". */
 export const InfoFieldId = "id" as const;
 

@@ -2,6 +2,7 @@ import {
   ErrorKind,
   PolicyMode,
   CreateFieldLifetime,
+  CreateFieldPlacement,
   CreateFieldNetworkOutboundCidrsEntries,
   CreateFieldNetworkOutboundDomainsEntries,
   CreateFieldNetworkOutboundProxyUrl,
@@ -21,6 +22,15 @@ type PublicAction = NonNullable<
 // validateProviderCreate rejects creation settings this provider cannot honor.
 // Rules are inventoried in specs/providers/daytona.yaml checks.
 export function validateProviderCreate(request: CreateOptions): void {
+  if (request.placement !== undefined) {
+    providerError({
+      kind: ErrorKind.Unsupported,
+      operation: "create",
+      field: CreateFieldPlacement,
+      message:
+        "per-request Daytona placement is unsupported; use Config.region",
+    });
+  }
   const language = request.runtime?.language;
   if (
     language !== undefined &&

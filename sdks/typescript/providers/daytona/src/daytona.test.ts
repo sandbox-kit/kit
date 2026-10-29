@@ -12,6 +12,7 @@ import {
   SecretInjection,
   WaitCondition,
   CreateFieldLifetime,
+  CreateFieldPlacement,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldNetworkOutboundCidrsEntries,
   CreateFieldProvisioningWaitFor,
@@ -170,6 +171,17 @@ describe("Daytona mappings", () => {
         scope: { organizationId: "organization-1" },
       }),
     ).toMatchObject({ jwtToken: "jwt", organizationId: "organization-1" });
+  });
+
+  it("rejects per-request placement", () => {
+    expect(() =>
+      mapCreateRequest({ placement: { regions: ["eu"] } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldPlacement,
+      }),
+    );
   });
 
   it("rejects wait intent the Daytona TypeScript SDK cannot represent", () => {

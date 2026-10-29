@@ -44,8 +44,8 @@ message CreateOptions {
   ProvisioningOptions provisioning = 12 [json_name = "creation"];
   ReadinessProbe readiness = 13;
   ObservabilityConfig observability = 14;
-  // holds provider-specific declarative options. It is never an SDK object or an auth credential.
-  MetadataObject provider_options = 15;
+  reserved 15;
+  reserved "provider_options";
 }
 
 // SandboxSource is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.

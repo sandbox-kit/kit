@@ -16,7 +16,6 @@ import {
   CreateFieldNetworkEgress,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldObservabilityVerbose,
-  CreateFieldPlacement,
   CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
   CreateFieldResources,
@@ -82,18 +81,11 @@ export function mapCreateRequest(request: CreateOptions): DaytonaCreateParams {
   mapLifetime(request, base);
   mapProvisioning(request, base);
   mapObservability(request, base);
-  if (request.placement !== undefined)
-    unsupported(
-      CreateFieldPlacement,
-      "per-request Daytona placement is unsupported; use Config.region",
-    );
   if (request.readiness !== undefined)
     unsupported(
       CreateFieldReadiness,
       "Daytona readiness probes are not mapped",
     );
-  if (request.providerOptions !== undefined)
-    unsupported("providerOptions", "Daytona provider options are not mapped");
   const source = request.source;
   if (source?.warmPool !== undefined)
     unsupported(

@@ -305,9 +305,6 @@ const CreateFieldObservabilityVerbose = "observability.verbose"
 // "observability.telemetry_endpoint".
 const CreateFieldObservabilityTelemetryEndpoint = "observability.telemetry_endpoint"
 
-// CreateFieldProviderOptions is the canonical path "provider_options".
-const CreateFieldProviderOptions = "provider_options"
-
 // InfoFieldId is the canonical path "id".
 const InfoFieldId = "id"
 

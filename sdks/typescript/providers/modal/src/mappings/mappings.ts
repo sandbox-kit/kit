@@ -103,8 +103,6 @@ export function mapCreateRequest(
   mapReadiness(request, params);
   const wait = mapProvisioning(request, params);
   mapObservability(request, params);
-  if (request.providerOptions !== undefined)
-    unsupported("providerOptions", "Modal provider options are not mapped");
   return {
     app,
     ...(config.scope?.environment === undefined

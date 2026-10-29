@@ -686,10 +686,8 @@ type CreateOptions struct {
 	Provisioning  *ProvisioningOptions `protobuf:"bytes,12,opt,name=provisioning,json=creation,proto3" json:"provisioning,omitempty"`
 	Readiness     *ReadinessProbe      `protobuf:"bytes,13,opt,name=readiness,proto3" json:"readiness,omitempty"`
 	Observability *ObservabilityConfig `protobuf:"bytes,14,opt,name=observability,proto3" json:"observability,omitempty"`
-	// holds provider-specific declarative options. It is never an SDK object or an auth credential.
-	ProviderOptions *MetadataObject `protobuf:"bytes,15,opt,name=provider_options,json=providerOptions,proto3" json:"provider_options,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CreateOptions) Reset() {
@@ -816,13 +814,6 @@ func (x *CreateOptions) GetReadiness() *ReadinessProbe {
 func (x *CreateOptions) GetObservability() *ObservabilityConfig {
 	if x != nil {
 		return x.Observability
-	}
-	return nil
-}
-
-func (x *CreateOptions) GetProviderOptions() *MetadataObject {
-	if x != nil {
-		return x.ProviderOptions
 	}
 	return nil
 }
@@ -3120,7 +3111,7 @@ var File_kit_sandbox_v1_sandbox_proto protoreflect.FileDescriptor
 
 const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\n" +
-	"\x1ckit/sandbox/v1/sandbox.proto\x12\x0ekit.sandbox.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xac\b\n" +
+	"\x1ckit/sandbox/v1/sandbox.proto\x12\x0ekit.sandbox.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf9\a\n" +
 	"\rCreateOptions\x12\x17\n" +
 	"\x04name\x18\x01 \x01(\tH\x00R\x04name\x88\x01\x01\x125\n" +
 	"\x06source\x18\x02 \x01(\v2\x1d.kit.sandbox.v1.SandboxSourceR\x06source\x127\n" +
@@ -3136,15 +3127,14 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\blifetime\x18\v \x01(\v2\x1e.kit.sandbox.v1.LifetimePolicyR\blifetime\x12C\n" +
 	"\fprovisioning\x18\f \x01(\v2#.kit.sandbox.v1.ProvisioningOptionsR\bcreation\x12<\n" +
 	"\treadiness\x18\r \x01(\v2\x1e.kit.sandbox.v1.ReadinessProbeR\treadiness\x12I\n" +
-	"\robservability\x18\x0e \x01(\v2#.kit.sandbox.v1.ObservabilityConfigR\robservability\x12I\n" +
-	"\x10provider_options\x18\x0f \x01(\v2\x1e.kit.sandbox.v1.MetadataObjectR\x0fproviderOptions\x1a>\n" +
+	"\robservability\x18\x0e \x01(\v2#.kit.sandbox.v1.ObservabilityConfigR\robservability\x1a>\n" +
 	"\x10EnvironmentEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\a\n" +
-	"\x05_name\"\x9d\x02\n" +
+	"\x05_nameJ\x04\b\x0f\x10\x10R\x10provider_options\"\x9d\x02\n" +
 	"\rSandboxSource\x12R\n" +
 	"\x10provider_default\x18\x01 \x01(\v2%.kit.sandbox.v1.ProviderDefaultSourceH\x00R\x0fproviderDefault\x123\n" +
 	"\x05image\x18\x02 \x01(\v2\x1b.kit.sandbox.v1.ImageSourceH\x00R\x05image\x12<\n" +
@@ -3545,57 +3535,56 @@ var file_kit_sandbox_v1_sandbox_proto_depIdxs = []int32{
 	27, // 10: kit.sandbox.v1.CreateOptions.provisioning:type_name -> kit.sandbox.v1.ProvisioningOptions
 	28, // 11: kit.sandbox.v1.CreateOptions.readiness:type_name -> kit.sandbox.v1.ReadinessProbe
 	30, // 12: kit.sandbox.v1.CreateOptions.observability:type_name -> kit.sandbox.v1.ObservabilityConfig
-	43, // 13: kit.sandbox.v1.CreateOptions.provider_options:type_name -> kit.sandbox.v1.MetadataObject
-	12, // 14: kit.sandbox.v1.SandboxSource.provider_default:type_name -> kit.sandbox.v1.ProviderDefaultSource
-	13, // 15: kit.sandbox.v1.SandboxSource.image:type_name -> kit.sandbox.v1.ImageSource
-	14, // 16: kit.sandbox.v1.SandboxSource.snapshot:type_name -> kit.sandbox.v1.SnapshotSource
-	15, // 17: kit.sandbox.v1.SandboxSource.warm_pool:type_name -> kit.sandbox.v1.WarmPoolSource
-	0,  // 18: kit.sandbox.v1.SnapshotSource.kind:type_name -> kit.sandbox.v1.SnapshotKind
-	1,  // 19: kit.sandbox.v1.IsolationConfig.kind:type_name -> kit.sandbox.v1.IsolationKind
-	2,  // 20: kit.sandbox.v1.NetworkConfig.egress:type_name -> kit.sandbox.v1.EgressMode
-	20, // 21: kit.sandbox.v1.NetworkConfig.outbound_cidrs:type_name -> kit.sandbox.v1.StringAllowlist
-	20, // 22: kit.sandbox.v1.NetworkConfig.outbound_domains:type_name -> kit.sandbox.v1.StringAllowlist
-	20, // 23: kit.sandbox.v1.NetworkConfig.inbound_cidrs:type_name -> kit.sandbox.v1.StringAllowlist
-	22, // 24: kit.sandbox.v1.NetworkConfig.ports:type_name -> kit.sandbox.v1.PortBinding
-	3,  // 25: kit.sandbox.v1.PortBinding.transport:type_name -> kit.sandbox.v1.PortTransport
-	24, // 26: kit.sandbox.v1.SecurityConfig.secrets:type_name -> kit.sandbox.v1.SecretReference
-	4,  // 27: kit.sandbox.v1.SecretReference.injection:type_name -> kit.sandbox.v1.SecretInjection
-	48, // 28: kit.sandbox.v1.LifetimePolicy.maximum_lifetime:type_name -> google.protobuf.Duration
-	26, // 29: kit.sandbox.v1.LifetimePolicy.idle_terminate:type_name -> kit.sandbox.v1.AutomaticAction
-	26, // 30: kit.sandbox.v1.LifetimePolicy.idle_stop:type_name -> kit.sandbox.v1.AutomaticAction
-	26, // 31: kit.sandbox.v1.LifetimePolicy.idle_pause:type_name -> kit.sandbox.v1.AutomaticAction
-	26, // 32: kit.sandbox.v1.LifetimePolicy.stopped_archive:type_name -> kit.sandbox.v1.AutomaticAction
-	26, // 33: kit.sandbox.v1.LifetimePolicy.stopped_delete:type_name -> kit.sandbox.v1.AutomaticAction
-	5,  // 34: kit.sandbox.v1.AutomaticAction.mode:type_name -> kit.sandbox.v1.PolicyMode
-	48, // 35: kit.sandbox.v1.AutomaticAction.after:type_name -> google.protobuf.Duration
-	48, // 36: kit.sandbox.v1.ProvisioningOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 37: kit.sandbox.v1.ProvisioningOptions.queue_timeout:type_name -> google.protobuf.Duration
-	6,  // 38: kit.sandbox.v1.ProvisioningOptions.wait_for:type_name -> kit.sandbox.v1.WaitCondition
-	29, // 39: kit.sandbox.v1.ReadinessProbe.command:type_name -> kit.sandbox.v1.CommandProbe
-	39, // 40: kit.sandbox.v1.CreateResult.sandbox:type_name -> kit.sandbox.v1.SandboxInfo
-	48, // 41: kit.sandbox.v1.StartOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 42: kit.sandbox.v1.StopOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 43: kit.sandbox.v1.PauseOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 44: kit.sandbox.v1.TerminateOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 45: kit.sandbox.v1.ArchiveOptions.timeout:type_name -> google.protobuf.Duration
-	48, // 46: kit.sandbox.v1.DeleteOptions.timeout:type_name -> google.protobuf.Duration
-	17, // 47: kit.sandbox.v1.SandboxInfo.isolation:type_name -> kit.sandbox.v1.IsolationConfig
-	18, // 48: kit.sandbox.v1.SandboxInfo.resources:type_name -> kit.sandbox.v1.Resources
-	46, // 49: kit.sandbox.v1.SandboxInfo.labels:type_name -> kit.sandbox.v1.SandboxInfo.LabelsEntry
-	49, // 50: kit.sandbox.v1.SandboxInfo.created_at:type_name -> google.protobuf.Timestamp
-	43, // 51: kit.sandbox.v1.SandboxInfo.provider_metadata:type_name -> kit.sandbox.v1.MetadataObject
-	7,  // 52: kit.sandbox.v1.SandboxInfo.state:type_name -> kit.sandbox.v1.SandboxState
-	9,  // 53: kit.sandbox.v1.ErrorInfo.kind:type_name -> kit.sandbox.v1.ErrorKind
-	42, // 54: kit.sandbox.v1.MetadataValue.list:type_name -> kit.sandbox.v1.MetadataList
-	43, // 55: kit.sandbox.v1.MetadataValue.object:type_name -> kit.sandbox.v1.MetadataObject
-	41, // 56: kit.sandbox.v1.MetadataList.values:type_name -> kit.sandbox.v1.MetadataValue
-	47, // 57: kit.sandbox.v1.MetadataObject.values:type_name -> kit.sandbox.v1.MetadataObject.ValuesEntry
-	41, // 58: kit.sandbox.v1.MetadataObject.ValuesEntry.value:type_name -> kit.sandbox.v1.MetadataValue
-	59, // [59:59] is the sub-list for method output_type
-	59, // [59:59] is the sub-list for method input_type
-	59, // [59:59] is the sub-list for extension type_name
-	59, // [59:59] is the sub-list for extension extendee
-	0,  // [0:59] is the sub-list for field type_name
+	12, // 13: kit.sandbox.v1.SandboxSource.provider_default:type_name -> kit.sandbox.v1.ProviderDefaultSource
+	13, // 14: kit.sandbox.v1.SandboxSource.image:type_name -> kit.sandbox.v1.ImageSource
+	14, // 15: kit.sandbox.v1.SandboxSource.snapshot:type_name -> kit.sandbox.v1.SnapshotSource
+	15, // 16: kit.sandbox.v1.SandboxSource.warm_pool:type_name -> kit.sandbox.v1.WarmPoolSource
+	0,  // 17: kit.sandbox.v1.SnapshotSource.kind:type_name -> kit.sandbox.v1.SnapshotKind
+	1,  // 18: kit.sandbox.v1.IsolationConfig.kind:type_name -> kit.sandbox.v1.IsolationKind
+	2,  // 19: kit.sandbox.v1.NetworkConfig.egress:type_name -> kit.sandbox.v1.EgressMode
+	20, // 20: kit.sandbox.v1.NetworkConfig.outbound_cidrs:type_name -> kit.sandbox.v1.StringAllowlist
+	20, // 21: kit.sandbox.v1.NetworkConfig.outbound_domains:type_name -> kit.sandbox.v1.StringAllowlist
+	20, // 22: kit.sandbox.v1.NetworkConfig.inbound_cidrs:type_name -> kit.sandbox.v1.StringAllowlist
+	22, // 23: kit.sandbox.v1.NetworkConfig.ports:type_name -> kit.sandbox.v1.PortBinding
+	3,  // 24: kit.sandbox.v1.PortBinding.transport:type_name -> kit.sandbox.v1.PortTransport
+	24, // 25: kit.sandbox.v1.SecurityConfig.secrets:type_name -> kit.sandbox.v1.SecretReference
+	4,  // 26: kit.sandbox.v1.SecretReference.injection:type_name -> kit.sandbox.v1.SecretInjection
+	48, // 27: kit.sandbox.v1.LifetimePolicy.maximum_lifetime:type_name -> google.protobuf.Duration
+	26, // 28: kit.sandbox.v1.LifetimePolicy.idle_terminate:type_name -> kit.sandbox.v1.AutomaticAction
+	26, // 29: kit.sandbox.v1.LifetimePolicy.idle_stop:type_name -> kit.sandbox.v1.AutomaticAction
+	26, // 30: kit.sandbox.v1.LifetimePolicy.idle_pause:type_name -> kit.sandbox.v1.AutomaticAction
+	26, // 31: kit.sandbox.v1.LifetimePolicy.stopped_archive:type_name -> kit.sandbox.v1.AutomaticAction
+	26, // 32: kit.sandbox.v1.LifetimePolicy.stopped_delete:type_name -> kit.sandbox.v1.AutomaticAction
+	5,  // 33: kit.sandbox.v1.AutomaticAction.mode:type_name -> kit.sandbox.v1.PolicyMode
+	48, // 34: kit.sandbox.v1.AutomaticAction.after:type_name -> google.protobuf.Duration
+	48, // 35: kit.sandbox.v1.ProvisioningOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 36: kit.sandbox.v1.ProvisioningOptions.queue_timeout:type_name -> google.protobuf.Duration
+	6,  // 37: kit.sandbox.v1.ProvisioningOptions.wait_for:type_name -> kit.sandbox.v1.WaitCondition
+	29, // 38: kit.sandbox.v1.ReadinessProbe.command:type_name -> kit.sandbox.v1.CommandProbe
+	39, // 39: kit.sandbox.v1.CreateResult.sandbox:type_name -> kit.sandbox.v1.SandboxInfo
+	48, // 40: kit.sandbox.v1.StartOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 41: kit.sandbox.v1.StopOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 42: kit.sandbox.v1.PauseOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 43: kit.sandbox.v1.TerminateOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 44: kit.sandbox.v1.ArchiveOptions.timeout:type_name -> google.protobuf.Duration
+	48, // 45: kit.sandbox.v1.DeleteOptions.timeout:type_name -> google.protobuf.Duration
+	17, // 46: kit.sandbox.v1.SandboxInfo.isolation:type_name -> kit.sandbox.v1.IsolationConfig
+	18, // 47: kit.sandbox.v1.SandboxInfo.resources:type_name -> kit.sandbox.v1.Resources
+	46, // 48: kit.sandbox.v1.SandboxInfo.labels:type_name -> kit.sandbox.v1.SandboxInfo.LabelsEntry
+	49, // 49: kit.sandbox.v1.SandboxInfo.created_at:type_name -> google.protobuf.Timestamp
+	43, // 50: kit.sandbox.v1.SandboxInfo.provider_metadata:type_name -> kit.sandbox.v1.MetadataObject
+	7,  // 51: kit.sandbox.v1.SandboxInfo.state:type_name -> kit.sandbox.v1.SandboxState
+	9,  // 52: kit.sandbox.v1.ErrorInfo.kind:type_name -> kit.sandbox.v1.ErrorKind
+	42, // 53: kit.sandbox.v1.MetadataValue.list:type_name -> kit.sandbox.v1.MetadataList
+	43, // 54: kit.sandbox.v1.MetadataValue.object:type_name -> kit.sandbox.v1.MetadataObject
+	41, // 55: kit.sandbox.v1.MetadataList.values:type_name -> kit.sandbox.v1.MetadataValue
+	47, // 56: kit.sandbox.v1.MetadataObject.values:type_name -> kit.sandbox.v1.MetadataObject.ValuesEntry
+	41, // 57: kit.sandbox.v1.MetadataObject.ValuesEntry.value:type_name -> kit.sandbox.v1.MetadataValue
+	58, // [58:58] is the sub-list for method output_type
+	58, // [58:58] is the sub-list for method input_type
+	58, // [58:58] is the sub-list for extension type_name
+	58, // [58:58] is the sub-list for extension extendee
+	0,  // [0:58] is the sub-list for field type_name
 }
 
 func init() { file_kit_sandbox_v1_sandbox_proto_init() }

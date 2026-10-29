@@ -1,5 +1,5 @@
 /**
- * Plain JSON-like values accepted for public metadata / providerOptions maps.
+ * Plain JSON-like values accepted for public metadata maps.
  * Nested objects use an interface so IDEs do not expand the recursive union.
  */
 export type MetadataPlain =
