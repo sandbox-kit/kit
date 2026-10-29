@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M63WH793366E4V5ZGNY6R3HE",
+  "strategy": "manual-commit",
+  "branch": "fix/daytona-placement-and-drop-provider-options",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/code-generation.md",
+    "docs/naming.md",
+    "docs/responses-and-errors.md",
+    "sdks/go/internal/sdk/unmapped.go",
+    "sdks/go/providers/daytona/allowed_values_test.go",
+    "sdks/go/providers/daytona/client.go",
+    "sdks/go/providers/daytona/client_test.go",
+    "sdks/go/providers/daytona/creation.go",
+    "sdks/go/providers/daytona/provider_mappings.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/client_test.go",
+    "sdks/go/providers/modal/creation.go",
+    "sdks/go/providers/modal/sandbox.go",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/go/sandbox/create_validation_test.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/go/sandbox/operation.go",
+    "sdks/go/sandbox/support_test.go",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/mappings/provider_mappings.ts",
+    "sdks/typescript/providers/modal/src/mappings/mappings.ts",
+    "sdks/typescript/sandbox/src/client/client.test.ts",
+    "sdks/typescript/sandbox/src/client/validation.ts",
+    "sdks/typescript/sandbox/src/contracts/field_paths.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 205329,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 11329664,
+    "output_tokens": 50605,
+    "api_call_count": 2
+  }
+}
