@@ -1,0 +1,38 @@
+cool now what do u think what can be improved else in both the sdks.
+
+---
+
+do it
+
+---
+
+check if its good. the timeout which we have done cause internally sdk would have timeout too ? 
+how they handle it ?
+
+---
+
+so what need to be fixed do that
+
+---
+
+cool commit and push to this branch and update the changes this branch has.
+
+---
+
+delete it ig we don't need it ?
+
+---
+
+ain't Modal have timeouts ?
+
+---
+
+do no changes ?
+
+---
+
+so no changes ?
+
+---
+
+I think go.work.sum was ruined in this branch
