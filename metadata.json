@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M63TA5WE6A7MMHSER3BVYPS7",
+  "strategy": "manual-commit",
+  "branch": "fix/daytona-placement-and-drop-provider-options",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "sdks/go/providers/daytona/allowed_values_test.go",
+    "sdks/go/providers/daytona/creation.go",
+    "sdks/go/providers/modal/client.go",
+    "sdks/go/providers/modal/client_test.go",
+    "sdks/go/providers/modal/creation.go",
+    "sdks/typescript/providers/modal/src/config/provider_config.ts",
+    "sdks/typescript/providers/modal/src/mappings/mappings.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 76823,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2962432,
+    "output_tokens": 20021,
+    "api_call_count": 1
+  }
+}
