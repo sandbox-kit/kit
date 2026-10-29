@@ -94,3 +94,7 @@ cool do u want to improve anything related to it. ?
 or with changes in this branch there will be code which became obsolete so u might need to remove it. 
 
 + if there is .md, docs, readme which is outdated update it .
+
+---
+
+commit and push to this branch
