@@ -18,6 +18,7 @@ import {
   CreateFieldNetworkLinkedSandbox,
   CreateFieldObservabilityVerbose,
   CreateFieldProvisioningQueueTimeout,
+  CreateFieldProvisioningTimeout,
   CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
   CreateFieldResources,
@@ -302,6 +303,8 @@ function mapProvisioning(
 ): void {
   const value = request.provisioning;
   if (value === undefined) return;
+  if (value.timeout !== undefined)
+    requireWholeSeconds(value.timeout, CreateFieldProvisioningTimeout);
   if (value.queueTimeout !== undefined)
     target.queueTimeout = wholeMinutes(
       value.queueTimeout,
@@ -342,6 +345,11 @@ function mapResources(
   if (value.cpuLimitCores !== undefined || value.memoryLimitMib !== undefined)
     unsupported(CreateFieldResources, "Daytona resource limits are not mapped");
   return generatedMapResources(value);
+}
+
+function requireWholeSeconds(value: number, field: string): void {
+  if (!Number.isFinite(value) || value < 0 || value % 1_000 !== 0)
+    invalid(field, "timeout must be a whole number of seconds");
 }
 
 function wholeMinutes(

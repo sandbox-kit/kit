@@ -113,14 +113,17 @@ provider-managed secrets, not authentication credentials.
 
 Creation timeout, queue timeout, and lifetime are distinct. Omitted creation
 timeout inherits `Config.Timeout` / `timeout`; explicit zero adds no Kit
-deadline. Caller deadlines and native SDK timeouts still apply. Modal ready
-waiting also requires a readiness probe and a positive creation timeout.
+deadline. A caller-context deadline still applies. A Daytona creation timeout
+must be a whole number of seconds. An omitted Daytona creation timeout and an
+explicit zero both leave Daytona's 60-second create default in place. Modal
+ready waiting also requires a readiness probe and a positive creation timeout.
 
 ## Results and cleanup
 
 Kit copies requests and result metadata with typed clone helpers. Errors expose
-shared details while preserving native causes. Cancellation is forwarded to the
-SDK. Kit performs no automatic retries or cloud cleanup.
+shared details while preserving native causes. Go forwards cancellation into
+the native SDK. TypeScript checks the abort signal before each native call.
+Kit performs no automatic retries or cloud cleanup.
 
 Closing the client releases SDK resources without changing cloud sandboxes.
 Do not use handles after their owning client closes. Closing a handle is also

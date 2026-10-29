@@ -83,8 +83,10 @@ does not change the handle.
 A creation request can override it with `CreateOptions.Provisioning.Timeout` /
 `provisioning.timeout`; lifecycle options can override it with their
 operation-specific `Timeout` / `timeout`. Explicit zero adds no Kit deadline. An
-earlier caller-context deadline still applies, and native SDK transport or
-operation timeouts remain in force.
+earlier caller-context deadline still applies. Daytona create keeps its
+60-second default for an omitted timeout and for explicit zero. Daytona start,
+stop, pause, and delete use that default when the timeout is omitted, and treat
+explicit zero as no operation timeout.
 
 ## Credentials and errors
 

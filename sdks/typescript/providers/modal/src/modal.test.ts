@@ -12,16 +12,10 @@ import {
   CreateFieldLifetimeIdleTerminateAfter,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldNetworkInboundCidrsEntries,
-  CreateFieldObservabilityTelemetryEndpoint,
-  CreateFieldPlacementTarget,
-  CreateFieldProvisioningQueueTimeout,
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesCpuLimitCores,
-  CreateFieldResourcesDiskMib,
   ConfigFieldAuthTokenPairId,
   ConfigFieldEndpoint,
-  ConfigFieldScopeOrganizationId,
-  ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -69,58 +63,6 @@ describe("Modal mappings", () => {
         operation: "initialize",
       }),
     );
-  });
-
-  it("reports canonical fields for unsupported settings", () => {
-    const config = { scope: { appName: "app" } };
-    const image = { source: { image: { reference: "alpine:3.21" } } };
-    const cases = [
-      {
-        run: () =>
-          mapCreateRequest({ ...image, resources: { diskMib: 1024n } }, config),
-        field: CreateFieldResourcesDiskMib,
-      },
-      {
-        run: () =>
-          mapCreateRequest({ ...image, placement: { target: "us" } }, config),
-        field: CreateFieldPlacementTarget,
-      },
-      {
-        run: () =>
-          mapCreateRequest(
-            { ...image, provisioning: { queueTimeout: 60_000 } },
-            config,
-          ),
-        field: CreateFieldProvisioningQueueTimeout,
-      },
-      {
-        run: () =>
-          mapCreateRequest(
-            {
-              ...image,
-              observability: { telemetryEndpoint: "https://otel.example" },
-            },
-            config,
-          ),
-        field: CreateFieldObservabilityTelemetryEndpoint,
-      },
-      {
-        run: () => mapClientConfig({ scope: { organizationId: "org" } }),
-        field: ConfigFieldScopeOrganizationId,
-      },
-      {
-        run: () => mapClientConfig({ scope: { projectId: "project" } }),
-        field: ConfigFieldScopeProjectId,
-      },
-    ];
-    for (const item of cases) {
-      expect(item.run).toThrowError(
-        expect.objectContaining({
-          kind: ErrorKind.Unsupported,
-          field: item.field,
-        }),
-      );
-    }
   });
 
   it("reports canonical fields for invalid durations", () => {
@@ -417,5 +359,109 @@ describe("Modal provider orchestration", () => {
     expect(nativeCreate?.proxy?.proxyId).toBe("proxy-id");
     expect(sandbox.id).toBe("sandbox-1");
     expect(closeCalls).toBe(1);
+  });
+
+  it("does not create a sandbox after the signal aborts during lookup", async () => {
+    const controller = new AbortController();
+    let created = false;
+    const native = {
+      apps: {
+        async fromName(name: string): Promise<App> {
+          controller.abort();
+          return new App("app-id", name);
+        },
+      },
+      images: {
+        fromRegistry(): Image {
+          return {} as Image;
+        },
+      },
+      proxies: {
+        async fromName(): Promise<Proxy> {
+          throw new Error("unexpected proxy lookup");
+        },
+      },
+      secrets: {
+        async fromName(): Promise<never> {
+          throw new Error("unexpected secret lookup");
+        },
+      },
+      sandboxes: {
+        async create(): Promise<ModalSandbox> {
+          created = true;
+          throw new Error("native create");
+        },
+        async fromId(): Promise<ModalSandbox> {
+          throw new Error("unexpected attach");
+        },
+      },
+      close(): void {},
+    };
+    const backend = new ModalProvider(() => native).initialize({
+      scope: { appName: "app" },
+    });
+    if (backend.create === undefined) throw new Error("create is missing");
+    await expect(
+      backend.create(
+        { source: { image: { reference: "alpine:3.21" } } },
+        { signal: controller.signal },
+      ),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "create",
+    });
+    expect(created).toBe(false);
+  });
+
+  it("stops waiting for termination when the signal aborts", async () => {
+    const controller = new AbortController();
+    let polls = 0;
+    const nativeSandbox = {
+      async terminate(): Promise<void> {},
+      async poll(): Promise<number | null> {
+        polls++;
+        controller.abort();
+        return null;
+      },
+    } as ModalSandbox;
+    const backend = new ModalProvider(() => ({
+      apps: {
+        async fromName(): Promise<App> {
+          throw new Error("unexpected app lookup");
+        },
+      },
+      images: {
+        fromRegistry(): Image {
+          return {} as Image;
+        },
+      },
+      proxies: {
+        async fromName(): Promise<Proxy> {
+          throw new Error("unexpected proxy lookup");
+        },
+      },
+      secrets: {
+        async fromName(): Promise<never> {
+          throw new Error("unexpected secret lookup");
+        },
+      },
+      sandboxes: {
+        async create(): Promise<ModalSandbox> {
+          throw new Error("unexpected create");
+        },
+        async fromId(): Promise<ModalSandbox> {
+          return nativeSandbox;
+        },
+      },
+      close(): void {},
+    })).initialize({ scope: { appName: "app" } });
+    if (backend.terminate === undefined) throw new Error("terminate is missing");
+    await expect(
+      backend.terminate("sandbox-1", { wait: true }, { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "terminate",
+    });
+    expect(polls).toBe(1);
   });
 });

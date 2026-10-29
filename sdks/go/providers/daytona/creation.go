@@ -209,8 +209,16 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	if timeout := sdk.OptionalDuration(config.Timeout); timeout != nil && *timeout > 0 {
-		c.plan.options = append(c.plan.options, options.WithTimeout(*timeout))
+	if config.Timeout != nil {
+		timeout := config.Timeout.AsDuration()
+		if timeout < 0 || timeout%time.Second != 0 {
+			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldProvisioningTimeout, "timeout must be a whole number of seconds")
+		}
+		// Create applies a 60s default when WithTimeout is absent. WithTimeout(0)
+		// expires the context immediately, so explicit zero keeps that default.
+		if timeout > 0 {
+			c.plan.options = append(c.plan.options, options.WithTimeout(timeout))
+		}
 	}
 	config.Timeout = nil
 	if config.QueueTimeout != nil {

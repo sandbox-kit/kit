@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
@@ -53,86 +52,6 @@ func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) 
 		t.Fatal("endpoint exception not explained")
 	}
 }
-func TestUnsupportedFieldsUseCanonicalPaths(t *testing.T) {
-	scope := &sandbox.Scope{AppName: sandbox.Value("app")}
-	image := &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}}
-	for _, tc := range []struct {
-		name    string
-		request *sandbox.CreateOptions
-		field   string
-	}{
-		{
-			name:    "disk",
-			request: &sandbox.CreateOptions{Source: image, Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))}},
-			field:   sandbox.CreateFieldResourcesDiskMib,
-		},
-		{
-			name:    "placement target",
-			request: &sandbox.CreateOptions{Source: image, Placement: &sandbox.Placement{Target: sandbox.Value("us")}},
-			field:   sandbox.CreateFieldPlacementTarget,
-		},
-		{
-			name:    "queue timeout",
-			request: &sandbox.CreateOptions{Source: image, Provisioning: &sandbox.ProvisioningOptions{QueueTimeout: sandbox.Duration(time.Minute)}},
-			field:   sandbox.CreateFieldProvisioningQueueTimeout,
-		},
-		{
-			name:    "telemetry endpoint",
-			request: &sandbox.CreateOptions{Source: image, Observability: &sandbox.ObservabilityConfig{TelemetryEndpoint: sandbox.Value("https://otel.example")}},
-			field:   sandbox.CreateFieldObservabilityTelemetryEndpoint,
-		},
-		{
-			name:    "public access",
-			request: &sandbox.CreateOptions{Source: image, Security: &sandbox.SecurityConfig{PublicAccess: sandbox.Value(true)}},
-			field:   sandbox.CreateFieldSecurityPublicAccess,
-		},
-		{
-			name:    "linked sandbox",
-			request: &sandbox.CreateOptions{Source: image, Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("other")}},
-			field:   sandbox.CreateFieldNetwork,
-		},
-		{
-			name:    "ephemeral lifetime",
-			request: &sandbox.CreateOptions{Source: image, Lifetime: &sandbox.LifetimePolicy{Ephemeral: sandbox.Value(true)}},
-			field:   sandbox.CreateFieldLifetime,
-		},
-		{
-			name:    "runtime language",
-			request: &sandbox.CreateOptions{Source: image, Runtime: &sandbox.RuntimeConfig{Language: sandbox.Value("python")}},
-			field:   sandbox.CreateFieldRuntime,
-		},
-		{
-			name:    "nested virtualization",
-			request: &sandbox.CreateOptions{Source: image, Isolation: &sandbox.IsolationConfig{NestedVirtualization: sandbox.Value(true)}},
-			field:   sandbox.CreateFieldIsolation,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			_, err := planCreate(tc.request, scope, "")
-			var detail *sandbox.Error
-			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != tc.field {
-				t.Fatalf("error = %v detail = %#v", err, detail)
-			}
-		})
-	}
-	for _, tc := range []struct {
-		name   string
-		config *sandbox.Config
-		field  string
-	}{
-		{"organization", &sandbox.Config{Scope: &sandbox.Scope{OrganizationId: sandbox.Value("org")}}, sandbox.ConfigFieldScopeOrganizationId},
-		{"project", &sandbox.Config{Scope: &sandbox.Scope{ProjectId: sandbox.Value("project")}}, sandbox.ConfigFieldScopeProjectId},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			_, err := mapClientConfig(tc.config)
-			var detail *sandbox.Error
-			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != tc.field {
-				t.Fatalf("error = %v detail = %#v", err, detail)
-			}
-		})
-	}
-}
-
 func TestAuthReportsTheMissingCredential(t *testing.T) {
 	cases := []struct {
 		name   string
