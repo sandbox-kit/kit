@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M63SV245HCW4ADXXX7VR39EM",
+  "strategy": "manual-commit",
+  "branch": "fix/daytona-placement-and-drop-provider-options",
+  "checkpoints_count": 14,
+  "files_touched": [
+    "docs/code-generation.md",
+    "docs/sandbox-creation.md",
+    "proto/kit/sandbox/v1/sandbox.proto",
+    "sdks/go/internal/contracts/kit/sandbox/v1/sandbox.pb.go",
+    "sdks/go/providers/daytona/allowed_values_test.go",
+    "sdks/go/providers/daytona/provider_checks.go",
+    "sdks/go/sandbox/clone.go",
+    "sdks/go/sandbox/field_paths.go",
+    "sdks/typescript/contracts/src/kit/sandbox/v1/sandbox_pb.ts",
+    "sdks/typescript/providers/daytona/src/checks/provider_checks.ts",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/mappings/mappings.ts",
+    "sdks/typescript/providers/modal/src/mappings/mappings.ts",
+    "sdks/typescript/sandbox/src/client/validation.ts",
+    "sdks/typescript/sandbox/src/contracts/field_paths.ts",
+    "sdks/typescript/sandbox/src/contracts/sandbox_data_contracts.ts",
+    "sdks/typescript/sandbox/src/metadata/metadata_plain.ts",
+    "specs/providers/daytona.yaml",
+    "tooling/internal/spec/spec.go"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 85630,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 11009920,
+    "output_tokens": 28515,
+    "api_call_count": 7
+  }
+}
