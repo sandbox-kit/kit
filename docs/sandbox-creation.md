@@ -20,12 +20,16 @@ Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
 | Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       |
 | Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
 | Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Default/submitted/started                                          |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
 Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
 explicit snapshot kinds are not mapped. Supplied unsupported fields are
-rejected before native creation calls.
+rejected before native creation calls. The error field is the canonical
+protobuf path, such as `resources.disk_mib`.
+
+The Daytona TypeScript SDK returns only after startup, so a submitted wait is
+rejected there. Go can return once the sandbox is submitted.
 
 ## Presence, units, and limits
 

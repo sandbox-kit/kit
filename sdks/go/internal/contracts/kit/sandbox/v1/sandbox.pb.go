@@ -1365,7 +1365,7 @@ type Placement struct {
 	Cloud *string `protobuf:"bytes,1,opt,name=cloud,proto3,oneof" json:"cloud,omitempty"`
 	// lists region preferences in order. It does not promise multi-region support.
 	Regions []string `protobuf:"bytes,2,rep,name=regions,proto3" json:"regions,omitempty"`
-	// A provider target. Daytona maps the client region here. Per-request placement is unsupported.
+	// A provider target. Modal rejects this field. Daytona rejects per-request placement and reads its target from Config.region.
 	Target        *string `protobuf:"bytes,3,opt,name=target,proto3,oneof" json:"target,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache

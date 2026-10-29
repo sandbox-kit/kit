@@ -73,7 +73,7 @@ func (c *creation) assemble(scope *sandbox.Scope, region string) error {
 			return err
 		}
 	}
-	return sandboxsdk.RejectUnmapped("modal", c.rest)
+	return sandboxsdk.RejectUnmapped("modal", "", c.rest)
 }
 
 func (c *creation) app(scope *sandbox.Scope, region string) error {
@@ -104,7 +104,10 @@ func (c *creation) runtime() error {
 	c.plan.params.Command = config.Entrypoint
 	c.plan.params.PTY = config.GetPty()
 	config.WorkingDirectory, config.Entrypoint, config.Pty = nil, nil, nil
-	if err := sandboxsdk.RejectUnmapped("modal runtime (language must come from image)", config); err != nil {
+	if config.Language != nil || config.Version != nil || config.User != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldRuntime, "language, version, and user must come from the Modal image")
+	}
+	if err := sandboxsdk.RejectUnmapped("modal runtime", sandbox.CreateFieldRuntime, config); err != nil {
 		return err
 	}
 	c.rest.Runtime = nil
@@ -126,7 +129,10 @@ func (c *creation) isolation() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldIsolationKind, "requested isolation mapping is unsupported")
 	}
 	config.Kind = 0
-	if err := sandboxsdk.RejectUnmapped("modal isolation", config); err != nil {
+	if config.ProviderKind != nil || config.NestedVirtualization != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldIsolation, "provider kind and nested virtualization are unsupported")
+	}
+	if err := sandboxsdk.RejectUnmapped("modal isolation", sandbox.CreateFieldIsolation, config); err != nil {
 		return err
 	}
 	c.rest.Isolation = nil
@@ -144,7 +150,7 @@ func (c *creation) resources() error {
 	if remaining.DiskMib != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesDiskMib, "Modal disk override is unsupported")
 	}
-	if err := sandboxsdk.RejectUnmapped("modal resources", remaining); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal resources", sandbox.CreateFieldResources, remaining); err != nil {
 		return err
 	}
 	c.plan.params.CPU, c.plan.params.CPULimit = resources.CPU, resources.CPULimit
@@ -166,7 +172,7 @@ func (c *creation) placement() error {
 	if config.Target != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldPlacementTarget, "Modal placement target is unsupported")
 	}
-	if err := sandboxsdk.RejectUnmapped("modal placement", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal placement", sandbox.CreateFieldPlacement, config); err != nil {
 		return err
 	}
 	c.rest.Placement = nil
@@ -190,7 +196,10 @@ func (c *creation) security() error {
 	}
 	c.plan.secrets = config.Secrets
 	config.Secrets = nil
-	if err := sandboxsdk.RejectUnmapped("modal security", config); err != nil {
+	if config.PublicAccess != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldSecurityPublicAccess, "Modal public access is represented by ports")
+	}
+	if err := sandboxsdk.RejectUnmapped("modal security", sandbox.CreateFieldSecurity, config); err != nil {
 		return err
 	}
 	c.rest.Security = nil
@@ -240,7 +249,7 @@ func (c *creation) provisioning() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
 	}
 	config.WaitFor = 0
-	if err := sandboxsdk.RejectUnmapped("modal creation", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal creation", sandbox.CreateFieldProvisioning, config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
@@ -257,7 +266,7 @@ func (c *creation) observability() error {
 	if config.TelemetryEndpoint != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservabilityTelemetryEndpoint, "per-sandbox telemetry endpoint is unsupported")
 	}
-	if err := sandboxsdk.RejectUnmapped("modal observability", config); err != nil {
+	if err := sandboxsdk.RejectUnmapped("modal observability", sandbox.CreateFieldObservability, config); err != nil {
 		return err
 	}
 	c.rest.Observability = nil
@@ -309,7 +318,10 @@ func (c *creation) network() error {
 		config.Ports = nil
 		c.plan.proxy = config.GetProxyReference()
 		config.ProxyReference = nil
-		if err := sandboxsdk.RejectUnmapped("modal network", config); err != nil {
+		if config.LinkedSandbox != nil || config.OutboundProxyUrl != nil {
+			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "linked sandbox and outbound proxy URL mappings are unsupported")
+		}
+		if err := sandboxsdk.RejectUnmapped("modal network", sandbox.CreateFieldNetwork, config); err != nil {
 			return err
 		}
 		c.rest.Network = nil
@@ -348,7 +360,10 @@ func (c *creation) lifetime() error {
 			}
 		}
 		config.IdleTerminate = nil
-		if err := sandboxsdk.RejectUnmapped("modal lifetime", config); err != nil {
+		if config.Ephemeral != nil || config.IdleStop != nil || config.IdlePause != nil || config.StoppedArchive != nil || config.StoppedDelete != nil {
+			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetime, "requested lifecycle policy is unsupported by Modal")
+		}
+		if err := sandboxsdk.RejectUnmapped("modal lifetime", sandbox.CreateFieldLifetime, config); err != nil {
 			return err
 		}
 		c.rest.Lifetime = nil

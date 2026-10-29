@@ -37,7 +37,7 @@ func TestDiskOverrideReturnsUnsupported(t *testing.T) {
 		Resources: &sandbox.Resources{DiskMib: sandbox.Value(uint64(1024))},
 	})
 	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != "disk_mib" {
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != sandbox.CreateFieldResourcesDiskMib {
 		t.Fatalf("expected unsupported disk override, got %v", err)
 	}
 }
@@ -61,7 +61,7 @@ func TestMainHandlesLocalFailures(t *testing.T) {
 	if err != nil {
 		t.Fatalf("example failed: %v\n%s", err, output)
 	}
-	if !strings.Contains(string(output), "Check disk_mib") {
+	if !strings.Contains(string(output), "Check resources.disk_mib") {
 		t.Fatalf("unexpected output: %s", output)
 	}
 }

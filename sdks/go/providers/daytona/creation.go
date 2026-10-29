@@ -52,7 +52,7 @@ func planCreate(request *sandbox.CreateOptions) (createPlan, error) {
 			return createPlan{}, err
 		}
 	}
-	if err := sdk.RejectUnmapped("daytona", planned.rest); err != nil {
+	if err := sdk.RejectUnmapped("daytona", "", planned.rest); err != nil {
 		return createPlan{}, err
 	}
 	return planned.plan, nil
@@ -66,7 +66,10 @@ func (c *creation) runtime() error {
 	c.base.User = config.GetUser()
 	c.base.Language = types.CodeLanguage(config.GetLanguage())
 	config.User, config.Language = nil, nil
-	if err := sdk.RejectUnmapped("daytona runtime", config); err != nil {
+	if config.Version != nil || config.WorkingDirectory != nil || config.Entrypoint != nil || config.Pty != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldRuntime, "runtime version, working directory, entrypoint, and PTY are not mapped by Daytona")
+	}
+	if err := sdk.RejectUnmapped("daytona runtime", sandbox.CreateFieldRuntime, config); err != nil {
 		return err
 	}
 	c.rest.Runtime = nil
@@ -78,9 +81,12 @@ func (c *creation) isolation() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Isolation)
+	if config.Kind != sandbox.IsolationKindDefault || config.ProviderKind != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldIsolation, "Daytona isolation class comes from the selected source")
+	}
 	c.base.Kvm = config.GetNestedVirtualization()
-	config.NestedVirtualization = nil
-	if err := sdk.RejectUnmapped("daytona isolation (class comes from snapshot)", config); err != nil {
+	config.Kind, config.ProviderKind, config.NestedVirtualization = 0, nil, nil
+	if err := sdk.RejectUnmapped("daytona isolation", sandbox.CreateFieldIsolation, config); err != nil {
 		return err
 	}
 	c.rest.Isolation = nil
@@ -113,7 +119,7 @@ func (c *creation) security() error {
 	if config.WorkloadIdentity != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldSecurityWorkloadIdentity, "Daytona workload identity is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona security", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona security", sandbox.CreateFieldSecurity, config); err != nil {
 		return err
 	}
 	c.rest.Security = nil
@@ -156,7 +162,10 @@ func (c *creation) network() error {
 	c.base.LinkedSandbox = config.GetLinkedSandbox()
 	c.base.OutboundProxyUrl = config.OutboundProxyUrl
 	config.LinkedSandbox, config.OutboundProxyUrl = nil, nil
-	if err := sdk.RejectUnmapped("daytona network", config); err != nil {
+	if config.InboundCidrs != nil || config.PrivateNetwork != nil || config.ProxyReference != nil || config.CustomDomain != nil || config.Ports != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "one or more Daytona network fields are not mapped")
+	}
+	if err := sdk.RejectUnmapped("daytona network", sandbox.CreateFieldNetwork, config); err != nil {
 		return err
 	}
 	c.rest.Network = nil
@@ -171,7 +180,7 @@ func (c *creation) lifetime() error {
 	c.base.Ephemeral = config.GetEphemeral()
 	config.Ephemeral = nil
 	if config.MaximumLifetime != nil {
-		minutes, err := durationMinutesAllowZero(config.MaximumLifetime.AsDuration())
+		minutes, err := durationMinutesAllowZero(config.MaximumLifetime.AsDuration(), sandbox.CreateFieldLifetimeMaximumLifetime)
 		if err != nil {
 			return err
 		}
@@ -188,7 +197,7 @@ func (c *creation) lifetime() error {
 	if config.IdleTerminate != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetimeIdleTerminate, "Daytona idle termination is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona lifetime", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona lifetime", sandbox.CreateFieldLifetime, config); err != nil {
 		return err
 	}
 	c.rest.Lifetime = nil
@@ -205,7 +214,7 @@ func (c *creation) provisioning() error {
 	}
 	config.Timeout = nil
 	if config.QueueTimeout != nil {
-		minutes, err := durationMinutesRequirePositive(config.QueueTimeout.AsDuration())
+		minutes, err := durationMinutesRequirePositive(config.QueueTimeout.AsDuration(), sandbox.CreateFieldProvisioningQueueTimeout)
 		if err != nil {
 			return err
 		}
@@ -222,7 +231,7 @@ func (c *creation) provisioning() error {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
 	}
 	config.WaitFor = 0
-	if err := sdk.RejectUnmapped("daytona creation", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona creation", sandbox.CreateFieldProvisioning, config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
@@ -239,7 +248,7 @@ func (c *creation) observability() error {
 	if config.Verbose != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservabilityVerbose, "Daytona verbose creation is not mapped")
 	}
-	if err := sdk.RejectUnmapped("daytona observability", config); err != nil {
+	if err := sdk.RejectUnmapped("daytona observability", sandbox.CreateFieldObservability, config); err != nil {
 		return err
 	}
 	c.rest.Observability = nil
@@ -258,7 +267,7 @@ func (c *creation) source() error {
 			if err != nil {
 				return err
 			}
-			if err := sdk.RejectUnmapped("daytona resources", remaining); err != nil {
+			if err := sdk.RejectUnmapped("daytona resources", sandbox.CreateFieldResources, remaining); err != nil {
 				return err
 			}
 			params.Resources = &resources
@@ -284,13 +293,13 @@ func (c *creation) source() error {
 
 // durationMinutesAllowZero converts a delay to whole minutes; zero is valid
 // (Daytona uses it for immediate delete or disabled stop/pause).
-func durationMinutesAllowZero(value time.Duration) (int, error) {
-	return wholeMinutes(value, zeroMinutesPermitted)
+func durationMinutesAllowZero(value time.Duration, field string) (int, error) {
+	return wholeMinutes(value, zeroMinutesPermitted, field)
 }
 
 // durationMinutesRequirePositive converts a delay to whole minutes; zero is rejected.
-func durationMinutesRequirePositive(value time.Duration) (int, error) {
-	return wholeMinutes(value, zeroMinutesRejected)
+func durationMinutesRequirePositive(value time.Duration, field string) (int, error) {
+	return wholeMinutes(value, zeroMinutesRejected, field)
 }
 
 type minuteZeroPolicy int
@@ -300,9 +309,9 @@ const (
 	zeroMinutesPermitted
 )
 
-func wholeMinutes(value time.Duration, zero minuteZeroPolicy) (int, error) {
+func wholeMinutes(value time.Duration, zero minuteZeroPolicy, field string) (int, error) {
 	if value < 0 || value%time.Minute != 0 || value/time.Minute > math.MaxInt32 || (zero == zeroMinutesRejected && value == 0) {
-		return 0, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetime, "policy/queue durations require representable whole minutes")
+		return 0, providerCheckError(sandbox.ErrorKindInvalidArgument, field, "policy/queue durations require representable whole minutes")
 	}
 	return int(value / time.Minute), nil
 }

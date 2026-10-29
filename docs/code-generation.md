@@ -82,7 +82,8 @@ Protobuf owns portable `ErrorInfo` and `ErrorKind`. SDK runtimes alias those
 types and handwrite wrappers (`NewError` in Go, `sandboxError` in TypeScript)
 plus per-provider classification mappers. Go provider helpers
 `WithErrorContext`, `RejectUnmapped`, and `OptionalDuration` live in
-`sdks/go/internal/sdk`.
+`sdks/go/internal/sdk`. `RejectUnmapped` sets `Field` to the parent path plus
+the leftover protobuf name.
 
 Handwritten `CreateField*`, `ConfigField*`, and `InfoField*` constants are the
 field paths used by validation, mappings, and errors.

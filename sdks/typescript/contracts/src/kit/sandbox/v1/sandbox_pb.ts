@@ -415,7 +415,7 @@ export type Placement = Message<"kit.sandbox.v1.Placement"> & {
   regions: string[];
 
   /**
-   * A provider target. Daytona maps the client region here. Per-request placement is unsupported.
+   * A provider target. Modal rejects this field. Daytona rejects per-request placement and reads its target from Config.region.
    *
    * @generated from field: optional string target = 3;
    */

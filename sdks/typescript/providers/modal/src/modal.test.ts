@@ -123,6 +123,35 @@ describe("Modal mappings", () => {
     }
   });
 
+  it("reports canonical fields for invalid durations", () => {
+    const config = { scope: { appName: "app" } };
+    const image = { source: { image: { reference: "alpine:3.21" } } };
+    expect(() =>
+      mapCreateRequest({ ...image, lifetime: { maximumLifetime: 0 } }, config),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeMaximumLifetime,
+      }),
+    );
+    expect(() =>
+      mapCreateRequest(
+        {
+          ...image,
+          lifetime: {
+            idleTerminate: { mode: PolicyMode.After, after: 0 },
+          },
+        },
+        config,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeIdleTerminateAfter,
+      }),
+    );
+  });
+
   it("rejects blank auth credentials in Client construction", () => {
     expect(
       () =>

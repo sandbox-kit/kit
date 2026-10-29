@@ -12,11 +12,14 @@ import {
   SecretInjection,
   WaitCondition,
   CreateFieldLifetime,
+  CreateFieldLifetimeMaximumLifetime,
   CreateFieldPlacement,
+  CreateFieldProvisioningQueueTimeout,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldNetworkOutboundCidrsEntries,
   CreateFieldProvisioningWaitFor,
   ConfigFieldEndpoint,
+  ConfigFieldScopeOrganizationId,
   ConfigFieldScopeProjectId,
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
@@ -171,6 +174,33 @@ describe("Daytona mappings", () => {
         scope: { organizationId: "organization-1" },
       }),
     ).toMatchObject({ jwtToken: "jwt", organizationId: "organization-1" });
+  });
+
+  it("reports canonical fields for invalid durations and bearer scope", () => {
+    expect(() =>
+      mapCreateRequest({ lifetime: { maximumLifetime: 30_000 } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeMaximumLifetime,
+      }),
+    );
+    expect(() =>
+      mapCreateRequest({ provisioning: { queueTimeout: 30_000 } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldProvisioningQueueTimeout,
+      }),
+    );
+    expect(() =>
+      mapClientConfig({ auth: { bearerToken: { token: "jwt" } } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldScopeOrganizationId,
+      }),
+    );
   });
 
   it("rejects per-request placement", () => {

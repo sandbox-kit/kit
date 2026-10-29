@@ -12,10 +12,12 @@ import {
   type MetadataValue,
   type SandboxInfo,
   CreateFieldIsolation,
+  CreateFieldLifetimeMaximumLifetime,
   CreateFieldNetwork,
   CreateFieldNetworkEgress,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldObservabilityVerbose,
+  CreateFieldProvisioningQueueTimeout,
   CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
   CreateFieldResources,
@@ -35,6 +37,7 @@ import {
   CreateFieldNetworkOutboundDomains,
   CreateFieldLifetimeIdleTerminate,
   CreateFieldObservabilityTelemetryEndpoint,
+  ConfigFieldScopeOrganizationId,
 } from "@sandbox-kit/sandbox";
 import {
   type CreateSandboxBaseParams,
@@ -65,7 +68,7 @@ export function mapClientConfig(config: Config): DaytonaConfig {
     config.scope?.organizationId === undefined
   )
     configInvalid(
-      "scope.organizationId",
+      ConfigFieldScopeOrganizationId,
       "organization ID is required with bearer authentication",
     );
   return result;
@@ -283,7 +286,7 @@ function mapLifetime(
   if (value.maximumLifetime !== undefined)
     target.ttlMinutes = wholeMinutes(
       value.maximumLifetime,
-      "lifetime.maximumLifetime",
+      CreateFieldLifetimeMaximumLifetime,
       true,
     );
   if (value.idleTerminate !== undefined)
@@ -302,7 +305,7 @@ function mapProvisioning(
   if (value.queueTimeout !== undefined)
     target.queueTimeout = wholeMinutes(
       value.queueTimeout,
-      "provisioning.queueTimeout",
+      CreateFieldProvisioningQueueTimeout,
       false,
     );
   const waitFor = value.waitFor ?? WaitCondition.Default;

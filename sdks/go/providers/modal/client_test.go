@@ -81,6 +81,31 @@ func TestUnsupportedFieldsUseCanonicalPaths(t *testing.T) {
 			request: &sandbox.CreateOptions{Source: image, Observability: &sandbox.ObservabilityConfig{TelemetryEndpoint: sandbox.Value("https://otel.example")}},
 			field:   sandbox.CreateFieldObservabilityTelemetryEndpoint,
 		},
+		{
+			name:    "public access",
+			request: &sandbox.CreateOptions{Source: image, Security: &sandbox.SecurityConfig{PublicAccess: sandbox.Value(true)}},
+			field:   sandbox.CreateFieldSecurityPublicAccess,
+		},
+		{
+			name:    "linked sandbox",
+			request: &sandbox.CreateOptions{Source: image, Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("other")}},
+			field:   sandbox.CreateFieldNetwork,
+		},
+		{
+			name:    "ephemeral lifetime",
+			request: &sandbox.CreateOptions{Source: image, Lifetime: &sandbox.LifetimePolicy{Ephemeral: sandbox.Value(true)}},
+			field:   sandbox.CreateFieldLifetime,
+		},
+		{
+			name:    "runtime language",
+			request: &sandbox.CreateOptions{Source: image, Runtime: &sandbox.RuntimeConfig{Language: sandbox.Value("python")}},
+			field:   sandbox.CreateFieldRuntime,
+		},
+		{
+			name:    "nested virtualization",
+			request: &sandbox.CreateOptions{Source: image, Isolation: &sandbox.IsolationConfig{NestedVirtualization: sandbox.Value(true)}},
+			field:   sandbox.CreateFieldIsolation,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := planCreate(tc.request, scope, "")

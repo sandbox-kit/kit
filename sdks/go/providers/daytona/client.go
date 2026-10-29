@@ -42,8 +42,14 @@ func (s *clientSettings) applyScope() error {
 	if s.source.Scope == nil {
 		return nil
 	}
-	if s.source.Scope.AppName != nil || s.source.Scope.Environment != nil || s.source.Scope.ProjectId != nil {
-		return unsupportedClientField("scope", "Daytona only supports organization_id scope")
+	if s.source.Scope.AppName != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeAppName, "unsupported client configuration field")
+	}
+	if s.source.Scope.Environment != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeEnvironment, "unsupported client configuration field")
+	}
+	if s.source.Scope.ProjectId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeProjectId, "unsupported client configuration field")
 	}
 	mapped, _, err := mapScope(s.source.Scope)
 	if err != nil {

@@ -1,13 +1,14 @@
 # Handle Modal unsupported-intent errors
 
-Attempt create with **`diskMib` set**. Modal does not allow increasing sandbox
-disk at create, so Kit returns **`ErrorKindUnsupported`** before the API call.
+Attempt create with **`diskMib` set**. Modal does not allow a disk override at
+creation, so Kit returns **`ErrorKind.Unsupported`** and field
+**`resources.disk_mib`** before the API call.
 
 ## What this means
 
 Modal documents that Sandbox disk size cannot be increased (VM root disk is a
-fixed size). Kit rejects `diskMib` as unsupported intent and exposes portable
-error fields. See
+fixed size). Kit rejects the override before calling Modal. The portable field
+is `resources.disk_mib`. See
 [sandbox resources → Disk](https://modal.com/docs/guide/sandbox-resources).
 
 ## Edge cases

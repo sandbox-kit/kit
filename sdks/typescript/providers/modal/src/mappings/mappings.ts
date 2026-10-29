@@ -21,6 +21,7 @@ import {
   CreateFieldIsolationKind,
   CreateFieldLifetime,
   CreateFieldLifetimeIdleTerminateAfter,
+  CreateFieldLifetimeMaximumLifetime,
   CreateFieldLifetimeIdleTerminateMode,
   CreateFieldNetwork,
   CreateFieldNetworkEgress,
@@ -273,7 +274,11 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.lifetime;
   if (!v) return;
   if (v.maximumLifetime !== undefined)
-    finiteDurationMs(v.maximumLifetime, "lifetime.maximumLifetime", false);
+    finiteDurationMs(
+      v.maximumLifetime,
+      CreateFieldLifetimeMaximumLifetime,
+      false,
+    );
   Object.assign(p, generatedMapLifetimeDuration(v));
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
@@ -283,7 +288,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
         invalid(CreateFieldLifetimeIdleTerminateAfter, "duration is required");
       finiteDurationMs(
         v.idleTerminate.after,
-        "lifetime.idleTerminate.after",
+        CreateFieldLifetimeIdleTerminateAfter,
         false,
       );
       Object.assign(p, generatedMapIdleDuration(v.idleTerminate));
