@@ -38,7 +38,7 @@ DAYTONA_API_KEY=
 ## Warnings
 
 - Intended to fail **locally** before a provider create call.
-- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+- Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
 
 ## Related
 

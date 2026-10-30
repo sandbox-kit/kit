@@ -1,19 +1,11 @@
-# Providers and backends
+# Providers
 
-Sandbox Kit calls existing provider SDKs directly. Applications install the public
-core `sandbox` module and only the optional provider modules they need.
+Install the core package and the provider you use.
 
-## Publishing layout
-
-| Artifact                                                | Role                                                                                                                                                                     |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Core client (`@sandbox-kit/sandbox`, `sdks/go/sandbox`) | Portable API, shared types, Protovalidate create/config rules, Client/Sandbox choreography. New providers plug into this module; it must not embed a specific cloud SDK. |
-| Each provider package (per language)                    | Independently versioned and published. Owns native SDK construction, capability checks, and field mappings for one backend.                                              |
-
-Add providers by shipping a new language-specific module that implements the
-core `Provider` / backend contracts—not by growing the core sandbox package.
-
-## Client construction
+|            | Daytona                                                                  | Modal                                                                  |
+| ---------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| TypeScript | `@sandbox-kit/sandbox` and `@sandbox-kit/daytona`                        | `@sandbox-kit/sandbox` and `@sandbox-kit/modal`                        |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` and `.../providers/daytona` | `github.com/sandbox-kit/kit/sdks/go/sandbox` and `.../providers/modal` |
 
 ```go
 client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
@@ -26,62 +18,38 @@ client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
 })
 ```
 
-The public client runs shared config validation, then the selected provider maps
-configuration, constructs its official SDK, and returns a private backend. The
-public client owns that backend and its SDK cleanup.
+```ts
+await using client = new Client({
+  provider: modal(),
+  auth: { tokenPair: { id: tokenId, secret: tokenSecret } },
+  scope: { appName: "existing-app" },
+});
+```
 
-| Contract                        | Responsibility                                                       |
-| ------------------------------- | -------------------------------------------------------------------- |
-| `sandbox.Provider`              | Identify the integration and initialize its backend                  |
-| `sandbox.Backend`               | Identify the provider and release SDK resources                      |
-| `sandbox.SandboxCreator`        | Create sandboxes when the provider supports creation                 |
-| Lifecycle capability interfaces | Implement only supported typed operations, such as refresh or delete |
-| `sandbox.Client`                | Validate shared requests, apply deadlines, and delegate              |
-| `sandbox.Sandbox`               | Hold copied metadata and dispatch supported lifecycle operations     |
+## What each provider can do
 
-These contracts live in the consuming `sandbox` package. SDK clients stay
-private; standard operations require no application mapping callbacks.
+| Operation                           | Modal                              | Daytona                                    |
+| ----------------------------------- | ---------------------------------- | ------------------------------------------ |
+| Create                              | Registry image and an existing app | Default snapshot, named snapshot, or image |
+| Open an existing sandbox            | `attach` (ID only)                 | `get` (provider lookup)                    |
+| Start, stop, pause, archive, delete | Unsupported                        | Supported                                  |
+| Terminate                           | Supported                          | Unsupported                                |
 
-In TypeScript, `Provider.initialize` and `Backend` methods take the same public
-shapes applications use (`Config`, `CreateOptions`, and lifecycle options with
-millisecond timeouts). The core `Client` materializes protobuf and runs shared
-create/config validation before calling the backend.
+`supports` reports whether the provider implements that operation. A missing
+operation fails before the provider call. Daytona still accepts or rejects a
+supported call for a particular sandbox, and Kit returns that error.
 
-## Generation boundary
+Set Daytona's target with `region` on the client. A placement block on the
+create request is rejected. Modal accepts cloud and region on the create
+request, and rejects a placement target.
 
-Protobuf declares shared portable types (including `ErrorInfo` / `ErrorKind`),
-service metadata, and Protovalidate create/config rules. Runtime constructors,
-client facades, provider orchestration, checks, mappings, and error
-classification stay handwritten. Provider YAML inventories describe checks,
-mapping groups, configuration assembly, and native bindings for humans to keep
-aligned with SDK code.
+Closing the client closes your connection to the provider. The sandboxes keep
+running. Closing a handle leaves the sandbox as it is. You can keep using the
+handle. The next call returns the provider's result.
 
-Provider Go files (`sandbox.go` for SDK calls, `creation.go` for the create
-plan, and `lifecycle.go` / `metadata.go` where a provider observes native
-sandbox state) and provider-named TypeScript files retain orchestration the
-inventories cannot express: app/image/secret lookup, source selection,
-readiness, and remaining network or policy semantics. Adding another language
-requires handwritten typed integration for those operations.
+The public API covers create and lifecycle. In-sandbox execution, GPU
+requests, resizing, storage, browsers, and macOS or Windows creation are
+outside it.
 
-Optional providers depend on their official SDKs. The core sandbox module
-depends on neither provider SDK. Harness integrations, when present, stay
-separate, independently published modules.
-
-## Behavior
-
-Creation, verified retrieval, or explicit attachment returns a shared sandbox
-handle with sandbox metadata. Errors expose common kinds and preserve SDK or
-validator causes. Metadata is copied before exposure.
-Closing a client releases SDK resources and leaves cloud sandboxes running.
-Handles must not be used after their owning client closes. Closing a sandbox
-handle is also local-only and idempotent. Creation is an optional backend
-capability, so a provider may expose management or attach without create.
-
-Sandbox Kit introduces no middle service or generated gRPC transport. Native
-provider SDKs use their own transports, including gRPC where applicable.
-
-Out of scope for the public API: in-sandbox execution, GPU requests, storage,
-and harness integrations.
-
-See [creation coverage](sandbox-creation.md),
-[configuration](configuration.md), and [generation](code-generation.md).
+See [configuration](configuration.md), [creation](sandbox-creation.md), and
+[lifecycle](sandbox-lifecycle.md).

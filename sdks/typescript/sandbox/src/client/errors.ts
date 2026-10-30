@@ -9,6 +9,11 @@ import { protoEnum } from "#internal/proto_enum.js";
 export const ErrorKind = protoEnum(ProtoErrorKind);
 export type ErrorKind = (typeof ErrorKind)[keyof typeof ErrorKind];
 
+/**
+ * Failure from the client or a sandbox handle.
+ * `kind` is the category, `field` is the setting to change, and `cause` is the
+ * provider error when there is one.
+ */
 export class SandboxError extends Error {
   readonly kind: ErrorInfo["kind"];
   readonly provider: string;

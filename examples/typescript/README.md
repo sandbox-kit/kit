@@ -20,7 +20,8 @@ npm start
 ```
 
 Creation examples provision real cloud resources. Lifecycle examples act on the
-sandbox ID in `.env`. Closing a client or handle is local-only. Modal setup:
+sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
+the client closes your connection to Daytona or Modal. Modal setup:
 [create-modal-sandbox](modal/create-modal-sandbox/README.md).
 
 ## Catalog

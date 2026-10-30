@@ -1,43 +1,52 @@
 # Client configuration
 
-Construct a Go client with `sandbox.NewClient(provider, &sandbox.Config{...})`
-or a TypeScript client with `new Client({ provider, ... })`.
-
-Pass the provider separately from the other settings. In Go it is the first
-argument to `NewClient`. In TypeScript it is the `provider` field.
-
-TypeScript auth is nested: `auth: { apiKey: { key } }`, `tokenPair`,
-`bearerToken`, or `oauthRefresh`. You can also set `scope`, `endpoint`,
-`region`, and `timeout` in milliseconds.
+Pass a provider and shared settings to the client.
 
 Go returns `(*Client, error)`. TypeScript throws when the settings are invalid.
+
+```go
+client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+    Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+        ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+    }},
+    Timeout: sandbox.Duration(2 * time.Minute),
+})
+```
+
+```ts
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
+```
+
 Call `client.Close(ctx)` in Go, or `await client.close()` or `await using` in
-TypeScript. Closing the client does not stop or delete the sandbox.
+TypeScript. That closes your connection to Daytona or Modal. The sandboxes keep
+running. You can keep using a handle. The next call returns the provider's
+result. Closing one handle does not close the client.
 
 ## Configuration fields
 
-| Go / TypeScript         | Purpose                                                                   |
-| ----------------------- | ------------------------------------------------------------------------- |
-| Provider / `provider`   | Go: pass to `NewClient`. TS: on `ClientConfig`. Not in portable `Config`. |
-| `Auth` / `auth`         | One explicit credential variant; omit for SDK credential resolution       |
-| `Scope` / `scope`       | App, environment, organization, or project scope                          |
-| `Endpoint` / `endpoint` | Provider API URL, where supported                                         |
-| `Region` / `region`     | Provider target or default placement preference                           |
-| `Timeout` / `timeout`   | Default Kit deadline (Go `sandbox.Duration`; TS milliseconds)             |
+| Go / TypeScript         | Purpose                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| Provider / `provider`   | `daytona.New()` / `daytona()`, or `modal.New()` / `modal()`         |
+| `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials |
+| `Scope` / `scope`       | App, environment, organization, or project                          |
+| `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                   |
+| `Region` / `region`     | Provider target or default placement                                |
+| `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds  |
 
-A provider must implement `sandbox.Provider` and return a `sandbox.Backend`.
-The backend supplies identity and cleanup, then implements typed optional
-capabilities such as creation, refresh, or termination for its supported
-operations. Bare SDK clients and arbitrary interfaces do not satisfy these
-contracts. Both languages verify that the backend identity matches the selected
-provider. Go closes a mismatched backend before returning. Because TypeScript
-construction is synchronous while backend cleanup is asynchronous, TypeScript
-starts cleanup before throwing and suppresses only that cleanup promise's error.
+TypeScript auth is one nested shape: `auth: { apiKey: { key } }`, `tokenPair`,
+`bearerToken`, or `oauthRefresh`.
+
+Changing the config object after you create the client does not change the
+client. Editing the create options you passed, or the metadata you read back,
+does not change the handle.
 
 ## Provider support
 
-Go and TypeScript bindings target Modal v0.11.1 and Daytona v0.225.0
-(`modal@0.11.1`, `@daytona/sdk@0.225.0`).
+The bindings use Modal v0.11.1 and Daytona v0.225.0.
 
 | Setting          | Modal                                                      | Daytona                           |
 | ---------------- | ---------------------------------------------------------- | --------------------------------- |
@@ -45,59 +54,47 @@ Go and TypeScript bindings target Modal v0.11.1 and Daytona v0.225.0
 | Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       |
 | Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required |
 | OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       |
-| Endpoint         | Unsupported through the pinned public constructor          | `APIUrl`                          |
-| Region           | Default sandbox `Regions` preference                       | `Target`                          |
-| App name         | Retained for app lookup                                    | Unsupported                       |
+| Endpoint         | Unsupported                                                | API URL                           |
+| Region           | Default sandbox region preference                          | Target                            |
+| App name         | Required for app lookup                                    | Unsupported                       |
 | Environment      | Client, app, and secret lookup environment                 | Unsupported                       |
-| Organization ID  | Unsupported                                                | `OrganizationID`                  |
+| Organization ID  | Unsupported                                                | Organization                      |
 | Project ID       | Unsupported                                                | Unsupported                       |
 
-Unsupported supplied settings fail before SDK construction. Omitted auth uses
-the native SDK's environment/profile resolution. Daytona may resolve organization
-scope from its environment when using bearer auth.
+A setting the provider does not support fails before the provider client is
+created. Omit `auth` when the provider should use credentials it already finds
+in the environment. Daytona can take the organization from that environment
+when you use a bearer token and leave organization unset.
 
-Remote endpoints require HTTPS. HTTP is accepted only for `localhost` or a
-literal loopback IP, to support local development and mock-server tests. URL
-user information and fragments are rejected. Shared config validation runs in
-the Kit client before provider initialization. Daytona uses `Config.Endpoint`
-when set; otherwise it defaults to `https://app.daytona.io/api`. Kit does not
-read Daytona endpoint environment variables. Remote self-hosted endpoints need
-HTTPS.
+A remote endpoint uses HTTPS. HTTP is accepted for `localhost` or a loopback
+address. A URL with a username, password, or fragment is rejected. Daytona uses
+`endpoint` when you set it, and otherwise uses `https://app.daytona.io/api`.
+Set that URL on the client. Kit does not read a Daytona endpoint from the
+environment.
 
-Initialization does not prove remote credentials are valid. The provider enforces
-account permissions and resource availability when it processes requests.
+A client that constructs successfully has not checked that the credentials
+work. The provider checks permissions and capacity when it runs a request.
 
-## Ownership and deadlines
+## Deadlines
 
-Call `client.Close(ctx)` in Go or `await client.close()` in TypeScript when you
-are finished with the client. That closes your connection to Daytona or Modal.
-The sandboxes keep running. You can keep using a handle; the next call returns
-the provider's result. Closing one handle does not close the client or change
-the sandbox.
+`timeout` is the default deadline for provider operations. A create request
+can override it with `provisioning.timeout`. A lifecycle call can override it
+with that call's `timeout`. Explicit zero adds no Kit deadline. A context
+deadline or abort signal that arrives earlier still applies.
 
-Changing the config object after you create the client does not change the
-client. Editing the create options you passed, or the metadata you read back,
-does not change the handle.
+Daytona create keeps its 60-second default when the timeout is omitted and
+when it is explicit zero. Daytona start, stop, pause, and delete use that
+60-second default when the timeout is omitted, and treat explicit zero as no
+operation timeout.
 
-`Config.Timeout` / `timeout` is the default deadline for provider operations.
-A creation request can override it with `CreateOptions.Provisioning.Timeout` /
-`provisioning.timeout`; lifecycle options can override it with their
-operation-specific `Timeout` / `timeout`. Explicit zero adds no Kit deadline. An
-earlier caller-context deadline still applies. Daytona create keeps its
-60-second default for an omitted timeout and for explicit zero. Daytona start,
-stop, pause, and delete use that default when the timeout is omitted, and treat
-explicit zero as no operation timeout.
+## Credentials
 
-## Credentials and errors
+Keep configuration out of logs and stored files. It holds credentials. A
+TypeScript config is a plain object, so `JSON.stringify` includes those fields.
 
-Go credential fields marked `sensitive` and the provider object are excluded
-from protobuf JSON output. TypeScript configuration uses plain structural
-objects, so `JSON.stringify` includes enumerable credential fields. Do not
-serialize, log, or persist configuration objects in either language.
-
-Construction, operation, and cleanup failures expose shared error details.
-Native SDK and validator errors remain accessible through the cause chain.
-See [responses and errors](responses-and-errors.md).
+Construction, operation, and cleanup failures use the same error details.
+The provider's own error stays available as the cause. See
+[responses and errors](responses-and-errors.md).
 
 See [Go examples](../examples/go/README.md) and
 [TypeScript examples](../examples/typescript/README.md).

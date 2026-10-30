@@ -43,6 +43,11 @@ export { ErrorKind, SandboxError, sandboxError } from "#client/errors.js";
 export { Sandbox } from "#client/sandbox.js";
 export { validateConfig, validateCreateOptions } from "#client/validation.js";
 
+/**
+ * Creates and looks up sandboxes for one provider.
+ * `close` closes your connection to that provider. The sandboxes keep running.
+ * A later call on a handle returns the provider's result.
+ */
 export class Client implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #providerName: string;
@@ -85,15 +90,24 @@ export class Client implements AsyncDisposable {
       });
     }
   }
+  /** `"daytona"` or `"modal"`. */
   get providerName(): string {
     return this.#providerName;
   }
+  /**
+   * Returns a handle for an existing sandbox ID without looking it up.
+   * Modal supports attach. Daytona throws `ErrorKind.Unsupported`. Use `get`.
+   */
   async attach(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("attach", id, options, (fetchOptions) => {
       if (!this.#backend.attach) unsupported(this.providerName, "attach");
       return this.#backend.attach(id, fetchOptions);
     });
   }
+  /**
+   * Looks up a sandbox by ID and returns a handle the provider has verified.
+   * Daytona supports get. Modal throws `ErrorKind.Unsupported`. Use `attach`.
+   */
   async get(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("get", id, options, (fetchOptions) => {
       if (!this.#backend.refresh) unsupported(this.providerName, "get");
@@ -132,6 +146,11 @@ export class Client implements AsyncDisposable {
       scoped?.dispose();
     }
   }
+  /**
+   * Creates one sandbox and returns its handle.
+   * An empty request uses the provider default. Daytona uses its default
+   * snapshot. Modal requires an image.
+   */
   async create(
     request: CreateOptions = {},
     options: OperationOptions = {},
@@ -199,6 +218,10 @@ export class Client implements AsyncDisposable {
       scoped?.dispose();
     }
   }
+  /**
+   * Closes your connection to the provider.
+   * The sandboxes keep running. You can keep using a handle.
+   */
   async close(options: OperationOptions = {}): Promise<void> {
     let scoped: ReturnType<typeof operationSignal> | undefined;
     try {

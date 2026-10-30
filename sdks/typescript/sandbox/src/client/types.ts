@@ -34,12 +34,12 @@ export type BearerTokenCredentials = StripProto<WireBearerTokenCredentials>;
 export type OAuthCredentials = StripProto<WireOAuthCredentials>;
 export type Scope = StripProto<import("@sandbox-kit/contracts/client").Scope>;
 
-/** Public auth: set exactly one credential variant (no protobuf `{ case, value }`). */
+/** Set exactly one of `apiKey`, `tokenPair`, `bearerToken`, or `oauthRefresh`. */
 export type AuthInput = FlattenOneof<NonNullable<AuthConfig["credentials"]>>;
 
 /**
- * Public client settings (ms timeout, flat auth).
- * Prefer {@link ClientConfig} at construction (`Config` plus `provider`).
+ * Shared client settings. Timeouts are milliseconds.
+ * Pass these fields to {@link ClientConfig} together with `provider`.
  */
 export type Config = DurationFieldsToMs<
   RemapFields<
@@ -111,7 +111,7 @@ export interface Provider {
   initialize(config: Config): Backend;
 }
 
-/** Provider selection stays handwritten and is never part of the portable Config message. */
+/** Settings for `new Client`, including the provider (`daytona()` or `modal()`). */
 export type ClientConfig = Config & {
   readonly provider: Provider;
 };

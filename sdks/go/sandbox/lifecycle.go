@@ -90,6 +90,7 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 }
 
 // Pause pauses a sandbox and stores the updated metadata on this handle.
+// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
 // Daytona exposes Pause and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
@@ -103,8 +104,8 @@ func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
 }
 
 // Terminate ends a sandbox. The returned ExitResult includes the exit code when Wait is set.
-// Set TerminateOptions.Wait with Value(true) to wait.
-// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
+// Set TerminateOptions.Wait with Value(true) to wait until the sandbox exits.
+// A nil timeout uses the client timeout as this call's deadline. Modal waits on that deadline and does not take a separate terminate duration.
 // Modal supports Terminate. Daytona returns ErrorKindUnsupported. Use Delete or Stop for Daytona.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
@@ -125,6 +126,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 }
 
 // Archive archives a sandbox and stores the updated metadata on this handle.
+// A nil timeout uses the client timeout as this call's deadline. Daytona archive does not take a separate duration.
 // Daytona exposes Archive and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
@@ -138,8 +140,9 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 }
 
 // Delete deletes the cloud sandbox and stores the metadata the provider returns.
-// Close does not delete the cloud sandbox.
-// Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
+// Set DeleteOptions.Wait with Value(true) to wait until deletion finishes. Value(false) returns after the provider accepts the request.
+// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
+// Close leaves the cloud sandbox in place. Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	operationContext, cancel, id, err := s.operationContext(ctx, "delete", sdk.OptionalDuration(options.GetTimeout()))

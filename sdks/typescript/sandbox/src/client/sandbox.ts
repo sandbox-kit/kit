@@ -39,6 +39,11 @@ export interface SandboxInit {
   timeout?: number;
 }
 
+/**
+ * Handle for one cloud sandbox.
+ * Lifecycle methods change it. `close` leaves it as it is, and you can keep
+ * using the handle.
+ */
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #timeout: number | undefined;
@@ -51,21 +56,30 @@ export class Sandbox implements AsyncDisposable {
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
   }
+  /** Sandbox identifier. */
   get id(): string {
     return this.#info.id;
   }
+  /** `"daytona"` or `"modal"`. */
   get providerName(): string {
     return this.#info.provider;
   }
+  /** A copy of the sandbox metadata. Editing the result leaves the handle unchanged. */
   info(): SandboxInfo {
     return clone(this.#info);
   }
+  /** Lifecycle operations this provider implements. */
   capabilities(): readonly LifecycleCapability[] {
     return providerCapabilities(this.#backend);
   }
+  /** Reports whether this provider implements `capability`. */
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);
   }
+  /**
+   * Loads current metadata from the provider and stores it on this handle.
+   * Daytona supports refresh. Modal throws `ErrorKind.Unsupported`.
+   */
   async refresh(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#serialized(
       "refresh",
@@ -87,6 +101,11 @@ export class Sandbox implements AsyncDisposable {
       },
     );
   }
+  /**
+   * Starts a stopped sandbox and stores the updated metadata on this handle.
+   * An omitted `timeout` uses the client timeout as this call's deadline.
+   * Daytona supports start. Modal throws `ErrorKind.Unsupported`.
+   */
   async start(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
       "start",
@@ -95,6 +114,11 @@ export class Sandbox implements AsyncDisposable {
       options,
     );
   }
+  /**
+   * Stops a sandbox and stores the updated metadata on this handle.
+   * Set `force` to request an immediate stop.
+   * Daytona supports stop. Modal throws `ErrorKind.Unsupported`.
+   */
   async stop(options: StopCallOptions = {}): Promise<SandboxInfo> {
     const { force, ...call } = options;
     return this.#update(
@@ -107,6 +131,10 @@ export class Sandbox implements AsyncDisposable {
       call,
     );
   }
+  /**
+   * Pauses a sandbox and stores the updated metadata on this handle.
+   * Daytona accepts or rejects the sandbox. Modal throws `ErrorKind.Unsupported`.
+   */
   async pause(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
       "pause",
@@ -115,6 +143,12 @@ export class Sandbox implements AsyncDisposable {
       options,
     );
   }
+  /**
+   * Ends a sandbox. The result includes `exitCode` when `wait` is set.
+   * An omitted `timeout` uses the client timeout as this call's deadline.
+   * Modal waits on that deadline and does not take a separate terminate duration.
+   * Modal supports terminate. Daytona throws `ErrorKind.Unsupported`. Use `delete` or `stop`.
+   */
   async terminate(options: TerminateCallOptions = {}): Promise<ExitResult> {
     const { wait, ...call } = options;
     const request: TerminateOptions = {
@@ -142,6 +176,12 @@ export class Sandbox implements AsyncDisposable {
       },
     );
   }
+  /**
+   * Archives a sandbox and stores the updated metadata on this handle.
+   * Daytona archive does not take a separate duration. The call still uses
+   * `timeout` as its deadline.
+   * Daytona accepts or rejects the sandbox. Modal throws `ErrorKind.Unsupported`.
+   */
   async archive(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
       "archive",
@@ -150,6 +190,11 @@ export class Sandbox implements AsyncDisposable {
       options,
     );
   }
+  /**
+   * Deletes the cloud sandbox and stores the metadata the provider returns.
+   * Set `wait` to wait until deletion finishes. `close` leaves the sandbox in place.
+   * Daytona supports delete. Modal throws `ErrorKind.Unsupported`. Use `terminate`.
+   */
   async delete(options: DeleteCallOptions = {}): Promise<SandboxInfo> {
     const { wait, ...call } = options;
     return this.#update(
@@ -162,6 +207,10 @@ export class Sandbox implements AsyncDisposable {
       call,
     );
   }
+  /**
+   * Closes this handle. The sandbox stays as it is, and you can keep using the handle.
+   * Closing a Daytona handle does not contact Daytona. Closing a Modal handle does not terminate the sandbox.
+   */
   async close(options: OperationOptions = {}): Promise<void> {
     await this.#serialized("close", options, this.#timeout, async (signal) => {
       await awaitWithSignal(

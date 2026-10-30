@@ -1,15 +1,15 @@
 # Responses and errors
 
-A failed call gives you `ErrorInfo` with a stable `ErrorKind`. Validation
-failures also include a `rule` such as `finite`, `nonblank`,
-`exclusive_minimum`, or `known_enum`, so you can branch on that instead of the
-message text. `Info()` returns `SandboxInfo`.
+A failed call returns an error with a stable kind. Validation failures also
+include a `rule` such as `finite`, `nonblank`, `exclusive_minimum`, or
+`known_enum`, so you can branch on that value. `Info()` returns a copy of the
+sandbox metadata.
 
-## Response presence
+## What you get back
 
-`Client.Create` returns a `Sandbox`. `Info()` returns an independent metadata
-copy. Unavailable optional fields stay absent; allocations are not filled from
-the request.
+`Create` returns a sandbox handle. `Info()` returns an independent copy.
+Optional fields that the provider left unset stay absent. Resource numbers on
+the handle are what the provider reported, which can differ from the request.
 
 ```go
 info := instance.Info()
@@ -18,17 +18,17 @@ if info.Resources != nil {
 }
 ```
 
-Optional pointers preserve explicit zero, false, and empty strings; non-nil maps
-and slices preserve empty collections. Non-optional strings require a nonempty
-value. A create or lookup fails locally when the provider returns no sandbox id.
-When the provider sets `provider`, it must match the selected provider.
+A present optional value keeps explicit zero, false, and empty strings. A
+present map or slice keeps an empty collection. A create or lookup fails in
+the client when the provider returns no sandbox ID. When the provider sets
+`provider`, it must match the provider you selected.
 
-## Handle errors in an application
+## Read an error
 
-Initialization, creation, lifecycle operations, and cleanup return `*sandbox.Error`
-with `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and `Message`. Optional
-`StatusCode`, `ProviderCode`, and `ProviderSource` retain native machine details
-when available.
+Initialization, creation, lifecycle calls, and cleanup return the same error
+shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and `Message`.
+`StatusCode`, `ProviderCode`, and `ProviderSource` carry the provider's own
+codes when it sent them.
 
 ```go
 var detail *sandbox.Error
@@ -42,18 +42,17 @@ if errors.As(err, &detail) {
 }
 ```
 
-The same switch works for either provider. Runnable examples demonstrate
-[Modal unsupported intent](../examples/go/modal/handle-modal-errors/README.md) and
+The same switch works for either provider. Runnable examples:
+[Modal unsupported settings](../examples/go/modal/handle-modal-errors/README.md)
+and
 [Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
 
-Go and TypeScript report the same field: a canonical protobuf path. List
-indexes and oneof names are omitted. A rule that names one field uses that
-field, such as `resources.cpu_limit_cores`. A rule that names several fields
-uses their parent, such as `network`.
+Go and TypeScript use the same field string. A rule about one setting names
+that setting, such as `resources.cpu_limit_cores`. A rule about several
+settings names their parent, such as `network`.
 
 TypeScript operations reject with `SandboxError`. Use `instanceof` before
-reading its shared details, and compare `error.field` to exported constants
-such as `CreateFieldResourcesCpuCores`:
+reading it, and compare `error.field` with the exported field constants:
 
 ```ts
 import {
@@ -77,101 +76,43 @@ try {
 }
 ```
 
-See also the TypeScript examples
+TypeScript examples:
 [handle-daytona-errors](../examples/typescript/daytona/handle-daytona-errors/README.md)
-and [handle-modal-errors](../examples/typescript/modal/handle-modal-errors/README.md).
+and
+[handle-modal-errors](../examples/typescript/modal/handle-modal-errors/README.md).
 
-## Native causes
+## Provider errors
 
-Local errors are classified at their source rather than by parsing messages.
-Validator errors and original SDK errors remain accessible through `Unwrap()`:
+The provider's own error stays attached. In Go, `Unwrap` returns it, so
+`errors.Is` and `errors.As` still match cancellation and the provider type:
 
 ```go
 if errors.Is(err, context.Canceled) {
-    // Original cancellation remains matchable.
+    // The original cancellation still matches.
 }
 var native *sdkerrors.DaytonaError
 if errors.As(err, &native) {
-    // Native code, source, status, and headers remain accessible.
+    // Native code, source, status, and headers stay available.
 }
 ```
 
-The last snippet imports Daytona's native errors package as `sdkerrors`.
-Applications can use common kinds without importing provider error types.
-Shared error details serialize without the runtime cause.
+The last snippet imports Daytona's error package as `sdkerrors`. You can
+branch on `Kind` without importing that package.
 
-TypeScript preserves the native error as the standard `cause` property on
+TypeScript keeps the provider error on the standard `cause` property of
 `SandboxError`.
 
-Modal uses pinned native error types and gRPC codes. Daytona uses native HTTP
-status and code/source fields. Unclassified errors retain an unknown kind and
-their original cause; no speculative retry classification is added.
+An error that Kit could not classify keeps an unknown kind and the original
+cause. A kind is a category. It is not a signal that retrying is safe, and
+Kit does not retry for you.
 
-## Constructing errors
+## After a failure
 
-Applications normally receive errors from the client. Custom integrations can
-construct a common error with a protobuf `ErrorInfo` and a runtime cause:
+An error does not prove that no sandbox exists. Readiness or metadata handling
+can fail after the provider has created one. A lifecycle call can fail after
+the provider has already changed the sandbox. Refresh the handle when the
+provider supports refresh before you decide to retry. When creation fails
+after the provider has allocated a sandbox, the error does not include that
+sandbox ID.
 
-```go
-err := sandbox.NewError(&sandbox.ErrorInfo{
-    Kind:      sandbox.ErrorKindUnsupported,
-    Provider:  "modal",
-    Operation: "create",
-    Field:     sandbox.CreateFieldResourcesDiskMib,
-    Message:   "Disk overrides are unsupported",
-}, cause)
-```
-
-`NewError` is handwritten. The constructor owns a copy of the details,
-including optional pointers. The native cause stays separate from the
-serializable contract. Cancellation and deadline causes override the supplied
-kind (`canceled` / `timeout`). Provider modules add provider and operation
-context through `WithErrorContext` in `sdks/go/internal/sdk`. That helper
-reuses an error when its provider and operation already match, and copies the
-error only when the context must change.
-
-## Classification
-
-Classification is handwritten in each language and provider so native SDK type
-names, `errors.As` / `instanceof`, gRPC codes, and HTTP status maps stay local:
-
-- Precedence: existing shared error, then native type, then protocol status/code,
-  then unknown.
-- Modal: native Modal error types, then gRPC status codes.
-- Daytona: `DaytonaError` provider codes, then HTTP statuses.
-
-See [generation](code-generation.md#response-and-error-contracts) for how
-Protovalidate create/config checks (plus handwritten `secure_endpoint`), and
-mappings construct `NewError` call sites.
-
-## Exact metadata copying
-
-Generated `Clone()` methods copy typed fields directly, preserving numeric types,
-optional presence, and empty collections. Copying uses typed generated methods.
-
-TypeScript returns independent metadata through `structuredClone`, preserving
-its native `bigint`, `Date`, byte-array, collection, and optional-property
-representations.
-
-`MetadataObject` and `MetadataValue` describe signed and unsigned integers,
-numbers, strings, booleans, bytes, lists, and objects. An empty value represents
-null. Provider adapters fill `MetadataObject.Values` directly.
-`MetadataObjectAsMap` reads that object as a Go map. TypeScript create options
-accept a plain object and materialize it to the same protobuf message.
-
-Ordinary JSON decoding into `map[string]any` can still change numeric types.
-The owned copy keeps the types stored on `MetadataValue`. No new transport or
-runtime serialization codec is introduced.
-
-## Completion and retries
-
-An error does not prove that no sandbox exists: readiness or metadata handling
-can fail after creation. A lifecycle call can also fail after the provider has
-begun or completed a transition. Refresh the handle when the provider supports
-it before deciding whether to retry. Kit does not surface a partial-success
-creation identity when creation fails after the provider has allocated a
-resource. Error kinds do not imply safe retries, and Kit performs no automatic
-retries.
-
-See [creation](sandbox-creation.md), [generation](code-generation.md), and
-[provider verification](provider-verification.md).
+See [creation](sandbox-creation.md) and [lifecycle](sandbox-lifecycle.md).

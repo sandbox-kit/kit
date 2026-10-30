@@ -38,7 +38,7 @@ DAYTONA_SANDBOX_ID=
 ## Warnings
 
 - Needs an **existing sandbox ID** in `.env`.
-- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+- Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
 
 ## Related
 

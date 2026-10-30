@@ -41,7 +41,7 @@ Required: `MODAL_PROXY_NAME` (existing proxy in the environment).
 ## Warnings
 
 - Creates a **real** cloud sandbox when the request succeeds.
-- Client/handle close releases **local** resources only unless a lifecycle method above says otherwise.
+- Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
 
 ## Related
 

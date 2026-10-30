@@ -23,30 +23,28 @@ Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
 | Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
-Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
-explicit snapshot kinds are not mapped. Supplied unsupported fields are
-rejected before native creation calls. The error field is the canonical
-protobuf path, such as `resources.disk_mib`.
+Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
+pools and explicit snapshot kinds are unavailable. A field the provider does
+not support is rejected before the provider call. The error names that field,
+such as `resources.disk_mib`.
 
 The Daytona TypeScript SDK returns only after startup, so a submitted wait is
 rejected there. Go can return once the sandbox is submitted.
 
 ## Presence, units, and limits
 
-Omitted fields retain provider defaults. In Go, `sandbox.Value(v)` marks an
-optional scalar as supplied, including zero or false, and
-`sandbox.Duration(d)` sets protobuf duration fields.
+Omitted fields keep the provider default. In Go, `sandbox.Value(v)` marks an
+optional scalar as set, including zero or false, and `sandbox.Duration(d)`
+sets a duration.
 
-TypeScript `CreateOptions` is the public creation request: nested exclusive
-fields (`source: { image: … }`, `readiness: { tcpPort }` / `{ command }`),
-`string[]` allowlists, plain `environment` / `labels` maps,
-and **millisecond** duration fields (`timeout`, `after`, `maximumLifetime`).
-Property presence and `undefined` mark omission. The client materializes
-protobuf privately before Protovalidate.
+TypeScript create options use nested exclusive fields (`source: { image: … }`,
+`readiness: { tcpPort }` or `{ command }`), `string[]` allowlists, plain
+`environment` and `labels` maps, and millisecond durations (`timeout`,
+`after`, `maximumLifetime`). A missing property, or `undefined`, means the
+field was omitted.
 
-Shared create rules come from Protovalidate on `sandbox.proto`
-(`ValidateCreateOptions`); provider checks still reject unsupported intent
-before native calls.
+Invalid combinations fail in the client before the provider call. A field the
+selected provider does not support fails there too.
 
 | Resource         | Modal                                           | Daytona                                      |
 | ---------------- | ----------------------------------------------- | -------------------------------------------- |
@@ -73,7 +71,7 @@ Disabled mode requests explicit disabling (`PolicyModeDisabled` /
 `PolicyMode.After`); a zero delay requests an immediate action and must not be
 interpreted as disabling. TypeScript delays are millisecond numbers.
 
-Current Daytona mappings follow the service guide where SDK comments conflict:
+Daytona applies these policy values:
 
 | Action          | Disabled    | AFTER zero  | Positive delay                 |
 | --------------- | ----------- | ----------- | ------------------------------ |
@@ -82,9 +80,9 @@ Current Daytona mappings follow the service guide where SDK comments conflict:
 | Stopped archive | Rejected    | Rejected    | Whole minutes, at most 30 days |
 | Stopped delete  | Rejected    | Native zero | Whole minutes                  |
 
-Daytona archive zero selects 30 days rather than immediate archival. The service
-uses -1 to disable deletion, but the pinned creation SDK rejects negative
-intervals, so that request is unsupported at creation.
+A zero archive delay is rejected. Daytona treats that zero as 30 days, so it
+is not an immediate archive. A negative interval, the value Daytona uses to
+disable deletion, is rejected at creation.
 
 Positive stop and pause delays are mutually exclusive. Ephemeral requests cannot
 combine with positive pause, archive, or delayed-delete policies. Positive pause
@@ -120,18 +118,18 @@ ready waiting also requires a readiness probe and a positive creation timeout.
 
 ## Results and cleanup
 
-Kit copies requests and result metadata with typed clone helpers. Errors expose
-shared details while preserving native causes. Go forwards cancellation into
-the native SDK. TypeScript checks the abort signal before each native call.
-Kit performs no automatic retries or cloud cleanup.
+`Info()` returns a copy of the metadata. Editing that copy leaves the handle
+unchanged. Errors include a kind, field, and message. The provider's own error
+stays available as the cause. Go forwards cancellation into the provider call.
+TypeScript checks the abort signal before each provider call. Kit does not
+retry, and it does not delete a sandbox when a call fails.
 
-Closing the client releases SDK resources without changing cloud sandboxes.
-Do not use handles after their owning client closes. Closing a handle is also
-local-only.
+Closing the client closes your connection to the provider. The sandbox keeps
+running. Closing a handle leaves the sandbox as it is. You can keep using the
+handle. The next call returns the provider's result.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
 
-Out of scope for creation: in-sandbox execution, GPU requests, resizing,
-storage, harnesses, browsers, computer use, and macOS/Windows creation.
+Creation covers the sandbox itself. In-sandbox execution, GPU requests,
+resizing, storage, browsers, and macOS or Windows creation are outside it.
 
-See [configuration](configuration.md), [provider reference verification](provider-verification.md),
-and [generation rules](code-generation.md).
+See [configuration](configuration.md) and [lifecycle](sandbox-lifecycle.md).

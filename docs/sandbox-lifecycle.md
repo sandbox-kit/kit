@@ -24,9 +24,9 @@ only when the call sets one.
 Daytona start, stop, pause, and delete use the native 60-second default when
 the timeout is omitted. An explicit zero is passed through, and those methods
 treat zero as no operation timeout. A timeout that is not a whole number of
-seconds is rejected before the native call. Modal terminate ignores the timeout
-field and waits on the context or abort signal. With wait, it polls until the
-sandbox exits or that signal fires.
+seconds is rejected before the native call. A terminate timeout is how long
+Kit waits. Modal does not take that duration as its own terminate timeout.
+With wait, Modal polls until the sandbox exits or the deadline fires.
 `Client.Close` / `client.close()` closes your connection to Daytona or Modal
 and returns that result. It does not stop or delete the sandbox. A later call
 uses that connection and returns the provider's result.

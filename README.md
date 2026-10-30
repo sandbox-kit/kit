@@ -16,10 +16,6 @@ download npm has recorded for that package.
 | [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona) |
 | [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)     |
 
-npm reports **443** downloads of `@sandbox-kit/sandbox`, **383** of
-`@sandbox-kit/daytona`, and **363** of `@sandbox-kit/modal` (**1,189** package
-downloads in total).
-
 Install `@sandbox-kit/sandbox` and one provider.
 
 ## Get started
@@ -251,34 +247,10 @@ Guides: [configuration](docs/configuration.md) ·
 | [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines               |
 | [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                        |
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                      |
-| [Provider architecture](docs/providers.md)                                                                     | Optional modules and SDK boundaries            |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details, native causes                   |
-| [Code generation](docs/code-generation.md)                                                                     | Protobuf, YAML inventories, extension workflow |
+| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                              |
+| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes              |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                      |
 | [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                              |
-
-## Develop and contribute
-
-From `tooling/` (needs Go 1.26.0+; contract generation needs the Buf CLI):
-
-```sh
-GOWORK=off go run ./cmd/sandbox-kit test typescript
-GOWORK=off go run ./cmd/sandbox-kit generate contracts-typescript
-GOWORK=off go run ./cmd/sandbox-kit test go
-GOWORK=off go run ./cmd/sandbox-kit generate contracts-go
-```
-
-| Path               | Contents                                       |
-| ------------------ | ---------------------------------------------- |
-| `proto/`           | Portable protobuf contracts                    |
-| `specs/`           | YAML validation and provider inventories       |
-| `sdks/typescript/` | TypeScript sandbox package and providers       |
-| `sdks/go/`         | Go sandbox package and providers               |
-| `examples/`        | Independent TypeScript and Go example projects |
-| `tooling/`         | `sandbox-kit` CLI                              |
-| `docs/`            | Guides                                         |
-
-See [tooling](tooling/README.md) and [AGENTS.md](AGENTS.md).
 
 ## License
 

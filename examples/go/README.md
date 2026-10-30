@@ -1,6 +1,6 @@
 # Go examples
 
-Independent modules with local replacements for the public SDK and one provider.
+Each project uses the sandbox client and one provider from this repository.
 Requires Go 1.26.0 or newer and this checkout.
 
 ## Run one
@@ -19,37 +19,38 @@ shell variables win. The SDK does not load files. Modal app setup:
 Creation programs provision real sandboxes (linked Daytona creates a parent and
 child). Lifecycle programs use the configured sandbox ID—read the guide before
 destructive stop, terminate, archive, or delete. Error-handling programs fail
-locally. Closing a client or handle is local-only.
+locally. Closing a handle leaves the sandbox as it is. Closing the client
+closes your connection to Daytona or Modal.
 
 ## Catalog
 
 ### Daytona
 
-| Project                                                                        | Demonstrates                      |
-| ------------------------------------------------------------------------------ | --------------------------------- |
-| [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | default Daytona snapshot          |
-| [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | named snapshot source             |
-| [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | image source and resource sizing  |
-| [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | runtime language and user         |
-| [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | delete-on-stop behavior           |
-| [create-daytona-linked](daytona/create-daytona-linked/README.md)               | linked parent and ephemeral child |
-| [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | pause and deletion policies       |
-| [create-daytona-with-network](daytona/create-daytona-with-network/README.md)   | restricted egress allowlists      |
-| [create-daytona-with-labels](daytona/create-daytona-with-labels/README.md)     | labels and environment variables  |
-| [create-daytona-with-secrets](daytona/create-daytona-with-secrets/README.md)   | injected organization secret      |
-| [create-daytona-with-kvm](daytona/create-daytona-with-kvm/README.md)           | nested virtualization (KVM)       |
-| [create-daytona-with-ttl](daytona/create-daytona-with-ttl/README.md)           | maximum lifetime TTL              |
-| [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | typed validation errors           |
-| [get-daytona-sandbox](daytona/get-daytona-sandbox/README.md)                   | remote retrieval and metadata     |
-| [refresh-daytona-sandbox](daytona/refresh-daytona-sandbox/README.md)           | metadata refresh                  |
-| [start-daytona-sandbox](daytona/start-daytona-sandbox/README.md)               | start lifecycle operation         |
-| [start-daytona-with-timeout](daytona/start-daytona-with-timeout/README.md)     | start with operation timeout      |
-| [stop-daytona-sandbox](daytona/stop-daytona-sandbox/README.md)                 | stop lifecycle operation          |
-| [force-stop-daytona-sandbox](daytona/force-stop-daytona-sandbox/README.md)     | force stop                        |
-| [pause-daytona-sandbox](daytona/pause-daytona-sandbox/README.md)               | pause lifecycle operation         |
-| [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | archive lifecycle operation       |
-| [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                   |
-| [request-daytona-deletion](daytona/request-daytona-deletion/README.md)         | non-waited deletion               |
+| Project                                                                        | Demonstrates                            |
+| ------------------------------------------------------------------------------ | --------------------------------------- |
+| [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
+| [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | named snapshot source                   |
+| [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | image source and resource sizing        |
+| [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | runtime language and user               |
+| [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | delete-on-stop behavior                 |
+| [create-daytona-linked](daytona/create-daytona-linked/README.md)               | linked parent and ephemeral child       |
+| [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | pause and deletion policies             |
+| [create-daytona-with-network](daytona/create-daytona-with-network/README.md)   | restricted egress allowlists            |
+| [create-daytona-with-labels](daytona/create-daytona-with-labels/README.md)     | labels and environment variables        |
+| [create-daytona-with-secrets](daytona/create-daytona-with-secrets/README.md)   | injected organization secret            |
+| [create-daytona-with-kvm](daytona/create-daytona-with-kvm/README.md)           | nested virtualization (KVM)             |
+| [create-daytona-with-ttl](daytona/create-daytona-with-ttl/README.md)           | maximum lifetime TTL                    |
+| [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | typed validation errors                 |
+| [get-daytona-sandbox](daytona/get-daytona-sandbox/README.md)                   | remote retrieval and metadata           |
+| [refresh-daytona-sandbox](daytona/refresh-daytona-sandbox/README.md)           | metadata refresh                        |
+| [start-daytona-sandbox](daytona/start-daytona-sandbox/README.md)               | start lifecycle operation               |
+| [start-daytona-with-timeout](daytona/start-daytona-with-timeout/README.md)     | start with operation timeout            |
+| [stop-daytona-sandbox](daytona/stop-daytona-sandbox/README.md)                 | stop lifecycle operation                |
+| [force-stop-daytona-sandbox](daytona/force-stop-daytona-sandbox/README.md)     | force stop                              |
+| [pause-daytona-sandbox](daytona/pause-daytona-sandbox/README.md)               | pause lifecycle operation               |
+| [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | archive lifecycle operation             |
+| [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                         |
+| [request-daytona-deletion](daytona/request-daytona-deletion/README.md)         | non-waited deletion                     |
 | [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | close the handle; sandbox keeps running |
 
 ### Modal
