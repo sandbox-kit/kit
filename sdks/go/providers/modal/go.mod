@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	github.com/modal-labs/modal-client/go v0.11.1
-	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.2
-	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.2
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.3
+	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.3
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 )
@@ -22,7 +22,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/kisielk/og-rek v1.3.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.2 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.3 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect

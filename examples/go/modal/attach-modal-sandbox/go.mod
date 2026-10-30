@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/sandbox-kit/kit/sdks/go/providers/modal v0.1.2
-	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.2
+	github.com/sandbox-kit/kit/sdks/go/providers/modal v0.1.3
+	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.3
 )
 
 require (
@@ -21,8 +21,8 @@ require (
 	github.com/kisielk/og-rek v1.3.0 // indirect
 	github.com/modal-labs/modal-client/go v0.11.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.2 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.2 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.3 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.3 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
