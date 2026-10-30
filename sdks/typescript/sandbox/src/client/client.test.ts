@@ -31,6 +31,8 @@ import {
   LifecycleCapability,
   SandboxState,
   type SandboxInfo,
+  type StartOptions,
+  type StopOptions,
   type TerminateOptions,
 } from "../index.js";
 
@@ -477,7 +479,7 @@ describe("Sandbox lifecycle", () => {
   });
 
   it("keeps an omitted lifecycle timeout off the provider request", async () => {
-    const seen: Array<{ timeout?: number; force?: boolean }> = [];
+    const seen: Array<StartOptions | StopOptions> = [];
     const backend: Backend = {
       name: "omit-timeout",
       close: async () => {},
