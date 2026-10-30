@@ -20,6 +20,7 @@ func (s *Sandbox) operationContext(ctx context.Context, operation string, timeou
 	if s.currentID() == "" {
 		return nil, nil, "", NewError(&ErrorInfo{Kind: ErrorKindFailedPrecondition, Operation: operation, Message: "sandbox-kit: sandbox handle is not initialized"}, nil)
 	}
+	// A nil timeout inherits the client deadline. Explicit zero adds none.
 	if timeout == nil {
 		timeout = s.timeout
 	}

@@ -476,6 +476,59 @@ describe("Sandbox lifecycle", () => {
     await expect(sandbox.terminate()).resolves.toEqual({});
   });
 
+  it("keeps an omitted lifecycle timeout off the provider request", async () => {
+    const seen: Array<{ timeout?: number; force?: boolean }> = [];
+    const backend: Backend = {
+      name: "omit-timeout",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({
+        id,
+        provider: "omit-timeout",
+        state: SandboxState.Running,
+      }),
+      start: async (id, request) => {
+        seen.push(request);
+        return { id, provider: "omit-timeout", state: SandboxState.Running };
+      },
+      stop: async (id, request) => {
+        seen.push(request);
+        return { id, provider: "omit-timeout", state: SandboxState.Stopped };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+      timeout: 60_000,
+    });
+    const sandbox = await client.attach("sandbox-existing");
+
+    await sandbox.start();
+    await sandbox.stop({ force: true });
+    await sandbox.start({ timeout: 0 });
+
+    expect(seen).toEqual([{}, { force: true }, { timeout: 0 }]);
+  });
+
+  it("uses the client timeout as the deadline when a lifecycle call omits one", async () => {
+    const backend: Backend = {
+      name: "inherit-deadline",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "inherit-deadline" }),
+      start: async () => new Promise(() => {}),
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+      timeout: 10,
+    });
+    const sandbox = await client.attach("sandbox-existing");
+
+    await expect(sandbox.start()).rejects.toMatchObject({
+      kind: ErrorKind.Timeout,
+      operation: "start",
+    });
+  });
+
   it("rejects lifecycle operations absent from the selected provider", async () => {
     const { client } = fixture();
     const sandbox = await client.attach("sandbox-existing");

@@ -2,10 +2,10 @@ package sandbox
 
 import (
 	context "context"
-	time "time"
+	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/proto"
 )
 
 func staticLifecycleCapabilities(operations Backend) []LifecycleCapability {
@@ -61,32 +61,31 @@ func (s *Sandbox) Refresh(ctx context.Context) error {
 }
 
 // Start starts a stopped sandbox and stores the updated metadata on this handle.
-// A nil options value uses the client timeout. Set StartOptions.Timeout to override it.
+// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
 // Daytona supports Start. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	return s.runInfoOp(ctx, "start", timeout, func(operationContext context.Context, id string) (*SandboxInfo, error) {
+	return s.runInfoOp(ctx, "start", sdk.OptionalDuration(options.GetTimeout()), func(operationContext context.Context, id string) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxStarter)
 		if !ok {
 			return nil, s.unsupported("start")
 		}
-		return capability.StartSandbox(operationContext, id, startOptionsForCall(options, timeout))
+		return capability.StartSandbox(operationContext, id, callOptions(options))
 	})
 }
 
 // Stop stops a sandbox and stores the updated metadata on this handle.
-// Set StopOptions.Force with Value(true) to request an immediate stop. A nil options value uses the client timeout.
+// Set StopOptions.Force with Value(true) to request an immediate stop.
+// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
 // Daytona supports Stop. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	return s.runInfoOp(ctx, "stop", timeout, func(operationContext context.Context, id string) (*SandboxInfo, error) {
+	return s.runInfoOp(ctx, "stop", sdk.OptionalDuration(options.GetTimeout()), func(operationContext context.Context, id string) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxStopper)
 		if !ok {
 			return nil, s.unsupported("stop")
 		}
-		return capability.StopSandbox(operationContext, id, stopOptionsForCall(options, timeout))
+		return capability.StopSandbox(operationContext, id, callOptions(options))
 	})
 }
 
@@ -94,23 +93,22 @@ func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error {
 // Daytona exposes Pause and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	return s.runInfoOp(ctx, "pause", timeout, func(operationContext context.Context, id string) (*SandboxInfo, error) {
+	return s.runInfoOp(ctx, "pause", sdk.OptionalDuration(options.GetTimeout()), func(operationContext context.Context, id string) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxPauser)
 		if !ok {
 			return nil, s.unsupported("pause")
 		}
-		return capability.PauseSandbox(operationContext, id, pauseOptionsForCall(options, timeout))
+		return capability.PauseSandbox(operationContext, id, callOptions(options))
 	})
 }
 
 // Terminate ends a sandbox. The returned ExitResult includes the exit code when Wait is set.
-// Set TerminateOptions.Wait with Value(true) to wait. A nil options value uses the client timeout.
+// Set TerminateOptions.Wait with Value(true) to wait.
+// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
 // Modal supports Terminate. Daytona returns ErrorKindUnsupported. Use Delete or Stop for Daytona.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error) {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	operationContext, cancel, id, err := s.operationContext(ctx, "terminate", timeout)
+	operationContext, cancel, id, err := s.operationContext(ctx, "terminate", sdk.OptionalDuration(options.GetTimeout()))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +117,7 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 	if !ok {
 		return nil, s.unsupported("terminate")
 	}
-	outcome, err := capability.TerminateSandbox(operationContext, id, terminateOptionsForCall(options, timeout))
+	outcome, err := capability.TerminateSandbox(operationContext, id, callOptions(options))
 	if err != nil {
 		return outcome, sdk.WithErrorContext(err, s.ProviderName(), "terminate")
 	}
@@ -130,13 +128,12 @@ func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*Ex
 // Daytona exposes Archive and accepts or rejects the sandbox. Modal returns ErrorKindUnsupported.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	return s.runInfoOp(ctx, "archive", timeout, func(operationContext context.Context, id string) (*SandboxInfo, error) {
+	return s.runInfoOp(ctx, "archive", sdk.OptionalDuration(options.GetTimeout()), func(operationContext context.Context, id string) (*SandboxInfo, error) {
 		capability, ok := s.operations.(SandboxArchiver)
 		if !ok {
 			return nil, s.unsupported("archive")
 		}
-		return capability.ArchiveSandbox(operationContext, id, archiveOptionsForCall(options, timeout))
+		return capability.ArchiveSandbox(operationContext, id, callOptions(options))
 	})
 }
 
@@ -145,8 +142,7 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 // Daytona supports Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
 // A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
-	timeout := effectiveTimeout(options.GetTimeout(), s.inheritedTimeout())
-	operationContext, cancel, id, err := s.operationContext(ctx, "delete", timeout)
+	operationContext, cancel, id, err := s.operationContext(ctx, "delete", sdk.OptionalDuration(options.GetTimeout()))
 	if err != nil {
 		return err
 	}
@@ -155,92 +151,23 @@ func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	if !ok {
 		return s.unsupported("delete")
 	}
-	info, err := capability.DeleteSandbox(operationContext, id, deleteOptionsForCall(options, timeout))
+	info, err := capability.DeleteSandbox(operationContext, id, callOptions(options))
 	if err != nil {
 		return sdk.WithErrorContext(err, s.ProviderName(), "delete")
 	}
 	return s.replaceInfo("delete", info)
 }
 
-func (s *Sandbox) inheritedTimeout() *time.Duration {
-	if s == nil {
-		return nil
-	}
-	return s.timeout
-}
-
-// effectiveTimeout prefers an explicit operation timeout, including explicit
-// zero. A nil explicit value inherits the client timeout.
-func effectiveTimeout(explicit *durationpb.Duration, inherited *time.Duration) *time.Duration {
-	if timeout := sdk.OptionalDuration(explicit); timeout != nil {
-		return timeout
-	}
-	return inherited
-}
-
-// optionsWithTimeout passes options through when no timeout is recorded, including a nil pointer.
-// Otherwise build returns a new message so the provider cannot mutate the caller.
-func optionsWithTimeout[T any](options *T, timeout *time.Duration, build func(*durationpb.Duration, *T) *T) *T {
-	if timeout == nil {
+// callOptions returns a copy so the provider cannot change the caller's message.
+// A nil value stays nil. Fields the caller left unset stay unset.
+func callOptions[T interface {
+	proto.Message
+	*StartOptions | *StopOptions | *PauseOptions | *TerminateOptions | *ArchiveOptions | *DeleteOptions
+}](options T) T {
+	if options == nil {
 		return options
 	}
-	return build(Duration(*timeout), options)
-}
-
-func startOptionsForCall(options *StartOptions, timeout *time.Duration) *StartOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *StartOptions) *StartOptions {
-		return &StartOptions{Timeout: recorded}
-	})
-}
-
-func stopOptionsForCall(options *StopOptions, timeout *time.Duration) *StopOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *StopOptions) *StopOptions {
-		cloned := &StopOptions{Timeout: recorded}
-		if options != nil {
-			cloned.Force = copyOptionalBool(options.Force)
-		}
-		return cloned
-	})
-}
-
-func pauseOptionsForCall(options *PauseOptions, timeout *time.Duration) *PauseOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *PauseOptions) *PauseOptions {
-		return &PauseOptions{Timeout: recorded}
-	})
-}
-
-func terminateOptionsForCall(options *TerminateOptions, timeout *time.Duration) *TerminateOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *TerminateOptions) *TerminateOptions {
-		cloned := &TerminateOptions{Timeout: recorded}
-		if options != nil {
-			cloned.Wait = copyOptionalBool(options.Wait)
-		}
-		return cloned
-	})
-}
-
-func archiveOptionsForCall(options *ArchiveOptions, timeout *time.Duration) *ArchiveOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, _ *ArchiveOptions) *ArchiveOptions {
-		return &ArchiveOptions{Timeout: recorded}
-	})
-}
-
-func deleteOptionsForCall(options *DeleteOptions, timeout *time.Duration) *DeleteOptions {
-	return optionsWithTimeout(options, timeout, func(recorded *durationpb.Duration, options *DeleteOptions) *DeleteOptions {
-		cloned := &DeleteOptions{Timeout: recorded}
-		if options != nil {
-			cloned.Wait = copyOptionalBool(options.Wait)
-		}
-		return cloned
-	})
-}
-
-func copyOptionalBool(value *bool) *bool {
-	if value == nil {
-		return nil
-	}
-	copied := *value
-	return &copied
+	return proto.CloneOf(options)
 }
 
 // Get looks up a sandbox by ID and returns a handle the provider has verified.

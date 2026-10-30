@@ -4,12 +4,12 @@
 
 ## What this means
 
-Lifecycle methods take one options bag. `timeout` is both Kit’s abort deadline
-and the native start timeout passed to Daytona (converted to seconds).
+Lifecycle methods take one options bag. A set `timeout` is both Kit’s abort
+deadline and the native start timeout passed to Daytona (converted to seconds).
 
 ## Edge cases
 
-- Omitting `timeout` falls back to the client’s default timeout.
+- Omitting `timeout` leaves Daytona’s 60-second start timeout in place. The client `timeout` still limits how long Kit waits.
 - Ephemeral sandboxes that already stopped cannot be started again.
 - Mutates the sandbox named in `.env`.
 
