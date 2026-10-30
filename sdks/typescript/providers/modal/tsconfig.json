@@ -15,7 +15,6 @@
     "noImplicitOverride": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "types": ["node"],
     "customConditions": ["@sandbox-kit/source"],
     "noEmit": true
   },

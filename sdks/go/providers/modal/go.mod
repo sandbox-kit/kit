@@ -6,7 +6,6 @@ require (
 	github.com/modal-labs/modal-client/go v0.11.1
 	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.2
 	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.2
-	go.yaml.in/yaml/v3 v3.0.5
 	google.golang.org/grpc v1.83.2
 	google.golang.org/protobuf v1.36.12
 )
@@ -27,6 +26,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.46.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.46.0 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
 	golang.org/x/net v0.60.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect

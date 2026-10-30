@@ -64,7 +64,6 @@ the SDK.
 | `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
 | `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
 | `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories          |
-| `specs/rejections.yaml`           | Shared create and client rejections loaded by the Go and TypeScript provider tests |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
