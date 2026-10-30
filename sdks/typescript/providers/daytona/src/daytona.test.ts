@@ -12,11 +12,20 @@ import {
   SecretInjection,
   WaitCondition,
   CreateFieldLifetime,
+  CreateFieldLifetimeMaximumLifetime,
+  CreateFieldResources,
+  InfoFieldResourcesDiskMib,
+  InfoFieldResourcesMemoryMib,
+  CreateFieldPlacement,
+  CreateFieldProvisioningQueueTimeout,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldNetworkOutboundCidrsEntries,
   CreateFieldProvisioningWaitFor,
   ConfigFieldEndpoint,
+  ConfigFieldScopeOrganizationId,
   ConfigFieldScopeProjectId,
+  ConfigFieldTimeout,
+  CreateFieldProvisioningTimeout,
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { describe, expect, it } from "vitest";
@@ -27,6 +36,7 @@ import {
   mapCreateRequest,
   type DaytonaCreateParams,
 } from "#mappings/mappings.js";
+import { mapAllocatedResources } from "#mappings/provider_mappings.js";
 import { mapDaytonaError } from "#errors.js";
 
 describe("Daytona mappings", () => {
@@ -172,6 +182,74 @@ describe("Daytona mappings", () => {
     ).toMatchObject({ jwtToken: "jwt", organizationId: "organization-1" });
   });
 
+  it("reports canonical fields for resource limits and unstorable allocations", () => {
+    expect(() =>
+      mapCreateRequest({
+        source: { image: { reference: "image" } },
+        resources: { cpuLimitCores: 2 },
+      }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldResources,
+      }),
+    );
+    expect(() =>
+      mapAllocatedResources({ cpu: 1, memory: 1.5, disk: 1 } as DaytonaSandbox),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidResponse,
+        field: InfoFieldResourcesMemoryMib,
+      }),
+    );
+    expect(() =>
+      mapAllocatedResources({ cpu: 1, memory: 1, disk: 1.5 } as DaytonaSandbox),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidResponse,
+        field: InfoFieldResourcesDiskMib,
+      }),
+    );
+  });
+
+  it("reports canonical fields for invalid durations and bearer scope", () => {
+    expect(() =>
+      mapCreateRequest({ lifetime: { maximumLifetime: 30_000 } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeMaximumLifetime,
+      }),
+    );
+    expect(() =>
+      mapCreateRequest({ provisioning: { queueTimeout: 30_000 } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldProvisioningQueueTimeout,
+      }),
+    );
+    expect(() =>
+      mapClientConfig({ auth: { bearerToken: { token: "jwt" } } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldScopeOrganizationId,
+      }),
+    );
+  });
+
+  it("rejects per-request placement", () => {
+    expect(() =>
+      mapCreateRequest({ placement: { regions: ["eu"] } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldPlacement,
+      }),
+    );
+  });
+
   it("rejects wait intent the Daytona TypeScript SDK cannot represent", () => {
     expect(() =>
       mapCreateRequest({ provisioning: { waitFor: WaitCondition.Submitted } }),
@@ -290,5 +368,154 @@ describe("Daytona provider orchestration", () => {
     expect(nativeRequest).toMatchObject({ image: "node:24" });
     expect(sandbox.id).toBe("sandbox-1");
     expect(closeCalls).toBe(1);
+  });
+
+  it("rejects a timeout that is not a whole number of seconds before the native call", async () => {
+    let creates = 0;
+    let gets = 0;
+    const backend = new DaytonaProvider(() => ({
+      async create(
+        _params: DaytonaCreateParams,
+        options?: { readonly timeout?: number },
+      ): Promise<DaytonaSandbox> {
+        creates++;
+        void options;
+        throw new Error("native create");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        gets++;
+        throw new Error("native get");
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const create = backend.create;
+    const start = backend.start;
+    if (create === undefined || start === undefined)
+      throw new Error("backend methods are missing");
+    await expect(
+      create.call(backend, { provisioning: { timeout: 1_500 } }, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: CreateFieldProvisioningTimeout,
+      operation: "create",
+    });
+    await expect(
+      create.call(backend, {}, { timeout: 1_500 }),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: ConfigFieldTimeout,
+      operation: "create",
+    });
+    await expect(
+      start.call(backend, "sandbox-1", { timeout: 1_500 }, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: ConfigFieldTimeout,
+      operation: "start",
+    });
+    expect(creates).toBe(0);
+    expect(gets).toBe(0);
+  });
+
+  it("passes a whole-second create timeout to Daytona", async () => {
+    let timeout: number | undefined;
+    const backend = new DaytonaProvider(() => ({
+      async create(
+        _params: DaytonaCreateParams,
+        options?: { readonly timeout?: number },
+      ): Promise<DaytonaSandbox> {
+        timeout = options?.timeout;
+        throw new Error("stop after timeout is recorded");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        throw new Error("native get");
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const create = backend.create;
+    if (create === undefined) throw new Error("create is missing");
+    await expect(create.call(backend, {}, { timeout: 2_000 })).rejects.toThrow(
+      "stop after timeout is recorded",
+    );
+    expect(timeout).toBe(2);
+  });
+
+  it("leaves Daytona's create default in place for an omitted timeout and for zero", async () => {
+    const seen: Array<number | undefined> = [];
+    const backend = new DaytonaProvider(() => ({
+      async create(
+        _params: DaytonaCreateParams,
+        options?: { readonly timeout?: number },
+      ): Promise<DaytonaSandbox> {
+        seen.push(options?.timeout);
+        throw new Error("stop after timeout is recorded");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        throw new Error("native get");
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const create = backend.create;
+    if (create === undefined) throw new Error("create is missing");
+    await expect(create.call(backend, {}, {})).rejects.toThrow(
+      "stop after timeout is recorded",
+    );
+    await expect(
+      create.call(backend, { provisioning: { timeout: 0 } }, {}),
+    ).rejects.toThrow("stop after timeout is recorded");
+    await expect(create.call(backend, {}, { timeout: 0 })).rejects.toThrow(
+      "stop after timeout is recorded",
+    );
+    expect(seen).toEqual([undefined, undefined, undefined]);
+  });
+
+  it("forwards an omitted start timeout as undefined and an explicit zero as zero", async () => {
+    const seen: Array<number | undefined> = [];
+    const backend = new DaytonaProvider(() => ({
+      async create(): Promise<DaytonaSandbox> {
+        throw new Error("native create");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        return {
+          async start(timeout?: number) {
+            seen.push(timeout);
+          },
+        } as DaytonaSandbox;
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const start = backend.start;
+    if (start === undefined) throw new Error("start is missing");
+    await start.call(backend, "sandbox-1", {}, {});
+    await start.call(backend, "sandbox-1", { timeout: 0 }, {});
+    expect(seen).toEqual([undefined, 0]);
+  });
+
+  it("does not start a sandbox after the signal aborts during lookup", async () => {
+    const controller = new AbortController();
+    let started = false;
+    const backend = new DaytonaProvider(() => ({
+      async create(): Promise<DaytonaSandbox> {
+        throw new Error("native create");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        controller.abort();
+        return {
+          async start() {
+            started = true;
+          },
+        } as DaytonaSandbox;
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const start = backend.start;
+    if (start === undefined) throw new Error("start is missing");
+    await expect(
+      start.call(backend, "sandbox-1", {}, { signal: controller.signal }),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "start",
+    });
+    expect(started).toBe(false);
   });
 });

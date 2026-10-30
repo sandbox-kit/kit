@@ -21,6 +21,9 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request == nil {
 		return nil
 	}
+	if request.Placement != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldPlacement, "per-request Daytona placement is unsupported; use Config.region")
+	}
 	if request.Runtime != nil && request.Runtime.Language != nil {
 		language := *request.Runtime.Language
 		if language != "python" && language != "javascript" && language != "typescript" {

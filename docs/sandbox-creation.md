@@ -20,12 +20,16 @@ Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
 | Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       |
 | Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
 | Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Default/submitted/started                                          |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
 Modal default/snapshot/warm-pool sources are not mapped. Daytona warm pools and
-explicit snapshot kinds are not mapped. Supplied unsupported fields and
-`ProviderOptions` are rejected before native creation calls.
+explicit snapshot kinds are not mapped. Supplied unsupported fields are
+rejected before native creation calls. The error field is the canonical
+protobuf path, such as `resources.disk_mib`.
+
+The Daytona TypeScript SDK returns only after startup, so a submitted wait is
+rejected there. Go can return once the sandbox is submitted.
 
 ## Presence, units, and limits
 
@@ -35,7 +39,7 @@ optional scalar as supplied, including zero or false, and
 
 TypeScript `CreateOptions` is the public creation request: nested exclusive
 fields (`source: { image: … }`, `readiness: { tcpPort }` / `{ command }`),
-`string[]` allowlists, plain `environment` / `labels` / `providerOptions` maps,
+`string[]` allowlists, plain `environment` / `labels` maps,
 and **millisecond** duration fields (`timeout`, `after`, `maximumLifetime`).
 Property presence and `undefined` mark omission. The client materializes
 protobuf privately before Protovalidate.
@@ -109,14 +113,17 @@ provider-managed secrets, not authentication credentials.
 
 Creation timeout, queue timeout, and lifetime are distinct. Omitted creation
 timeout inherits `Config.Timeout` / `timeout`; explicit zero adds no Kit
-deadline. Caller deadlines and native SDK timeouts still apply. Modal ready
-waiting also requires a readiness probe and a positive creation timeout.
+deadline. A caller-context deadline still applies. A Daytona creation timeout
+must be a whole number of seconds. An omitted Daytona creation timeout and an
+explicit zero both leave Daytona's 60-second create default in place. Modal
+ready waiting also requires a readiness probe and a positive creation timeout.
 
 ## Results and cleanup
 
 Kit copies requests and result metadata with typed clone helpers. Errors expose
-shared details while preserving native causes. Cancellation is forwarded to the
-SDK. Kit performs no automatic retries or cloud cleanup.
+shared details while preserving native causes. Go forwards cancellation into
+the native SDK. TypeScript checks the abort signal before each native call.
+Kit performs no automatic retries or cloud cleanup.
 
 Closing the client releases SDK resources without changing cloud sandboxes.
 Do not use handles after their owning client closes. Closing a handle is also

@@ -46,9 +46,14 @@ The same switch works for either provider. Runnable examples demonstrate
 [Modal unsupported intent](../examples/go/modal/handle-modal-errors/README.md) and
 [Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
 
+Go and TypeScript report the same field: a canonical protobuf path. List
+indexes and oneof names are omitted. A rule that names one field uses that
+field, such as `resources.cpu_limit_cores`. A rule that names several fields
+uses their parent, such as `network`.
+
 TypeScript operations reject with `SandboxError`. Use `instanceof` before
-reading its shared details. `error.field` is a canonical protobuf path; compare
-it to exported constants such as `CreateFieldResourcesCpuCores`:
+reading its shared details, and compare `error.field` to exported constants
+such as `CreateFieldResourcesCpuCores`:
 
 ```ts
 import {

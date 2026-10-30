@@ -142,6 +142,7 @@ type Check struct {
 	Minimum           *float64 `yaml:"minimum"`
 	Maximum           *float64 `yaml:"maximum"`
 	Format            string   `yaml:"format"`
+	Unsupported       bool     `yaml:"unsupported"`
 }
 
 // ClientMapping composes existing field mappings into native initialization params.

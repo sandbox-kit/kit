@@ -97,7 +97,7 @@ type (
 	CreateResult = sandboxv1.CreateResult
 
 	// StartOptions sets the timeout for Sandbox.Start.
-	// A nil options value uses the client timeout.
+	// A nil timeout uses the client timeout as the call deadline. The provider receives a timeout only when one is set.
 	StartOptions = sandboxv1.StartOptions
 
 	// StopOptions sets the timeout and Force flag for Sandbox.Stop.

@@ -16,8 +16,17 @@ if !instance.Supports(sandbox.LifecycleCapabilityStop) {
 return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Minute)})
 ```
 
-An operation-specific timeout overrides `Config.Timeout` / `timeout`. Omitted
-inherits the client default, and explicit zero adds no deadline of its own.
+An operation-specific timeout overrides `Config.Timeout` / `timeout` as Kit's
+deadline for that call. An omitted timeout inherits the client deadline.
+Explicit zero adds no Kit deadline of its own. The provider receives a timeout
+only when the call sets one.
+
+Daytona start, stop, pause, and delete use the native 60-second default when
+the timeout is omitted. An explicit zero is passed through, and those methods
+treat zero as no operation timeout. A timeout that is not a whole number of
+seconds is rejected before the native call. Modal terminate ignores the timeout
+field and waits on the context or abort signal. With wait, it polls until the
+sandbox exits or that signal fires.
 `Client.Close` / `client.close()` closes your connection to Daytona or Modal
 and returns that result. It does not stop or delete the sandbox. A later call
 uses that connection and returns the provider's result.
@@ -68,7 +77,9 @@ and Kit returns that result.
 Each SDK serializes lifecycle transitions on one handle. This does not
 serialize a different handle or process referring to the same remote sandbox. A
 caller waiting behind an in-progress transition can still cancel its context or
-abort signal, or reach its deadline.
+abort signal, or reach its deadline. Go forwards that context into the native
+SDK. TypeScript checks the abort signal before each native call, so a canceled
+operation does not start the next provider request.
 
 ## Provider support
 

@@ -1,9 +1,10 @@
 package daytona
 
 import (
-	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	"testing"
 	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 func TestDocumentedCreationRules(t *testing.T) {
@@ -29,6 +30,7 @@ func TestDocumentedCreationRules(t *testing.T) {
 		{"bad CIDR", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{OutboundCidrs: &sandbox.StringAllowlist{Entries: []string{"not-a-cidr"}}}}, false},
 		{"linked sandbox is ephemeral", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}, Lifetime: &sandbox.LifetimePolicy{Ephemeral: sandbox.Value(true)}}, true},
 		{"linked sandbox without ephemeral lifetime", &sandbox.CreateOptions{Network: &sandbox.NetworkConfig{LinkedSandbox: sandbox.Value("parent")}}, false},
+		{"placement", &sandbox.CreateOptions{Placement: &sandbox.Placement{Regions: []string{"eu"}}}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := planCreate(tc.request)

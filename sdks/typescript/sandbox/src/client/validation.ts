@@ -6,7 +6,8 @@ import {
   type MessageInitShape,
   type MessageShape,
 } from "@bufbuild/protobuf";
-import { pathToString } from "@bufbuild/protobuf/reflect";
+import { type Path } from "@bufbuild/protobuf/reflect";
+import { ConfigFieldEndpoint } from "#contracts/config_paths.js";
 import { durationFromMs } from "@bufbuild/protobuf/wkt";
 import { createValidator } from "@bufbuild/protovalidate";
 import {
@@ -37,7 +38,6 @@ import type {
 } from "#contracts/sandbox_data_contracts.js";
 import { materializeDurationFields } from "#internal/duration_ms.js";
 import type { StripProto } from "#internal/strip_proto.js";
-import { metadataObjectFromMap } from "#metadata/metadata_object.js";
 import { ErrorKind, sandboxError } from "#client/errors.js";
 import type { AuthInput, Config } from "#client/types.js";
 
@@ -120,6 +120,28 @@ export function validateCreateOptions(
   reportValidationResult(result, provider, operation);
 }
 
+/** Canonical protobuf path: field names only, without list indexes or oneof names. */
+function canonicalFieldPath(path: Path): string {
+  const names: string[] = [];
+  for (const element of path) {
+    if (element.kind === "field") names.push(element.name);
+  }
+  return names.join(".");
+}
+
+/**
+ * A constraint that names one field reports that field. A constraint that names
+ * several fields stays on the parent message.
+ */
+function specificRuleField(path: string, ruleID: string): string {
+  const hint = messageFieldHint(ruleID);
+  if (path === "") return hint;
+  if (hint === "" || hint.includes(",")) return path;
+  if (hint === path || hint.startsWith(`${path}.`)) return hint;
+  if (!hint.includes(".")) return `${path}.${hint}`;
+  return path;
+}
+
 function messageFieldHint(ruleID: string): string {
   switch (ruleID) {
     case "cpu_limit":
@@ -166,7 +188,7 @@ export function validateConfig(
     validationError({
       provider,
       operation,
-      field: "endpoint",
+      field: ConfigFieldEndpoint,
       rule: "secure_endpoint",
       message: "must use HTTPS except for loopback HTTP development endpoints",
     });
@@ -193,11 +215,8 @@ function reportValidationResult(
   }
   const violation = result.violations[0]!;
   const ruleID = violation.ruleId;
-  let field = pathToString(violation.field);
+  const field = specificRuleField(canonicalFieldPath(violation.field), ruleID);
   const rule = stableRuleIDs[ruleID] ?? ruleID;
-  if (!field) {
-    field = messageFieldHint(ruleID);
-  }
   validationError({
     provider,
     operation,
@@ -221,7 +240,7 @@ function materializeClientConfig(input: Config): ConfigWire {
 
 /** Materializes plain create options into the generated protobuf message. */
 function materializeCreateOptions(input: CreateOptions): CreateOptionsWire {
-  const { source, readiness, providerOptions, network, ...rest } = input;
+  const { source, readiness, network, ...rest } = input;
   const withDurations = materializeDurationFields(rest);
   return create(CreateOptionsSchema, {
     ...withDurations,
@@ -232,9 +251,6 @@ function materializeCreateOptions(input: CreateOptions): CreateOptionsWire {
     ...(readiness === undefined
       ? {}
       : { readiness: { check: readinessCheck(readiness) } }),
-    ...(providerOptions === undefined
-      ? {}
-      : { providerOptions: metadataObjectFromMap(providerOptions) }),
   } as unknown as MessageInitShape<
     typeof CreateOptionsSchema
   >) as CreateOptionsWire;

@@ -3,6 +3,7 @@ provider: daytona
 # Provider create checks are handwritten in sdks/*/providers/daytona (provider_checks).
 # Keep this list in sync with those implementations; it is not emitted.
 checks:
+  - { path: placement, unsupported: true }
   - { path: runtime.language, allowed: [python, javascript, typescript] }
   - { path: network.outbound_proxy_url, format: http_url }
   - { path: network.outbound_cidrs.entries, format: cidr }

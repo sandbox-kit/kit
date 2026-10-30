@@ -22,9 +22,9 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
 the SDK runtime. TypeScript app-facing `CreateOptions` / `Config` are handwritten
 facades (ms timeouts, nested oneofs); wire messages stay private to the client.
-Field-path constants use prefixes such as `CreateField`, `ConfigField`, and
-`InfoField`. Protobuf annotations identify source contracts and operation
-metadata.
+Field-path constants use prefixes such as `CreateField`, `ConfigField`,
+`InfoField`, and `ResultField`. Protobuf annotations identify source contracts
+and operation metadata.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native
 SDK client remain private. Construction uses
@@ -99,7 +99,8 @@ aligned when changing those files.
 ## Language conventions
 
 Field-path constants use names such as `CreateFieldResourcesCpuCores`,
-`ConfigFieldScopeAppName`, and `InfoFieldResources`. Their values retain
+`ConfigFieldScopeAppName`, `InfoFieldResources`, and `ResultFieldExitCode`.
+Their values retain
 canonical protobuf field names, including nested paths.
 
 Protobuf and YAML use snake_case semantic field names. Generated Go contract

@@ -105,7 +105,7 @@ func (b *backend) TerminateSandbox(ctx context.Context, id string, options *sand
 	result := &sandbox.ExitResult{}
 	if wait {
 		if code < math.MinInt32 || code > math.MaxInt32 {
-			return nil, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "modal", Operation: "terminate", Field: "exit_code", Message: "sandbox-kit modal: exit code exceeds the shared int32 range"}, nil)
+			return nil, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "modal", Operation: "terminate", Field: sandbox.ResultFieldExitCode, Message: "sandbox-kit modal: exit code exceeds the shared int32 range"}, nil)
 		}
 		result.ExitCode = sandbox.Value(int32(code))
 	}

@@ -44,8 +44,8 @@ message CreateOptions {
   ProvisioningOptions provisioning = 12 [json_name = "creation"];
   ReadinessProbe readiness = 13;
   ObservabilityConfig observability = 14;
-  // holds provider-specific declarative options. It is never an SDK object or an auth credential.
-  MetadataObject provider_options = 15;
+  reserved 15;
+  reserved "provider_options";
 }
 
 // SandboxSource is the sandbox source. Set one alternative. Nil means the provider default, which need not be an image.
@@ -237,7 +237,7 @@ message Placement {
     message: "must not be blank"
     expression: "this.trim() != ''"
   }];
-  // A provider target. Daytona maps the client region here. Per-request placement is unsupported.
+  // A provider target. Modal rejects this field. Daytona rejects per-request placement and reads its target from Config.region.
   optional string target = 3;
 }
 // StringAllowlist is an allowlist. A present empty list means deny all. Nil means the list was omitted.

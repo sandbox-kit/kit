@@ -1,6 +1,7 @@
 package modal
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -51,6 +52,29 @@ func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) 
 		t.Fatal("endpoint exception not explained")
 	}
 }
+func TestAuthReportsTheMissingCredential(t *testing.T) {
+	cases := []struct {
+		name   string
+		config *sandbox.Config
+		field  string
+	}{
+		{"missing pair", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{}}}, sandbox.ConfigFieldAuthTokenPair},
+		{"blank id", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Secret: "secret"}}}}, sandbox.ConfigFieldAuthTokenPairId},
+		{"blank secret", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "id"}}}}, sandbox.ConfigFieldAuthTokenPairSecret},
+		{"blank refresh", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.OAuthRefresh{OauthRefresh: &sandbox.OAuthCredentials{ClientId: "id"}}}}, sandbox.ConfigFieldAuthOauthRefreshRefreshToken},
+		{"both oauth secrets", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.OAuthRefresh{OauthRefresh: &sandbox.OAuthCredentials{RefreshToken: "refresh", ClientId: "id", ClientSecret: sandbox.Value("secret"), JwtKey: sandbox.Value("key")}}}}, sandbox.ConfigFieldAuthOauthRefresh},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := mapClientConfig(tc.config)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != tc.field || detail.Provider != "modal" {
+				t.Fatalf("error = %v detail = %#v", err, detail)
+			}
+		})
+	}
+}
+
 func TestClientPlacementDefaultsAndOverrides(t *testing.T) {
 	scope := &sandbox.Scope{AppName: sandbox.Value("app")}
 	request := &sandbox.CreateOptions{Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "image"}}}}

@@ -51,3 +51,32 @@ func TestValidationErrorsExposeStableRule(t *testing.T) {
 		t.Fatalf("validation rule = %v, error = %v", detail, err)
 	}
 }
+
+func TestValidationFieldsUseCanonicalPaths(t *testing.T) {
+	cases := []struct {
+		name  string
+		err   error
+		field string
+	}{
+		{"cpu limit", ValidateCreateOptions(&CreateOptions{Resources: &Resources{CpuCores: Value(2.0), CpuLimitCores: Value(1.0)}}), CreateFieldResourcesCpuLimitCores},
+		{"memory limit", ValidateCreateOptions(&CreateOptions{Resources: &Resources{MemoryMib: Value(uint64(2)), MemoryLimitMib: Value(uint64(1))}}), CreateFieldResourcesMemoryLimitMib},
+		{"idle after", ValidateCreateOptions(&CreateOptions{Lifetime: &LifetimePolicy{IdleStop: &AutomaticAction{Mode: PolicyModeAfter}}}), CreateFieldLifetimeIdleStopAfter},
+		{"idle after forbidden", ValidateCreateOptions(&CreateOptions{Lifetime: &LifetimePolicy{IdleStop: &AutomaticAction{Mode: PolicyModeDisabled, After: Duration(time.Minute)}}}), CreateFieldLifetimeIdleStopAfter},
+		{"empty readiness", ValidateCreateOptions(&CreateOptions{Readiness: &ReadinessProbe{}}), CreateFieldReadiness},
+		{"blank secret", ValidateCreateOptions(&CreateOptions{Security: &SecurityConfig{Secrets: []*SecretReference{{Reference: "  "}}}}), CreateFieldSecuritySecretsReference},
+		{"out of range port", ValidateCreateOptions(&CreateOptions{Network: &NetworkConfig{Ports: []*PortBinding{{Port: 65536}}}}), CreateFieldNetworkPortsPort},
+		{"restricted network", ValidateCreateOptions(&CreateOptions{Network: &NetworkConfig{Egress: EgressModeRestricted}}), CreateFieldNetwork},
+		{"nil port", ValidateCreateOptions(&CreateOptions{Network: &NetworkConfig{Ports: []*PortBinding{nil}}}), CreateFieldNetworkPorts},
+		{"blank token id", ValidateConfig(&Config{Auth: &AuthConfig{Credentials: &TokenPair{TokenPair: &TokenPairCredentials{Id: "", Secret: "secret"}}}}), ConfigFieldAuthTokenPairId},
+		{"oauth both secrets", ValidateConfig(&Config{Auth: &AuthConfig{Credentials: &OAuthRefresh{OauthRefresh: &OAuthCredentials{RefreshToken: "refresh", ClientId: "id", ClientSecret: Value("secret"), JwtKey: Value("key")}}}}), ConfigFieldAuthOauthRefresh},
+		{"insecure endpoint", ValidateConfig(&Config{Endpoint: Value("http://example.com")}), ConfigFieldEndpoint},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var detail *Error
+			if !errors.As(tc.err, &detail) || detail.Field != tc.field {
+				t.Fatalf("field = %#v, want %s, error = %v", detail, tc.field, tc.err)
+			}
+		})
+	}
+}

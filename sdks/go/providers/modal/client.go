@@ -41,8 +41,11 @@ func (s *clientSettings) applyScope() error {
 	if s.source.Scope == nil {
 		return nil
 	}
-	if s.source.Scope.OrganizationId != nil || s.source.Scope.ProjectId != nil {
-		return unsupportedClientField("scope", "Modal only supports app_name and environment scope")
+	if s.source.Scope.OrganizationId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeOrganizationId, "unsupported client configuration field")
+	}
+	if s.source.Scope.ProjectId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeProjectId, "unsupported client configuration field")
 	}
 	mapped, _, err := mapScope(s.source.Scope)
 	if err != nil {
@@ -59,8 +62,14 @@ func (s *clientSettings) applyAuth() error {
 	}
 	switch credentials := auth.Credentials.(type) {
 	case *sandbox.TokenPair:
-		if credentials.TokenPair == nil || credentials.TokenPair.Id == "" || credentials.TokenPair.Secret == "" {
-			return invalidClientField("auth.token_pair", "token_pair requires id and secret")
+		if credentials.TokenPair == nil {
+			return invalidClientField(sandbox.ConfigFieldAuthTokenPair, "token_pair requires id and secret")
+		}
+		if credentials.TokenPair.Id == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthTokenPairId, "token_pair requires id and secret")
+		}
+		if credentials.TokenPair.Secret == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthTokenPairSecret, "token_pair requires id and secret")
 		}
 		mapped, _, err := mapTokenPairCredentials(credentials.TokenPair)
 		if err != nil {
@@ -69,11 +78,17 @@ func (s *clientSettings) applyAuth() error {
 		s.native.TokenID = mapped.TokenID
 		s.native.TokenSecret = mapped.TokenSecret
 	case *sandbox.OAuthRefresh:
-		if credentials.OauthRefresh == nil || credentials.OauthRefresh.RefreshToken == "" || credentials.OauthRefresh.ClientId == "" {
-			return invalidClientField("auth.oauth_refresh", "oauth_refresh requires refresh_token and client_id")
+		if credentials.OauthRefresh == nil {
+			return invalidClientField(sandbox.ConfigFieldAuthOauthRefresh, "oauth_refresh requires refresh_token and client_id")
+		}
+		if credentials.OauthRefresh.RefreshToken == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthOauthRefreshRefreshToken, "oauth_refresh requires refresh_token and client_id")
+		}
+		if credentials.OauthRefresh.ClientId == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthOauthRefreshClientId, "oauth_refresh requires refresh_token and client_id")
 		}
 		if credentials.OauthRefresh.ClientSecret != nil && credentials.OauthRefresh.JwtKey != nil {
-			return invalidClientField("auth.oauth_refresh", "oauth_refresh accepts only one of client_secret or jwt_key")
+			return invalidClientField(sandbox.ConfigFieldAuthOauthRefresh, "oauth_refresh accepts only one of client_secret or jwt_key")
 		}
 		mapped, _, err := mapOAuthCredentials(credentials.OauthRefresh)
 		if err != nil {

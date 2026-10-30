@@ -71,13 +71,15 @@ class ModalBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<CreateResult> {
     try {
-      options.signal?.throwIfAborted();
+      throwIfAborted(options.signal);
       const plan = mapCreateRequest(request, this.config);
+      throwIfAborted(options.signal);
       const app = await this.native.apps.fromName(plan.app, {
         ...(plan.environment === undefined
           ? {}
           : { environment: plan.environment }),
       });
+      throwIfAborted(options.signal);
       const secrets = await Promise.all(
         plan.secretNames.map((name) =>
           this.native.secrets.fromName(name, {
@@ -87,6 +89,7 @@ class ModalBackend extends BackendBase implements Backend {
           }),
         ),
       );
+      throwIfAborted(options.signal);
       const proxy =
         plan.proxyName === undefined
           ? undefined
@@ -95,6 +98,7 @@ class ModalBackend extends BackendBase implements Backend {
                 ? {}
                 : { environment: plan.environment }),
             });
+      throwIfAborted(options.signal);
       const image = this.native.images.fromRegistry(plan.image);
       const sandbox = await this.native.sandboxes.create(app, image, {
         ...plan.params,
@@ -102,6 +106,7 @@ class ModalBackend extends BackendBase implements Backend {
         ...(proxy === undefined ? {} : { proxy }),
       });
       if (plan.waitUntilReady) {
+        throwIfAborted(options.signal);
         const readyTimeoutMs = plan.readyTimeoutMs ?? options.timeout;
         await sandbox.waitUntilReady(readyTimeoutMs);
       }
@@ -111,37 +116,87 @@ class ModalBackend extends BackendBase implements Backend {
     }
   }
 
-  async attach(id: string): Promise<SandboxInfo> {
+  async attach(id: string, options: OperationOptions): Promise<SandboxInfo> {
     try {
+      throwIfAborted(options.signal);
       return mapSandboxInfo(await this.native.sandboxes.fromId(id));
     } catch (error) {
       throw mapModalError(error, "attach");
     }
   }
 
-  async terminate(id: string, request: TerminateOptions): Promise<ExitResult> {
+  async terminate(
+    id: string,
+    request: TerminateOptions,
+    options: OperationOptions,
+  ): Promise<ExitResult> {
     try {
+      throwIfAborted(options.signal);
       const sandbox = await this.native.sandboxes.fromId(id);
-      if (request.wait === true)
-        return { exitCode: await sandbox.terminate({ wait: true }) };
+      throwIfAborted(options.signal);
       await sandbox.terminate();
-      return {};
+      if (request.wait !== true) return {};
+      return { exitCode: await waitForExit(sandbox, options.signal) };
     } catch (error) {
       throw mapModalError(error, "terminate");
     }
   }
 
-  async closeSandbox(id: string, _options: OperationOptions): Promise<void> {
+  async closeSandbox(id: string, options: OperationOptions): Promise<void> {
     try {
+      throwIfAborted(options.signal);
       (await this.native.sandboxes.fromId(id)).detach();
     } catch (error) {
       throw mapModalError(error, "close");
     }
   }
 
-  async close(): Promise<void> {
-    this.native.close();
+  async close(options: OperationOptions): Promise<void> {
+    try {
+      throwIfAborted(options.signal);
+      this.native.close();
+    } catch (error) {
+      throw mapModalError(error, "close");
+    }
   }
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  signal?.throwIfAborted();
+}
+
+/** Poll until the sandbox exits. The pinned Modal wait() loop does not take a signal. */
+async function waitForExit(
+  sandbox: ModalSandbox,
+  signal: AbortSignal | undefined,
+): Promise<number> {
+  for (;;) {
+    throwIfAborted(signal);
+    const code = await sandbox.poll();
+    if (code !== null) return code;
+    await abortableDelay(signal, 1_000);
+  }
+}
+
+function abortableDelay(
+  signal: AbortSignal | undefined,
+  ms: number,
+): Promise<void> {
+  throwIfAborted(signal);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(
+        signal?.reason ??
+          new DOMException("The operation was aborted", "AbortError"),
+      );
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 /** Selects Modal as the provider for the shared Sandbox Kit client. */

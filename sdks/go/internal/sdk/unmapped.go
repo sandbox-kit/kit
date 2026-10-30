@@ -9,10 +9,13 @@ import (
 )
 
 // RejectUnmapped reports create or config fields a provider did not accept.
-// Provider packages call it after copying the fields they support. The returned
-// error is ErrorKindUnsupported and Field is the setting the caller should remove,
-// such as "resources.cpu_cores". A nil or empty remainder returns nil.
-func RejectUnmapped(provider string, remaining any) error {
+// Provider packages call it after copying the fields they support. provider is
+// the provider name stored on Error.Provider, such as "daytona". parent is the
+// canonical path of the message being checked, such as "resources". The
+// returned error is ErrorKindUnsupported and Field joins that parent with the
+// leftover protobuf name, such as "resources.cpu_cores". An empty parent leaves
+// a top-level name unchanged. A nil or empty remainder returns nil.
+func RejectUnmapped(provider, parent string, remaining any) error {
 	value := reflect.ValueOf(remaining)
 	if value.Kind() == reflect.Pointer {
 		if value.IsNil() {
@@ -38,7 +41,7 @@ func RejectUnmapped(provider string, remaining any) error {
 		if !value.Field(i).IsZero() {
 			fields = append(fields, field.Name)
 			if firstPath == "" {
-				firstPath = protobufFieldName(field)
+				firstPath = fieldPath(parent, protobufFieldName(field))
 			}
 		}
 	}
@@ -51,6 +54,14 @@ func RejectUnmapped(provider string, remaining any) error {
 		}, nil)
 	}
 	return nil
+}
+
+// fieldPath joins a parent canonical path with a protobuf field name.
+func fieldPath(parent, name string) string {
+	if parent == "" {
+		return name
+	}
+	return parent + "." + name
 }
 
 // protobufFieldName returns the canonical protobuf field name from a generated

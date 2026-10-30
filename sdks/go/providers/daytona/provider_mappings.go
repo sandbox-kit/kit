@@ -204,12 +204,12 @@ func mapAllocatedResources(source *daytona.Sandbox) (*sandbox.Resources, error) 
 	target.CpuCores = sandbox.Value(float64(value))
 	value = source.Memory
 	if value < 0 || uint64(value) > ^uint64(0)/1024 {
-		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "memory", Message: "sandbox-kit daytona: memory cannot be represented"}, nil)
+		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: sandbox.InfoFieldResourcesMemoryMib, Message: "sandbox-kit daytona: memory cannot be represented"}, nil)
 	}
 	target.MemoryMib = sandbox.Value(uint64(value) * 1024)
 	value = source.Disk
 	if value < 0 || uint64(value) > ^uint64(0)/1024 {
-		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: "disk", Message: "sandbox-kit daytona: disk cannot be represented"}, nil)
+		return target, sandbox.NewError(&sandbox.ErrorInfo{Kind: sandbox.ErrorKindInvalidResponse, Provider: "daytona", Operation: "create", Field: sandbox.InfoFieldResourcesDiskMib, Message: "sandbox-kit daytona: disk cannot be represented"}, nil)
 	}
 	target.DiskMib = sandbox.Value(uint64(value) * 1024)
 	return target, nil

@@ -6,7 +6,6 @@ import type {
   EmptyMarkersAsTrue,
   FlattenAllowlistFields,
   PlainStringMapFields,
-  RemapFields,
 } from "#internal/input_remap.js";
 import type { StripProto } from "#internal/strip_proto.js";
 import {
@@ -45,7 +44,6 @@ import {
   type ReadinessProbe as ProtoReadinessProbe,
 } from "@sandbox-kit/contracts/sandbox";
 import type { StripAndFlatten } from "#internal/oneof_input.js";
-import type { MetadataPlain } from "#metadata/metadata_plain.js";
 import { protoEnum } from "#internal/proto_enum.js";
 
 /** Public error payload; identity fields stay required after StripProto softening. */
@@ -77,7 +75,9 @@ export type PauseOptions = DurationFieldsToMs<StripProto<ProtoPauseOptions>>;
 export type TerminateOptions = DurationFieldsToMs<
   StripProto<ProtoTerminateOptions>
 >;
-export type ArchiveOptions = DurationFieldsToMs<StripProto<ProtoArchiveOptions>>;
+export type ArchiveOptions = DurationFieldsToMs<
+  StripProto<ProtoArchiveOptions>
+>;
 export type DeleteOptions = DurationFieldsToMs<StripProto<ProtoDeleteOptions>>;
 export type ExitResult = StripProto<ProtoExitResult>;
 export type MetadataValue = StripProto<ProtoMetadataValue>;
@@ -93,15 +93,12 @@ export type CreateOptions = DurationFieldsToMs<
   EmptyMarkersAsTrue<
     FlattenAllowlistFields<
       PlainStringMapFields<
-        RemapFields<
-          StripAndFlatten<
-            ProtoCreateOptions,
-            {
-              source: NonNullable<ProtoSandboxSource["kind"]>;
-              readiness: NonNullable<ProtoReadinessProbe["check"]>;
-            }
-          >,
-          { providerOptions: Record<string, MetadataPlain> }
+        StripAndFlatten<
+          ProtoCreateOptions,
+          {
+            source: NonNullable<ProtoSandboxSource["kind"]>;
+            readiness: NonNullable<ProtoReadinessProbe["check"]>;
+          }
         >
       >
     >

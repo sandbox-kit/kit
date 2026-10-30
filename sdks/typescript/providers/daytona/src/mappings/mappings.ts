@@ -12,11 +12,13 @@ import {
   type MetadataValue,
   type SandboxInfo,
   CreateFieldIsolation,
+  CreateFieldLifetimeMaximumLifetime,
   CreateFieldNetwork,
   CreateFieldNetworkEgress,
   CreateFieldNetworkLinkedSandbox,
   CreateFieldObservabilityVerbose,
-  CreateFieldPlacement,
+  CreateFieldProvisioningQueueTimeout,
+  CreateFieldProvisioningTimeout,
   CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
   CreateFieldResources,
@@ -36,6 +38,7 @@ import {
   CreateFieldNetworkOutboundDomains,
   CreateFieldLifetimeIdleTerminate,
   CreateFieldObservabilityTelemetryEndpoint,
+  ConfigFieldScopeOrganizationId,
 } from "@sandbox-kit/sandbox";
 import {
   type CreateSandboxBaseParams,
@@ -66,7 +69,7 @@ export function mapClientConfig(config: Config): DaytonaConfig {
     config.scope?.organizationId === undefined
   )
     configInvalid(
-      "scope.organizationId",
+      ConfigFieldScopeOrganizationId,
       "organization ID is required with bearer authentication",
     );
   return result;
@@ -82,18 +85,11 @@ export function mapCreateRequest(request: CreateOptions): DaytonaCreateParams {
   mapLifetime(request, base);
   mapProvisioning(request, base);
   mapObservability(request, base);
-  if (request.placement !== undefined)
-    unsupported(
-      CreateFieldPlacement,
-      "per-request Daytona placement is unsupported; use Config.region",
-    );
   if (request.readiness !== undefined)
     unsupported(
       CreateFieldReadiness,
       "Daytona readiness probes are not mapped",
     );
-  if (request.providerOptions !== undefined)
-    unsupported("providerOptions", "Daytona provider options are not mapped");
   const source = request.source;
   if (source?.warmPool !== undefined)
     unsupported(
@@ -291,7 +287,7 @@ function mapLifetime(
   if (value.maximumLifetime !== undefined)
     target.ttlMinutes = wholeMinutes(
       value.maximumLifetime,
-      "lifetime.maximumLifetime",
+      CreateFieldLifetimeMaximumLifetime,
       true,
     );
   if (value.idleTerminate !== undefined)
@@ -307,10 +303,12 @@ function mapProvisioning(
 ): void {
   const value = request.provisioning;
   if (value === undefined) return;
+  if (value.timeout !== undefined)
+    requireWholeSeconds(value.timeout, CreateFieldProvisioningTimeout);
   if (value.queueTimeout !== undefined)
     target.queueTimeout = wholeMinutes(
       value.queueTimeout,
-      "provisioning.queueTimeout",
+      CreateFieldProvisioningQueueTimeout,
       false,
     );
   const waitFor = value.waitFor ?? WaitCondition.Default;
@@ -347,6 +345,11 @@ function mapResources(
   if (value.cpuLimitCores !== undefined || value.memoryLimitMib !== undefined)
     unsupported(CreateFieldResources, "Daytona resource limits are not mapped");
   return generatedMapResources(value);
+}
+
+function requireWholeSeconds(value: number, field: string): void {
+  if (!Number.isFinite(value) || value < 0 || value % 1_000 !== 0)
+    invalid(field, "timeout must be a whole number of seconds");
 }
 
 function wholeMinutes(

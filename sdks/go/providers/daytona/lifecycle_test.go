@@ -1,24 +1,68 @@
 package daytona
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	apiclient "github.com/daytona/clients/api-client-go"
 	daytonasdk "github.com/daytona/clients/sdk-go/pkg/daytona"
+	"github.com/daytona/clients/sdk-go/pkg/options"
 	"github.com/daytona/clients/sdk-go/pkg/types"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
 func TestNativeTimeout(t *testing.T) {
-	if nativeTimeout(nil) != 0 {
-		t.Fatal("omitted timeout")
+	if got, err := nativeTimeout("start", nil); err != nil || got != daytonaDefaultTimeout {
+		t.Fatalf("omitted timeout = %v, %v", got, err)
 	}
-	if nativeTimeout(sandbox.Duration(0)) != 0 {
-		t.Fatal("explicit zero timeout")
+	if got, err := nativeTimeout("start", sandbox.Duration(0)); err != nil || got != 0 {
+		t.Fatalf("explicit zero timeout = %v, %v", got, err)
 	}
-	if nativeTimeout(sandbox.Duration(30*time.Second)) != 30*time.Second {
-		t.Fatal("timeout duration")
+	if got, err := nativeTimeout("start", sandbox.Duration(30*time.Second)); err != nil || got != 30*time.Second {
+		t.Fatalf("timeout duration = %v, %v", got, err)
+	}
+	_, err := nativeTimeout("start", sandbox.Duration(1500*time.Millisecond))
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.ConfigFieldTimeout || detail.Operation != "start" {
+		t.Fatalf("fractional timeout = %#v", detail)
+	}
+}
+
+func TestPlanCreateTimeout(t *testing.T) {
+	twoSeconds := 2 * time.Second
+	for _, tc := range []struct {
+		name    string
+		timeout *time.Duration
+		want    *time.Duration
+	}{
+		{"omitted", nil, nil},
+		{"explicit zero", new(time.Duration), nil},
+		{"two seconds", &twoSeconds, &twoSeconds},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			request := &sandbox.CreateOptions{}
+			if tc.timeout != nil {
+				request.Provisioning = &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(*tc.timeout)}
+			}
+			plan, err := planCreate(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			native := &options.CreateSandbox{}
+			for _, apply := range plan.options {
+				apply(native)
+			}
+			if tc.want == nil {
+				if native.Timeout != nil {
+					t.Fatalf("timeout = %v", *native.Timeout)
+				}
+				return
+			}
+			if native.Timeout == nil || *native.Timeout != *tc.want {
+				t.Fatalf("timeout = %v", native.Timeout)
+			}
+		})
 	}
 }
 

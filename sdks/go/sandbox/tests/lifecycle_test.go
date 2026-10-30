@@ -280,13 +280,14 @@ func TestGetRejectsBlankID(t *testing.T) {
 	}
 }
 
-func TestLifecycleStampsInheritedTimeoutWithoutMutatingCaller(t *testing.T) {
-	var seen time.Duration
-	backend := &lifecycleBackend{start: func(_ context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
-		if options.GetTimeout() == nil {
-			t.Fatal("inherited timeout was not forwarded")
+func TestOmittedLifecycleTimeoutStaysOmitted(t *testing.T) {
+	backend := &lifecycleBackend{start: func(ctx context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
+		if _, ok := ctx.Deadline(); !ok {
+			t.Fatal("client deadline was not applied")
 		}
-		seen = options.GetTimeout().AsDuration()
+		if options.GetTimeout() != nil {
+			t.Fatalf("provider timeout = %s", options.GetTimeout().AsDuration())
+		}
 		return &sandbox.SandboxInfo{Id: id}, nil
 	}}
 	client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{Timeout: sandbox.Duration(2 * time.Second)})
@@ -297,11 +298,37 @@ func TestLifecycleStampsInheritedTimeoutWithoutMutatingCaller(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := instance.Start(context.Background(), nil); err != nil {
+	caller := &sandbox.StartOptions{}
+	if err := instance.Start(context.Background(), caller); err != nil {
 		t.Fatal(err)
 	}
-	if seen != 2*time.Second {
-		t.Fatalf("provider timeout = %s", seen)
+	if caller.Timeout != nil {
+		t.Fatal("caller options were mutated")
+	}
+
+	stopper := &stopBackend{stop: func(ctx context.Context, id string, options *sandbox.StopOptions) (*sandbox.SandboxInfo, error) {
+		if _, ok := ctx.Deadline(); !ok {
+			t.Fatal("client deadline was not applied")
+		}
+		if options.GetTimeout() != nil || !options.GetForce() {
+			t.Fatalf("provider options = timeout %v force %v", options.GetTimeout(), options.GetForce())
+		}
+		return &sandbox.SandboxInfo{Id: id}, nil
+	}}
+	stopClient, err := sandbox.NewClient(&lifecycleProvider{backend: stopper}, &sandbox.Config{Timeout: sandbox.Duration(2 * time.Second)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	stopped, err := stopClient.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	stopCaller := &sandbox.StopOptions{Force: sandbox.Value(true)}
+	if err := stopped.Stop(context.Background(), stopCaller); err != nil {
+		t.Fatal(err)
+	}
+	if stopCaller.Timeout != nil || !stopCaller.GetForce() {
+		t.Fatal("caller options were mutated")
 	}
 }
 

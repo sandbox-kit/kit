@@ -42,8 +42,14 @@ func (s *clientSettings) applyScope() error {
 	if s.source.Scope == nil {
 		return nil
 	}
-	if s.source.Scope.AppName != nil || s.source.Scope.Environment != nil || s.source.Scope.ProjectId != nil {
-		return unsupportedClientField("scope", "Daytona only supports organization_id scope")
+	if s.source.Scope.AppName != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeAppName, "unsupported client configuration field")
+	}
+	if s.source.Scope.Environment != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeEnvironment, "unsupported client configuration field")
+	}
+	if s.source.Scope.ProjectId != nil {
+		return unsupportedClientField(sandbox.ConfigFieldScopeProjectId, "unsupported client configuration field")
 	}
 	mapped, _, err := mapScope(s.source.Scope)
 	if err != nil {
@@ -60,8 +66,11 @@ func (s *clientSettings) applyAuth() error {
 	}
 	switch credentials := auth.Credentials.(type) {
 	case *sandbox.APIKey:
-		if credentials.ApiKey == nil || credentials.ApiKey.Key == "" {
-			return invalidClientField("auth.api_key", "api_key requires key")
+		if credentials.ApiKey == nil {
+			return invalidClientField(sandbox.ConfigFieldAuthApiKey, "api_key requires key")
+		}
+		if credentials.ApiKey.Key == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthApiKeyKey, "api_key requires key")
 		}
 		mapped, _, err := mapAPIKeyCredentials(credentials.ApiKey)
 		if err != nil {
@@ -69,8 +78,11 @@ func (s *clientSettings) applyAuth() error {
 		}
 		s.native.APIKey = mapped.APIKey
 	case *sandbox.BearerToken:
-		if credentials.BearerToken == nil || credentials.BearerToken.Token == "" {
-			return invalidClientField("auth.bearer_token", "bearer_token requires token")
+		if credentials.BearerToken == nil {
+			return invalidClientField(sandbox.ConfigFieldAuthBearerToken, "bearer_token requires token")
+		}
+		if credentials.BearerToken.Token == "" {
+			return invalidClientField(sandbox.ConfigFieldAuthBearerTokenToken, "bearer_token requires token")
 		}
 		mapped, _, err := mapBearerTokenCredentials(credentials.BearerToken)
 		if err != nil {

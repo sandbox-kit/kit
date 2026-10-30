@@ -2,6 +2,7 @@ package daytona
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -40,6 +41,26 @@ func TestUnsupportedClientSettingsRejectedBeforeSDKInitialization(t *testing.T) 
 		}
 	}
 }
+func TestUnsupportedScopeFieldsUseCanonicalPaths(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		scope *sandbox.Scope
+		field string
+	}{
+		{"app", &sandbox.Scope{AppName: sandbox.Value("app")}, sandbox.ConfigFieldScopeAppName},
+		{"environment", &sandbox.Scope{Environment: sandbox.Value("env")}, sandbox.ConfigFieldScopeEnvironment},
+		{"project", &sandbox.Scope{ProjectId: sandbox.Value("project")}, sandbox.ConfigFieldScopeProjectId},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := mapClientConfig(&sandbox.Config{Scope: tc.scope})
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != tc.field {
+				t.Fatalf("error = %v detail = %#v", err, detail)
+			}
+		})
+	}
+}
+
 func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 	// The SDK constructor creates local clients; authentication is not probed here.
 	t.Setenv("DAYTONA_JWT_TOKEN", "")
@@ -57,6 +78,27 @@ func TestProviderInitializesAndOwnsSDKWithoutRequests(t *testing.T) {
 	}
 	if err := client.Close(context.Background()); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestAuthReportsTheMissingCredential(t *testing.T) {
+	cases := []struct {
+		name   string
+		config *sandbox.Config
+		field  string
+	}{
+		{"missing key", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{}}}, sandbox.ConfigFieldAuthApiKey},
+		{"blank key", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{ApiKey: &sandbox.APIKeyCredentials{}}}}, sandbox.ConfigFieldAuthApiKeyKey},
+		{"blank bearer", &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.BearerToken{BearerToken: &sandbox.BearerTokenCredentials{}}}}, sandbox.ConfigFieldAuthBearerTokenToken},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := mapClientConfig(tc.config)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != tc.field || detail.Provider != "daytona" {
+				t.Fatalf("error = %v detail = %#v", err, detail)
+			}
+		})
 	}
 }
 

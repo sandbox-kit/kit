@@ -13,6 +13,8 @@ import {
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesDiskMib,
   CreateFieldResourcesMemoryMib,
+  InfoFieldResourcesDiskMib,
+  InfoFieldResourcesMemoryMib,
 } from "@sandbox-kit/sandbox";
 import type {
   APIKeyCredentials,
@@ -280,7 +282,7 @@ export function mapAllocatedResources(
       if (!Number.isSafeInteger(value) || value < 0)
         mappingError({
           kind: ErrorKind.InvalidResponse,
-          field: "memory",
+          field: InfoFieldResourcesMemoryMib,
           message: "memory cannot be represented",
           operation,
         });
@@ -293,7 +295,7 @@ export function mapAllocatedResources(
       if (!Number.isSafeInteger(value) || value < 0)
         mappingError({
           kind: ErrorKind.InvalidResponse,
-          field: "disk",
+          field: InfoFieldResourcesDiskMib,
           message: "disk cannot be represented",
           operation,
         });

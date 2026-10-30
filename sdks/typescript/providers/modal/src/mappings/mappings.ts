@@ -21,6 +21,7 @@ import {
   CreateFieldIsolationKind,
   CreateFieldLifetime,
   CreateFieldLifetimeIdleTerminateAfter,
+  CreateFieldLifetimeMaximumLifetime,
   CreateFieldLifetimeIdleTerminateMode,
   CreateFieldNetwork,
   CreateFieldNetworkEgress,
@@ -34,10 +35,13 @@ import {
   CreateFieldSecuritySecretsEnvironmentVariable,
   CreateFieldSecuritySecretsInjection,
   CreateFieldSource,
+  ConfigFieldRegion,
   ConfigFieldScopeAppName,
+  ConfigFieldTimeout,
   CreateFieldName,
   CreateFieldNetworkInboundCidrs,
   CreateFieldNetworkProxyReference,
+  CreateFieldObservabilityTelemetryEndpoint,
   CreateFieldProvisioningQueueTimeout,
   CreateFieldResourcesCpuLimitCores,
   CreateFieldResourcesDiskMib,
@@ -73,7 +77,11 @@ export interface ModalCreatePlan {
 export function mapClientConfig(config: Config): ModalClientParams {
   const result = mapGeneratedClientConfig(config);
   if (config.timeout !== undefined)
-    result.timeoutMs = finiteDurationMs(config.timeout, "timeout", true);
+    result.timeoutMs = finiteDurationMs(
+      config.timeout,
+      ConfigFieldTimeout,
+      true,
+    );
   return result;
 }
 
@@ -92,7 +100,7 @@ export function mapCreateRequest(
   if (request.name !== undefined)
     params.name = nonblank(request.name, CreateFieldName);
   if (config.region !== undefined)
-    params.regions = [nonblankConfig(config.region, "region")];
+    params.regions = [nonblankConfig(config.region, ConfigFieldRegion)];
   mapRuntime(request, params);
   mapIsolation(request, params);
   mapResources(request, params);
@@ -103,8 +111,6 @@ export function mapCreateRequest(
   mapReadiness(request, params);
   const wait = mapProvisioning(request, params);
   mapObservability(request, params);
-  if (request.providerOptions !== undefined)
-    unsupported("providerOptions", "Modal provider options are not mapped");
   return {
     app,
     ...(config.scope?.environment === undefined
@@ -274,7 +280,11 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
   const v = r.lifetime;
   if (!v) return;
   if (v.maximumLifetime !== undefined)
-    finiteDurationMs(v.maximumLifetime, "lifetime.maximumLifetime", false);
+    finiteDurationMs(
+      v.maximumLifetime,
+      CreateFieldLifetimeMaximumLifetime,
+      false,
+    );
   Object.assign(p, generatedMapLifetimeDuration(v));
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
@@ -284,7 +294,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateParams): void {
         invalid(CreateFieldLifetimeIdleTerminateAfter, "duration is required");
       finiteDurationMs(
         v.idleTerminate.after,
-        "lifetime.idleTerminate.after",
+        CreateFieldLifetimeIdleTerminateAfter,
         false,
       );
       Object.assign(p, generatedMapIdleDuration(v.idleTerminate));
@@ -347,7 +357,7 @@ function mapObservability(r: CreateOptions, p: SandboxCreateParams): void {
   if (v.verbose !== undefined) p.verbose = v.verbose;
   if (v.telemetryEndpoint !== undefined)
     unsupported(
-      "observability.telemetryEndpoint",
+      CreateFieldObservabilityTelemetryEndpoint,
       "per-sandbox telemetry endpoint is unsupported",
     );
 }
