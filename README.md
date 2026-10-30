@@ -7,7 +7,7 @@ supported.
 
 ## npm
 
-The TypeScript SDK is published on npm at version 0.1.4. Each badge counts every
+The TypeScript SDK is published on npm at version 0.1.5. Each badge counts every
 download npm has recorded for that package.
 
 | Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
@@ -242,15 +242,15 @@ Guides: [configuration](docs/configuration.md) ·
 
 ## Documentation
 
-| Guide                                                                                                          | Covers                                         |
-| -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines               |
-| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                        |
-| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                      |
-| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                              |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes              |
-| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                      |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                              |
+| Guide                                                                                                          | Covers                            |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
+| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies           |
+| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities         |
+| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                 |
+| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes |
+| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes         |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                 |
 
 ## License
 

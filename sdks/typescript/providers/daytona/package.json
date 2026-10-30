@@ -1,6 +1,6 @@
 {
   "name": "@sandbox-kit/daytona",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "daytona provider for sandbox kit",
   "keywords": [
     "sandbox-kit",
@@ -67,7 +67,7 @@
   "dependencies": {
     "@bufbuild/protobuf": "2.16.0",
     "@daytona/sdk": "0.225.0",
-    "@sandbox-kit/sandbox": "0.1.4"
+    "@sandbox-kit/sandbox": "0.1.5"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
