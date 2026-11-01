@@ -1,0 +1,15 @@
+{
+  "title": "Guides",
+  "pages": [
+    "index",
+    "---Providers---",
+    "daytona",
+    "modal",
+    "---Use the client---",
+    "create",
+    "lifecycle",
+    "configuration",
+    "errors",
+    "examples"
+  ]
+}

@@ -1,0 +1,62 @@
+---
+title: Examples
+description: Run one project for one operation. Each project loads its own environment file.
+---
+
+Each project selects one provider, loads a `.env` file, and performs one operation. Open the project for the call you need.
+
+Creation projects provision a real sandbox. Lifecycle projects use the sandbox id in `.env`. Stop, terminate, archive, and delete can destroy that sandbox. Error projects fail locally and create nothing.
+
+The tables below are the common projects. The repository also has network, labels, secrets, pause, and archive. The full list is the [examples catalog](https://github.com/sandbox-kit/kit/blob/main/examples/README.md).
+
+## Daytona
+
+| Operation         | TypeScript                                                                                                       | Go                                                                                                       |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Create            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox)       | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)       |
+| From an image     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-image)    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-from-image)    |
+| From a snapshot   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-snapshot) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-from-snapshot) |
+| Lifetime policies | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
+| Look up           | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/get-daytona-sandbox)          | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)          |
+| Stop              | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/stop-daytona-sandbox)         | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/stop-daytona-sandbox)         |
+| Delete            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/delete-daytona-sandbox)       | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/delete-daytona-sandbox)       |
+| Errors            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/handle-daytona-errors)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/handle-daytona-errors)        |
+
+## Modal
+
+| Operation | TypeScript                                                                                                    | Go                                                                                                    |
+| --------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Create    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)        |
+| Resources | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
+| Attach    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)        |
+| Terminate | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/terminate-modal-sandbox)     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/terminate-modal-sandbox)     |
+| Errors    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/handle-modal-errors)         | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/handle-modal-errors)         |
+
+## Run a project
+
+TypeScript needs Node.js 20, 22, or 24.15+. Go needs Go 1.26.0 or later. Replace the path with the project you opened above. Skip `cp .env.example` when you already have a `.env`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/typescript/<provider>/<project>
+cp .env.example .env
+npm install && npm run build && npm start
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/go/<provider>/<project>
+cp .env.example .env
+go run .
+```
+
+  </Tab>
+</Tabs>
+
+Put the variables from that project's `.env.example` into `.env`. Daytona create uses `DAYTONA_API_KEY`. Modal create uses `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`.

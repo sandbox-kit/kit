@@ -1,0 +1,226 @@
+---
+title: Manage a sandbox
+description: Open a sandbox you already have, stop or terminate it, and close your local connection.
+---
+
+Create returns a handle. Later calls use that handle, or a handle you open from an id. Pick the row for the call you need.
+
+| You want to                 | Daytona                                    | Modal                                                            |
+| --------------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Open an existing sandbox    | [`get`](#open-a-sandbox) looks the id up   | [`attach`](#open-a-sandbox) takes the id and does not look it up |
+| Start, stop, pause, archive | [Supported](#stop-start-pause-and-archive) | Rejected before the call                                         |
+| Remove the sandbox          | [`delete`](#delete)                        | Use [`terminate`](#terminate), or a lifetime set at create time  |
+| Drop your local connection  | [`close`](#close-the-client)               | [`close`](#close-the-client)                                     |
+
+`supports` reports whether this provider implements the call. Import `LifecycleCapability` from `@sandbox-kit/sandbox`. In Go the constants are `sandbox.LifecycleCapabilityStop` and the rest of that set. A missing operation fails before the provider is contacted. Daytona can still reject a supported call for one sandbox, and that error comes back to you.
+
+The snippets below assume you already have a `client`. Build one on the provider page.
+
+## Open a sandbox
+
+<Tabs groupId="provider" items={['Daytona', 'Modal']} persist>
+  <Tab value="Daytona">
+
+`get` loads a sandbox that already exists. `refresh` loads it again.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
+const info = await sandbox.refresh();
+console.log(sandbox.id, info.state);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+if err := instance.Refresh(ctx); err != nil {
+	return err
+}
+```
+
+`Attach` is not available.
+
+  </Tab>
+</Tabs>
+
+  </Tab>
+  <Tab value="Modal">
+
+`attach` builds a handle from an id. It does not ask Modal whether that sandbox exists. Modal has no `get` and no `refresh`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
+console.log(sandbox.id);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Attach(ctx, os.Getenv("MODAL_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+```
+
+  </Tab>
+</Tabs>
+
+  </Tab>
+</Tabs>
+
+## Stop, start, pause, and archive
+
+These four calls are Daytona calls. Modal rejects them. `stop` asks Daytona to stop the sandbox. The sandbox stays available to start again. `start` brings a stopped or archived sandbox back. `pause` keeps memory and stops the sandbox. `archive` moves a retained sandbox into archive storage.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
+
+if (!sandbox.supports(LifecycleCapability.Stop)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be stopped`);
+}
+
+const info = await sandbox.stop({ timeout: 60_000 });
+console.log(sandbox.id, info.state);
+```
+
+`timeout` is milliseconds. Pass `force: true` to request an immediate stop. Check `supports` the same way before `start`, `pause`, or `archive`.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+if !instance.Supports(sandbox.LifecycleCapabilityStop) {
+	return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
+}
+if err := instance.Stop(ctx, &sandbox.StopOptions{
+	Timeout: sandbox.Duration(time.Minute),
+}); err != nil {
+	return err
+}
+```
+
+`Start`, `Pause`, and `Archive` take the same kind of options. Check `Supports` before each one.
+
+  </Tab>
+</Tabs>
+
+Daytona decides whether that sandbox can pause, archive, or stop. An ephemeral sandbox can still be removed by the lifetime you set at [create](/docs/create#daytona) time.
+
+## Delete
+
+`delete` removes a Daytona sandbox. Modal rejects it.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
+await sandbox.delete({ timeout: 60_000 });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+if err := instance.Delete(ctx, &sandbox.DeleteOptions{
+	Timeout: sandbox.Duration(time.Minute),
+}); err != nil {
+	return err
+}
+```
+
+  </Tab>
+</Tabs>
+
+## Terminate
+
+`terminate` finishes a Modal sandbox. It is not a stop, and it is not a delete. Daytona rejects it. A maximum lifetime or an idle timeout set at [create](/docs/create#modal) time also ends the sandbox.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
+
+if (!sandbox.supports(LifecycleCapability.Terminate)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be terminated`);
+}
+
+const exit = await sandbox.terminate({ wait: true, timeout: 60_000 });
+console.log(sandbox.id, exit.exitCode);
+```
+
+`wait: true` polls until the sandbox exits or the timeout fires. The timeout is how long the client waits. Modal does not receive that duration as its own terminate timeout.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Attach(ctx, os.Getenv("MODAL_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
+	return fmt.Errorf("sandbox %s cannot be terminated", instance.ID())
+}
+exit, err := instance.Terminate(ctx, &sandbox.TerminateOptions{
+	Wait:    sandbox.Value(true),
+	Timeout: sandbox.Duration(time.Minute),
+})
+if err != nil {
+	return err
+}
+fmt.Println(exit.GetExitCode())
+```
+
+  </Tab>
+</Tabs>
+
+## Close the client
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await client.close();
+```
+
+Prefer `await using` when the client's lifetime matches the block. Disposing the client closes the connection. Disposing the handle leaves the sandbox as it is.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+defer client.Close(context.Background())
+```
+
+`Sandbox.Close` does not change the sandbox. A later call on that handle still reaches the provider.
+
+  </Tab>
+</Tabs>
+
+## Read the state
+
+`info.state` is the portable state. The provider's own string is kept beside it. After a lifecycle call, read the handle again before you treat the sandbox as stopped or gone. A failed call can mean the provider already changed it. See [Read an error](/docs/errors).

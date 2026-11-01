@@ -1,0 +1,131 @@
+---
+title: Create a sandbox
+description: Choose an image or a snapshot, set a size, and decide how long the sandbox lives.
+---
+
+`client.create` in TypeScript and `Client.Create` in Go return a handle. The handle's id is the sandbox you created. Construct the client on your provider page, or on [Configure the client](/docs/configuration).
+
+Leave a field out to keep the provider's default. The client rejects a field that provider does not support, before it makes the call. Branch on that failure in [Read an error](/docs/errors).
+
+TypeScript durations on this request are milliseconds. A missing property means the field was omitted. Go uses `sandbox.Value` for an optional number, including zero, and `sandbox.Duration` for a timeout or a delay.
+
+## Units
+
+|           | Daytona                                                               | Modal                                                       |
+| --------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Source    | Omit for the default snapshot, or pass a snapshot or an image         | Registry image, required                                    |
+| CPU       | Whole cores                                                           | Fractional cores, minimum 0.125, step 0.001                 |
+| Memory    | Whole GiB, written as MiB (`4096` is 4 GiB)                           | MiB, minimum 128 when set                                   |
+| Disk      | Whole GiB, written as MiB                                             | Cannot be set                                               |
+| Lifetime  | TTL, and stop, pause, archive, or delete policies                     | Maximum lifetime and idle termination                       |
+| Placement | `region` on the client. A placement block on this request is rejected | `placement` on this request. Client `region` is the default |
+
+Account quotas, image names, regions, and capacity are checked by the provider.
+
+## Daytona
+
+A size override requires an image. A snapshot create keeps the snapshot's size.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  resources: {
+    cpuCores: 2,
+    memoryMib: 4096n,
+    diskMib: 8192n,
+  },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(2.0),
+		MemoryMib: sandbox.Value(uint64(4096)),
+		DiskMib:   sandbox.Value(uint64(8192)),
+	},
+})
+```
+
+  </Tab>
+</Tabs>
+
+Name a snapshot by its reference, for example `daytona-small`. In TypeScript that is `source: { snapshot: { reference } }`. Set the toolbox language and user on `runtime`.
+
+A linked sandbox must be ephemeral. The client rejects the request otherwise.
+
+Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
+
+## Modal
+
+Pass a registry image. The app name belongs on the client, not on this request. Leave a resource out to keep Modal's default.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
+const sandbox = await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+  resources: { cpuCores: 0.5, memoryMib: 512n },
+  runtime: {
+    workingDirectory: "/tmp",
+    entrypoint: ["sleep", "infinity"],
+  },
+  lifetime: {
+    maximumLifetime: 5 * 60_000,
+    idleTerminate: { mode: PolicyMode.After, after: 60_000 },
+  },
+});
+```
+
+`PolicyMode.After` starts the idle timer. `PolicyMode.Disabled` turns idle termination off.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(0.5),
+		MemoryMib: sandbox.Value(uint64(512)),
+	},
+	Runtime: &sandbox.RuntimeConfig{
+		WorkingDirectory: sandbox.Value("/tmp"),
+		Entrypoint:       []string{"sleep", "infinity"},
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		MaximumLifetime: sandbox.Duration(5 * time.Minute),
+		IdleTerminate: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(time.Minute),
+		},
+	},
+})
+```
+
+  </Tab>
+</Tabs>
+
+Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
+
+Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies. Projects for [resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources), [idle timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-idle), [placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-placement), and [readiness](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-ready) are in the repository. Go projects sit beside them under `examples/go/modal/`.
+
+## What you get back
+
+`info()` in TypeScript and `Info()` in Go return a copy of the metadata. Editing that copy does not change the sandbox. Reported CPU and memory can differ from the numbers you sent.
+
+This client creates the sandbox and manages its lifetime. Commands inside the sandbox, GPU requests, resizing, extra storage, and browsers are outside it.
