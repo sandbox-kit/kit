@@ -1,0 +1,44 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6C55VEFDKRAEPJEGEGXQ4BH",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-filesystem",
+  "checkpoints_count": 14,
+  "files_touched": [
+    "docs/filesystem.md",
+    "examples/go/daytona/copy-file-from-daytona/README.md",
+    "examples/go/daytona/copy-file-into-daytona/README.md",
+    "examples/go/modal/copy-file-from-modal/README.md",
+    "examples/go/modal/copy-file-into-modal/README.md",
+    "examples/typescript/daytona/copy-file-from-daytona/README.md",
+    "examples/typescript/daytona/copy-file-into-daytona/README.md",
+    "examples/typescript/modal/copy-file-from-modal/README.md",
+    "examples/typescript/modal/copy-file-into-modal/README.md",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/filesystem.go",
+    "sdks/go/providers/daytona/filesystem_test.go",
+    "sdks/go/providers/modal/README.md",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/src/errors.ts",
+    "sdks/typescript/providers/modal/README.md",
+    "website/content/docs/filesystem.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 185765,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 8463360,
+    "output_tokens": 57753,
+    "api_call_count": 5
+  }
+}

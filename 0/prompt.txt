@@ -1,0 +1,162 @@
+while this is good. lifecycle is in good place. 
+
+what should I add next, file system, process & code execution, etc ? 
+
+check https://www.daytona.io/docs/en/typescript-sdk/ 
+https://modal.com/docs/sdk/js/latest 
+https://modal.com/docs/sdk/go/latest 
+https://www.daytona.io/docs/en/go-sdk/
+
+---
+
+we have to unify operations. and method
+
+---
+
+we should have process and file system module but other things inside them should be unified.
+
+---
+
+can u check more methods which are missing more methods.
+
+---
+
+there are lot of methods which are missing ig ? 
+
+https://www.daytona.io/docs/en/typescript-sdk/file-system/#methods
+
+---
+
+https://modal.com/docs/sdk/go/latest/Sandbox#sandboxfilesystem https://www.daytona.io/docs/en/typescript-sdk/file-system/#methods
+
+---
+
+cool is there anyone we need ?
+
+---
+
+cool is there any help u need ? or u can start implementing lemme know.
+
+---
+
+go ahead and implement
+
+---
+
+instead of creating one big example create small small example for file system
+
++ improve documentation for this, its user facing docs as u know, u are techincal writing person for best devtools company.
+
+---
+
+Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.ts(2591)
+
+
+i think there is many place where this is needed.
+
+---
+
+can u create a branch, commit, and push to branch and make a PR. 
+
+have good PR title + also explian with diagrams around your changes for adding this.
+
+---
+
+there were methods which are not common and Ig its not implemented which were there for file system.
+
+---
+
+how does missing method in daytona which are there is implemented in modal if user wants to do that operations ?
+
+---
+
+Make a directory without creating parents. Daytona's CreateFolder creates missing parents, and Kit always asks Modal for the same behavior (createParents: true). A caller who needs Modal's stricter mode, where the parent must already exist, uses the Modal SDK for that call.
+
+
+
+ig we should expose this ? as field. and have default behaviour which is there at provider level ?
+
+---
+
+not sure but createParents naming looks little weird fwhat do u think ?
+
+---
+
+yes change it + u don't need to reserve number in proto as we haven't shiped this canges/
+
+---
+
+ig it should be default false
+
+but if it doesn't support by provider then it should not accept but should be default provider.
+
+---
+
+commit and push to branch + also update the description of PR
+
+---
+
+ig there is obselete for createparents  u must remove that /
+
+---
+
+now the methods whcih are daytona are not in modal
+
+
+then how modal users do those things ? 
+
+as we want to add those methods but we are trying to figure out.
+
+---
+
+can u just document this we haven't implemented this file system operation ?
+
+---
+
+don't mntion this yet on user facing website/ docs.
+
+---
+
+is there anything which cn be improved or is wrong in implementation. ? for file system /
+
+---
+
+explian with examples so I understand
+
+---
+
+how to imporove ?
+
+---
+
+make changes.
+
+---
+
+ig check other providers sdk. so u can check if your findings are correct. check for both languages. 
+
+check blaxel it has both the sdk languages
+
+---
+
+cool now make changes.
+
+---
+
+cool now what happens with both
+
+---
+
+cool now what happens with both explian with example
+
+---
+
+not sure why 1500 can't be  added and its rejected?
+
+---
+
+cool if by this changes if there is code, docs, .md, readme,  which became obsolete remove it.
+
++ user facing docs must know what is it. 
+
++ docs and user facing docs should mention only whats true today not what was there vs what is today.
