@@ -67,7 +67,9 @@ Provider-verified `get` / `refresh`, start, stop, pause, archive, and delete are
 unsupported.
 
 **Files** through `sandbox.filesystem`. Paths in the sandbox are absolute.
-`makeDirectory` accepts a directory that already exists.
+`parents` defaults to true: missing parents are created, and an existing
+directory is accepted. `parents: false` requires the
+parent to exist.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.

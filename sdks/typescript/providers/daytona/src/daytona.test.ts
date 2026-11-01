@@ -25,6 +25,7 @@ import {
   ConfigFieldScopeOrganizationId,
   ConfigFieldScopeProjectId,
   ConfigFieldTimeout,
+  FileFieldParents,
   CreateFieldProvisioningTimeout,
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
@@ -517,5 +518,33 @@ describe("Daytona provider orchestration", () => {
       operation: "start",
     });
     expect(started).toBe(false);
+  });
+
+  it("rejects parents false before Daytona is called", async () => {
+    const backend = new DaytonaProvider(() => ({
+      async create() {
+        throw new Error("unused");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        throw new Error("native get must not run");
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const makeDirectory = backend.makeDirectory;
+    if (makeDirectory === undefined)
+      throw new Error("makeDirectory is missing");
+    await expect(
+      makeDirectory.call(
+        backend,
+        "sandbox-1",
+        "/tmp/kit",
+        { parents: false },
+        {},
+      ),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.Unsupported,
+      field: FileFieldParents,
+      operation: "make_directory",
+    });
   });
 });

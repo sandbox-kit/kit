@@ -2874,9 +2874,11 @@ func (x *FileCopyOptions) GetTimeout() *durationpb.Duration {
 }
 
 // MakeDirectoryOptions configures creating one directory. Nil timeout inherits Config.Timeout.
+// An omitted parents flag is true: missing parents are created. Daytona rejects false.
 type MakeDirectoryOptions struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Timeout       *durationpb.Duration   `protobuf:"bytes,1,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	Parents       *bool                  `protobuf:"varint,2,opt,name=parents,proto3,oneof" json:"parents,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2916,6 +2918,13 @@ func (x *MakeDirectoryOptions) GetTimeout() *durationpb.Duration {
 		return x.Timeout
 	}
 	return nil
+}
+
+func (x *MakeDirectoryOptions) GetParents() bool {
+	if x != nil && x.Parents != nil {
+		return *x.Parents
+	}
+	return false
 }
 
 // ListDirectoryOptions configures listing one directory. Nil timeout inherits Config.Timeout.
@@ -3836,9 +3845,12 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\x10FileWriteOptions\x123\n" +
 	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"F\n" +
 	"\x0fFileCopyOptions\x123\n" +
-	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"K\n" +
+	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"v\n" +
 	"\x14MakeDirectoryOptions\x123\n" +
-	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"K\n" +
+	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12\x1d\n" +
+	"\aparents\x18\x02 \x01(\bH\x00R\aparents\x88\x01\x01B\n" +
+	"\n" +
+	"\b_parents\"K\n" +
 	"\x14ListDirectoryOptions\x123\n" +
 	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"B\n" +
 	"\vStatOptions\x123\n" +
@@ -4174,6 +4186,7 @@ func file_kit_sandbox_v1_sandbox_proto_init() {
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[27].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[28].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[29].OneofWrappers = []any{}
+	file_kit_sandbox_v1_sandbox_proto_msgTypes[33].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[36].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[37].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[38].OneofWrappers = []any{}

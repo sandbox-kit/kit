@@ -202,11 +202,13 @@ class ModalBackend extends BackendBase implements Backend {
   async makeDirectory(
     id: string,
     path: string,
-    _request: MakeDirectoryOptions,
+    request: MakeDirectoryOptions,
     options: OperationOptions,
   ): Promise<void> {
     await this.#file("make_directory", id, options, async (sandbox) => {
-      await sandbox.filesystem.makeDirectory(path, { createParents: true });
+      await sandbox.filesystem.makeDirectory(path, {
+        createParents: request.parents ?? true,
+      });
     });
   }
 

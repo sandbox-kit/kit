@@ -331,3 +331,6 @@ export const FileFieldPath = "path" as const;
 
 /** Canonical path "local_path" on a copy between the caller and the sandbox. */
 export const FileFieldLocalPath = "local_path" as const;
+
+/** Canonical path "parents" on MakeDirectoryOptions. */
+export const FileFieldParents = "parents" as const;

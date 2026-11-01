@@ -147,13 +147,18 @@ err := instance.Filesystem().CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil)
 
 ## Create a directory
 
-`makeDirectory` creates that directory and any missing parents. Modal accepts a directory that already exists. Daytona returns an error when it already exists.
+`parents` defaults to true, so the call creates missing parents. Modal accepts a directory that already exists. Daytona returns an error when it already exists.
+
+Set `parents` to false when the parent directory must already exist. Modal then requires that parent, and returns an error if the new directory is already there. Daytona rejects `false` before the call. The error field is `parents`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
 ```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files");
+await sandbox.filesystem.makeDirectory("/tmp/kit-files/nested", {
+  parents: false,
+});
 ```
 
   </Tab>
@@ -161,6 +166,9 @@ await sandbox.filesystem.makeDirectory("/tmp/kit-files");
 
 ```go
 err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
+err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
+	Parents: sandbox.Value(false),
+})
 ```
 
   </Tab>

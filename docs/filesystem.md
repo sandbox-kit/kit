@@ -131,16 +131,27 @@ Out of the sandbox:
 
 ## Create a directory
 
-`MakeDirectory` creates the directory and any missing parents. Modal accepts a
-directory that already exists. Daytona returns the provider error when it
+`parents` defaults to true, so the call creates missing parents. Modal accepts
+a directory that already exists. Daytona returns the provider error when it
 already exists.
+
+Set `parents` to false when the parent directory must already exist. Modal
+then requires that parent, and returns an error if the new directory is
+already there. Daytona rejects `false` before the call. The error field is
+`parents`.
 
 ```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files");
+await sandbox.filesystem.makeDirectory("/tmp/kit-files/nested", {
+  parents: false,
+});
 ```
 
 ```go
 err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
+err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
+	Parents: sandbox.Value(false),
+})
 ```
 
 [Go Daytona](../examples/go/daytona/make-daytona-directory/README.md) ·

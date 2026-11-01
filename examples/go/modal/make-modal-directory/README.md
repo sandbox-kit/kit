@@ -9,7 +9,8 @@ The call creates `MODAL_REMOTE_PATH` and any missing parents.
 ## Edge cases
 
 - A relative path is rejected before Modal is called.
-- Modal accepts a directory that already exists.
+- `Parents` defaults to true: missing parents are created, and an existing directory is accepted.
+- `Parents` false requires the parent directory to exist.
 
 ## Run
 

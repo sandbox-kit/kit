@@ -1,10 +1,7 @@
 // Filesystem calls are handwritten. They validate paths, then dispatch
 // through optional Backend methods.
 
-import {
-  FileFieldLocalPath,
-  FileFieldPath,
-} from "#contracts/field_paths.js";
+import { FileFieldLocalPath, FileFieldPath } from "#contracts/field_paths.js";
 import type {
   FileCopyOptions,
   FileInfo,
@@ -88,22 +85,28 @@ export class Filesystem {
     remotePath: string,
     options: FileCall<FileCopyOptions> = {},
   ): Promise<void> {
-    return this.#copy("copy_from_local", localPath, remotePath, options, (signal) => {
-      const method = this.host.backend.copyFromLocal;
-      if (!method) unsupported(this.host.providerName, "copy_from_local");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            localPath,
-            remotePath,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
-      );
-    });
+    return this.#copy(
+      "copy_from_local",
+      localPath,
+      remotePath,
+      options,
+      (signal) => {
+        const method = this.host.backend.copyFromLocal;
+        if (!method) unsupported(this.host.providerName, "copy_from_local");
+        return awaitWithSignal(
+          () =>
+            method.call(
+              this.host.backend,
+              this.host.id,
+              localPath,
+              remotePath,
+              requestFields(options),
+              operationOptions(options, signal),
+            ),
+          signal,
+        );
+      },
+    );
   }
 
   /** Copies a sandbox file onto the caller's disk. */
@@ -112,25 +115,35 @@ export class Filesystem {
     localPath: string,
     options: FileCall<FileCopyOptions> = {},
   ): Promise<void> {
-    return this.#copy("copy_to_local", localPath, remotePath, options, (signal) => {
-      const method = this.host.backend.copyToLocal;
-      if (!method) unsupported(this.host.providerName, "copy_to_local");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            remotePath,
-            localPath,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
-      );
-    });
+    return this.#copy(
+      "copy_to_local",
+      localPath,
+      remotePath,
+      options,
+      (signal) => {
+        const method = this.host.backend.copyToLocal;
+        if (!method) unsupported(this.host.providerName, "copy_to_local");
+        return awaitWithSignal(
+          () =>
+            method.call(
+              this.host.backend,
+              this.host.id,
+              remotePath,
+              localPath,
+              requestFields(options),
+              operationOptions(options, signal),
+            ),
+          signal,
+        );
+      },
+    );
   }
 
-  /** Creates the directory at `path` and any missing parents. */
+  /**
+   * Creates the directory at `path`.
+   * An omitted `parents` flag is true: missing parents are created.
+   * Daytona rejects `false`.
+   */
   makeDirectory(
     path: string,
     options: FileCall<MakeDirectoryOptions> = {},
@@ -144,7 +157,7 @@ export class Filesystem {
             this.host.backend,
             this.host.id,
             path,
-            requestFields(options),
+            directoryRequest(options),
             operationOptions(options, signal),
           ),
         signal,
@@ -270,9 +283,20 @@ function requestFields<T extends { timeout?: number }>(
   return request;
 }
 
+function directoryRequest(
+  options: FileCall<MakeDirectoryOptions>,
+): MakeDirectoryOptions {
+  return {
+    ...requestFields(options),
+    ...(options.parents === undefined ? {} : { parents: options.parents }),
+  };
+}
+
 function removeRequest(options: FileCall<RemoveOptions>): RemoveOptions {
   return {
     ...requestFields(options),
-    ...(options.recursive === undefined ? {} : { recursive: options.recursive }),
+    ...(options.recursive === undefined
+      ? {}
+      : { recursive: options.recursive }),
   };
 }

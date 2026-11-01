@@ -377,3 +377,6 @@ const FileFieldPath = "path"
 
 // FileFieldLocalPath is the canonical path "local_path" on a copy between the caller and the sandbox.
 const FileFieldLocalPath = "local_path"
+
+// FileFieldParents is the canonical path "parents" on MakeDirectoryOptions.
+const FileFieldParents = "parents"

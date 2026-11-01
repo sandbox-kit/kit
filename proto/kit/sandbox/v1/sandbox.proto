@@ -539,8 +539,10 @@ message FileCopyOptions {
 }
 
 // MakeDirectoryOptions configures creating one directory. Nil timeout inherits Config.Timeout.
+// An omitted parents flag is true: missing parents are created. Daytona rejects false.
 message MakeDirectoryOptions {
   google.protobuf.Duration timeout = 1;
+  optional bool parents = 2;
 }
 
 // ListDirectoryOptions configures listing one directory. Nil timeout inherits Config.Timeout.

@@ -70,7 +70,7 @@ type SandboxFiles interface {
 	CopyFromLocal(context.Context, string, string, string, *FileCopyOptions) error
 	// CopyToLocal copies a sandbox file onto the caller's disk.
 	CopyToLocal(context.Context, string, string, string, *FileCopyOptions) error
-	// MakeDirectory creates a directory and any missing parents.
+	// MakeDirectory creates a directory. A nil Parents flag is true. Daytona rejects false.
 	MakeDirectory(context.Context, string, string, *MakeDirectoryOptions) error
 	// ListDirectory lists the entries in one directory.
 	ListDirectory(context.Context, string, string, *ListDirectoryOptions) ([]*FileInfo, error)

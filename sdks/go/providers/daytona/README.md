@@ -76,8 +76,9 @@ supported. Daytona accepts or rejects each lifecycle call for that sandbox.
 `Close` does not contact Daytona and does not change the sandbox.
 
 `Filesystem` reads and writes files in the sandbox. Paths in the sandbox are
-absolute. A timeout, when set, is a whole number of seconds. `MakeDirectory`
-returns the provider error when the directory already exists.
+absolute. A timeout, when set, is a whole number of seconds. `Parents` defaults
+to true and creates missing parents. `Parents` set to false is rejected.
+`MakeDirectory` returns the provider error when the directory already exists.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create

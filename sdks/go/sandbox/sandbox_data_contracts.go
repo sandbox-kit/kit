@@ -135,7 +135,8 @@ type (
 	// FileCopyOptions sets the timeout for a copy between the caller and the sandbox.
 	FileCopyOptions = sandboxv1.FileCopyOptions
 
-	// MakeDirectoryOptions sets the timeout for Filesystem.MakeDirectory.
+	// MakeDirectoryOptions sets the timeout and Parents flag for Filesystem.MakeDirectory.
+	// An omitted Parents flag is true. Set false with Value. Daytona rejects false.
 	MakeDirectoryOptions = sandboxv1.MakeDirectoryOptions
 
 	// ListDirectoryOptions sets the timeout for Filesystem.ListDirectory.

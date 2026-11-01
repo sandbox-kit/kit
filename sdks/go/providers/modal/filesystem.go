@@ -63,16 +63,23 @@ func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath str
 	return nil
 }
 
-func (b *backend) MakeDirectory(ctx context.Context, id, path string, _ *sandbox.MakeDirectoryOptions) error {
+func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *sandbox.MakeDirectoryOptions) error {
 	instance, err := b.fileSandbox(ctx, id, "make_directory")
 	if err != nil {
 		return err
 	}
-	createParents := true
-	if err := instance.Filesystem.MakeDirectory(ctx, path, &sdk.SandboxFilesystemMakeDirectoryParams{CreateParents: &createParents}); err != nil {
+	if err := instance.Filesystem.MakeDirectory(ctx, path, makeDirectoryParams(options)); err != nil {
 		return mapFileError(err, "make_directory", "")
 	}
 	return nil
+}
+
+func makeDirectoryParams(options *sandbox.MakeDirectoryOptions) *sdk.SandboxFilesystemMakeDirectoryParams {
+	parents := true
+	if options != nil && options.Parents != nil {
+		parents = *options.Parents
+	}
+	return &sdk.SandboxFilesystemMakeDirectoryParams{CreateParents: &parents}
 }
 
 func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox.ListDirectoryOptions) ([]*sandbox.FileInfo, error) {

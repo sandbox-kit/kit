@@ -78,6 +78,9 @@ func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *s
 	if err := wholeSecondFileTimeout("make_directory", options.GetTimeout()); err != nil {
 		return err
 	}
+	if err := rejectParents(options); err != nil {
+		return err
+	}
 	instance, err := b.fileSandbox(ctx, id, "make_directory")
 	if err != nil {
 		return err
@@ -155,6 +158,19 @@ func (b *backend) fileSandbox(ctx context.Context, id, operation string) (*dayto
 		}, nil)
 	}
 	return instance, nil
+}
+
+func rejectParents(options *sandbox.MakeDirectoryOptions) error {
+	if options == nil || options.Parents == nil || *options.Parents {
+		return nil
+	}
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:      sandbox.ErrorKindUnsupported,
+		Provider:  "daytona",
+		Operation: "make_directory",
+		Field:     sandbox.FileFieldParents,
+		Message:   "sandbox-kit daytona: parents false is not available",
+	}, nil)
 }
 
 func wholeSecondFileTimeout(operation string, value *durationpb.Duration) error {

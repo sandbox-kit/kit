@@ -8,6 +8,7 @@ import {
   ConfigFieldTimeout,
   CreateFieldProvisioningTimeout,
   ErrorKind,
+  FileFieldParents,
   FileType,
   type FileInfo,
   type OperationOptions,
@@ -260,6 +261,14 @@ class DaytonaBackend extends BackendBase implements Backend {
     request: MakeDirectoryOptions,
     options: OperationOptions,
   ): Promise<void> {
+    if (request.parents === false) {
+      providerError({
+        kind: ErrorKind.Unsupported,
+        operation: "make_directory",
+        field: FileFieldParents,
+        message: "parents false is not available",
+      });
+    }
     await this.#file(
       "make_directory",
       id,

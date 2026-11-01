@@ -9,6 +9,8 @@ The call creates `DAYTONA_REMOTE_PATH` and any missing parents.
 ## Edge cases
 
 - A relative path is rejected before Daytona is called.
+- `parents` defaults to true and creates missing parents.
+- `parents: false` is rejected before Daytona is called.
 - Daytona returns an error when that directory already exists.
 
 ## Run
