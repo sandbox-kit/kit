@@ -36,26 +36,33 @@ creates missing parent directories.
 
 `CopyFromLocal` and `CopyToLocal` use files on disk. The local file is the
 first argument of `CopyFromLocal` and the second argument of `CopyToLocal`.
-Copy creates missing parent directories of the destination and replaces a file
-that is already there.
+An existing destination file is replaced.
 
 ## Timeouts
 
 Leave the timeout unset to use the client deadline. Set it to zero when this
-call should add no Kit deadline. Daytona accepts a timeout only as a whole
-number of seconds, so 1500 milliseconds is rejected and 2 seconds is passed
-through. Modal filesystem methods take the context or abort signal as the
-deadline.
+call should add no Kit deadline. TypeScript records the timeout in
+milliseconds. Go records it as a `time.Duration`.
+
+TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
+pass that duration to Daytona as a whole number of seconds. `2000` is two
+seconds. `1500` is 1.5 seconds, so those four calls reject it. The error field
+is `timeout`.
+
+`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
+`1500` ends the call at 1.5 seconds. Every Go file call uses the context as
+the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
+file calls use the context or the abort signal. `1500` milliseconds ends the
+call at 1.5 seconds.
 
 ```ts
-const data = await sandbox.filesystem.readFile("/tmp/note.txt", {
-  timeout: 2_000,
-});
+await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
+await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
 ```
 
 ```go
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
-    Timeout: sandbox.Duration(2 * time.Second),
+    Timeout: sandbox.Duration(1500 * time.Millisecond),
 })
 ```
 
@@ -100,7 +107,15 @@ err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", []byte("h
 ## Copy a file
 
 `CopyFromLocal` reads a file on your machine and writes it in the sandbox.
-`CopyToLocal` does the reverse. An existing destination file is replaced.
+`CopyToLocal` does the reverse. `CopyFromLocal` creates missing parent
+directories of the sandbox path.
+
+A missing local file is not found. The error field is `local_path`. A local
+directory is an invalid argument with the same field.
+
+`CopyToLocal` with TypeScript Daytona or with Modal creates a missing local
+parent directory. Go Daytona requires that parent to exist. A missing parent
+is not found, and the field is `local_path`.
 
 ```ts
 await sandbox.filesystem.copyFromLocal("./note.txt", "/tmp/note.txt");

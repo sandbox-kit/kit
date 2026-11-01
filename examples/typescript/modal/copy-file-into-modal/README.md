@@ -9,7 +9,7 @@ The call copies `MODAL_LOCAL_PATH` on this machine to `MODAL_REMOTE_PATH` in the
 ## Edge cases
 
 - The sandbox path must be absolute. A blank local path is rejected before Modal is called. The error field is `local_path`.
-- A missing local file fails before the bytes are uploaded.
+- A missing local file is not found. The error field is `local_path`. A directory at that path is an invalid argument with the same field.
 - An existing remote file is replaced.
 
 ## Run

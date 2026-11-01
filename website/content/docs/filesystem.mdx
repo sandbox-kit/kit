@@ -20,13 +20,18 @@ A path inside the sandbox starts with `/`, such as `/tmp/note.txt`. `note.txt` i
 
 `readFile` and `writeFile` move bytes. Encode text before you write it, and decode text after you read it. `copyFromLocal` and `copyToLocal` use files on your disk.
 
-Leave `timeout` unset to use the client deadline. Set `timeout: 0` when this call should add no deadline of its own. Daytona accepts a timeout only as a whole number of seconds: `2_000` is two seconds, and `1_500` is rejected. Modal takes the abort signal as the deadline.
+Leave `timeout` unset to use the client deadline. Set `timeout: 0` when this call should add no deadline of its own. TypeScript records the timeout in milliseconds. Go records it as a `time.Duration`.
+
+TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal` pass that duration to Daytona as a whole number of seconds. `2_000` is two seconds. `1_500` is 1.5 seconds, so those four calls reject it. The error field is `timeout`.
+
+`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal. `1_500` ends the call at 1.5 seconds. Every Go file call uses the context as the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal file calls use the context or the abort signal. `1_500` milliseconds ends the call at 1.5 seconds.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
+await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
 ```
 
   </Tab>
@@ -34,7 +39,7 @@ await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
 
 ```go
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
-	Timeout: sandbox.Duration(2 * time.Second),
+	Timeout: sandbox.Duration(1500 * time.Millisecond),
 })
 ```
 
@@ -101,7 +106,7 @@ err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", body, nil
 
 ## Copy a file in
 
-`copyFromLocal` reads a file on your machine and writes it in the sandbox. The local path is the first argument. The remote path is absolute. An existing remote file is replaced, and missing parent directories are created.
+`copyFromLocal` reads a file on your machine and writes it in the sandbox. The local path is the first argument. The remote path is absolute. An existing remote file is replaced, and missing parent directories of that path are created. A missing local file is not found. The error field is `local_path`. A local directory is an invalid argument with the same field.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -124,7 +129,7 @@ err := instance.Filesystem().CopyFromLocal(ctx, "note.txt", "/tmp/note.txt", nil
 
 ## Copy a file out
 
-`copyToLocal` copies a sandbox file onto your disk. The remote path comes first. An existing local file is replaced.
+`copyToLocal` copies a sandbox file onto your disk. The remote path comes first. An existing local file is replaced. TypeScript Daytona and Modal create a missing local parent directory. Go Daytona requires that parent to exist. A missing parent is not found, and the field is `local_path`. A local directory is an invalid argument with the same field.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

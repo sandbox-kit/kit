@@ -40,7 +40,13 @@ import {
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapDaytonaError, providerError } from "#errors.js";
+import {
+  mapDaytonaError,
+  providerError,
+  requireLocalDestination,
+  requireLocalFile,
+  translateLocalCopyError,
+} from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
@@ -222,6 +228,7 @@ class DaytonaBackend extends BackendBase implements Backend {
     request: FileCopyOptions,
     options: OperationOptions,
   ): Promise<void> {
+    await requireLocalFile(localPath, "copy_from_local");
     await this.#file(
       "copy_from_local",
       id,
@@ -242,15 +249,20 @@ class DaytonaBackend extends BackendBase implements Backend {
     request: FileCopyOptions,
     options: OperationOptions,
   ): Promise<void> {
+    await requireLocalDestination(localPath, "copy_to_local");
     await this.#file(
       "copy_to_local",
       id,
       options,
       request.timeout,
       async (sandbox, timeout) => {
-        if (timeout === undefined)
-          await sandbox.fs.downloadFile(remotePath, localPath);
-        else await sandbox.fs.downloadFile(remotePath, localPath, timeout);
+        try {
+          if (timeout === undefined)
+            await sandbox.fs.downloadFile(remotePath, localPath);
+          else await sandbox.fs.downloadFile(remotePath, localPath, timeout);
+        } catch (error) {
+          throw translateLocalCopyError(error, "copy_to_local");
+        }
       },
     );
   }
@@ -273,7 +285,7 @@ class DaytonaBackend extends BackendBase implements Backend {
       "make_directory",
       id,
       options,
-      request.timeout,
+      undefined,
       async (sandbox) => {
         await sandbox.fs.createFolder(path, "0755");
       },
@@ -283,14 +295,14 @@ class DaytonaBackend extends BackendBase implements Backend {
   async listDirectory(
     id: string,
     path: string,
-    request: ListDirectoryOptions,
+    _request: ListDirectoryOptions,
     options: OperationOptions,
   ): Promise<FileInfo[]> {
     return this.#file(
       "list_directory",
       id,
       options,
-      request.timeout,
+      undefined,
       async (sandbox) => {
         const entries = await sandbox.fs.listFiles(path);
         return entries.map((entry) => daytonaFileInfo(entry));
@@ -301,10 +313,10 @@ class DaytonaBackend extends BackendBase implements Backend {
   async stat(
     id: string,
     path: string,
-    request: StatOptions,
+    _request: StatOptions,
     options: OperationOptions,
   ): Promise<FileInfo> {
-    return this.#file("stat", id, options, request.timeout, async (sandbox) =>
+    return this.#file("stat", id, options, undefined, async (sandbox) =>
       daytonaFileInfo(await sandbox.fs.getFileDetails(path)),
     );
   }
@@ -319,7 +331,7 @@ class DaytonaBackend extends BackendBase implements Backend {
       "remove",
       id,
       options,
-      request.timeout,
+      undefined,
       async (sandbox) => {
         await sandbox.fs.deleteFile(path, request.recursive === true);
       },

@@ -67,9 +67,11 @@ Provider-verified `get` / `refresh`, start, stop, pause, archive, and delete are
 unsupported.
 
 **Files** through `sandbox.filesystem`. Paths in the sandbox are absolute.
+A file timeout is the abort signal. `1_500` ends the call at 1.5 seconds.
 `parents` defaults to true: missing parents are created, and an existing
-directory is accepted. `parents: false` requires the
-parent to exist.
+directory is accepted. `parents: false` requires the parent to exist. A
+missing file passed to `copyFromLocal` is not found, and the error field is
+`local_path`. `copyToLocal` creates a missing local parent directory.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.

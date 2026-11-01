@@ -76,9 +76,14 @@ supported. Daytona accepts or rejects each lifecycle call for that sandbox.
 `Close` does not contact Daytona and does not change the sandbox.
 
 `Filesystem` reads and writes files in the sandbox. Paths in the sandbox are
-absolute. A timeout, when set, is a whole number of seconds. `Parents` defaults
-to true and creates missing parents. `Parents` set to false is rejected.
-`MakeDirectory` returns the provider error when the directory already exists.
+absolute. A file timeout is the context deadline. `1500 * time.Millisecond`
+ends the call at 1.5 seconds. `Parents` defaults to true and creates missing
+parents. `Parents` set to false is rejected. `MakeDirectory` returns the
+provider error when the directory already exists. A missing file passed to
+`CopyFromLocal` is not found, and the error field is `local_path`. A local
+directory is an invalid argument with the same field. `CopyToLocal` requires
+the local parent directory to exist. A missing parent is not found, and the
+field is `local_path`.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create

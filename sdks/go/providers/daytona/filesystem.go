@@ -2,22 +2,19 @@ package daytona
 
 import (
 	"context"
-	"time"
+	"errors"
+	"os"
+	"path/filepath"
 
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
 	"github.com/daytona/clients/sdk-go/pkg/types"
-	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var _ sandbox.SandboxFiles = (*backend)(nil)
 
-func (b *backend) ReadFile(ctx context.Context, id, path string, options *sandbox.FileReadOptions) ([]byte, error) {
-	if err := wholeSecondFileTimeout("read_file", options.GetTimeout()); err != nil {
-		return nil, err
-	}
+func (b *backend) ReadFile(ctx context.Context, id, path string, _ *sandbox.FileReadOptions) ([]byte, error) {
 	instance, err := b.fileSandbox(ctx, id, "read_file")
 	if err != nil {
 		return nil, err
@@ -29,10 +26,7 @@ func (b *backend) ReadFile(ctx context.Context, id, path string, options *sandbo
 	return data, nil
 }
 
-func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, options *sandbox.FileWriteOptions) error {
-	if err := wholeSecondFileTimeout("write_file", options.GetTimeout()); err != nil {
-		return err
-	}
+func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _ *sandbox.FileWriteOptions) error {
 	instance, err := b.fileSandbox(ctx, id, "write_file")
 	if err != nil {
 		return err
@@ -46,8 +40,8 @@ func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, o
 	return nil
 }
 
-func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath string, options *sandbox.FileCopyOptions) error {
-	if err := wholeSecondFileTimeout("copy_from_local", options.GetTimeout()); err != nil {
+func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath string, _ *sandbox.FileCopyOptions) error {
+	if err := localSourceFile(localPath, "copy_from_local"); err != nil {
 		return err
 	}
 	instance, err := b.fileSandbox(ctx, id, "copy_from_local")
@@ -55,13 +49,13 @@ func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath s
 		return err
 	}
 	if err := instance.FileSystem.UploadFile(ctx, localPath, remotePath); err != nil {
-		return mapProviderError(err, "copy_from_local")
+		return mapCallerPathError(err, "copy_from_local", localPath)
 	}
 	return nil
 }
 
-func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath string, options *sandbox.FileCopyOptions) error {
-	if err := wholeSecondFileTimeout("copy_to_local", options.GetTimeout()); err != nil {
+func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath string, _ *sandbox.FileCopyOptions) error {
+	if err := localDestination(localPath, "copy_to_local"); err != nil {
 		return err
 	}
 	instance, err := b.fileSandbox(ctx, id, "copy_to_local")
@@ -69,15 +63,12 @@ func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath str
 		return err
 	}
 	if _, err := instance.FileSystem.DownloadFile(ctx, remotePath, &localPath); err != nil {
-		return mapProviderError(err, "copy_to_local")
+		return mapCallerPathError(err, "copy_to_local", localPath)
 	}
 	return nil
 }
 
 func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *sandbox.MakeDirectoryOptions) error {
-	if err := wholeSecondFileTimeout("make_directory", options.GetTimeout()); err != nil {
-		return err
-	}
 	if err := rejectParents(options); err != nil {
 		return err
 	}
@@ -91,10 +82,7 @@ func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *s
 	return nil
 }
 
-func (b *backend) ListDirectory(ctx context.Context, id, path string, options *sandbox.ListDirectoryOptions) ([]*sandbox.FileInfo, error) {
-	if err := wholeSecondFileTimeout("list_directory", options.GetTimeout()); err != nil {
-		return nil, err
-	}
+func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox.ListDirectoryOptions) ([]*sandbox.FileInfo, error) {
 	instance, err := b.fileSandbox(ctx, id, "list_directory")
 	if err != nil {
 		return nil, err
@@ -114,10 +102,7 @@ func (b *backend) ListDirectory(ctx context.Context, id, path string, options *s
 	return result, nil
 }
 
-func (b *backend) Stat(ctx context.Context, id, path string, options *sandbox.StatOptions) (*sandbox.FileInfo, error) {
-	if err := wholeSecondFileTimeout("stat", options.GetTimeout()); err != nil {
-		return nil, err
-	}
+func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOptions) (*sandbox.FileInfo, error) {
 	instance, err := b.fileSandbox(ctx, id, "stat")
 	if err != nil {
 		return nil, err
@@ -130,9 +115,6 @@ func (b *backend) Stat(ctx context.Context, id, path string, options *sandbox.St
 }
 
 func (b *backend) Remove(ctx context.Context, id, path string, options *sandbox.RemoveOptions) error {
-	if err := wholeSecondFileTimeout("remove", options.GetTimeout()); err != nil {
-		return err
-	}
 	instance, err := b.fileSandbox(ctx, id, "remove")
 	if err != nil {
 		return err
@@ -173,21 +155,61 @@ func rejectParents(options *sandbox.MakeDirectoryOptions) error {
 	}, nil)
 }
 
-func wholeSecondFileTimeout(operation string, value *durationpb.Duration) error {
-	timeout := sdk.OptionalDuration(value)
-	if timeout == nil {
-		return nil
+func localSourceFile(path, operation string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return localPathError(err, operation)
 	}
-	if *timeout%time.Second != 0 {
-		return sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidArgument,
-			Provider:  "daytona",
-			Operation: operation,
-			Field:     sandbox.ConfigFieldTimeout,
-			Message:   "sandbox-kit daytona: timeout must be a whole number of seconds",
-		}, nil)
+	if info.IsDir() {
+		return localDirectoryError(operation)
 	}
 	return nil
+}
+
+func localDestination(path, operation string) error {
+	info, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return localPathError(err, operation)
+	}
+	if info.IsDir() {
+		return localDirectoryError(operation)
+	}
+	return nil
+}
+
+func localDirectoryError(operation string) error {
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:      sandbox.ErrorKindInvalidArgument,
+		Provider:  "daytona",
+		Operation: operation,
+		Field:     sandbox.FileFieldLocalPath,
+		Message:   "sandbox-kit daytona: local path is a directory",
+	}, nil)
+}
+
+func localPathError(err error, operation string) error {
+	kind := sandbox.ErrorKindInvalidArgument
+	if errors.Is(err, os.ErrNotExist) {
+		kind = sandbox.ErrorKindNotFound
+	}
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:      kind,
+		Provider:  "daytona",
+		Operation: operation,
+		Field:     sandbox.FileFieldLocalPath,
+		Message:   err.Error(),
+	}, err)
+}
+
+func mapCallerPathError(err error, operation, localPath string) error {
+	var pathError *os.PathError
+	if errors.As(err, &pathError) && filepath.Clean(pathError.Path) == filepath.Clean(localPath) {
+		return localPathError(pathError, operation)
+	}
+	return mapProviderError(err, operation)
 }
 
 func daytonaFileInfo(info *types.FileInfo, operation string) (*sandbox.FileInfo, error) {

@@ -8,8 +8,9 @@ The call copies `DAYTONA_REMOTE_PATH` from the sandbox to `DAYTONA_LOCAL_PATH` o
 
 ## Edge cases
 
-- The sandbox path must be absolute. A blank local path is rejected before Daytona is called.
+- The sandbox path must be absolute. A blank local path is rejected before Daytona is called. The error field is `local_path`.
 - A missing remote file comes back from Daytona as not found.
+- A missing local parent directory is created. A local directory is an invalid argument, and the field is `local_path`.
 - An existing local file is replaced.
 
 ## Run
