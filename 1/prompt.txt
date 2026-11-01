@@ -53,3 +53,9 @@ Cannot find name 'Buffer'. Do you need to install type definitions for node? Try
 
 
 i think there is many place where this is needed.
+
+---
+
+can u create a branch, commit, and push to branch and make a PR. 
+
+have good PR title + also explian with diagrams around your changes for adding this.
