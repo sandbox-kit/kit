@@ -1,0 +1,61 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6B96CP3SSQV7N8DV2V05XVM",
+  "strategy": "manual-commit",
+  "branch": "docs-site",
+  "checkpoints_count": 10,
+  "files_touched": [
+    "README.md",
+    "website/.gitignore",
+    "website/README.md",
+    "website/content/docs/configuration.mdx",
+    "website/content/docs/create.mdx",
+    "website/content/docs/daytona.mdx",
+    "website/content/docs/errors.mdx",
+    "website/content/docs/examples.mdx",
+    "website/content/docs/index.mdx",
+    "website/content/docs/lifecycle.mdx",
+    "website/content/docs/meta.json",
+    "website/content/docs/modal.mdx",
+    "website/package-lock.json",
+    "website/package.json",
+    "website/public/favicon.png",
+    "website/public/logo.png",
+    "website/src/components/mdx.tsx",
+    "website/src/components/not-found.tsx",
+    "website/src/lib/cn.ts",
+    "website/src/lib/layout.shared.tsx",
+    "website/src/lib/shared.ts",
+    "website/src/lib/source.ts",
+    "website/src/routeTree.gen.ts",
+    "website/src/router.tsx",
+    "website/src/routes/__root.tsx",
+    "website/src/routes/api/search.ts",
+    "website/src/routes/docs/$.tsx",
+    "website/src/routes/docs/{$}[.]md.ts",
+    "website/src/routes/index.tsx",
+    "website/src/routes/llms-full[.]txt.ts",
+    "website/src/routes/llms[.]txt.ts",
+    "website/src/routes/og/docs/$.ts",
+    "website/src/start.ts",
+    "website/src/styles/app.css",
+    "website/tsconfig.json",
+    "website/vite.config.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 374539,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 21726336,
+    "output_tokens": 98065,
+    "api_call_count": 6
+  }
+}
