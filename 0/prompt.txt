@@ -160,3 +160,7 @@ cool if by this changes if there is code, docs, .md, readme,  which became obsol
 + user facing docs must know what is it. 
 
 + docs and user facing docs should mention only whats true today not what was there vs what is today.
+
+---
+
+cool commit and push
