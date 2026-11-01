@@ -1,0 +1,114 @@
+---
+title: Daytona
+description: Install the Daytona provider, set an API key, and create a sandbox.
+---
+
+A Daytona sandbox starts from a snapshot. Pass no create options and Sandbox Kit uses the default snapshot for your target. You need a Daytona API key. This client talks to Daytona SDK v0.225.0.
+
+## Install
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
+```
+
+  </Tab>
+</Tabs>
+
+## Create a sandbox
+
+Set `DAYTONA_API_KEY`. This program creates one sandbox and prints its id.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
+
+const sandbox = await client.create();
+console.log(sandbox.id);
+```
+
+`timeout` is milliseconds. `await using` closes the client when the block ends. Call `await client.close()` in a `finally` block when that syntax is unavailable.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+		}},
+		Timeout: sandbox.Duration(2 * time.Minute),
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(instance.ID())
+}
+```
+
+A nil create request uses the default snapshot. `Timeout` is a Go duration.
+
+  </Tab>
+</Tabs>
+
+Omit `auth` when the Daytona SDK should use credentials it already finds in the environment. Closing the client here does not delete the sandbox.
+
+## Client settings
+
+| Setting | TypeScript | Go |
+| --- | --- | --- |
+| API URL | `endpoint` | `Config.Endpoint` |
+| Target | `region` | `Config.Region` |
+| Organization | `scope.organizationId` | `Scope.OrganizationId` |
+| Bearer token | `auth.bearerToken.token` | `BearerToken` |
+
+The default API URL is `https://app.daytona.io/api`. A remote URL must be HTTPS. HTTP is accepted for localhost and loopback. Sandbox Kit does not read the URL from the environment. A bearer token requires an organization id.
+
+In Go, set an optional string with `sandbox.Value`. Full field rules are on [Configure the client](/docs/configuration).
+
+## Where to go next
+
+| You want to | Open |
+| --- | --- |
+| An image, a named snapshot, a size, or a lifetime | [Create a sandbox](/docs/create#daytona) |
+| Look up, stop, or delete a sandbox | [Manage a sandbox](/docs/lifecycle#open-a-sandbox) |
+| A failed call | [Read an error](/docs/errors) |
+| A project you can run | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox) and the [Go project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox) |

@@ -1,0 +1,135 @@
+---
+title: Configure the client
+description: Set auth, a timeout, a region, and provider scope when you construct the client.
+---
+
+Construct the client once, with the provider package and a config object. Later edits to that object do not change the client that is already running. Go returns `(*Client, error)`. TypeScript throws when the config is invalid.
+
+| Field      | What it does                                                                  |
+| ---------- | ----------------------------------------------------------------------------- |
+| `provider` | The provider package, such as `daytona()` or `modal()`                        |
+| `auth`     | One credential shape. Omit it to use credentials the provider SDK already has |
+| `scope`    | App, environment, or organization                                             |
+| `endpoint` | Provider API URL, where that provider accepts one                             |
+| `region`   | Provider target or default placement                                          |
+| `timeout`  | Default deadline for later calls                                              |
+
+TypeScript `timeout` is milliseconds. Go `Timeout` is `sandbox.Duration`. Pass one auth shape: `apiKey`, `tokenPair`, `bearerToken`, or `oauthRefresh`.
+
+Build the first client on the [Daytona](/docs/daytona) or [Modal](/docs/modal) page. The sections below are the settings you change.
+
+## Daytona
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  ...(process.env.DAYTONA_TARGET ? { region: process.env.DAYTONA_TARGET } : {}),
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+	}},
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if target := os.Getenv("DAYTONA_TARGET"); target != "" {
+	config.Region = sandbox.Value(target)
+}
+client, err := sandbox.NewClient(daytona.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+| Setting      | What to pass                                                         |
+| ------------ | -------------------------------------------------------------------- |
+| API key      | `auth.apiKey.key` / `APIKey`                                         |
+| Bearer token | `auth.bearerToken.token` / `BearerToken`, plus an organization id    |
+| Endpoint     | `endpoint` / `Config.Endpoint`. Default `https://app.daytona.io/api` |
+| Target       | `region` / `Config.Region`. Leave it unset for the default target    |
+| Organization | `scope.organizationId` / `Scope.OrganizationId`                      |
+
+A remote endpoint uses HTTPS. HTTP is accepted for localhost and loopback. A URL with a username, password, or fragment is rejected. Sandbox Kit does not read the Daytona URL from the environment.
+
+## Modal
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
+    },
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: "main",
+  },
+  ...(process.env.MODAL_REGION ? { region: process.env.MODAL_REGION } : {}),
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{
+		TokenPair: &sandbox.TokenPairCredentials{
+			Id:     os.Getenv("MODAL_TOKEN_ID"),
+			Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		},
+	}},
+	Scope: &sandbox.Scope{
+		AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+		Environment: sandbox.Value("main"),
+	},
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if region := os.Getenv("MODAL_REGION"); region != "" {
+	config.Region = sandbox.Value(region)
+}
+client, err := sandbox.NewClient(modal.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+| Setting       | What to pass                                                             |
+| ------------- | ------------------------------------------------------------------------ |
+| Token pair    | `auth.tokenPair` / `TokenPair`                                           |
+| OAuth refresh | Client id, plus one client secret or one JWT key                         |
+| App           | `scope.appName` / `Scope.AppName`, required                              |
+| Environment   | `scope.environment` / `Scope.Environment`, often `main`                  |
+| Region        | `region` / `Config.Region`. Leave it unset for Modal's default placement |
+
+`endpoint` is rejected. You can still set cloud and region on a single [create](/docs/create#modal) request.
+
+## Timeouts
+
+`timeout` on the client is the default deadline. A create request can override it. A lifecycle call can override it again.
+
+Explicit zero adds no deadline of Sandbox Kit's own. A context deadline or an abort signal that arrives earlier still applies.
+
+Daytona keeps its 60-second default for create, start, stop, pause, and delete when you omit the timeout, and when you pass explicit zero. A Daytona timeout that is not a whole number of seconds is rejected.
+
+## Credentials
+
+Keep the config object out of logs. It holds secrets. A TypeScript config is a plain object, so `JSON.stringify` includes those fields.
+
+Construction does not contact the provider. A wrong key fails on the first create, get, or attach. Read that failure in [Read an error](/docs/errors).

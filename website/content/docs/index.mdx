@@ -1,0 +1,27 @@
+---
+title: Get started
+description: Open the page for the call you need. Each page stands on its own.
+---
+
+Sandbox Kit is one client for the sandbox provider you pass in. Install the core package and that provider's package. An agent uses the client to open a sandbox and control how long it runs.
+
+Open the page that matches the call. You do not need the other pages first.
+
+| You want to | Open |
+| --- | --- |
+| Install a provider and create a sandbox | [Daytona](/docs/daytona) or [Modal](/docs/modal) |
+| Set auth, a timeout, a region, or an app | [Configure the client](/docs/configuration) |
+| Choose an image, a size, or a lifetime | [Create a sandbox](/docs/create) |
+| Open a sandbox you already have, or finish it | [Manage a sandbox](/docs/lifecycle) |
+| Branch on a failed call | [Read an error](/docs/errors) |
+| Copy a runnable project | [Examples](/docs/examples) |
+
+Code samples have a **TypeScript** tab and a **Go** tab. The choice is saved in this browser.
+
+TypeScript needs Node.js 20, 22, or 24.15+. Go needs Go 1.26.0 or later.
+
+<Callout title="Closing the client leaves the sandbox running">
+`client.close()` and `Client.Close` release the connection in your process. The sandbox keeps running. Finish it from [Manage a sandbox](/docs/lifecycle), or set a lifetime when you [create](/docs/create) it.
+</Callout>
+
+A client that constructs successfully has not checked your credentials. The provider checks them on the first request.

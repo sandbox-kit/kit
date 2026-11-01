@@ -242,6 +242,18 @@ Guides: [configuration](docs/configuration.md) ·
 
 ## Documentation
 
+The user guide is the site in [`website/`](website/README.md).
+
+```sh
+cd website
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. Each page covers one part of the client. Code samples switch between TypeScript and Go. GitHub Actions publishes the same site to https://sandbox-kit.github.io/kit/.
+
+These pages are the behavior reference for the same API:
+
 | Guide                                                                                                          | Covers                            |
 | -------------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
