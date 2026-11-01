@@ -1,0 +1,78 @@
+so I want to launch this sdk but need have user facing docs for this.
+
+where should I have docs in ?
+
+---
+
+I meant to say what should I use for rendering the docs ? 
+
+like fuma docs as I have things in multiple languages and multiple providers what would be best.
+
+---
+
+ig docs weren't written for user facing ?
+
+---
+
+so yes first things first we should create a user facing docs. 
+
+what do u think should we create a new repo for this ? 
+
++ also create examples repo in new repo ?
+
+---
+
+do it for me. 
+
+put yourself in users shoes and then create a user facing docs. split tabs according to how user would want. 
+
+check more and more public docs which has fumadocs example and use best practices for it. 
+
+u have our logo thats the brand identity and colors. 
+
+so yess. make the user facing docs.
+
+---
+
+can u migrate to tanstack start we don't need honestly nextjs
+
++ this sdk isn't just for two providers. we will add more and more. 
+
+so Ig u must have that in UI instead of Modal and Daytona, generlise in brand too. u don't need to mention which all providers support in main page. 
+
++ larger goal is to support and let people build agents with sandbox. do all sorts of things like manipulate file systems install gihtub repos, etc u can check both providers sdks to know more. 
+
+so u must not say just create and manage sandboxes. but one interface for all your sandbox providers.
+
+---
+
+you are a number 1. technical writer for devtooling company
+and u know how to write user facing docs for a sdk like sandbox-kit
+
+now make it more cleaner
+
+and make sure things are really good in terms of how to use this sdk and user can go to part of sdk without knowing all the content.
+
+---
+
+can I host this at github.io ?
+
+---
+
+make that possible create a branch docs. then make changes and push this to branch docs.
+
+and create a Pr to main we will merge it later.
+
+---
+
+I just want if someone opens root path. 
+
+like sandbox-kit.github.io they should redirect to /kit/ ? so they never see that static site folders ?
+
+---
+
+For the code present, we get this error:
+```
+Value 'github-pages' is not valid
+```
+Fix it, verify, and then give a concise explanation. @.github/workflows/docs.yml:50-53
