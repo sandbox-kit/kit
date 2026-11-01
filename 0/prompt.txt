@@ -56,3 +56,9 @@ and make sure things are really good in terms of how to use this sdk and user ca
 ---
 
 can I host this at github.io ?
+
+---
+
+make that possible create a branch docs. then make changes and push this to branch docs.
+
+and create a Pr to main we will merge it later.
