@@ -1,0 +1,55 @@
+while this is good. lifecycle is in good place. 
+
+what should I add next, file system, process & code execution, etc ? 
+
+check https://www.daytona.io/docs/en/typescript-sdk/ 
+https://modal.com/docs/sdk/js/latest 
+https://modal.com/docs/sdk/go/latest 
+https://www.daytona.io/docs/en/go-sdk/
+
+---
+
+we have to unify operations. and method
+
+---
+
+we should have process and file system module but other things inside them should be unified.
+
+---
+
+can u check more methods which are missing more methods.
+
+---
+
+there are lot of methods which are missing ig ? 
+
+https://www.daytona.io/docs/en/typescript-sdk/file-system/#methods
+
+---
+
+https://modal.com/docs/sdk/go/latest/Sandbox#sandboxfilesystem https://www.daytona.io/docs/en/typescript-sdk/file-system/#methods
+
+---
+
+cool is there anyone we need ?
+
+---
+
+cool is there any help u need ? or u can start implementing lemme know.
+
+---
+
+go ahead and implement
+
+---
+
+instead of creating one big example create small small example for file system
+
++ improve documentation for this, its user facing docs as u know, u are techincal writing person for best devtools company.
+
+---
+
+Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.ts(2591)
+
+
+i think there is many place where this is needed.
