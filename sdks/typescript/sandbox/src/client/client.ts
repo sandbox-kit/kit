@@ -40,6 +40,7 @@ export type {
   TokenPairCredentials,
 } from "#client/types.js";
 export { ErrorKind, SandboxError, sandboxError } from "#client/errors.js";
+export { Filesystem } from "#client/filesystem.js";
 export { Sandbox } from "#client/sandbox.js";
 export { validateConfig, validateCreateOptions } from "#client/validation.js";
 

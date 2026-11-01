@@ -59,6 +59,27 @@ type SandboxArchiver interface {
 	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
 }
 
+// SandboxFiles reads and writes files in a sandbox.
+// Daytona and Modal implement it. Call Sandbox.Filesystem.
+type SandboxFiles interface {
+	// ReadFile returns the bytes of one file.
+	ReadFile(context.Context, string, string, *FileReadOptions) ([]byte, error)
+	// WriteFile replaces one file with data and creates missing parent directories.
+	WriteFile(context.Context, string, string, []byte, *FileWriteOptions) error
+	// CopyFromLocal copies a local file into the sandbox.
+	CopyFromLocal(context.Context, string, string, string, *FileCopyOptions) error
+	// CopyToLocal copies a sandbox file onto the caller's disk.
+	CopyToLocal(context.Context, string, string, string, *FileCopyOptions) error
+	// MakeDirectory creates a directory and any missing parents.
+	MakeDirectory(context.Context, string, string, *MakeDirectoryOptions) error
+	// ListDirectory lists the entries in one directory.
+	ListDirectory(context.Context, string, string, *ListDirectoryOptions) ([]*FileInfo, error)
+	// Stat returns metadata for one path.
+	Stat(context.Context, string, string, *StatOptions) (*FileInfo, error)
+	// Remove deletes a file, or a directory when Recursive is set.
+	Remove(context.Context, string, string, *RemoveOptions) error
+}
+
 // SandboxDeleter deletes a sandbox.
 // Daytona implements it. Call Sandbox.Delete. Close does not delete the cloud sandbox.
 type SandboxDeleter interface {

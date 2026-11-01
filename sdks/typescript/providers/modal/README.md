@@ -66,17 +66,21 @@ not terminate the sandbox.
 Provider-verified `get` / `refresh`, start, stop, pause, archive, and delete are
 unsupported.
 
+**Files** through `sandbox.filesystem`. Paths in the sandbox are absolute.
+`makeDirectory` accepts a directory that already exists.
+
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
 
 ## Examples
 
-| Example    | Project                                                                                                                           |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Creation   | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)               |
-| Resources  | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) |
-| Attach     | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)               |
-| Full index | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                           |
+| Example     | Project                                                                                                                           |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Creation    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)               |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/read-modal-file)                         |
+| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)               |
+| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                           |
 
 ## License
 

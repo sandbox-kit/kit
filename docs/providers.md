@@ -47,9 +47,9 @@ Closing the client closes your connection to the provider. The sandboxes keep
 running. Closing a handle leaves the sandbox as it is. You can keep using the
 handle. The next call returns the provider's result.
 
-The public API covers create and lifecycle. In-sandbox execution, GPU
-requests, resizing, storage, browsers, and macOS or Windows creation are
-outside it.
+The public API covers create, lifecycle, and files inside the sandbox. GPU
+requests, resizing, storage volumes, browsers, process execution, and macOS
+or Windows creation are outside it.
 
-See [configuration](configuration.md), [creation](sandbox-creation.md), and
-[lifecycle](sandbox-lifecycle.md).
+See [configuration](configuration.md), [creation](sandbox-creation.md),
+[lifecycle](sandbox-lifecycle.md), and [filesystem](filesystem.md).

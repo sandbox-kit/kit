@@ -1,8 +1,8 @@
 # Examples
 
 Independent Go and TypeScript projects. Each selects one provider, loads its own
-`.env`, and demonstrates one creation, lifecycle, cleanup, or error-handling
-operation. Every project README explains what the example does for that provider,
+`.env`, and demonstrates one creation, lifecycle, filesystem, cleanup, or
+error-handling operation. Every project README explains what the example does for that provider,
 with edge cases drawn from Daytona and Modal behavior.
 
 ## Run one
@@ -23,8 +23,9 @@ Modal needs a token pair and an existing app:
 [Go](go/modal/create-modal-sandbox/README.md) ·
 [TypeScript](typescript/modal/create-modal-sandbox/README.md).
 
-Creation examples provision real resources. Lifecycle examples use the sandbox
-ID in `.env` (stop / terminate / archive / delete can destroy it).
+Creation examples provision real resources. Filesystem and lifecycle examples
+use the sandbox ID in `.env`. A filesystem example reads, writes, or deletes
+the path you set. Stop, terminate, archive, and delete can destroy the sandbox.
 Error-handling examples fail locally. `Client.Close` closes your connection to
 Daytona or Modal. `Sandbox.Close` does not change the sandbox, and you can keep
 using the handle.
@@ -36,6 +37,14 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Example                   | Go                                                      | TypeScript                                                              |
 | ------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Daytona creation          | [go](go/daytona/create-daytona-sandbox/README.md)       | [typescript](typescript/daytona/create-daytona-sandbox/README.md)       |
+| Daytona read file         | [go](go/daytona/read-daytona-file/README.md)            | [typescript](typescript/daytona/read-daytona-file/README.md)            |
+| Daytona write file        | [go](go/daytona/write-daytona-file/README.md)           | [typescript](typescript/daytona/write-daytona-file/README.md)           |
+| Daytona copy in           | [go](go/daytona/copy-file-into-daytona/README.md)       | [typescript](typescript/daytona/copy-file-into-daytona/README.md)       |
+| Daytona copy out          | [go](go/daytona/copy-file-from-daytona/README.md)       | [typescript](typescript/daytona/copy-file-from-daytona/README.md)       |
+| Daytona directory         | [go](go/daytona/make-daytona-directory/README.md)       | [typescript](typescript/daytona/make-daytona-directory/README.md)       |
+| Daytona list              | [go](go/daytona/list-daytona-directory/README.md)       | [typescript](typescript/daytona/list-daytona-directory/README.md)       |
+| Daytona stat              | [go](go/daytona/stat-daytona-file/README.md)            | [typescript](typescript/daytona/stat-daytona-file/README.md)            |
+| Daytona remove            | [go](go/daytona/remove-daytona-file/README.md)          | [typescript](typescript/daytona/remove-daytona-file/README.md)          |
 | Daytona snapshot          | [go](go/daytona/create-daytona-from-snapshot/README.md) | [typescript](typescript/daytona/create-daytona-from-snapshot/README.md) |
 | Daytona image             | [go](go/daytona/create-daytona-from-image/README.md)    | [typescript](typescript/daytona/create-daytona-from-image/README.md)    |
 | Daytona runtime           | [go](go/daytona/create-daytona-with-runtime/README.md)  | [typescript](typescript/daytona/create-daytona-with-runtime/README.md)  |
@@ -60,6 +69,14 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Daytona close handle      | [go](go/daytona/close-daytona-handle/README.md)         | [typescript](typescript/daytona/close-daytona-handle/README.md)         |
 | Daytona errors            | [go](go/daytona/handle-daytona-errors/README.md)        | [typescript](typescript/daytona/handle-daytona-errors/README.md)        |
 | Modal creation            | [go](go/modal/create-modal-sandbox/README.md)           | [typescript](typescript/modal/create-modal-sandbox/README.md)           |
+| Modal read file           | [go](go/modal/read-modal-file/README.md)                | [typescript](typescript/modal/read-modal-file/README.md)                |
+| Modal write file          | [go](go/modal/write-modal-file/README.md)               | [typescript](typescript/modal/write-modal-file/README.md)               |
+| Modal copy in             | [go](go/modal/copy-file-into-modal/README.md)           | [typescript](typescript/modal/copy-file-into-modal/README.md)           |
+| Modal copy out            | [go](go/modal/copy-file-from-modal/README.md)           | [typescript](typescript/modal/copy-file-from-modal/README.md)           |
+| Modal directory           | [go](go/modal/make-modal-directory/README.md)           | [typescript](typescript/modal/make-modal-directory/README.md)           |
+| Modal list                | [go](go/modal/list-modal-directory/README.md)           | [typescript](typescript/modal/list-modal-directory/README.md)           |
+| Modal stat                | [go](go/modal/stat-modal-file/README.md)                | [typescript](typescript/modal/stat-modal-file/README.md)                |
+| Modal remove              | [go](go/modal/remove-modal-file/README.md)              | [typescript](typescript/modal/remove-modal-file/README.md)              |
 | Modal resources           | [go](go/modal/create-modal-with-resources/README.md)    | [typescript](typescript/modal/create-modal-with-resources/README.md)    |
 | Modal runtime             | [go](go/modal/create-modal-with-runtime/README.md)      | [typescript](typescript/modal/create-modal-with-runtime/README.md)      |
 | Modal gVisor              | [go](go/modal/create-modal-gvisor/README.md)            | [typescript](typescript/modal/create-modal-gvisor/README.md)            |

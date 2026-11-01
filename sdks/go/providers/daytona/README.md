@@ -75,18 +75,23 @@ On the handle: `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`,
 supported. Daytona accepts or rejects each lifecycle call for that sandbox.
 `Close` does not contact Daytona and does not change the sandbox.
 
+`Filesystem` reads and writes files in the sandbox. Paths in the sandbox are
+absolute. A timeout, when set, is a whole number of seconds. `MakeDirectory`
+returns the provider error when the directory already exists.
+
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create
 uses the snapshot's resources.
 
 ## Examples
 
-| Operation | Program                                                                                                                       |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Create    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)             |
-| Policies  | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
-| Look up   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)                   |
-| All       | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
+| Operation   | Program                                                                                                                       |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Create      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)             |
+| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/read-daytona-file)                       |
+| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
+| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)                   |
+| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
 
 ## License
 

@@ -1,9 +1,12 @@
 import {
   ModalClient,
+  type FileInfo as ModalFileInfo,
   type ModalClientParams,
   type Sandbox as ModalSandbox,
 } from "modal";
 import {
+  FileType,
+  type FileInfo,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
@@ -14,6 +17,13 @@ import type {
   CreateOptions,
   CreateResult,
   ExitResult,
+  FileCopyOptions,
+  FileReadOptions,
+  FileWriteOptions,
+  ListDirectoryOptions,
+  MakeDirectoryOptions,
+  RemoveOptions,
+  StatOptions,
   TerminateOptions,
 } from "@sandbox-kit/sandbox";
 import {
@@ -142,6 +152,116 @@ class ModalBackend extends BackendBase implements Backend {
     }
   }
 
+  async readFile(
+    id: string,
+    path: string,
+    _request: FileReadOptions,
+    options: OperationOptions,
+  ): Promise<Uint8Array> {
+    return this.#file("read_file", id, options, async (sandbox) =>
+      sandbox.filesystem.readBytes(path),
+    );
+  }
+
+  async writeFile(
+    id: string,
+    path: string,
+    data: Uint8Array,
+    _request: FileWriteOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("write_file", id, options, async (sandbox) => {
+      await sandbox.filesystem.writeBytes(data, path);
+    });
+  }
+
+  async copyFromLocal(
+    id: string,
+    localPath: string,
+    remotePath: string,
+    _request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("copy_from_local", id, options, async (sandbox) => {
+      await sandbox.filesystem.copyFromLocal(localPath, remotePath);
+    });
+  }
+
+  async copyToLocal(
+    id: string,
+    remotePath: string,
+    localPath: string,
+    _request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("copy_to_local", id, options, async (sandbox) => {
+      await sandbox.filesystem.copyToLocal(remotePath, localPath);
+    });
+  }
+
+  async makeDirectory(
+    id: string,
+    path: string,
+    _request: MakeDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("make_directory", id, options, async (sandbox) => {
+      await sandbox.filesystem.makeDirectory(path, { createParents: true });
+    });
+  }
+
+  async listDirectory(
+    id: string,
+    path: string,
+    _request: ListDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo[]> {
+    return this.#file("list_directory", id, options, async (sandbox) => {
+      const entries = await sandbox.filesystem.listFiles(path);
+      return entries.map((entry) => modalFileInfo(entry));
+    });
+  }
+
+  async stat(
+    id: string,
+    path: string,
+    _request: StatOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo> {
+    return this.#file("stat", id, options, async (sandbox) =>
+      modalFileInfo(await sandbox.filesystem.stat(path)),
+    );
+  }
+
+  async remove(
+    id: string,
+    path: string,
+    request: RemoveOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("remove", id, options, async (sandbox) => {
+      await sandbox.filesystem.remove(path, {
+        recursive: request.recursive === true,
+      });
+    });
+  }
+
+  async #file<T>(
+    operation: string,
+    id: string,
+    options: OperationOptions,
+    body: (sandbox: ModalSandbox) => Promise<T>,
+  ): Promise<T> {
+    try {
+      throwIfAborted(options.signal);
+      const sandbox = await this.native.sandboxes.fromId(id);
+      throwIfAborted(options.signal);
+      return await body(sandbox);
+    } catch (error) {
+      throw mapModalError(error, operation);
+    }
+  }
+
   async closeSandbox(id: string, options: OperationOptions): Promise<void> {
     try {
       throwIfAborted(options.signal);
@@ -159,6 +279,31 @@ class ModalBackend extends BackendBase implements Backend {
       throw mapModalError(error, "close");
     }
   }
+}
+
+function modalFileInfo(info: ModalFileInfo): FileInfo {
+  const type =
+    info.type === "directory"
+      ? FileType.Directory
+      : info.type === "symlink"
+        ? FileType.Symlink
+        : FileType.File;
+  return {
+    name: info.name,
+    path: info.path,
+    type,
+    size: BigInt(Math.trunc(info.size)),
+    mode: (info.mode & 0o7777).toString(8).padStart(4, "0"),
+    ...(info.permissions === "" ? {} : { permissions: info.permissions }),
+    ...(info.owner === "" ? {} : { owner: info.owner }),
+    ...(info.group === "" ? {} : { group: info.group }),
+    ...(info.symlinkTarget === null || info.symlinkTarget === ""
+      ? {}
+      : { symlinkTarget: info.symlinkTarget }),
+    ...(Number.isFinite(info.modifiedTime)
+      ? { modifiedAt: new Date(info.modifiedTime * 1000) }
+      : {}),
+  };
 }
 
 function throwIfAborted(signal: AbortSignal | undefined): void {

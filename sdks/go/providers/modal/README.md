@@ -77,18 +77,22 @@ On the handle: `Attach`, `Terminate`, and `Close`. `Close` does not terminate
 the sandbox. `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`, and
 `Delete` are not supported.
 
+`Filesystem` reads and writes files in the sandbox. Paths in the sandbox are
+absolute. `MakeDirectory` accepts a directory that already exists.
+
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at
 create time.
 
 ## Examples
 
-| Operation | Program                                                                                                                   |
-| --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Create    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
-| Resources | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
-| Attach    | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
-| All       | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
+| Operation   | Program                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Create      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/read-modal-file)                         |
+| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
+| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
 
 ## License
 

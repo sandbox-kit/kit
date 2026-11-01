@@ -84,6 +84,50 @@ func mapProviderError(err error, operation string) error {
 		}
 	}
 	if kind == sandbox.ErrorKindUnknown {
+		var notFound sdk.SandboxFilesystemNotFoundError
+		var notFoundPtr *sdk.SandboxFilesystemNotFoundError
+		if errors.As(err, &notFound) || errors.As(err, &notFoundPtr) {
+			kind = sandbox.ErrorKindNotFound
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
+		var denied sdk.SandboxFilesystemPermissionError
+		var deniedPtr *sdk.SandboxFilesystemPermissionError
+		if errors.As(err, &denied) || errors.As(err, &deniedPtr) {
+			kind = sandbox.ErrorKindPermissionDenied
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
+		var exists sdk.SandboxFilesystemPathAlreadyExistsError
+		var existsPtr *sdk.SandboxFilesystemPathAlreadyExistsError
+		if errors.As(err, &exists) || errors.As(err, &existsPtr) {
+			kind = sandbox.ErrorKindAlreadyExists
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
+		var notEmpty sdk.SandboxFilesystemDirectoryNotEmptyError
+		var notEmptyPtr *sdk.SandboxFilesystemDirectoryNotEmptyError
+		if errors.As(err, &notEmpty) || errors.As(err, &notEmptyPtr) {
+			kind = sandbox.ErrorKindFailedPrecondition
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
+		var tooLarge sdk.SandboxFilesystemFileTooLargeError
+		var tooLargePtr *sdk.SandboxFilesystemFileTooLargeError
+		if errors.As(err, &tooLarge) || errors.As(err, &tooLargePtr) {
+			kind = sandbox.ErrorKindResourceExhausted
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
+		var notDir sdk.SandboxFilesystemNotADirectoryError
+		var notDirPtr *sdk.SandboxFilesystemNotADirectoryError
+		var isDir sdk.SandboxFilesystemIsADirectoryError
+		var isDirPtr *sdk.SandboxFilesystemIsADirectoryError
+		if errors.As(err, &notDir) || errors.As(err, &notDirPtr) || errors.As(err, &isDir) || errors.As(err, &isDirPtr) {
+			kind = sandbox.ErrorKindInvalidArgument
+		}
+	}
+	if kind == sandbox.ErrorKindUnknown {
 		switch status.Code(err) {
 		case codes.Code(1):
 			kind = sandbox.ErrorKindCanceled

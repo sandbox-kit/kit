@@ -128,8 +128,10 @@ Closing the client closes your connection to the provider. The sandbox keeps
 running. Closing a handle leaves the sandbox as it is. You can keep using the
 handle. The next call returns the provider's result.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
+Files inside a sandbox are described in the [filesystem guide](filesystem.md).
 
-Creation covers the sandbox itself. In-sandbox execution, GPU requests,
-resizing, storage, browsers, and macOS or Windows creation are outside it.
+Creation covers the sandbox itself. GPU requests, resizing, storage volumes,
+browsers, process execution, and macOS or Windows creation are outside it.
 
-See [configuration](configuration.md) and [lifecycle](sandbox-lifecycle.md).
+See [configuration](configuration.md), [lifecycle](sandbox-lifecycle.md), and
+[filesystem](filesystem.md).

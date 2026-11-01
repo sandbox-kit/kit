@@ -238,7 +238,8 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·
-[lifecycle](docs/sandbox-lifecycle.md).
+[lifecycle](docs/sandbox-lifecycle.md) ·
+[filesystem](docs/filesystem.md).
 
 ## Documentation
 
@@ -259,6 +260,7 @@ These pages are the behavior reference for the same API:
 | [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
 | [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies           |
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities         |
+| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, remove   |
 | [Providers](docs/providers.md)                                                                                 | Daytona and Modal                 |
 | [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes         |

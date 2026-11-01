@@ -93,12 +93,12 @@ Omit `auth` when the Daytona SDK should use credentials it already finds in the 
 
 ## Client settings
 
-| Setting | TypeScript | Go |
-| --- | --- | --- |
-| API URL | `endpoint` | `Config.Endpoint` |
-| Target | `region` | `Config.Region` |
-| Organization | `scope.organizationId` | `Scope.OrganizationId` |
-| Bearer token | `auth.bearerToken.token` | `BearerToken` |
+| Setting      | TypeScript               | Go                     |
+| ------------ | ------------------------ | ---------------------- |
+| API URL      | `endpoint`               | `Config.Endpoint`      |
+| Target       | `region`                 | `Config.Region`        |
+| Organization | `scope.organizationId`   | `Scope.OrganizationId` |
+| Bearer token | `auth.bearerToken.token` | `BearerToken`          |
 
 The default API URL is `https://app.daytona.io/api`. A remote URL must be HTTPS. HTTP is accepted for localhost and loopback. Sandbox Kit does not read the URL from the environment. A bearer token requires an organization id.
 
@@ -106,9 +106,10 @@ In Go, set an optional string with `sandbox.Value`. Full field rules are on [Con
 
 ## Where to go next
 
-| You want to | Open |
-| --- | --- |
-| An image, a named snapshot, a size, or a lifetime | [Create a sandbox](/docs/create#daytona) |
-| Look up, stop, or delete a sandbox | [Manage a sandbox](/docs/lifecycle#open-a-sandbox) |
-| A failed call | [Read an error](/docs/errors) |
-| A project you can run | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox) and the [Go project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox) |
+| You want to                                       | Open                                                                                                                                                                                                                                    |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| An image, a named snapshot, a size, or a lifetime | [Create a sandbox](/docs/create#daytona)                                                                                                                                                                                                |
+| Look up, stop, or delete a sandbox                | [Manage a sandbox](/docs/lifecycle#open-a-sandbox)                                                                                                                                                                                      |
+| Read or write a file                              | [Use files](/docs/filesystem)                                                                                                                                                                                                           |
+| A failed call                                     | [Read an error](/docs/errors)                                                                                                                                                                                                           |
+| A project you can run                             | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox) and the [Go project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox) |

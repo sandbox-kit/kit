@@ -5,15 +5,16 @@ description: Run one project for one operation. Each project loads its own envir
 
 Each project selects one provider, loads a `.env` file, and performs one operation. Open the project for the call you need.
 
-Creation projects provision a real sandbox. Lifecycle projects use the sandbox id in `.env`. Stop, terminate, archive, and delete can destroy that sandbox. Error projects fail locally and create nothing.
+Creation projects provision a real sandbox. Filesystem and lifecycle projects use the sandbox id in `.env`. Stop, terminate, archive, delete, and remove can destroy that sandbox or the path you set. Error projects fail locally and create nothing.
 
-The tables below are the common projects. The repository also has network, labels, secrets, pause, and archive. The full list is the [examples catalog](https://github.com/sandbox-kit/kit/blob/main/examples/README.md).
+The tables below are the common projects. The repository also has network, labels, secrets, pause, archive, and one project per file call. The full list is the [examples catalog](https://github.com/sandbox-kit/kit/blob/main/examples/README.md).
 
 ## Daytona
 
 | Operation         | TypeScript                                                                                                       | Go                                                                                                       |
 | ----------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | Create            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox)       | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)       |
+| Read a file       | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/read-daytona-file)            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/read-daytona-file)            |
 | From an image     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-image)    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-from-image)    |
 | From a snapshot   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-snapshot) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-from-snapshot) |
 | Lifetime policies | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
@@ -24,13 +25,14 @@ The tables below are the common projects. The repository also has network, label
 
 ## Modal
 
-| Operation | TypeScript                                                                                                    | Go                                                                                                    |
-| --------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Create    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)        |
-| Resources | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
-| Attach    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)        |
-| Terminate | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/terminate-modal-sandbox)     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/terminate-modal-sandbox)     |
-| Errors    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/handle-modal-errors)         | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/handle-modal-errors)         |
+| Operation   | TypeScript                                                                                                    | Go                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Create      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)        |
+| Read a file | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/read-modal-file)             | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/read-modal-file)             |
+| Resources   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
+| Attach      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)        |
+| Terminate   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/terminate-modal-sandbox)     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/terminate-modal-sandbox)     |
+| Errors      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/handle-modal-errors)         | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/handle-modal-errors)         |
 
 ## Run a project
 

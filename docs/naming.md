@@ -18,12 +18,13 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Creation request        | `CreateOptions`       | Source, runtime, resources, and creation policies    |
 | Backend result          | `CreateResult`        | Shared sandbox metadata                              |
 | Public handle           | `Sandbox`             | Identity, copied metadata, and lifecycle methods     |
+| Files in the sandbox    | `Filesystem`          | Read, write, copy, list, stat, and remove            |
 
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
 the SDK runtime. TypeScript app-facing `CreateOptions` / `Config` are handwritten
 facades (ms timeouts, nested oneofs); wire messages stay private to the client.
 Field-path constants use prefixes such as `CreateField`, `ConfigField`,
-`InfoField`, and `ResultField`. Protobuf annotations identify source contracts
+`InfoField`, `ResultField`, and `FileField`. Protobuf annotations identify source contracts
 and operation metadata.
 
 Provider packages expose `New() *Provider`. The initialized `backend` and native

@@ -16,7 +16,15 @@ import type {
   CreateResult,
   DeleteOptions,
   ExitResult,
+  FileCopyOptions,
+  FileInfo,
+  FileReadOptions,
+  FileWriteOptions,
+  ListDirectoryOptions,
+  MakeDirectoryOptions,
   PauseOptions,
+  RemoveOptions,
+  StatOptions,
   SandboxInfo,
   StartOptions,
   StopOptions,
@@ -101,6 +109,57 @@ export interface Backend {
     request: DeleteOptions,
     options: OperationOptions,
   ): Promise<SandboxInfo>;
+  readFile?(
+    id: string,
+    path: string,
+    request: FileReadOptions,
+    options: OperationOptions,
+  ): Promise<Uint8Array>;
+  writeFile?(
+    id: string,
+    path: string,
+    data: Uint8Array,
+    request: FileWriteOptions,
+    options: OperationOptions,
+  ): Promise<void>;
+  copyFromLocal?(
+    id: string,
+    localPath: string,
+    remotePath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void>;
+  copyToLocal?(
+    id: string,
+    remotePath: string,
+    localPath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void>;
+  makeDirectory?(
+    id: string,
+    path: string,
+    request: MakeDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<void>;
+  listDirectory?(
+    id: string,
+    path: string,
+    request: ListDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo[]>;
+  stat?(
+    id: string,
+    path: string,
+    request: StatOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo>;
+  remove?(
+    id: string,
+    path: string,
+    request: RemoveOptions,
+    options: OperationOptions,
+  ): Promise<void>;
   close(options: OperationOptions): Promise<void>;
   closeSandbox(id: string, options: OperationOptions): Promise<void>;
 }

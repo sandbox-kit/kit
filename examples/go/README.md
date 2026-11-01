@@ -17,9 +17,9 @@ shell variables win. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/create-modal-sandbox/README.md).
 
 Creation programs provision real sandboxes (linked Daytona creates a parent and
-child). Lifecycle programs use the configured sandbox ID—read the guide before
-destructive stop, terminate, archive, or delete. Error-handling programs fail
-locally. Closing a handle leaves the sandbox as it is. Closing the client
+child). Filesystem and lifecycle programs use the configured sandbox ID. Read
+the guide before a destructive stop, terminate, archive, delete, or remove.
+Error-handling programs fail locally. Closing a handle leaves the sandbox as it is. Closing the client
 closes your connection to Daytona or Modal.
 
 ## Catalog
@@ -29,6 +29,14 @@ closes your connection to Daytona or Modal.
 | Project                                                                        | Demonstrates                            |
 | ------------------------------------------------------------------------------ | --------------------------------------- |
 | [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
+| [read-daytona-file](daytona/read-daytona-file/README.md)                       | read one file                           |
+| [write-daytona-file](daytona/write-daytona-file/README.md)                     | write one file                          |
+| [copy-file-into-daytona](daytona/copy-file-into-daytona/README.md)             | copy a local file in                    |
+| [copy-file-from-daytona](daytona/copy-file-from-daytona/README.md)             | copy a sandbox file out                 |
+| [make-daytona-directory](daytona/make-daytona-directory/README.md)             | create a directory                      |
+| [list-daytona-directory](daytona/list-daytona-directory/README.md)             | list one directory                      |
+| [stat-daytona-file](daytona/stat-daytona-file/README.md)                       | stat one path                           |
+| [remove-daytona-file](daytona/remove-daytona-file/README.md)                   | remove one path                         |
 | [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | named snapshot source                   |
 | [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | image source and resource sizing        |
 | [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | runtime language and user               |
@@ -58,6 +66,14 @@ closes your connection to Daytona or Modal.
 | Project                                                                      | Demonstrates                               |
 | ---------------------------------------------------------------------------- | ------------------------------------------ |
 | [create-modal-sandbox](modal/create-modal-sandbox/README.md)                 | image creation with resources and policies |
+| [read-modal-file](modal/read-modal-file/README.md)                           | read one file                              |
+| [write-modal-file](modal/write-modal-file/README.md)                         | write one file                             |
+| [copy-file-into-modal](modal/copy-file-into-modal/README.md)                 | copy a local file in                       |
+| [copy-file-from-modal](modal/copy-file-from-modal/README.md)                 | copy a sandbox file out                    |
+| [make-modal-directory](modal/make-modal-directory/README.md)                 | create a directory                         |
+| [list-modal-directory](modal/list-modal-directory/README.md)                 | list one directory                         |
+| [stat-modal-file](modal/stat-modal-file/README.md)                           | stat one path                              |
+| [remove-modal-file](modal/remove-modal-file/README.md)                       | remove one path                            |
 | [create-modal-with-resources](modal/create-modal-with-resources/README.md)   | fractional CPU, memory, and lifetime       |
 | [create-modal-with-runtime](modal/create-modal-with-runtime/README.md)       | working directory, entrypoint, and PTY     |
 | [create-modal-gvisor](modal/create-modal-gvisor/README.md)                   | gVisor/container isolation                 |

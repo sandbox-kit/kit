@@ -9,6 +9,13 @@ import {
   InvalidError,
   NotFoundError,
   ResourceExhaustedError,
+  SandboxFilesystemDirectoryNotEmptyError,
+  SandboxFilesystemFileTooLargeError,
+  SandboxFilesystemIsADirectoryError,
+  SandboxFilesystemNotADirectoryError,
+  SandboxFilesystemNotFoundError,
+  SandboxFilesystemPathAlreadyExistsError,
+  SandboxFilesystemPermissionError,
   SandboxTimeoutError,
   TimeoutError,
 } from "modal";
@@ -60,6 +67,34 @@ export function mapModalError(error: unknown, operation: string): SandboxError {
     kind = ErrorKind.Timeout;
   if (kind === ErrorKind.Unknown && error instanceof ClientClosedError)
     kind = ErrorKind.FailedPrecondition;
+  if (kind === ErrorKind.Unknown && error instanceof SandboxFilesystemNotFoundError)
+    kind = ErrorKind.NotFound;
+  if (
+    kind === ErrorKind.Unknown &&
+    error instanceof SandboxFilesystemPermissionError
+  )
+    kind = ErrorKind.PermissionDenied;
+  if (
+    kind === ErrorKind.Unknown &&
+    error instanceof SandboxFilesystemPathAlreadyExistsError
+  )
+    kind = ErrorKind.AlreadyExists;
+  if (
+    kind === ErrorKind.Unknown &&
+    error instanceof SandboxFilesystemDirectoryNotEmptyError
+  )
+    kind = ErrorKind.FailedPrecondition;
+  if (
+    kind === ErrorKind.Unknown &&
+    error instanceof SandboxFilesystemFileTooLargeError
+  )
+    kind = ErrorKind.ResourceExhausted;
+  if (
+    kind === ErrorKind.Unknown &&
+    (error instanceof SandboxFilesystemNotADirectoryError ||
+      error instanceof SandboxFilesystemIsADirectoryError)
+  )
+    kind = ErrorKind.InvalidArgument;
   return create({ kind, error, operation });
 }
 

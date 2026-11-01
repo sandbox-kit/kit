@@ -19,8 +19,8 @@ npm run build
 npm start
 ```
 
-Creation examples provision real cloud resources. Lifecycle examples act on the
-sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
+Creation examples provision real cloud resources. Filesystem and lifecycle
+examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
 the client closes your connection to Daytona or Modal. Modal setup:
 [create-modal-sandbox](modal/create-modal-sandbox/README.md).
 
@@ -28,31 +28,39 @@ the client closes your connection to Daytona or Modal. Modal setup:
 
 ### Daytona
 
-| Project                                                                        | Demonstrates                      |
-| ------------------------------------------------------------------------------ | --------------------------------- |
-| [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | default Daytona snapshot          |
-| [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | named snapshot source             |
-| [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | image source and resource sizing  |
-| [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | runtime language and user         |
-| [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | delete-on-stop behavior           |
-| [create-daytona-linked](daytona/create-daytona-linked/README.md)               | linked parent and ephemeral child |
-| [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | pause and deletion policies       |
-| [create-daytona-with-network](daytona/create-daytona-with-network/README.md)   | restricted egress allowlists      |
-| [create-daytona-with-labels](daytona/create-daytona-with-labels/README.md)     | labels and environment variables  |
-| [create-daytona-with-secrets](daytona/create-daytona-with-secrets/README.md)   | injected organization secret      |
-| [create-daytona-with-kvm](daytona/create-daytona-with-kvm/README.md)           | nested virtualization (KVM)       |
-| [create-daytona-with-ttl](daytona/create-daytona-with-ttl/README.md)           | maximum lifetime TTL              |
-| [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | typed validation errors           |
-| [get-daytona-sandbox](daytona/get-daytona-sandbox/README.md)                   | remote retrieval and metadata     |
-| [refresh-daytona-sandbox](daytona/refresh-daytona-sandbox/README.md)           | metadata refresh                  |
-| [start-daytona-sandbox](daytona/start-daytona-sandbox/README.md)               | start lifecycle operation         |
-| [start-daytona-with-timeout](daytona/start-daytona-with-timeout/README.md)     | start with operation timeout      |
-| [stop-daytona-sandbox](daytona/stop-daytona-sandbox/README.md)                 | stop lifecycle operation          |
-| [force-stop-daytona-sandbox](daytona/force-stop-daytona-sandbox/README.md)     | force stop                        |
-| [pause-daytona-sandbox](daytona/pause-daytona-sandbox/README.md)               | pause lifecycle operation         |
-| [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | archive lifecycle operation       |
-| [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                   |
-| [request-daytona-deletion](daytona/request-daytona-deletion/README.md)         | non-waited deletion               |
+| Project                                                                        | Demonstrates                            |
+| ------------------------------------------------------------------------------ | --------------------------------------- |
+| [create-daytona-sandbox](daytona/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
+| [read-daytona-file](daytona/read-daytona-file/README.md)                       | read one file                           |
+| [write-daytona-file](daytona/write-daytona-file/README.md)                     | write one file                          |
+| [copy-file-into-daytona](daytona/copy-file-into-daytona/README.md)             | copy a local file in                    |
+| [copy-file-from-daytona](daytona/copy-file-from-daytona/README.md)             | copy a sandbox file out                 |
+| [make-daytona-directory](daytona/make-daytona-directory/README.md)             | create a directory                      |
+| [list-daytona-directory](daytona/list-daytona-directory/README.md)             | list one directory                      |
+| [stat-daytona-file](daytona/stat-daytona-file/README.md)                       | stat one path                           |
+| [remove-daytona-file](daytona/remove-daytona-file/README.md)                   | remove one path                         |
+| [create-daytona-from-snapshot](daytona/create-daytona-from-snapshot/README.md) | named snapshot source                   |
+| [create-daytona-from-image](daytona/create-daytona-from-image/README.md)       | image source and resource sizing        |
+| [create-daytona-with-runtime](daytona/create-daytona-with-runtime/README.md)   | runtime language and user               |
+| [create-daytona-ephemeral](daytona/create-daytona-ephemeral/README.md)         | delete-on-stop behavior                 |
+| [create-daytona-linked](daytona/create-daytona-linked/README.md)               | linked parent and ephemeral child       |
+| [create-daytona-with-policies](daytona/create-daytona-with-policies/README.md) | pause and deletion policies             |
+| [create-daytona-with-network](daytona/create-daytona-with-network/README.md)   | restricted egress allowlists            |
+| [create-daytona-with-labels](daytona/create-daytona-with-labels/README.md)     | labels and environment variables        |
+| [create-daytona-with-secrets](daytona/create-daytona-with-secrets/README.md)   | injected organization secret            |
+| [create-daytona-with-kvm](daytona/create-daytona-with-kvm/README.md)           | nested virtualization (KVM)             |
+| [create-daytona-with-ttl](daytona/create-daytona-with-ttl/README.md)           | maximum lifetime TTL                    |
+| [handle-daytona-errors](daytona/handle-daytona-errors/README.md)               | typed validation errors                 |
+| [get-daytona-sandbox](daytona/get-daytona-sandbox/README.md)                   | remote retrieval and metadata           |
+| [refresh-daytona-sandbox](daytona/refresh-daytona-sandbox/README.md)           | metadata refresh                        |
+| [start-daytona-sandbox](daytona/start-daytona-sandbox/README.md)               | start lifecycle operation               |
+| [start-daytona-with-timeout](daytona/start-daytona-with-timeout/README.md)     | start with operation timeout            |
+| [stop-daytona-sandbox](daytona/stop-daytona-sandbox/README.md)                 | stop lifecycle operation                |
+| [force-stop-daytona-sandbox](daytona/force-stop-daytona-sandbox/README.md)     | force stop                              |
+| [pause-daytona-sandbox](daytona/pause-daytona-sandbox/README.md)               | pause lifecycle operation               |
+| [archive-daytona-sandbox](daytona/archive-daytona-sandbox/README.md)           | archive lifecycle operation             |
+| [delete-daytona-sandbox](daytona/delete-daytona-sandbox/README.md)             | waited deletion                         |
+| [request-daytona-deletion](daytona/request-daytona-deletion/README.md)         | non-waited deletion                     |
 | [close-daytona-handle](daytona/close-daytona-handle/README.md)                 | close the handle; sandbox keeps running |
 
 ### Modal
@@ -60,6 +68,14 @@ the client closes your connection to Daytona or Modal. Modal setup:
 | Project                                                                      | Demonstrates                               |
 | ---------------------------------------------------------------------------- | ------------------------------------------ |
 | [create-modal-sandbox](modal/create-modal-sandbox/README.md)                 | image creation with resources and policies |
+| [read-modal-file](modal/read-modal-file/README.md)                           | read one file                              |
+| [write-modal-file](modal/write-modal-file/README.md)                         | write one file                             |
+| [copy-file-into-modal](modal/copy-file-into-modal/README.md)                 | copy a local file in                       |
+| [copy-file-from-modal](modal/copy-file-from-modal/README.md)                 | copy a sandbox file out                    |
+| [make-modal-directory](modal/make-modal-directory/README.md)                 | create a directory                         |
+| [list-modal-directory](modal/list-modal-directory/README.md)                 | list one directory                         |
+| [stat-modal-file](modal/stat-modal-file/README.md)                           | stat one path                              |
+| [remove-modal-file](modal/remove-modal-file/README.md)                       | remove one path                            |
 | [create-modal-with-resources](modal/create-modal-with-resources/README.md)   | fractional CPU, memory, and lifetime       |
 | [create-modal-with-runtime](modal/create-modal-with-runtime/README.md)       | working directory, entrypoint, and PTY     |
 | [create-modal-gvisor](modal/create-modal-gvisor/README.md)                   | gVisor/container isolation                 |

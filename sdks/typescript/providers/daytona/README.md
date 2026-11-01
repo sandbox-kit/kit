@@ -70,6 +70,10 @@ ephemeral behavior, and stop/pause/archive/delete policies.
 call for that sandbox. `close` does not contact Daytona and does not change
 the sandbox.
 
+**Files** through `sandbox.filesystem`. Paths in the sandbox are absolute. A
+timeout, when set, is a whole number of seconds. `makeDirectory` returns the
+provider error when the directory already exists.
+
 Daytona does not support unverified `attach`. Use `client.get(id)` for a
 provider-verified handle.
 
@@ -79,12 +83,13 @@ inherit snapshot resources.
 
 ## Examples
 
-| Example    | Project                                                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation   | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox)             |
-| Policies   | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies) |
-| Retrieval  | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/get-daytona-sandbox)                   |
-| Full index | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                               |
+| Example     | Project                                                                                                                               |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Creation    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox)             |
+| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/read-daytona-file)                       |
+| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies) |
+| Retrieval   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/get-daytona-sandbox)                   |
+| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                               |
 
 ## License
 

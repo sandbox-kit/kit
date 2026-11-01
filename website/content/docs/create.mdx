@@ -128,4 +128,4 @@ Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies
 
 `info()` in TypeScript and `Info()` in Go return a copy of the metadata. Editing that copy does not change the sandbox. Reported CPU and memory can differ from the numbers you sent.
 
-This client creates the sandbox and manages its lifetime. Commands inside the sandbox, GPU requests, resizing, extra storage, and browsers are outside it.
+This client creates the sandbox, manages its lifetime, and reads and writes its files. Commands inside the sandbox, GPU requests, resizing, extra storage, and browsers are outside it.

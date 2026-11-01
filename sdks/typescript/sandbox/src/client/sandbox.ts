@@ -20,6 +20,7 @@ import {
   operationSignal,
   publicTimeoutOptions,
 } from "#client/operation.js";
+import { Filesystem } from "#client/filesystem.js";
 import type {
   Backend,
   DeleteCallOptions,
@@ -47,6 +48,8 @@ export interface SandboxInit {
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #timeout: number | undefined;
+  /** File operations for this sandbox. Paths inside the sandbox are absolute. */
+  readonly filesystem: Filesystem;
   #info: SandboxInfo;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -55,6 +58,18 @@ export class Sandbox implements AsyncDisposable {
     this.#backend = init.backend;
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
+    this.filesystem = new Filesystem({
+      providerName: this.providerName,
+      id: this.id,
+      backend: this.#backend,
+      run: (operation, options, body) =>
+        this.#serialized(
+          operation,
+          options,
+          options.timeout ?? this.#timeout,
+          body,
+        ),
+    });
   }
   /** Sandbox identifier. */
   get id(): string {

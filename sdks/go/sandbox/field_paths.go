@@ -371,3 +371,9 @@ const InfoFieldTerminal = "terminal"
 
 // ResultFieldExitCode is the canonical path "exit_code" on ExitResult.
 const ResultFieldExitCode = "exit_code"
+
+// FileFieldPath is the canonical path "path" on a filesystem call.
+const FileFieldPath = "path"
+
+// FileFieldLocalPath is the canonical path "local_path" on a copy between the caller and the sandbox.
+const FileFieldLocalPath = "local_path"

@@ -325,3 +325,9 @@ export const InfoFieldTerminal = "terminal" as const;
 
 /** Canonical path "exit_code" on ExitResult. */
 export const ResultFieldExitCode = "exit_code" as const;
+
+/** Canonical path "path" on a filesystem call. */
+export const FileFieldPath = "path" as const;
+
+/** Canonical path "local_path" on a copy between the caller and the sandbox. */
+export const FileFieldLocalPath = "local_path" as const;

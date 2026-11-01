@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import {
   Daytona,
   type DaytonaConfig,
@@ -7,6 +8,8 @@ import {
   ConfigFieldTimeout,
   CreateFieldProvisioningTimeout,
   ErrorKind,
+  FileType,
+  type FileInfo,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
@@ -18,10 +21,18 @@ import type {
   CreateResult,
   ArchiveOptions,
   DeleteOptions,
+  FileCopyOptions,
+  FileReadOptions,
+  FileWriteOptions,
+  ListDirectoryOptions,
+  MakeDirectoryOptions,
   PauseOptions,
+  RemoveOptions,
   StartOptions,
+  StatOptions,
   StopOptions,
 } from "@sandbox-kit/sandbox";
+import type { FileInfo as DaytonaFileInfo } from "@daytona/sdk";
 
 import {
   mapClientConfig,
@@ -162,6 +173,168 @@ class DaytonaBackend extends BackendBase implements Backend {
     }
   }
 
+  async readFile(
+    id: string,
+    path: string,
+    request: FileReadOptions,
+    options: OperationOptions,
+  ): Promise<Uint8Array> {
+    return this.#file(
+      "read_file",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        const data =
+          timeout === undefined
+            ? await sandbox.fs.downloadFile(path)
+            : await sandbox.fs.downloadFile(path, timeout);
+        return new Uint8Array(data);
+      },
+    );
+  }
+
+  async writeFile(
+    id: string,
+    path: string,
+    data: Uint8Array,
+    request: FileWriteOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "write_file",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        const body = Buffer.from(data);
+        if (timeout === undefined) await sandbox.fs.uploadFile(body, path);
+        else await sandbox.fs.uploadFile(body, path, timeout);
+      },
+    );
+  }
+
+  async copyFromLocal(
+    id: string,
+    localPath: string,
+    remotePath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "copy_from_local",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        if (timeout === undefined)
+          await sandbox.fs.uploadFile(localPath, remotePath);
+        else await sandbox.fs.uploadFile(localPath, remotePath, timeout);
+      },
+    );
+  }
+
+  async copyToLocal(
+    id: string,
+    remotePath: string,
+    localPath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "copy_to_local",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        if (timeout === undefined)
+          await sandbox.fs.downloadFile(remotePath, localPath);
+        else await sandbox.fs.downloadFile(remotePath, localPath, timeout);
+      },
+    );
+  }
+
+  async makeDirectory(
+    id: string,
+    path: string,
+    request: MakeDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "make_directory",
+      id,
+      options,
+      request.timeout,
+      async (sandbox) => {
+        await sandbox.fs.createFolder(path, "0755");
+      },
+    );
+  }
+
+  async listDirectory(
+    id: string,
+    path: string,
+    request: ListDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo[]> {
+    return this.#file(
+      "list_directory",
+      id,
+      options,
+      request.timeout,
+      async (sandbox) => {
+        const entries = await sandbox.fs.listFiles(path);
+        return entries.map((entry) => daytonaFileInfo(entry));
+      },
+    );
+  }
+
+  async stat(
+    id: string,
+    path: string,
+    request: StatOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo> {
+    return this.#file("stat", id, options, request.timeout, async (sandbox) =>
+      daytonaFileInfo(await sandbox.fs.getFileDetails(path)),
+    );
+  }
+
+  async remove(
+    id: string,
+    path: string,
+    request: RemoveOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "remove",
+      id,
+      options,
+      request.timeout,
+      async (sandbox) => {
+        await sandbox.fs.deleteFile(path, request.recursive === true);
+      },
+    );
+  }
+
+  async #file<T>(
+    operation: string,
+    id: string,
+    options: OperationOptions,
+    timeoutMs: number | undefined,
+    body: (sandbox: DaytonaSandbox, timeout: number | undefined) => Promise<T>,
+  ): Promise<T> {
+    try {
+      throwIfAborted(options.signal);
+      const timeout = wholeSeconds(timeoutMs, operation, ConfigFieldTimeout);
+      const sandbox = await this.native.get(id);
+      throwIfAborted(options.signal);
+      return await body(sandbox, timeout);
+    } catch (error) {
+      throw mapDaytonaError(error, operation);
+    }
+  }
+
   async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(options: OperationOptions): Promise<void> {
@@ -172,6 +345,36 @@ class DaytonaBackend extends BackendBase implements Backend {
       throw mapDaytonaError(error, "close");
     }
   }
+}
+
+function daytonaFileInfo(info: DaytonaFileInfo): FileInfo {
+  const modified = fileDate(info);
+  return {
+    name: info.name,
+    path: info.path ?? "",
+    type: info.isDir ? FileType.Directory : FileType.File,
+    size: BigInt(info.size),
+    ...(info.mode ? { mode: info.mode } : {}),
+    ...("permissions" in info && info.permissions
+      ? { permissions: info.permissions }
+      : {}),
+    ...("owner" in info && info.owner ? { owner: info.owner } : {}),
+    ...("group" in info && info.group ? { group: info.group } : {}),
+    ...(modified === undefined ? {} : { modifiedAt: modified }),
+  };
+}
+
+function fileDate(info: DaytonaFileInfo): Date | undefined {
+  const raw =
+    "modifiedAt" in info && typeof info.modifiedAt === "string"
+      ? info.modifiedAt
+      : "modTime" in info && typeof info.modTime === "string"
+        ? info.modTime
+        : undefined;
+  if (raw === undefined) return undefined;
+  const parsed = Date.parse(raw);
+  if (Number.isNaN(parsed)) return undefined;
+  return new Date(parsed);
 }
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
