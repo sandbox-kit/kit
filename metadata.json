@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6DBNWVAXVAMBM4EC9SS52CW",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-filesystem",
+  "checkpoints_count": 13,
+  "files_touched": [
+    "docs/filesystem.md",
+    "sdks/go/providers/daytona/filesystem.go",
+    "sdks/go/providers/daytona/filesystem_test.go",
+    "sdks/go/providers/modal/filesystem.go",
+    "sdks/go/sandbox/filesystem.go",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/src/daytona.test.ts",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/daytona/src/errors.ts",
+    "sdks/typescript/providers/modal/src/errors.ts",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "sdks/typescript/providers/modal/src/modal.ts",
+    "sdks/typescript/sandbox/src/client/filesystem.ts",
+    "website/content/docs/filesystem.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 431014,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 9572480,
+    "output_tokens": 52687,
+    "api_call_count": 9
+  }
+}
