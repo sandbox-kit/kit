@@ -5,6 +5,7 @@ go 1.26.0
 require (
 	github.com/daytona/clients/api-client-go v0.225.0
 	github.com/daytona/clients/sdk-go v0.225.0
+	github.com/daytona/clients/toolbox-api-client-go v0.225.0
 	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.3
 	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.3
 	google.golang.org/protobuf v1.36.12
@@ -32,7 +33,6 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/daytona/clients/analytics-api-client-go v0.0.0-20260722121532-3d2223c79fe5 // indirect
-	github.com/daytona/clients/toolbox-api-client-go v0.225.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect

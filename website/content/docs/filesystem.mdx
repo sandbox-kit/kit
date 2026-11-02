@@ -213,7 +213,7 @@ for _, entry := range entries {
 
 ## Read metadata
 
-`stat` returns one path. A symlink result describes the symlink. Modal can report a symlink. Daytona reports a file or a directory. `mode` is an octal string when the provider supplies one, such as `0644`.
+`stat` returns one path. A symlink result describes the symlink. Modal can report a symlink. Daytona reports a file or a directory. `mode` is an octal string when the provider supplies one, such as `0644`. `permissions`, `owner`, and `group` are set when the provider supplies them. `modifiedAt` is set when the provider supplies a time.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

@@ -5,9 +5,11 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"time"
 
 	daytona "github.com/daytona/clients/sdk-go/pkg/daytona"
-	"github.com/daytona/clients/sdk-go/pkg/types"
+	sdkerrors "github.com/daytona/clients/sdk-go/pkg/errors"
+	"github.com/daytona/clients/toolbox-api-client-go"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -83,17 +85,17 @@ func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *s
 }
 
 func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox.ListDirectoryOptions) ([]*sandbox.FileInfo, error) {
-	instance, err := b.fileSandbox(ctx, id, "list_directory")
+	client, err := b.toolbox(ctx, id, "list_directory")
 	if err != nil {
 		return nil, err
 	}
-	entries, err := instance.FileSystem.ListFiles(ctx, path)
+	entries, httpResp, err := client.FileSystemAPI.ListFiles(ctx).Path(path).Execute()
 	if err != nil {
-		return nil, mapProviderError(err, "list_directory")
+		return nil, mapProviderError(sdkerrors.ConvertToolboxError(err, httpResp), "list_directory")
 	}
 	result := make([]*sandbox.FileInfo, 0, len(entries))
-	for _, entry := range entries {
-		info, err := daytonaFileInfo(entry, "list_directory")
+	for i := range entries {
+		info, err := daytonaFileInfo(&entries[i], "list_directory")
 		if err != nil {
 			return nil, err
 		}
@@ -103,13 +105,13 @@ func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox
 }
 
 func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOptions) (*sandbox.FileInfo, error) {
-	instance, err := b.fileSandbox(ctx, id, "stat")
+	client, err := b.toolbox(ctx, id, "stat")
 	if err != nil {
 		return nil, err
 	}
-	info, err := instance.FileSystem.GetFileInfo(ctx, path)
+	info, httpResp, err := client.FileSystemAPI.GetFileInfo(ctx).Path(path).Execute()
 	if err != nil {
-		return nil, mapProviderError(err, "stat")
+		return nil, mapProviderError(sdkerrors.ConvertToolboxError(err, httpResp), "stat")
 	}
 	return daytonaFileInfo(info, "stat")
 }
@@ -124,6 +126,22 @@ func (b *backend) Remove(ctx context.Context, id, path string, options *sandbox.
 		return mapProviderError(err, "remove")
 	}
 	return nil
+}
+
+func (b *backend) toolbox(ctx context.Context, id, operation string) (*toolbox.APIClient, error) {
+	instance, err := b.fileSandbox(ctx, id, operation)
+	if err != nil {
+		return nil, err
+	}
+	if instance.ToolboxClient == nil {
+		return nil, sandbox.NewError(&sandbox.ErrorInfo{
+			Kind:      sandbox.ErrorKindInvalidResponse,
+			Provider:  "daytona",
+			Operation: operation,
+			Message:   "sandbox-kit daytona: SDK returned no filesystem",
+		}, nil)
+	}
+	return instance.ToolboxClient, nil
 }
 
 func (b *backend) fileSandbox(ctx context.Context, id, operation string) (*daytona.Sandbox, error) {
@@ -229,7 +247,7 @@ func mapCallerPathError(err error, operation, localPath string) error {
 	return mapProviderError(err, operation)
 }
 
-func daytonaFileInfo(info *types.FileInfo, operation string) (*sandbox.FileInfo, error) {
+func daytonaFileInfo(info *toolbox.FileInfo, operation string) (*sandbox.FileInfo, error) {
 	if info == nil {
 		return nil, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidResponse,
@@ -240,20 +258,46 @@ func daytonaFileInfo(info *types.FileInfo, operation string) (*sandbox.FileInfo,
 		}, nil)
 	}
 	kind := sandbox.FileTypeFile
-	if info.IsDirectory {
+	if info.GetIsDir() {
 		kind = sandbox.FileTypeDirectory
 	}
 	result := &sandbox.FileInfo{
-		Name: info.Name,
-		Path: info.Path,
+		Name: info.GetName(),
+		Path: info.GetPath(),
 		Type: kind,
-		Size: info.Size,
+		Size: int64(info.GetSize()),
 	}
-	if mode := info.Mode; mode != "" {
+	if mode := info.GetMode(); mode != "" {
 		result.Mode = sandbox.Value(mode)
 	}
-	if !info.ModifiedTime.IsZero() {
-		result.ModifiedAt = timestamppb.New(info.ModifiedTime)
+	if permissions := info.GetPermissions(); permissions != "" {
+		result.Permissions = sandbox.Value(permissions)
+	}
+	if owner := info.GetOwner(); owner != "" {
+		result.Owner = sandbox.Value(owner)
+	}
+	if group := info.GetGroup(); group != "" {
+		result.Group = sandbox.Value(group)
+	}
+	if modified := daytonaModifiedAt(info); modified != nil {
+		result.ModifiedAt = modified
 	}
 	return result, nil
+}
+
+// modifiedAt wins when it is present. A fractional RFC3339 timestamp is kept.
+// modTime is used only when modifiedAt is empty, matching the TypeScript mapper.
+func daytonaModifiedAt(info *toolbox.FileInfo) *timestamppb.Timestamp {
+	raw := info.GetModifiedAt()
+	if raw == "" {
+		raw = info.GetModTime()
+	}
+	if raw == "" {
+		return nil
+	}
+	parsed, err := time.Parse(time.RFC3339Nano, raw)
+	if err != nil {
+		return nil
+	}
+	return timestamppb.New(parsed)
 }

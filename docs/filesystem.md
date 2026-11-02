@@ -201,8 +201,9 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 
 `Stat` returns one path. A symlink result describes the symlink. Modal can
 report a symlink. Daytona reports a file or a directory. `mode` is an octal
-string when the provider supplies one, such as `0644`. `modifiedAt` is set
-when the provider supplies a time.
+string when the provider supplies one, such as `0644`. `permissions`, `owner`,
+and `group` are set when the provider supplies them. `modifiedAt` is set when
+the provider supplies a time.
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");
