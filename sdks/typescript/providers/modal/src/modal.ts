@@ -31,7 +31,12 @@ import {
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapModalError } from "#errors.js";
+import {
+  mapModalError,
+  requireLocalDestination,
+  requireLocalFile,
+  translateLocalCopyError,
+} from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 import {
   captureProviderState,
@@ -182,8 +187,13 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileCopyOptions,
     options: OperationOptions,
   ): Promise<void> {
+    await requireLocalFile(localPath, "copy_from_local");
     await this.#file("copy_from_local", id, options, async (sandbox) => {
-      await sandbox.filesystem.copyFromLocal(localPath, remotePath);
+      try {
+        await sandbox.filesystem.copyFromLocal(localPath, remotePath);
+      } catch (error) {
+        throw translateLocalCopyError(error, "copy_from_local");
+      }
     });
   }
 
@@ -194,8 +204,13 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileCopyOptions,
     options: OperationOptions,
   ): Promise<void> {
+    await requireLocalDestination(localPath, "copy_to_local");
     await this.#file("copy_to_local", id, options, async (sandbox) => {
-      await sandbox.filesystem.copyToLocal(remotePath, localPath);
+      try {
+        await sandbox.filesystem.copyToLocal(remotePath, localPath);
+      } catch (error) {
+        throw translateLocalCopyError(error, "copy_to_local");
+      }
     });
   }
 
@@ -296,12 +311,10 @@ function modalFileInfo(info: ModalFileInfo): FileInfo {
     type,
     size: BigInt(Math.trunc(info.size)),
     mode: (info.mode & 0o7777).toString(8).padStart(4, "0"),
-    ...(info.permissions === "" ? {} : { permissions: info.permissions }),
-    ...(info.owner === "" ? {} : { owner: info.owner }),
-    ...(info.group === "" ? {} : { group: info.group }),
-    ...(info.symlinkTarget === null || info.symlinkTarget === ""
-      ? {}
-      : { symlinkTarget: info.symlinkTarget }),
+    ...(info.permissions ? { permissions: info.permissions } : {}),
+    ...(info.owner ? { owner: info.owner } : {}),
+    ...(info.group ? { group: info.group } : {}),
+    ...(info.symlinkTarget ? { symlinkTarget: info.symlinkTarget } : {}),
     ...(Number.isFinite(info.modifiedTime)
       ? { modifiedAt: new Date(info.modifiedTime * 1000) }
       : {}),

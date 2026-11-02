@@ -53,8 +53,12 @@ func TestLocalDestination(t *testing.T) {
 	if err := localDestination(filepath.Join(dir, "out.txt"), "copy_to_local"); err != nil {
 		t.Fatal(err)
 	}
-	err := localDestination(dir, "copy_to_local")
+	err := localDestination(filepath.Join(dir, "missing", "out.txt"), "copy_to_local")
 	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindNotFound || detail.Field != sandbox.FileFieldLocalPath || !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("missing parent: %#v", err)
+	}
+	err = localDestination(dir, "copy_to_local")
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.FileFieldLocalPath || detail.Operation != "copy_to_local" {
 		t.Fatalf("directory: %#v", err)
 	}

@@ -22,7 +22,7 @@ A path inside the sandbox starts with `/`, such as `/tmp/note.txt`. `note.txt` i
 
 Leave `timeout` unset to use the client deadline. Set `timeout: 0` when this call should add no deadline of its own. TypeScript records the timeout in milliseconds. Go records it as a `time.Duration`.
 
-TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal` pass that duration to Daytona as a whole number of seconds. `2_000` is two seconds. `1_500` is 1.5 seconds, so those four calls reject it. The error field is `timeout`.
+TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal` pass that duration to Daytona as a whole number of seconds. `2_000` is two seconds. `1_500` is 1.5 seconds, so those four calls reject it. The error field is `timeout`. An omitted timeout on those four calls is passed as `0`. Daytona adds no transfer limit, and the abort signal carries the client deadline.
 
 `makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal. `1_500` ends the call at 1.5 seconds. Every Go file call uses the context as the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal file calls use the context or the abort signal. `1_500` milliseconds ends the call at 1.5 seconds.
 

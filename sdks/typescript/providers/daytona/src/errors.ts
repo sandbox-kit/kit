@@ -141,7 +141,7 @@ export async function requireLocalFile(
   try {
     info = await stat(localPath);
   } catch (error) {
-    if (nodeCode(error) !== undefined) throw localFileError(error, operation);
+    if (nodeCode(error)) throw localFileError(error, operation);
     throw error;
   }
   if (info.isDirectory()) localDirectory(operation);
@@ -157,7 +157,7 @@ export async function requireLocalDestination(
     if (info.isDirectory()) localDirectory(operation);
   } catch (error) {
     if (nodeCode(error) === "ENOENT") return;
-    if (nodeCode(error) !== undefined) throw localFileError(error, operation);
+    if (nodeCode(error)) throw localFileError(error, operation);
     throw error;
   }
 }
@@ -171,7 +171,7 @@ export function translateLocalCopyError(
   operation: string,
 ): unknown {
   if (error instanceof SandboxError) return error;
-  if (nodeCode(error) !== undefined) return localFileError(error, operation);
+  if (nodeCode(error)) return localFileError(error, operation);
   if (
     error instanceof DaytonaError &&
     error.message.includes("Write stream failed")
@@ -218,7 +218,7 @@ function localFileError(error: unknown, operation: string): SandboxError {
 }
 
 function nodeCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("code" in error))
+  if (typeof error !== "object" || !error || !("code" in error))
     return undefined;
   return typeof error.code === "string" ? error.code : undefined;
 }

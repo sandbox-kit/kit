@@ -32,7 +32,7 @@ func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _
 	if err != nil {
 		return err
 	}
-	if data == nil {
+	if len(data) == 0 {
 		data = []byte{}
 	}
 	if err := instance.Filesystem.WriteBytes(ctx, data, path, nil); err != nil {
@@ -196,8 +196,8 @@ func modalFileInfo(info sdk.FileInfo) *sandbox.FileInfo {
 	if info.Group != "" {
 		result.Group = sandbox.Value(info.Group)
 	}
-	if info.SymlinkTarget != nil && *info.SymlinkTarget != "" {
-		result.SymlinkTarget = info.SymlinkTarget
+	if target := info.SymlinkTarget; target != nil && *target != "" {
+		result.SymlinkTarget = target
 	}
 	if !math.IsNaN(info.ModifiedTime) && !math.IsInf(info.ModifiedTime, 0) {
 		whole := int64(info.ModifiedTime)

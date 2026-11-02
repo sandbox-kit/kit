@@ -1,7 +1,9 @@
 import { Buffer } from "node:buffer";
 import {
   Daytona,
+  DaytonaError,
   type DaytonaConfig,
+  type FileDownloadResponse,
   type Sandbox as DaytonaSandbox,
 } from "@daytona/sdk";
 import {
@@ -192,10 +194,18 @@ class DaytonaBackend extends BackendBase implements Backend {
       options,
       request.timeout,
       async (sandbox, timeout) => {
-        const data =
-          timeout === undefined
-            ? await sandbox.fs.downloadFile(path)
-            : await sandbox.fs.downloadFile(path, timeout);
+        const seconds = fileSeconds(timeout);
+        // downloadFile(path, 0) drops the 0, because 0 is not a string path,
+        // and Daytona then applies its 30-minute default.
+        if (!seconds) {
+          const [file] = await sandbox.fs.downloadFiles([{ source: path }], 0);
+          const body = file?.result;
+          if (!file || file.error || !body) throw downloadFailure(file);
+          return new Uint8Array(
+            typeof body === "string" ? Buffer.from(body) : body,
+          );
+        }
+        const data = await sandbox.fs.downloadFile(path, seconds);
         return new Uint8Array(data);
       },
     );
@@ -214,9 +224,11 @@ class DaytonaBackend extends BackendBase implements Backend {
       options,
       request.timeout,
       async (sandbox, timeout) => {
-        const body = Buffer.from(data);
-        if (timeout === undefined) await sandbox.fs.uploadFile(body, path);
-        else await sandbox.fs.uploadFile(body, path, timeout);
+        await sandbox.fs.uploadFile(
+          Buffer.from(data),
+          path,
+          fileSeconds(timeout),
+        );
       },
     );
   }
@@ -235,9 +247,11 @@ class DaytonaBackend extends BackendBase implements Backend {
       options,
       request.timeout,
       async (sandbox, timeout) => {
-        if (timeout === undefined)
-          await sandbox.fs.uploadFile(localPath, remotePath);
-        else await sandbox.fs.uploadFile(localPath, remotePath, timeout);
+        await sandbox.fs.uploadFile(
+          localPath,
+          remotePath,
+          fileSeconds(timeout),
+        );
       },
     );
   }
@@ -257,9 +271,11 @@ class DaytonaBackend extends BackendBase implements Backend {
       request.timeout,
       async (sandbox, timeout) => {
         try {
-          if (timeout === undefined)
-            await sandbox.fs.downloadFile(remotePath, localPath);
-          else await sandbox.fs.downloadFile(remotePath, localPath, timeout);
+          await sandbox.fs.downloadFile(
+            remotePath,
+            localPath,
+            fileSeconds(timeout),
+          );
         } catch (error) {
           throw translateLocalCopyError(error, "copy_to_local");
         }
@@ -327,15 +343,9 @@ class DaytonaBackend extends BackendBase implements Backend {
     request: RemoveOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file(
-      "remove",
-      id,
-      options,
-      undefined,
-      async (sandbox) => {
-        await sandbox.fs.deleteFile(path, request.recursive === true);
-      },
-    );
+    await this.#file("remove", id, options, undefined, async (sandbox) => {
+      await sandbox.fs.deleteFile(path, request.recursive === true);
+    });
   }
 
   async #file<T>(
@@ -372,27 +382,20 @@ function daytonaFileInfo(info: DaytonaFileInfo): FileInfo {
   const modified = fileDate(info);
   return {
     name: info.name,
-    path: info.path ?? "",
+    path: info.path || "",
     type: info.isDir ? FileType.Directory : FileType.File,
     size: BigInt(info.size),
     ...(info.mode ? { mode: info.mode } : {}),
-    ...("permissions" in info && info.permissions
-      ? { permissions: info.permissions }
-      : {}),
-    ...("owner" in info && info.owner ? { owner: info.owner } : {}),
-    ...("group" in info && info.group ? { group: info.group } : {}),
-    ...(modified === undefined ? {} : { modifiedAt: modified }),
+    ...(info.permissions ? { permissions: info.permissions } : {}),
+    ...(info.owner ? { owner: info.owner } : {}),
+    ...(info.group ? { group: info.group } : {}),
+    ...(modified ? { modifiedAt: modified } : {}),
   };
 }
 
 function fileDate(info: DaytonaFileInfo): Date | undefined {
-  const raw =
-    "modifiedAt" in info && typeof info.modifiedAt === "string"
-      ? info.modifiedAt
-      : "modTime" in info && typeof info.modTime === "string"
-        ? info.modTime
-        : undefined;
-  if (raw === undefined) return undefined;
+  const raw = info.modifiedAt || info.modTime;
+  if (!raw) return undefined;
   const parsed = Date.parse(raw);
   if (Number.isNaN(parsed)) return undefined;
   return new Date(parsed);
@@ -400,6 +403,25 @@ function fileDate(info: DaytonaFileInfo): Date | undefined {
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
+}
+
+/** Upload and download treat an omitted argument as 30 minutes. Zero adds no Daytona limit. */
+function fileSeconds(timeout: number | undefined): number {
+  return timeout ?? 0;
+}
+
+function downloadFailure(file: FileDownloadResponse | undefined): DaytonaError {
+  const details = file?.errorDetails;
+  if (details) {
+    return new DaytonaError(
+      details.message,
+      details.statusCode,
+      undefined,
+      details.code ?? details.errorCode,
+      details.source,
+    );
+  }
+  return new DaytonaError(file?.error ?? "download failed");
 }
 
 /** Native Daytona APIs take whole seconds. Lifecycle zero means no operation timeout. */

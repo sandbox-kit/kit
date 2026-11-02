@@ -31,7 +31,7 @@ func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _
 	if err != nil {
 		return err
 	}
-	if data == nil {
+	if len(data) == 0 {
 		data = []byte{}
 	}
 	if err := instance.FileSystem.UploadFile(ctx, data, path); err != nil {
@@ -169,13 +169,30 @@ func localSourceFile(path, operation string) error {
 func localDestination(path, operation string) error {
 	info, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return nil
+		return localParent(path, operation)
 	}
 	if err != nil {
 		return localPathError(err, operation)
 	}
 	if info.IsDir() {
 		return localDirectoryError(operation)
+	}
+	return nil
+}
+
+func localParent(path, operation string) error {
+	info, err := os.Stat(filepath.Dir(path))
+	if err != nil {
+		return localPathError(err, operation)
+	}
+	if !info.IsDir() {
+		return sandbox.NewError(&sandbox.ErrorInfo{
+			Kind:      sandbox.ErrorKindInvalidArgument,
+			Provider:  "daytona",
+			Operation: operation,
+			Field:     sandbox.FileFieldLocalPath,
+			Message:   "sandbox-kit daytona: local parent is not a directory",
+		}, nil)
 	}
 	return nil
 }
@@ -232,8 +249,8 @@ func daytonaFileInfo(info *types.FileInfo, operation string) (*sandbox.FileInfo,
 		Type: kind,
 		Size: info.Size,
 	}
-	if info.Mode != "" {
-		result.Mode = sandbox.Value(info.Mode)
+	if mode := info.Mode; mode != "" {
+		result.Mode = sandbox.Value(mode)
 	}
 	if !info.ModifiedTime.IsZero() {
 		result.ModifiedAt = timestamppb.New(info.ModifiedTime)

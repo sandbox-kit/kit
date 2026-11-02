@@ -252,7 +252,7 @@ export class Filesystem {
 }
 
 function absolutePath(provider: string, operation: string, path: string): void {
-  if (path.length === 0 || !path.startsWith("/") || path.includes("\0")) {
+  if (!path || !path.startsWith("/") || path.includes("\0")) {
     throw sandboxError({
       kind: ErrorKind.InvalidArgument,
       provider,
@@ -264,7 +264,7 @@ function absolutePath(provider: string, operation: string, path: string): void {
 }
 
 function callerPath(provider: string, operation: string, path: string): void {
-  if (path.length === 0 || path.includes("\0")) {
+  if (!path || path.includes("\0")) {
     throw sandboxError({
       kind: ErrorKind.InvalidArgument,
       provider,

@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   Client,
@@ -16,6 +18,7 @@ import {
   CreateFieldResourcesCpuLimitCores,
   ConfigFieldAuthTokenPairId,
   ConfigFieldEndpoint,
+  FileFieldLocalPath,
 } from "@sandbox-kit/sandbox";
 import {
   App,
@@ -455,13 +458,94 @@ describe("Modal provider orchestration", () => {
       },
       close(): void {},
     })).initialize({ scope: { appName: "app" } });
-    if (backend.terminate === undefined) throw new Error("terminate is missing");
+    if (backend.terminate === undefined)
+      throw new Error("terminate is missing");
     await expect(
-      backend.terminate("sandbox-1", { wait: true }, { signal: controller.signal }),
+      backend.terminate(
+        "sandbox-1",
+        { wait: true },
+        { signal: controller.signal },
+      ),
     ).rejects.toMatchObject({
       kind: ErrorKind.Canceled,
       operation: "terminate",
     });
     expect(polls).toBe(1);
+  });
+
+  it("rejects a missing or directory local file before Modal is called", async () => {
+    let lookedUp = false;
+    const backend = new ModalProvider(() => ({
+      apps: {
+        async fromName(): Promise<App> {
+          throw new Error("unexpected app lookup");
+        },
+      },
+      images: {
+        fromRegistry(): Image {
+          return {} as Image;
+        },
+      },
+      proxies: {
+        async fromName(): Promise<Proxy> {
+          throw new Error("unexpected proxy lookup");
+        },
+      },
+      secrets: {
+        async fromName(): Promise<never> {
+          throw new Error("unexpected secret lookup");
+        },
+      },
+      sandboxes: {
+        async create(): Promise<ModalSandbox> {
+          throw new Error("unexpected create");
+        },
+        async fromId(): Promise<ModalSandbox> {
+          lookedUp = true;
+          throw new Error("native fromId must not run");
+        },
+      },
+      close(): void {},
+    })).initialize({ scope: { appName: "app" } });
+    const copyFromLocal = backend.copyFromLocal;
+    const copyToLocal = backend.copyToLocal;
+    if (!copyFromLocal || !copyToLocal)
+      throw new Error("copy methods are missing");
+    await expect(
+      copyFromLocal.call(
+        backend,
+        "sandbox-1",
+        join(tmpdir(), "kit-missing-source.txt"),
+        "/tmp/note.txt",
+        {},
+        {},
+      ),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.NotFound,
+      field: FileFieldLocalPath,
+      operation: "copy_from_local",
+    });
+    await expect(
+      copyFromLocal.call(
+        backend,
+        "sandbox-1",
+        tmpdir(),
+        "/tmp/note.txt",
+        {},
+        {},
+      ),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: FileFieldLocalPath,
+      operation: "copy_from_local",
+    });
+    await expect(
+      copyToLocal.call(backend, "sandbox-1", "/tmp/note.txt", tmpdir(), {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: FileFieldLocalPath,
+      operation: "copy_to_local",
+    });
+    expect(lookedUp).toBe(false);
   });
 });

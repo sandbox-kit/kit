@@ -47,7 +47,8 @@ milliseconds. Go records it as a `time.Duration`.
 TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
 pass that duration to Daytona as a whole number of seconds. `2000` is two
 seconds. `1500` is 1.5 seconds, so those four calls reject it. The error field
-is `timeout`.
+is `timeout`. An omitted timeout on those four calls is passed as `0`. Daytona
+adds no transfer limit, and the abort signal carries the client deadline.
 
 `makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
 `1500` ends the call at 1.5 seconds. Every Go file call uses the context as

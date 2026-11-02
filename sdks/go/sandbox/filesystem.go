@@ -30,7 +30,7 @@ func (s *Sandbox) Filesystem() *Filesystem {
 // path is absolute. A nil context returns ErrorKindInvalidArgument.
 func (f *Filesystem) ReadFile(ctx context.Context, path string, options *FileReadOptions) ([]byte, error) {
 	var data []byte
-	err := f.call(ctx, "read_file", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	err := f.call(ctx, "read_file", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("read_file")
 		if err != nil {
 			return err
@@ -44,7 +44,7 @@ func (f *Filesystem) ReadFile(ctx context.Context, path string, options *FileRea
 // WriteFile replaces the file at path with data and creates missing parent directories.
 // path is absolute. A nil context returns ErrorKindInvalidArgument.
 func (f *Filesystem) WriteFile(ctx context.Context, path string, data []byte, options *FileWriteOptions) error {
-	return f.call(ctx, "write_file", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	return f.call(ctx, "write_file", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("write_file")
 		if err != nil {
 			return err
@@ -56,7 +56,7 @@ func (f *Filesystem) WriteFile(ctx context.Context, path string, data []byte, op
 // CopyFromLocal copies the file at localPath into remotePath.
 // remotePath is absolute. localPath is a path on the caller's machine.
 func (f *Filesystem) CopyFromLocal(ctx context.Context, localPath, remotePath string, options *FileCopyOptions) error {
-	return f.call(ctx, "copy_from_local", options.GetTimeout(), remotePath, localPath, func(operationContext context.Context, id string) error {
+	return f.call(ctx, "copy_from_local", options.GetTimeout(), remotePath, &localPath, func(operationContext context.Context, id string) error {
 		files, err := f.files("copy_from_local")
 		if err != nil {
 			return err
@@ -68,7 +68,7 @@ func (f *Filesystem) CopyFromLocal(ctx context.Context, localPath, remotePath st
 // CopyToLocal copies the file at remotePath to localPath.
 // remotePath is absolute. localPath is a path on the caller's machine.
 func (f *Filesystem) CopyToLocal(ctx context.Context, remotePath, localPath string, options *FileCopyOptions) error {
-	return f.call(ctx, "copy_to_local", options.GetTimeout(), remotePath, localPath, func(operationContext context.Context, id string) error {
+	return f.call(ctx, "copy_to_local", options.GetTimeout(), remotePath, &localPath, func(operationContext context.Context, id string) error {
 		files, err := f.files("copy_to_local")
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (f *Filesystem) CopyToLocal(ctx context.Context, remotePath, localPath stri
 // Daytona rejects false.
 // path is absolute. A nil context returns ErrorKindInvalidArgument.
 func (f *Filesystem) MakeDirectory(ctx context.Context, path string, options *MakeDirectoryOptions) error {
-	return f.call(ctx, "make_directory", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	return f.call(ctx, "make_directory", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("make_directory")
 		if err != nil {
 			return err
@@ -95,7 +95,7 @@ func (f *Filesystem) MakeDirectory(ctx context.Context, path string, options *Ma
 // path is absolute. The result is one directory level.
 func (f *Filesystem) ListDirectory(ctx context.Context, path string, options *ListDirectoryOptions) ([]*FileInfo, error) {
 	var entries []*FileInfo
-	err := f.call(ctx, "list_directory", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	err := f.call(ctx, "list_directory", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("list_directory")
 		if err != nil {
 			return err
@@ -110,7 +110,7 @@ func (f *Filesystem) ListDirectory(ctx context.Context, path string, options *Li
 // path is absolute. A symlink result describes the symlink.
 func (f *Filesystem) Stat(ctx context.Context, path string, options *StatOptions) (*FileInfo, error) {
 	var info *FileInfo
-	err := f.call(ctx, "stat", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	err := f.call(ctx, "stat", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("stat")
 		if err != nil {
 			return err
@@ -128,7 +128,7 @@ func (f *Filesystem) Stat(ctx context.Context, path string, options *StatOptions
 // Set RemoveOptions.Recursive with Value(true) to delete a directory and its contents.
 // An omitted recursive flag removes a file or an empty directory.
 func (f *Filesystem) Remove(ctx context.Context, path string, options *RemoveOptions) error {
-	return f.call(ctx, "remove", options.GetTimeout(), path, "", func(operationContext context.Context, id string) error {
+	return f.call(ctx, "remove", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("remove")
 		if err != nil {
 			return err
@@ -137,7 +137,7 @@ func (f *Filesystem) Remove(ctx context.Context, path string, options *RemoveOpt
 	})
 }
 
-func (f *Filesystem) call(ctx context.Context, operation string, timeout *durationpb.Duration, sandboxPath, localPath string, invoke func(context.Context, string) error) error {
+func (f *Filesystem) call(ctx context.Context, operation string, timeout *durationpb.Duration, sandboxPath string, localPath *string, invoke func(context.Context, string) error) error {
 	owner := f.owner
 	if owner == nil {
 		if ctx == nil {
@@ -148,8 +148,8 @@ func (f *Filesystem) call(ctx context.Context, operation string, timeout *durati
 	if err := absoluteSandboxPath(owner, operation, sandboxPath); err != nil {
 		return err
 	}
-	if localPath != "" || operation == "copy_from_local" || operation == "copy_to_local" {
-		if err := callerPath(owner, operation, localPath); err != nil {
+	if localPath != nil {
+		if err := callerPath(owner, operation, *localPath); err != nil {
 			return err
 		}
 	}

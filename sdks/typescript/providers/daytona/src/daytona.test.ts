@@ -27,6 +27,7 @@ import {
   ConfigFieldScopeOrganizationId,
   ConfigFieldScopeProjectId,
   ConfigFieldTimeout,
+  FileFieldLocalPath,
   FileFieldParents,
   CreateFieldProvisioningTimeout,
 } from "@sandbox-kit/sandbox";
@@ -533,8 +534,7 @@ describe("Daytona provider orchestration", () => {
       async [Symbol.asyncDispose](): Promise<void> {},
     })).initialize({});
     const makeDirectory = backend.makeDirectory;
-    if (makeDirectory === undefined)
-      throw new Error("makeDirectory is missing");
+    if (!makeDirectory) throw new Error("makeDirectory is missing");
     await expect(
       makeDirectory.call(
         backend,
@@ -549,10 +549,10 @@ describe("Daytona provider orchestration", () => {
       operation: "make_directory",
     });
   });
-});
 
   it("sends whole seconds for a file read and keeps a fractional deadline for listing", async () => {
     let downloadTimeout: number | undefined;
+    let bulkTimeout: number | undefined;
     let listed = false;
     const backend = new DaytonaProvider(() => ({
       async create(): Promise<DaytonaSandbox> {
@@ -565,6 +565,13 @@ describe("Daytona provider orchestration", () => {
               downloadTimeout = timeout;
               return Buffer.from("hi");
             },
+            async downloadFiles(
+              _files: readonly { source: string }[],
+              timeout?: number,
+            ) {
+              bulkTimeout = timeout;
+              return [{ source: "/tmp/note.txt", result: Buffer.from("hi") }];
+            },
             async listFiles() {
               listed = true;
               return [];
@@ -576,7 +583,7 @@ describe("Daytona provider orchestration", () => {
     })).initialize({});
     const readFile = backend.readFile;
     const listDirectory = backend.listDirectory;
-    if (readFile === undefined || listDirectory === undefined)
+    if (!readFile || !listDirectory)
       throw new Error("filesystem methods are missing");
     await readFile.call(
       backend,
@@ -586,6 +593,18 @@ describe("Daytona provider orchestration", () => {
       {},
     );
     expect(downloadTimeout).toBe(2);
+    expect(bulkTimeout).toBeUndefined();
+    await readFile.call(backend, "sandbox-1", "/tmp/note.txt", {}, {});
+    expect(bulkTimeout).toBe(0);
+    expect(downloadTimeout).toBe(2);
+    await readFile.call(
+      backend,
+      "sandbox-1",
+      "/tmp/note.txt",
+      { timeout: 0 },
+      {},
+    );
+    expect(bulkTimeout).toBe(0);
     await expect(
       readFile.call(
         backend,
@@ -621,7 +640,7 @@ describe("Daytona provider orchestration", () => {
     })).initialize({});
     const copyFromLocal = backend.copyFromLocal;
     const copyToLocal = backend.copyToLocal;
-    if (copyFromLocal === undefined || copyToLocal === undefined)
+    if (!copyFromLocal || !copyToLocal)
       throw new Error("copy methods are missing");
     await expect(
       copyFromLocal.call(
@@ -680,7 +699,7 @@ describe("Daytona provider orchestration", () => {
       async [Symbol.asyncDispose](): Promise<void> {},
     })).initialize({});
     const copyToLocal = backend.copyToLocal;
-    if (copyToLocal === undefined) throw new Error("copyToLocal is missing");
+    if (!copyToLocal) throw new Error("copyToLocal is missing");
     await expect(
       copyToLocal.call(backend, "sandbox-1", "/tmp/note.txt", local, {}, {}),
     ).rejects.toMatchObject({
@@ -689,3 +708,4 @@ describe("Daytona provider orchestration", () => {
       operation: "copy_to_local",
     });
   });
+});
