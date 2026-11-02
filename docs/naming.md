@@ -43,13 +43,15 @@ sdks/go/internal/sdk/       Shared SDK error type and provider helpers
 proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
 tooling/                   Developer CLI and YAML inventory loaders
-examples/go/<provider>/      One folder per provider, one module per example
+examples/go/<provider>/      One folder per provider; examples sit under
+                             filesystem/, configuration/, lifecycle/, or errors/
 sdks/typescript/contracts/   Generated protobuf wire types (@sandbox-kit/contracts)
 sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
   src/client/                Client runtime split across focused modules:
                                client.ts (Client + public re-exports),
-                               sandbox.ts (handle), types.ts, errors.ts,
-                               validation.ts, operation.ts (deadlines/signals)
+                               sandbox.ts (handle), filesystem.ts, types.ts,
+                               errors.ts, validation.ts, operation.ts
+                               (deadlines/signals)
   src/contracts/             Public type aliases over protobuf messages
   src/metadata/              Metadata map helpers
   src/internal/              Package-private duration/oneof/strip helpers
@@ -57,7 +59,8 @@ sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-
   src/mappings/              Create/info field mappings
   src/checks/                Provider create checks
   src/config/                Native SDK client configuration
-examples/typescript/<provider>/ One package per example
+examples/typescript/<provider>/ One package per example under
+                             filesystem/, configuration/, lifecycle/, or errors/
 ```
 
 Published TypeScript packages expose only their root export (`.`). Cross-folder
@@ -69,8 +72,8 @@ Go wire messages live in `sdks/go/internal/contracts`. `RejectUnmapped`,
 `OptionalDuration`, and `WithErrorContext` live in `sdks/go/internal/sdk`.
 Application modules cannot import either package. They use the aliases in
 `sdks/go/sandbox` (`CreateOptions`, `Config`, `ErrorInfo`, `NewError`).
-`CreateField`, `ConfigField`, and `InfoField` stay exported so application code
-can match `ErrorInfo.Field`.
+`CreateField`, `ConfigField`, `InfoField`, and `FileField` stay exported so
+application code can match `ErrorInfo.Field`.
 
 Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
@@ -88,14 +91,16 @@ handwritten aliases such as `sandbox_data_contracts.go` /
 | `capabilities.go`                                        | Optional backend operation interfaces (Go)               |
 | `creation.go`                                            | Provider create planning (Go)                            |
 | `lifecycle.go`                                           | Provider lifecycle calls (Go)                            |
+| `filesystem.go`                                          | Filesystem calls on the sandbox handle (Go)              |
 | `metadata.go`                                            | Observed sandbox metadata (Go)                           |
 | `operation.go`                                           | Sandbox handle operation gate (Go)                       |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Go providers keep SDK calls in `sandbox.go` and the
 create plan in `creation.go`. Daytona also keeps lifecycle calls in
-`lifecycle.go` and observed metadata in `metadata.go`. Keep YAML inventories
-aligned when changing those files.
+`lifecycle.go` and observed metadata in `metadata.go`. Filesystem adapters live
+in each provider's `filesystem.go`. Keep YAML inventories aligned when changing
+those files.
 
 ## Language conventions
 

@@ -42,6 +42,9 @@ func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _
 }
 
 func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath string, _ *sandbox.FileCopyOptions) error {
+	if err := localSourceFile(localPath, "copy_from_local"); err != nil {
+		return err
+	}
 	instance, err := b.fileSandbox(ctx, id, "copy_from_local")
 	if err != nil {
 		return err
@@ -53,6 +56,9 @@ func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath s
 }
 
 func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath string, _ *sandbox.FileCopyOptions) error {
+	if err := localDestination(localPath, "copy_to_local"); err != nil {
+		return err
+	}
 	instance, err := b.fileSandbox(ctx, id, "copy_to_local")
 	if err != nil {
 		return err
@@ -152,24 +158,71 @@ func mapFileError(err error, operation, localField string) error {
 		return nil
 	}
 	var pathError *os.PathError
-	if errors.As(err, &pathError) {
+	if localField != "" && errors.As(err, &pathError) {
 		kind := sandbox.ErrorKindInvalidArgument
 		if errors.Is(pathError.Err, os.ErrNotExist) {
 			kind = sandbox.ErrorKindNotFound
-		}
-		field := localField
-		if field == "" {
-			field = sandbox.FileFieldLocalPath
 		}
 		return sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      kind,
 			Provider:  "modal",
 			Operation: operation,
-			Field:     field,
+			Field:     localField,
 			Message:   err.Error(),
 		}, err)
 	}
 	return mapProviderError(err, operation)
+}
+
+func localSourceFile(path, operation string) error {
+	info, err := os.Stat(path)
+	if err != nil {
+		return localPathError(err, operation)
+	}
+	if info.IsDir() {
+		return localDirectoryError(operation)
+	}
+	return nil
+}
+
+// localDestination rejects a path that is already a directory. A missing path
+// is left for Modal to create, including missing parents.
+func localDestination(path, operation string) error {
+	info, err := os.Stat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return localPathError(err, operation)
+	}
+	if info.IsDir() {
+		return localDirectoryError(operation)
+	}
+	return nil
+}
+
+func localDirectoryError(operation string) error {
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:      sandbox.ErrorKindInvalidArgument,
+		Provider:  "modal",
+		Operation: operation,
+		Field:     sandbox.FileFieldLocalPath,
+		Message:   "sandbox-kit modal: local path is a directory",
+	}, nil)
+}
+
+func localPathError(err error, operation string) error {
+	kind := sandbox.ErrorKindInvalidArgument
+	if errors.Is(err, os.ErrNotExist) {
+		kind = sandbox.ErrorKindNotFound
+	}
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:      kind,
+		Provider:  "modal",
+		Operation: operation,
+		Field:     sandbox.FileFieldLocalPath,
+		Message:   err.Error(),
+	}, err)
 }
 
 func modalFileInfo(info sdk.FileInfo) *sandbox.FileInfo {
