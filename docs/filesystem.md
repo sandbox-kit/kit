@@ -115,9 +115,9 @@ directories of the sandbox path.
 A missing local file is not found. The error field is `local_path`. A local
 directory is an invalid argument with the same field.
 
-`CopyToLocal` with TypeScript Daytona or with Modal creates a missing local
-parent directory. Go Daytona requires that parent to exist. A missing parent
-is not found before the file is downloaded, and the field is `local_path`.
+`CopyToLocal` creates a missing local parent directory. A local destination
+that is already a directory is an invalid argument, and the field is
+`local_path`.
 
 ```ts
 await sandbox.filesystem.copyFromLocal("./note.txt", "/tmp/note.txt");

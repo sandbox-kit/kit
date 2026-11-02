@@ -58,14 +58,35 @@ func TestLocalDestination(t *testing.T) {
 	if err := localDestination(filepath.Join(dir, "out.txt"), "copy_to_local"); err != nil {
 		t.Fatal(err)
 	}
-	err := localDestination(filepath.Join(dir, "missing", "out.txt"), "copy_to_local")
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindNotFound || detail.Field != sandbox.FileFieldLocalPath || !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("missing parent: %#v", err)
+	if err := localDestination(filepath.Join(dir, "missing", "out.txt"), "copy_to_local"); err != nil {
+		t.Fatal(err)
 	}
-	err = localDestination(dir, "copy_to_local")
+	err := localDestination(dir, "copy_to_local")
+	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.FileFieldLocalPath || detail.Operation != "copy_to_local" {
 		t.Fatalf("directory: %#v", err)
+	}
+	path := filepath.Join(dir, "out.txt")
+	if err := os.WriteFile(path, []byte("hi"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := localDestination(path, "copy_to_local"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestEnsureLocalParent(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "nested", "out.txt")
+	if err := ensureLocalParent(path, "copy_to_local"); err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(filepath.Dir(path))
+	if err != nil || !info.IsDir() {
+		t.Fatalf("parent: %#v %#v", info, err)
+	}
+	if err := ensureLocalParent(filepath.Join(dir, "out.txt"), "copy_to_local"); err != nil {
+		t.Fatal(err)
 	}
 }
 

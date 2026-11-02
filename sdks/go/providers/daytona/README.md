@@ -81,9 +81,8 @@ ends the call at 1.5 seconds. `Parents` defaults to true and creates missing
 parents. `Parents` set to false is rejected. `MakeDirectory` returns the
 provider error when the directory already exists. A missing file passed to
 `CopyFromLocal` is not found, and the error field is `local_path`. A local
-directory is an invalid argument with the same field. `CopyToLocal` requires
-the local parent directory to exist. A missing parent is not found before the
-file is downloaded, and the field is `local_path`.
+directory is an invalid argument with the same field. `CopyToLocal` creates a
+missing local parent directory.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create
@@ -91,13 +90,13 @@ uses the snapshot's resources.
 
 ## Examples
 
-| Operation   | Program                                                                                                                       |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Operation   | Program                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Create      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)             |
-| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)                       |
+| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)                          |
 | Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
-| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)                   |
-| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
+| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)                       |
+| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                     |
 
 ## License
 

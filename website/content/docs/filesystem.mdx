@@ -129,7 +129,7 @@ err := instance.Filesystem().CopyFromLocal(ctx, "note.txt", "/tmp/note.txt", nil
 
 ## Copy a file out
 
-`copyToLocal` copies a sandbox file onto your disk. The remote path comes first. An existing local file is replaced. TypeScript Daytona and Modal create a missing local parent directory. Go Daytona requires that parent to exist. A missing parent is not found before the file is downloaded, and the field is `local_path`. A local directory is an invalid argument with the same field.
+`copyToLocal` copies a sandbox file onto your disk. The remote path comes first. An existing local file is replaced. A missing local parent directory is created. A local directory is an invalid argument, and the field is `local_path`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

@@ -60,6 +60,9 @@ func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath str
 	if err := localDestination(localPath, "copy_to_local"); err != nil {
 		return err
 	}
+	if err := ensureLocalParent(localPath, "copy_to_local"); err != nil {
+		return err
+	}
 	instance, err := b.fileSandbox(ctx, id, "copy_to_local")
 	if err != nil {
 		return err
@@ -184,10 +187,12 @@ func localSourceFile(path, operation string) error {
 	return nil
 }
 
+// localDestination rejects a path that is already a directory. A missing path
+// is left for ensureLocalParent and Daytona's write.
 func localDestination(path, operation string) error {
 	info, err := os.Stat(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return localParent(path, operation)
+		return nil
 	}
 	if err != nil {
 		return localPathError(err, operation)
@@ -198,19 +203,15 @@ func localDestination(path, operation string) error {
 	return nil
 }
 
-func localParent(path, operation string) error {
-	info, err := os.Stat(filepath.Dir(path))
-	if err != nil {
-		return localPathError(err, operation)
+// ensureLocalParent creates missing local parents. Daytona's DownloadFile uses
+// os.WriteFile, which does not create them.
+func ensureLocalParent(path, operation string) error {
+	parent := filepath.Dir(path)
+	if parent == "." || parent == string(filepath.Separator) {
+		return nil
 	}
-	if !info.IsDir() {
-		return sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidArgument,
-			Provider:  "daytona",
-			Operation: operation,
-			Field:     sandbox.FileFieldLocalPath,
-			Message:   "sandbox-kit daytona: local parent is not a directory",
-		}, nil)
+	if err := os.MkdirAll(parent, 0o755); err != nil {
+		return localPathError(err, operation)
 	}
 	return nil
 }
