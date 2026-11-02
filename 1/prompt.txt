@@ -1,0 +1,76 @@
+can u check if there is any validation / field mapping of providers issues in file system
+
+---
+
+are u sure ?
+
+---
+
+fix it
+
+---
+
+cool check if there are more bugs find until u can't see any in file system.
+
+---
+
+The Daytona toolbox model still types size as int32. A larger value fails inside the Daytona client before Kit maps the metadata. That is the generated schema, not a field Kit drops after a successful decode.
+
+explian with example ?
+
+---
+
+how to fix it ? 
+
++ there would be similar issue due to protobuf generation ? 
+
+can u. check both the provideers sdk in golang and typescript and suggest siolution .
+
+---
+
+so what changes we need ot make give me example ?
+
+---
+
+can't we convert that size into int64 instead of writing whole struct ?
+
+---
+
+our targeted value to response is 64 ? and we recieve from native sdk 32 right /
+
+---
+
+but when native sdk will never return number more than int32 why to worry
+
+---
+
+so whatever u suggested  aruound what all are bugs currently lemme know again after knowing this.
+
+---
+
+so no chagnes ?
+
+---
+
+cool the changes which are there, made which are un commited are were real issues right /
+
+---
+
+apart from it check file system module if there are issues or we can commit this ?
+
+---
+
+push to branch 
++ update the  descritpion chagnes in PR which has been made so far in this branch if its not there yet .
+
+---
+
+in example can we do this seperation in folders
+
+all the examples of particular language must be within a folder
+
+like filesystem then go/daytona/filesystem similarly for configuration/ lifecycle nand whatever seperation u wanna make  ?
+
+---
+
+cool commit and push to branch
