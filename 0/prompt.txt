@@ -1,0 +1,24 @@
+now can u review the changes in this branch and lemme know everythin looks good ?
+
+---
+
+explian with examples whats wrong ?
+
+---
+
+check both the providers sdks + more providers from internet. 
+
+and check if whatever u are saying is correct.
+
+---
+
+so what neds to be fixed ?
+
+---
+
+cool fix things
+
+---
+
+Optional / low priority
+fixes were also done right ?
