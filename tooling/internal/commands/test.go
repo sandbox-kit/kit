@@ -152,6 +152,9 @@ func newTestCommand(config *settings, runner runner) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if err := checkWorkspaceSum(cmd.Context(), root, config.goBinary); err != nil {
+				return err
+			}
 			for _, module := range goTestModules {
 				if err := runner.run(cmd.Context(), step{
 					filepath.Join(root, filepath.FromSlash(module)), config.goBinary, []string{"test", "./..."},
