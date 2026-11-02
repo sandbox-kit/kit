@@ -93,10 +93,10 @@ uses the snapshot's resources.
 
 | Operation   | Program                                                                                                                       |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Create      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-sandbox)             |
-| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/read-daytona-file)                       |
-| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/create-daytona-with-policies) |
-| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/get-daytona-sandbox)                   |
+| Create      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)             |
+| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)                       |
+| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
+| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)                   |
 | All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                       |
 
 ## License

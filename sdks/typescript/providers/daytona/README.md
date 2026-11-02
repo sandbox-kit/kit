@@ -95,10 +95,10 @@ inherit snapshot resources.
 
 | Example     | Project                                                                                                                               |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-sandbox)             |
-| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/read-daytona-file)                       |
-| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies) |
-| Retrieval   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/get-daytona-sandbox)                   |
+| Creation    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)             |
+| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file)                       |
+| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies) |
+| Retrieval   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/get-daytona-sandbox)                   |
 | Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                               |
 
 ## License

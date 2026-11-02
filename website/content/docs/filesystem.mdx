@@ -77,7 +77,7 @@ fmt.Printf("%s\n", data)
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/read-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/read-modal-file).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file).
 
 ## Write a file
 
@@ -102,7 +102,7 @@ err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", body, nil
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/write-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/write-modal-file).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/write-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/write-modal-file).
 
 ## Copy a file in
 
@@ -125,7 +125,7 @@ err := instance.Filesystem().CopyFromLocal(ctx, "note.txt", "/tmp/note.txt", nil
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/copy-file-into-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/copy-file-into-modal).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-into-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-into-modal).
 
 ## Copy a file out
 
@@ -148,7 +148,7 @@ err := instance.Filesystem().CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil)
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/copy-file-from-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/copy-file-from-modal).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-from-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-from-modal).
 
 ## Create a directory
 
@@ -179,7 +179,7 @@ err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/make-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/make-modal-directory).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/make-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/make-modal-directory).
 
 ## List a directory
 
@@ -209,7 +209,7 @@ for _, entry := range entries {
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/list-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/list-modal-directory).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/list-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/list-modal-directory).
 
 ## Read metadata
 
@@ -237,7 +237,7 @@ fmt.Println(info.GetType(), info.GetSize(), info.GetMode())
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/stat-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/stat-modal-file).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/stat-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/stat-modal-file).
 
 ## Delete a file or directory
 
@@ -269,4 +269,4 @@ if err := files.Remove(ctx, "/tmp/kit-files", &sandbox.RemoveOptions{
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/remove-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/remove-modal-file).
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/remove-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/remove-modal-file).

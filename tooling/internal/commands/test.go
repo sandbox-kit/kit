@@ -11,31 +11,47 @@ import (
 
 var goTestModules = []string{
 	"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona",
-	"examples/go/modal/create-modal-sandbox", "examples/go/daytona/create-daytona-sandbox",
-	"examples/go/modal/create-modal-with-resources", "examples/go/daytona/create-daytona-with-policies",
-	"examples/go/daytona/create-daytona-from-snapshot", "examples/go/daytona/create-daytona-from-image",
-	"examples/go/daytona/create-daytona-with-runtime",
-	"examples/go/daytona/create-daytona-ephemeral", "examples/go/daytona/create-daytona-linked",
-	"examples/go/daytona/create-daytona-with-kvm", "examples/go/daytona/create-daytona-with-labels",
-	"examples/go/daytona/create-daytona-with-network", "examples/go/daytona/create-daytona-with-secrets",
-	"examples/go/daytona/create-daytona-with-ttl",
-	"examples/go/modal/create-modal-with-runtime", "examples/go/modal/create-modal-gvisor",
-	"examples/go/modal/create-modal-linux-vm", "examples/go/modal/create-modal-with-placement",
-	"examples/go/modal/create-modal-with-labels", "examples/go/modal/create-modal-with-network",
-	"examples/go/modal/create-modal-idle", "examples/go/modal/create-modal-ready",
-	"examples/go/modal/create-modal-verbose", "examples/go/modal/create-modal-with-identity",
-	"examples/go/modal/handle-modal-errors", "examples/go/daytona/handle-daytona-errors",
-	"examples/go/daytona/stop-daytona-sandbox", "examples/go/modal/terminate-modal-sandbox",
-	"examples/go/daytona/get-daytona-sandbox", "examples/go/daytona/refresh-daytona-sandbox",
-	"examples/go/daytona/start-daytona-sandbox", "examples/go/daytona/pause-daytona-sandbox",
-	"examples/go/daytona/archive-daytona-sandbox", "examples/go/daytona/delete-daytona-sandbox",
-	"examples/go/daytona/force-stop-daytona-sandbox", "examples/go/daytona/request-daytona-deletion",
-	"examples/go/daytona/start-daytona-with-timeout",
-	"examples/go/modal/attach-modal-sandbox", "examples/go/modal/request-modal-termination",
-	"examples/go/daytona/close-daytona-handle", "examples/go/modal/close-modal-handle",
-	"examples/go/modal/create-modal-client-timeout", "examples/go/modal/create-modal-tcp-ready",
-	"examples/go/modal/create-modal-with-allowlists", "examples/go/modal/create-modal-with-ports",
-	"examples/go/modal/create-modal-with-secrets", "examples/go/modal/terminate-modal-with-timeout",
+	"examples/go/modal/configuration/create-modal-sandbox", "examples/go/daytona/configuration/create-daytona-sandbox",
+	"examples/go/modal/configuration/create-modal-with-resources", "examples/go/daytona/configuration/create-daytona-with-policies",
+	"examples/go/daytona/configuration/create-daytona-from-snapshot", "examples/go/daytona/configuration/create-daytona-from-image",
+	"examples/go/daytona/configuration/create-daytona-with-runtime",
+	"examples/go/daytona/configuration/create-daytona-ephemeral", "examples/go/daytona/configuration/create-daytona-linked",
+	"examples/go/daytona/configuration/create-daytona-with-kvm", "examples/go/daytona/configuration/create-daytona-with-labels",
+	"examples/go/daytona/configuration/create-daytona-with-network", "examples/go/daytona/configuration/create-daytona-with-secrets",
+	"examples/go/daytona/configuration/create-daytona-with-ttl",
+	"examples/go/modal/configuration/create-modal-with-runtime", "examples/go/modal/configuration/create-modal-gvisor",
+	"examples/go/modal/configuration/create-modal-linux-vm", "examples/go/modal/configuration/create-modal-with-placement",
+	"examples/go/modal/configuration/create-modal-with-labels", "examples/go/modal/configuration/create-modal-with-network",
+	"examples/go/modal/configuration/create-modal-idle", "examples/go/modal/configuration/create-modal-ready",
+	"examples/go/modal/configuration/create-modal-verbose", "examples/go/modal/configuration/create-modal-with-identity",
+	"examples/go/modal/errors/handle-modal-errors", "examples/go/daytona/errors/handle-daytona-errors",
+	"examples/go/daytona/lifecycle/stop-daytona-sandbox", "examples/go/modal/lifecycle/terminate-modal-sandbox",
+	"examples/go/daytona/lifecycle/get-daytona-sandbox", "examples/go/daytona/lifecycle/refresh-daytona-sandbox",
+	"examples/go/daytona/lifecycle/start-daytona-sandbox", "examples/go/daytona/lifecycle/pause-daytona-sandbox",
+	"examples/go/daytona/lifecycle/archive-daytona-sandbox", "examples/go/daytona/lifecycle/delete-daytona-sandbox",
+	"examples/go/daytona/lifecycle/force-stop-daytona-sandbox", "examples/go/daytona/lifecycle/request-daytona-deletion",
+	"examples/go/daytona/lifecycle/start-daytona-with-timeout",
+	"examples/go/modal/lifecycle/attach-modal-sandbox", "examples/go/modal/lifecycle/request-modal-termination",
+	"examples/go/daytona/lifecycle/close-daytona-handle", "examples/go/modal/lifecycle/close-modal-handle",
+	"examples/go/modal/configuration/create-modal-client-timeout", "examples/go/modal/configuration/create-modal-tcp-ready",
+	"examples/go/modal/configuration/create-modal-with-allowlists", "examples/go/modal/configuration/create-modal-with-ports",
+	"examples/go/modal/configuration/create-modal-with-secrets", "examples/go/modal/lifecycle/terminate-modal-with-timeout",
+	"examples/go/daytona/filesystem/copy-file-from-daytona",
+	"examples/go/daytona/filesystem/copy-file-into-daytona",
+	"examples/go/daytona/filesystem/list-daytona-directory",
+	"examples/go/daytona/filesystem/make-daytona-directory",
+	"examples/go/daytona/filesystem/read-daytona-file",
+	"examples/go/daytona/filesystem/remove-daytona-file",
+	"examples/go/daytona/filesystem/stat-daytona-file",
+	"examples/go/daytona/filesystem/write-daytona-file",
+	"examples/go/modal/filesystem/copy-file-from-modal",
+	"examples/go/modal/filesystem/copy-file-into-modal",
+	"examples/go/modal/filesystem/list-modal-directory",
+	"examples/go/modal/filesystem/make-modal-directory",
+	"examples/go/modal/filesystem/read-modal-file",
+	"examples/go/modal/filesystem/remove-modal-file",
+	"examples/go/modal/filesystem/stat-modal-file",
+	"examples/go/modal/filesystem/write-modal-file",
 }
 
 var typescriptTestModules = []struct {
@@ -66,19 +82,28 @@ func typescriptModules(root string) ([]struct {
 		if !provider.IsDir() {
 			continue
 		}
-		projects, err := os.ReadDir(filepath.Join(examplesRoot, provider.Name()))
+		areas, err := os.ReadDir(filepath.Join(examplesRoot, provider.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("read TypeScript %s examples: %w", provider.Name(), err)
 		}
-		for _, project := range projects {
-			if !project.IsDir() {
+		for _, area := range areas {
+			if !area.IsDir() {
 				continue
 			}
-			manifest := filepath.Join(examplesRoot, provider.Name(), project.Name(), "package.json")
-			if _, err := os.Stat(manifest); err == nil {
-				examplePaths = append(examplePaths, filepath.ToSlash(filepath.Join("examples", "typescript", provider.Name(), project.Name())))
-			} else if !os.IsNotExist(err) {
-				return nil, fmt.Errorf("inspect TypeScript example %s: %w", project.Name(), err)
+			projects, err := os.ReadDir(filepath.Join(examplesRoot, provider.Name(), area.Name()))
+			if err != nil {
+				return nil, fmt.Errorf("read TypeScript %s %s examples: %w", provider.Name(), area.Name(), err)
+			}
+			for _, project := range projects {
+				if !project.IsDir() {
+					continue
+				}
+				manifest := filepath.Join(examplesRoot, provider.Name(), area.Name(), project.Name(), "package.json")
+				if _, err := os.Stat(manifest); err == nil {
+					examplePaths = append(examplePaths, filepath.ToSlash(filepath.Join("examples", "typescript", provider.Name(), area.Name(), project.Name())))
+				} else if !os.IsNotExist(err) {
+					return nil, fmt.Errorf("inspect TypeScript example %s: %w", project.Name(), err)
+				}
 			}
 		}
 	}

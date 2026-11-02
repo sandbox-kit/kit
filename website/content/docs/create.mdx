@@ -63,7 +63,7 @@ Name a snapshot by its reference, for example `daytona-small`. In TypeScript tha
 
 A linked sandbox must be ephemeral. The client rejects the request otherwise.
 
-Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
+Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
 
 ## Modal
 
@@ -122,7 +122,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
 
-Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies. Projects for [resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources), [idle timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-idle), [placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-placement), and [readiness](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-ready) are in the repository. Go projects sit beside them under `examples/go/modal/`.
+Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies. Projects for [resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources), [idle timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-idle), [placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-placement), and [readiness](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-ready) are in the repository. Go projects sit beside them under `examples/go/modal/`.
 
 ## What you get back
 

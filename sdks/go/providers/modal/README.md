@@ -93,10 +93,10 @@ create time.
 
 | Operation   | Program                                                                                                                   |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Create      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
-| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/read-modal-file)                         |
-| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
-| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
+| Create      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox)               |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file)                         |
+| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox)               |
 | All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
 
 ## License

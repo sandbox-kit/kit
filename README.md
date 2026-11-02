@@ -115,7 +115,7 @@ TypeScript (Daytona):
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/typescript/daytona/create-daytona-sandbox
+cd kit/examples/typescript/daytona/configuration/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 npm install && npm run build && npm start
 ```
@@ -124,14 +124,14 @@ Go (Daytona), from a fresh clone:
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/go/daytona/create-daytona-sandbox
+cd kit/examples/go/daytona/configuration/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 go run .
 ```
 
 Modal needs a token pair and an existing app:
-[TypeScript](examples/typescript/modal/create-modal-sandbox/README.md) ·
-[Go](examples/go/modal/create-modal-sandbox/README.md).
+[TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
+[Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
 
 Creation examples provision real sandboxes. Lifecycle examples use the ID in
 `.env` (stop / terminate / archive / delete can destroy that resource).

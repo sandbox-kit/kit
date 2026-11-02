@@ -81,10 +81,10 @@ memory. Omitted values keep Modal defaults. Disk size cannot be raised at create
 
 | Example     | Project                                                                                                                           |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Creation    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-sandbox)               |
-| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/read-modal-file)                         |
-| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/create-modal-with-resources) |
-| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/attach-modal-sandbox)               |
+| Creation    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox)               |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                         |
+| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)               |
 | Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                           |
 
 ## License

@@ -82,10 +82,10 @@ const text = new TextDecoder().decode(data);
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
 ```
 
-[Go Daytona](../examples/go/daytona/read-daytona-file/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/read-daytona-file/README.md) ·
-[Go Modal](../examples/go/modal/read-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/read-modal-file/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/read-daytona-file/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/read-daytona-file/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/read-modal-file/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/read-modal-file/README.md).
 
 ## Write a file
 
@@ -101,10 +101,10 @@ await sandbox.filesystem.writeFile("/tmp/kit-files/note.txt", body);
 err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", []byte("hello\n"), nil)
 ```
 
-[Go Daytona](../examples/go/daytona/write-daytona-file/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/write-daytona-file/README.md) ·
-[Go Modal](../examples/go/modal/write-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/write-modal-file/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/write-daytona-file/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/write-daytona-file/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/write-modal-file/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/write-modal-file/README.md).
 
 ## Copy a file
 
@@ -135,16 +135,16 @@ if err := files.CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil); err != nil {
 ```
 
 Into the sandbox:
-[Go Daytona](../examples/go/daytona/copy-file-into-daytona/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/copy-file-into-daytona/README.md) ·
-[Go Modal](../examples/go/modal/copy-file-into-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/copy-file-into-modal/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/copy-file-into-daytona/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-into-daytona/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/copy-file-into-modal/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-into-modal/README.md).
 
 Out of the sandbox:
-[Go Daytona](../examples/go/daytona/copy-file-from-daytona/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/copy-file-from-daytona/README.md) ·
-[Go Modal](../examples/go/modal/copy-file-from-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/copy-file-from-modal/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/copy-file-from-daytona/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-from-daytona/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/copy-file-from-modal/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-from-modal/README.md).
 
 ## Create a directory
 
@@ -171,10 +171,10 @@ err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox
 })
 ```
 
-[Go Daytona](../examples/go/daytona/make-daytona-directory/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/make-daytona-directory/README.md) ·
-[Go Modal](../examples/go/modal/make-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/make-modal-directory/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/make-daytona-directory/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/make-daytona-directory/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/make-modal-directory/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/make-modal-directory/README.md).
 
 ## List a directory
 
@@ -192,10 +192,10 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 
 `size` is a byte count: `bigint` in TypeScript and `int64` in Go.
 
-[Go Daytona](../examples/go/daytona/list-daytona-directory/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/list-daytona-directory/README.md) ·
-[Go Modal](../examples/go/modal/list-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/list-modal-directory/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/list-daytona-directory/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/list-daytona-directory/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/list-modal-directory/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/list-modal-directory/README.md).
 
 ## Read metadata
 
@@ -214,10 +214,10 @@ console.log(info.type, info.size);
 info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 ```
 
-[Go Daytona](../examples/go/daytona/stat-daytona-file/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/stat-daytona-file/README.md) ·
-[Go Modal](../examples/go/modal/stat-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/stat-modal-file/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/stat-daytona-file/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/stat-daytona-file/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/stat-modal-file/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/stat-modal-file/README.md).
 
 ## Delete a file or directory
 
@@ -243,7 +243,7 @@ if err := files.Remove(ctx, "/tmp/kit-files", &sandbox.RemoveOptions{
 }
 ```
 
-[Go Daytona](../examples/go/daytona/remove-daytona-file/README.md) ·
-[TypeScript Daytona](../examples/typescript/daytona/remove-daytona-file/README.md) ·
-[Go Modal](../examples/go/modal/remove-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/remove-modal-file/README.md).
+[Go Daytona](../examples/go/daytona/filesystem/remove-daytona-file/README.md) ·
+[TypeScript Daytona](../examples/typescript/daytona/filesystem/remove-daytona-file/README.md) ·
+[Go Modal](../examples/go/modal/filesystem/remove-modal-file/README.md) ·
+[TypeScript Modal](../examples/typescript/modal/filesystem/remove-modal-file/README.md).
