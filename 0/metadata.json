@@ -1,0 +1,20 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6DBV2MFRNGSQPGPKD9BEDCN",
+  "session_id": "9bd4f2ba-fd0e-4da9-8750-7d191da3d5fa",
+  "strategy": "manual-commit",
+  "created_at": "2026-11-02T05:31:16.280644Z",
+  "branch": "feat/sandbox-filesystem",
+  "checkpoints_count": 13,
+  "save_step_count": 1,
+  "files_touched": [],
+  "agent": "Cursor",
+  "model": "default",
+  "turn_id": "45ab729480aa",
+  "compact_transcript_start": 0,
+  "session_metrics": {
+    "turn_count": 47,
+    "context_tokens": 247967,
+    "context_window_size": 256000
+  }
+}
