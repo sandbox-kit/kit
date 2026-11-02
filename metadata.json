@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6E8MGMP5YKH6CDDZFVZ6R8P",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-filesystem",
+  "checkpoints_count": 13,
+  "files_touched": [
+    "docs/filesystem.md",
+    "sdks/go/providers/daytona/filesystem.go",
+    "sdks/go/providers/daytona/filesystem_test.go",
+    "sdks/go/providers/daytona/go.mod",
+    "website/content/docs/filesystem.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 509993,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 13417216,
+    "output_tokens": 77365,
+    "api_call_count": 13
+  }
+}
