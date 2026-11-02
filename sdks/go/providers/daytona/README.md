@@ -82,8 +82,8 @@ parents. `Parents` set to false is rejected. `MakeDirectory` returns the
 provider error when the directory already exists. A missing file passed to
 `CopyFromLocal` is not found, and the error field is `local_path`. A local
 directory is an invalid argument with the same field. `CopyToLocal` requires
-the local parent directory to exist. A missing parent is not found, and the
-field is `local_path`.
+the local parent directory to exist. A missing parent is not found before the
+file is downloaded, and the field is `local_path`.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create

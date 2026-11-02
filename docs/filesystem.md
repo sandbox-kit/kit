@@ -47,8 +47,9 @@ milliseconds. Go records it as a `time.Duration`.
 TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
 pass that duration to Daytona as a whole number of seconds. `2000` is two
 seconds. `1500` is 1.5 seconds, so those four calls reject it. The error field
-is `timeout`. An omitted timeout on those four calls is passed as `0`. Daytona
-adds no transfer limit, and the abort signal carries the client deadline.
+is `timeout`. An omitted timeout, and an explicit zero, on those four calls
+are passed as `0`. Daytona adds no transfer limit. When the timeout is
+omitted, the abort signal carries the client deadline.
 
 `makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
 `1500` ends the call at 1.5 seconds. Every Go file call uses the context as
@@ -116,7 +117,7 @@ directory is an invalid argument with the same field.
 
 `CopyToLocal` with TypeScript Daytona or with Modal creates a missing local
 parent directory. Go Daytona requires that parent to exist. A missing parent
-is not found, and the field is `local_path`.
+is not found before the file is downloaded, and the field is `local_path`.
 
 ```ts
 await sandbox.filesystem.copyFromLocal("./note.txt", "/tmp/note.txt");

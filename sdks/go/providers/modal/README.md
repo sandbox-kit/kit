@@ -82,8 +82,8 @@ absolute. A file timeout is the context deadline. `1500 * time.Millisecond`
 ends the call at 1.5 seconds. `Parents` defaults to true: missing parents are
 created, and an existing directory is accepted. `Parents` false requires the
 parent to exist. A missing file passed to `CopyFromLocal` is not found, and
-the error field is `local_path`. `CopyToLocal` creates a missing local parent
-directory.
+the error field is `local_path`. A local directory is an invalid argument with
+the same field. `CopyToLocal` creates a missing local parent directory.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at

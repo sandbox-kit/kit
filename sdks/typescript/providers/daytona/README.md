@@ -73,11 +73,11 @@ the sandbox.
 **Files** through `sandbox.filesystem`. Paths in the sandbox are absolute.
 `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal` pass a timeout to
 Daytona as a whole number of seconds. `2000` is two seconds. `1500` is
-rejected, and the field is `timeout`. An omitted timeout on those four calls
-is passed as `0`, so Daytona adds no transfer limit and the abort signal
-carries the client deadline. `makeDirectory`, `listDirectory`,
-`stat`, and `remove` use the abort signal, so `1500` ends the call at 1.5
-seconds. `parents` defaults to true and creates missing parents. `parents:
+rejected, and the field is `timeout`. An omitted timeout, and an explicit
+zero, on those four calls are passed as `0`. Daytona adds no transfer limit.
+When the timeout is omitted, the abort signal carries the client deadline.
+`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal, so
+`1500` ends the call at 1.5 seconds. `parents` defaults to true and creates missing parents. `parents:
 false` is rejected. `makeDirectory` returns the provider error when the
 directory already exists. A missing file passed to `copyFromLocal` is not
 found, and the error field is `local_path`. A local directory is an invalid
