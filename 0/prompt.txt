@@ -1,0 +1,35 @@
+https://www.daytona.io/docs/en/process-code-execution/ 
+https://modal.com/docs/guide/sandbox-spawn 
+
+and find more things around code & command & process execution.
+
+from both the docs.
+
+we need to add it as unfieid interface
+
+---
+
+u know from all the sessions of thing project that what all mistakes can happen. 
+
+u know that info and implelment taking care of all those things and implement it. if u need help lemme know before u start
+
+---
+
+go with your recommendation
+
+---
+
+create a branch commit push to branch create a PR with nice title and descriptoion explining changes + also with diagrams.
+
+---
+
+add more and more examples for this. 
++ also can u update the user facing docs, readme, .md of sdks which npm and pkg.go.dev shows. 
+
+U must also include Example for godoc docs as it shows there. 
+
+do it for both this changes as well as file system and anything u feel should be added.
+
+---
+
+can u also update website.
