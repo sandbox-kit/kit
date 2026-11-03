@@ -50,7 +50,8 @@ type (
 	Scope = sandboxv1.Scope
 )
 
-// Duration converts a Go duration into the timeout value used by Config and lifecycle options.
+// Duration converts a Go duration into the timeout value used by Config,
+// lifecycle options, and Filesystem option messages.
 func Duration(value time.Duration) *durationpb.Duration {
 	return durationpb.New(value)
 }

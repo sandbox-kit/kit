@@ -16,6 +16,7 @@ import {
   PortTransport as ProtoPortTransport,
   SandboxState as ProtoSandboxState,
   SecretInjection as ProtoSecretInjection,
+  FileType as ProtoFileType,
   SnapshotKind as ProtoSnapshotKind,
   WaitCondition as ProtoWaitCondition,
   type ArchiveOptions as ProtoArchiveOptions,
@@ -24,6 +25,14 @@ import {
   type DeleteOptions as ProtoDeleteOptions,
   type ErrorInfo as ProtoErrorInfo,
   type ExitResult as ProtoExitResult,
+  type FileCopyOptions as ProtoFileCopyOptions,
+  type FileInfo as ProtoFileInfo,
+  type FileReadOptions as ProtoFileReadOptions,
+  type FileWriteOptions as ProtoFileWriteOptions,
+  type ListDirectoryOptions as ProtoListDirectoryOptions,
+  type MakeDirectoryOptions as ProtoMakeDirectoryOptions,
+  type RemoveOptions as ProtoRemoveOptions,
+  type StatOptions as ProtoStatOptions,
   type IsolationConfig as ProtoIsolationConfig,
   type MetadataList as ProtoMetadataList,
   type MetadataObject as ProtoMetadataObject,
@@ -80,6 +89,28 @@ export type ArchiveOptions = DurationFieldsToMs<
 >;
 export type DeleteOptions = DurationFieldsToMs<StripProto<ProtoDeleteOptions>>;
 export type ExitResult = StripProto<ProtoExitResult>;
+export type FileInfo = StripProto<ProtoFileInfo>;
+/**
+ * Public filesystem call options for `Backend` and provider adapters (ms
+ * timeouts). Same duration remapping as {@link CreateOptions}.
+ */
+export type FileReadOptions = DurationFieldsToMs<
+  StripProto<ProtoFileReadOptions>
+>;
+export type FileWriteOptions = DurationFieldsToMs<
+  StripProto<ProtoFileWriteOptions>
+>;
+export type FileCopyOptions = DurationFieldsToMs<
+  StripProto<ProtoFileCopyOptions>
+>;
+export type MakeDirectoryOptions = DurationFieldsToMs<
+  StripProto<ProtoMakeDirectoryOptions>
+>;
+export type ListDirectoryOptions = DurationFieldsToMs<
+  StripProto<ProtoListDirectoryOptions>
+>;
+export type StatOptions = DurationFieldsToMs<StripProto<ProtoStatOptions>>;
+export type RemoveOptions = DurationFieldsToMs<StripProto<ProtoRemoveOptions>>;
 export type MetadataValue = StripProto<ProtoMetadataValue>;
 export type MetadataList = StripProto<ProtoMetadataList>;
 export type MetadataObject = StripProto<ProtoMetadataObject>;
@@ -171,3 +202,6 @@ export type SandboxState = (typeof SandboxState)[keyof typeof SandboxState];
 export const LifecycleCapability = protoEnum(ProtoLifecycleCapability);
 export type LifecycleCapability =
   (typeof LifecycleCapability)[keyof typeof LifecycleCapability];
+
+export const FileType = protoEnum(ProtoFileType);
+export type FileType = (typeof FileType)[keyof typeof FileType];

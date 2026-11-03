@@ -81,14 +81,15 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Covers package boundaries, public exports, `pyproject.toml`,
-  source layouts, and dependency organization for a Python SDK under
-  `sdks/python/`.
+  source layouts, and dependency organization for a Python language binding that
+  would follow the same provider-neutral module layout as Go and TypeScript.
 
 ### `python-testing-patterns`
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Adds focused pytest fixtures, parametrization, mocking,
-  integration tests, and asynchronous test patterns for a Python SDK.
+  integration tests, and asynchronous test patterns for a Python language
+  binding.
 
 ### `python-error-handling`
 
@@ -100,8 +101,8 @@ rules instead of invocable skills (`/skill-name`).
 
 - **Source:** `wshobson/agents`
 - **Why selected:** Covers structured concurrency, cancellation, timeouts,
-  resource cleanup, and async context managers for a Python SDK that wraps
-  networked sandbox providers.
+  resource cleanup, and async context managers when wrapping networked sandbox
+  providers from Python.
 
 ### `docs-current-state`
 

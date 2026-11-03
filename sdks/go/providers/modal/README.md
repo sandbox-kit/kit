@@ -77,18 +77,29 @@ On the handle: `Attach`, `Terminate`, and `Close`. `Close` does not terminate
 the sandbox. `Get`, `Refresh`, `Start`, `Stop`, `Pause`, `Archive`, and
 `Delete` are not supported.
 
+`Filesystem` supports the shared file calls: `ReadFile`, `WriteFile`,
+`CopyFromLocal`, `CopyToLocal`, `MakeDirectory`, `ListDirectory`, `Stat`, and
+`Remove`. Paths in the sandbox are absolute. A file timeout is the context
+deadline. `1500 * time.Millisecond` ends the call at 1.5 seconds. `Parents`
+defaults to true: missing parents are created, and an existing directory is
+accepted. `Parents` false requires the parent to exist. A missing file passed
+to `CopyFromLocal` is not found, and the error field is `local_path`. A local
+directory is an invalid argument with the same field. `CopyToLocal` creates a
+missing local parent directory.
+
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at
 create time.
 
 ## Examples
 
-| Operation | Program                                                                                                                   |
-| --------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Create    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-sandbox)               |
-| Resources | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/create-modal-with-resources) |
-| Attach    | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/attach-modal-sandbox)               |
-| All       | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                   |
+| Operation   | Program                                                                                                                                 |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Create      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox)               |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file)                            |
+| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox)                   |
+| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                 |
 
 ## License
 

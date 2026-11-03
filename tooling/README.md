@@ -45,8 +45,9 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 `--against` to add a breaking-change comparison against a Git or Buf input.
 
 `generate contracts-go` / `contracts-typescript` run `buf generate` using the
-root `buf.gen.yaml` (Go + TypeScript plugins) and refresh contract packages
-under `sdks/<language>/contracts/`. Protovalidate options travel with the
+root `buf.gen.yaml` (Go + TypeScript plugins). Go contracts land in
+`sdks/go/internal/contracts/`; TypeScript contracts land in
+`sdks/typescript/contracts/`. Protovalidate options travel with the
 descriptors; SDKs evaluate create and client-config rules at runtime
 (`secure_endpoint` stays handwritten). `contracts-typescript` also runs
 `npm run build` in `sdks/typescript/contracts` so `@sandbox-kit/contracts`
@@ -54,8 +55,9 @@ exports compiled descriptors from `dist/` via `@sandbox-kit/contracts/sandbox`
 and `@sandbox-kit/contracts/client`.
 
 `test go` tests the public SDK, tooling, both providers, and every independent
-Go example module registered by the command. Example tests use dummy credentials
-and local servers; they create no cloud resources.
+Go example module registered by the command. It also checks that `go.work.sum`
+matches the checksums written by loading those modules' packages. Example tests
+use dummy credentials and local servers; they create no cloud resources.
 
 `test typescript` builds contracts first, then builds and tests the shared
 package and both providers, discovers every TypeScript example containing a
@@ -72,9 +74,12 @@ verified with its own `go.mod` and local replacements. The root `go.work` is for
 working across modules in an editor. Run `go version` in the same terminal to
 confirm Go 1.26.0 or newer; restart the editor's Go language server after upgrading.
 
-`go work sync` can update dependency versions in individual `go.mod` files.
-After using it, run `GOWORK=off go mod tidy` inside each affected module to update
-its `go.sum`, then run `sandbox-kit test go` again.
+Change a module's dependencies inside that module with `GOWORK=off` (`go get`,
+then `go mod tidy`). `go work sync` and `go list -m all` read every `go.mod` in
+the requirement graph. That downloads `go.mod` files for modules the build does
+not import, including test requirements of `google.golang.org/grpc` and the
+plot, PDF, font, and example modules those requirements name, and appends their
+checksums to `go.work.sum`. `go mod tidy` leaves `go.work.sum` unchanged.
 
 ## Layout
 

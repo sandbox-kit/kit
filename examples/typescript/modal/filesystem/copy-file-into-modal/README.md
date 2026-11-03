@@ -1,0 +1,50 @@
+# Copy a file into Modal
+
+Copy `MODAL_LOCAL_PATH` on this machine to `MODAL_REMOTE_PATH` in the sandbox. The program opens that sandbox with `client.attach`. Attach does not look the id up.
+
+## What this means
+
+The call copies `MODAL_LOCAL_PATH` on this machine to `MODAL_REMOTE_PATH` in the sandbox. Missing parent directories of the remote file are created.
+
+## Edge cases
+
+- The sandbox path must be absolute. A blank local path is rejected before Modal is called. The error field is `local_path`.
+- A missing local file is not found before Modal is called. The error field is `local_path`. A directory at that path is an invalid argument with the same field.
+- An existing remote file is replaced.
+
+## Run
+
+```sh
+cd examples/typescript/modal/filesystem/copy-file-into-modal
+cp .env.example .env
+# Fill in the values below, then:
+npm install
+npm run build
+npm start
+```
+
+Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Uses `await using`
+so local client cleanup runs on success or failure.
+
+### Environment
+
+```dotenv
+MODAL_TOKEN_ID=
+MODAL_TOKEN_SECRET=
+MODAL_APP_NAME=
+MODAL_ENVIRONMENT=main
+MODAL_SANDBOX_ID=
+MODAL_REMOTE_PATH=/tmp/note.txt
+MODAL_LOCAL_PATH=./note.txt
+
+```
+
+## Warnings
+
+- Overwrites the remote file when it already exists.
+- Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
+
+## Related
+
+- [go twin](../../../../go/modal/filesystem/copy-file-into-modal/README.md)
+- Catalog: [examples/typescript/README.md](../../../README.md)

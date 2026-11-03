@@ -120,6 +120,35 @@ type (
 	// ExitResult is the outcome of Sandbox.Terminate, including the exit code when Wait is set.
 	ExitResult = sandboxv1.ExitResult
 
+	// FileInfo is metadata for one file, directory, or symlink.
+	FileInfo = sandboxv1.FileInfo
+
+	// FileType classifies a FileInfo entry.
+	FileType = sandboxv1.FileType
+
+	// FileReadOptions sets the timeout for Filesystem.ReadFile.
+	FileReadOptions = sandboxv1.FileReadOptions
+
+	// FileWriteOptions sets the timeout for Filesystem.WriteFile.
+	FileWriteOptions = sandboxv1.FileWriteOptions
+
+	// FileCopyOptions sets the timeout for a copy between the caller and the sandbox.
+	FileCopyOptions = sandboxv1.FileCopyOptions
+
+	// MakeDirectoryOptions sets the timeout and Parents flag for Filesystem.MakeDirectory.
+	// An omitted Parents flag is true. Set false with Value. Daytona rejects false.
+	MakeDirectoryOptions = sandboxv1.MakeDirectoryOptions
+
+	// ListDirectoryOptions sets the timeout for Filesystem.ListDirectory.
+	ListDirectoryOptions = sandboxv1.ListDirectoryOptions
+
+	// StatOptions sets the timeout for Filesystem.Stat.
+	StatOptions = sandboxv1.StatOptions
+
+	// RemoveOptions sets the timeout and Recursive flag for Filesystem.Remove.
+	// Set Recursive with Value(true) to remove a directory and its contents.
+	RemoveOptions = sandboxv1.RemoveOptions
+
 	// SandboxInfo is the metadata for one sandbox.
 	// Sandbox.Info returns a copy. State is a SandboxState.
 	SandboxInfo = sandboxv1.SandboxInfo
@@ -182,8 +211,8 @@ type (
 	// SandboxState is the lifecycle state reported on SandboxInfo.
 	SandboxState = sandboxv1.SandboxState
 
-	// LifecycleCapability names one operation Sandbox.Supports can check.
-	// The value means the provider implements that operation.
+	// LifecycleCapability names one lifecycle operation Sandbox.Supports can check.
+	// File operations are not lifecycle capabilities; call Filesystem instead.
 	LifecycleCapability = sandboxv1.LifecycleCapability
 )
 
@@ -306,6 +335,15 @@ const (
 	LifecycleCapabilityArchive = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_ARCHIVE
 	// LifecycleCapabilityDelete means the provider implements Delete.
 	LifecycleCapabilityDelete = sandboxv1.LifecycleCapability_LIFECYCLE_CAPABILITY_DELETE
+
+	// FileTypeUnspecified means the provider did not classify the entry.
+	FileTypeUnspecified = sandboxv1.FileType_FILE_TYPE_UNSPECIFIED
+	// FileTypeFile is a regular file.
+	FileTypeFile = sandboxv1.FileType_FILE_TYPE_FILE
+	// FileTypeDirectory is a directory.
+	FileTypeDirectory = sandboxv1.FileType_FILE_TYPE_DIRECTORY
+	// FileTypeSymlink is a symlink. Stat describes the symlink, not its target.
+	FileTypeSymlink = sandboxv1.FileType_FILE_TYPE_SYMLINK
 )
 
 // Value pointers an optional field so the provider can tell a set value from an omitted one.

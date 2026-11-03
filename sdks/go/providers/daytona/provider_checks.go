@@ -16,7 +16,7 @@ var providerDomainPattern = regexp.MustCompile(`(?i)^(?:[a-z0-9](?:[a-z0-9-]*[a-
 // It runs before the native create call.
 //
 // Rules are inventoried in specs/providers/daytona.yaml checks and kept in sync
-// here by hand (no longer emitted).
+// here by hand (not emitted).
 func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request == nil {
 		return nil

@@ -6,22 +6,23 @@ types, constructors, methods, errors, or control flow.
 
 ## Contract packages
 
-`kit.sandbox.v1` contains public, portable data contracts:
+`kit.sandbox.v1` contains public, portable data contracts in `client.proto` and
+`sandbox.proto`:
 
 - configuration and creation options;
-- sandbox metadata, lifecycle options, results, and portable error details.
+- sandbox metadata, lifecycle options, filesystem options and results, and
+  portable error details.
 
 Kit does not declare a protobuf RPC service. Language SDKs expose handwritten
-`Client` / `Sandbox` APIs and provider `Backend` adapters over vendor SDKs.
+`Client` / `Sandbox` / `Filesystem` APIs and provider `Backend` adapters over
+vendor SDKs.
 
-`kit.sandbox.internal.v1` is reserved for implementation-only contract data used
-by the SDK runtime and provider adapters. Public contracts live in
-`client.proto` / `sandbox.proto`. Internal generated Go output belongs under a
-Go `internal/` directory; TypeScript must not re-export that module from a
-package entrypoint.
-
-An internal protobuf message is still a data contract. It must not contain a
-native SDK client, callback, mutex, function, or another runtime object.
+Generated Go wire output lives under `sdks/go/internal/contracts/` so only
+modules under `sdks/go` can import it. TypeScript wire types live in
+`@sandbox-kit/contracts` and are not re-exported from the public sandbox
+package entrypoint. A protobuf message is a data contract only: it must not
+contain a native SDK client, callback, mutex, function, or another runtime
+object.
 
 ## Generated versus handwritten code
 
@@ -31,12 +32,12 @@ representation of portable data.
 
 Handwritten language runtime code owns behavior:
 
-- public `Client` and `Sandbox` facades;
+- public `Client`, `Sandbox`, and `Filesystem` facades;
 - TypeScript public create/config input types (materialized to wire privately);
 - provider selection, native SDK initialization, cleanup, and deadlines;
 - private adapter interfaces and private native SDK state;
 - error behavior and conversion at provider boundaries;
-- provider checks, field mappings, and config assembly.
+- provider checks, field mappings, filesystem bindings, and config assembly.
 
 The runtime consumes generated request and response messages for Protovalidate
 and provider mapping. It does not regenerate parallel structs or assemble

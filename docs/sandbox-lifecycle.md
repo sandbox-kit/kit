@@ -104,3 +104,7 @@ Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 `Terminate` maps to Modal termination; it is deliberately not presented as
 `Stop` or `Delete`. Modal's native `FromID` performs no remote lookup, so Kit
 exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
+
+File calls on the same handle are documented in [filesystem](filesystem.md).
+Both providers implement the same eight methods; each handle serializes those
+calls with its lifecycle transitions.

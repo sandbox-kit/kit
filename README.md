@@ -115,7 +115,7 @@ TypeScript (Daytona):
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/typescript/daytona/create-daytona-sandbox
+cd kit/examples/typescript/daytona/configuration/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 npm install && npm run build && npm start
 ```
@@ -124,19 +124,20 @@ Go (Daytona), from a fresh clone:
 
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/go/daytona/create-daytona-sandbox
+cd kit/examples/go/daytona/configuration/create-daytona-sandbox
 cp .env.example .env   # set DAYTONA_API_KEY
 go run .
 ```
 
 Modal needs a token pair and an existing app:
-[TypeScript](examples/typescript/modal/create-modal-sandbox/README.md) ·
-[Go](examples/go/modal/create-modal-sandbox/README.md).
+[TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
+[Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
 
-Creation examples provision real sandboxes. Lifecycle examples use the ID in
-`.env` (stop / terminate / archive / delete can destroy that resource).
-Error-handling examples fail locally and create nothing. Skip copying
-`.env.example` if you already have a configured `.env`.
+Creation examples provision real sandboxes. Filesystem and lifecycle examples
+use the ID in `.env` (stop / terminate / archive / delete can destroy that
+resource; filesystem examples use the path you set). Error-handling examples
+fail locally and create nothing. Skip copying `.env.example` if you already
+have a configured `.env`.
 
 Full catalog: [examples/README.md](examples/README.md) ·
 [TypeScript](examples/typescript/README.md) · [Go](examples/go/README.md).
@@ -238,7 +239,8 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·
-[lifecycle](docs/sandbox-lifecycle.md).
+[lifecycle](docs/sandbox-lifecycle.md) ·
+[filesystem](docs/filesystem.md).
 
 ## Documentation
 
@@ -259,6 +261,7 @@ These pages are the behavior reference for the same API:
 | [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
 | [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies           |
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities         |
+| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove |
 | [Providers](docs/providers.md)                                                                                 | Daytona and Modal                 |
 | [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes         |

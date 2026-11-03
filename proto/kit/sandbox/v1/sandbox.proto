@@ -496,6 +496,71 @@ message DeleteOptions {
 message ExitResult {
   optional int32 exit_code = 1;
 }
+
+// FileType classifies one filesystem entry. Preserve the numeric values.
+enum FileType {
+  FILE_TYPE_UNSPECIFIED = 0;
+  FILE_TYPE_FILE = 1;
+  FILE_TYPE_DIRECTORY = 2;
+  FILE_TYPE_SYMLINK = 3;
+}
+
+// FileInfo is metadata for one file, directory, or symlink.
+// Optional fields stay absent when the provider did not report them.
+message FileInfo {
+  string name = 1;
+  string path = 2;
+  FileType type = 3 [(buf.validate.field).enum.defined_only = true];
+  int64 size = 4;
+  // Unix mode as reported by the provider, such as "0644".
+  optional string mode = 5;
+  // Symbolic permissions when the provider reports them, such as "rw-r--r--".
+  optional string permissions = 6;
+  optional string owner = 7;
+  optional string group = 8;
+  google.protobuf.Timestamp modified_at = 9;
+  optional string symlink_target = 10;
+}
+
+// FileReadOptions configures reading one file. Nil timeout inherits Config.Timeout.
+message FileReadOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// FileWriteOptions configures writing one file. Nil timeout inherits Config.Timeout.
+message FileWriteOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// FileCopyOptions configures a copy between the caller and the sandbox.
+// Nil timeout inherits Config.Timeout.
+message FileCopyOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// MakeDirectoryOptions configures creating one directory. Nil timeout inherits Config.Timeout.
+// An omitted parents flag is true: missing parents are created. Daytona rejects false.
+message MakeDirectoryOptions {
+  google.protobuf.Duration timeout = 1;
+  optional bool parents = 2;
+}
+
+// ListDirectoryOptions configures listing one directory. Nil timeout inherits Config.Timeout.
+message ListDirectoryOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// StatOptions configures reading metadata for one path. Nil timeout inherits Config.Timeout.
+message StatOptions {
+  google.protobuf.Duration timeout = 1;
+}
+
+// RemoveOptions configures removing one path. Recursive removes a directory and its contents.
+// Nil timeout inherits Config.Timeout. An omitted recursive flag removes a file or an empty directory.
+message RemoveOptions {
+  google.protobuf.Duration timeout = 1;
+  optional bool recursive = 2;
+}
 // SandboxState is a portable lifecycle state. ProviderState retains the native value.
 enum SandboxState {
   SANDBOX_STATE_UNKNOWN = 0;

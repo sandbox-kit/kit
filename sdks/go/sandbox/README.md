@@ -34,6 +34,11 @@ if err != nil {
     log.Fatal(err)
 }
 fmt.Println(instance.ID())
+
+files := instance.Filesystem()
+if err := files.WriteFile(context.Background(), "/tmp/note.txt", []byte("hello\n"), nil); err != nil {
+    log.Fatal(err)
+}
 ```
 
 `Create` with a nil request uses the provider default when that default is

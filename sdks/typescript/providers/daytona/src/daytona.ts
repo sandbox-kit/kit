@@ -1,12 +1,18 @@
+import { Buffer } from "node:buffer";
 import {
   Daytona,
+  DaytonaError,
   type DaytonaConfig,
+  type FileDownloadResponse,
   type Sandbox as DaytonaSandbox,
 } from "@daytona/sdk";
 import {
   ConfigFieldTimeout,
   CreateFieldProvisioningTimeout,
   ErrorKind,
+  FileFieldParents,
+  FileType,
+  type FileInfo,
   type OperationOptions,
   type Provider,
   type SandboxInfo,
@@ -18,17 +24,32 @@ import type {
   CreateResult,
   ArchiveOptions,
   DeleteOptions,
+  FileCopyOptions,
+  FileReadOptions,
+  FileWriteOptions,
+  ListDirectoryOptions,
+  MakeDirectoryOptions,
   PauseOptions,
+  RemoveOptions,
   StartOptions,
+  StatOptions,
   StopOptions,
 } from "@sandbox-kit/sandbox";
+import type { FileInfo as DaytonaFileInfo } from "@daytona/sdk";
 
 import {
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import { mapDaytonaError, providerError } from "#errors.js";
+import {
+  ensureLocalParent,
+  mapDaytonaError,
+  providerError,
+  requireLocalDestination,
+  requireLocalFile,
+  translateLocalCopyError,
+} from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 
 interface NativeDaytona {
@@ -162,6 +183,191 @@ class DaytonaBackend extends BackendBase implements Backend {
     }
   }
 
+  async readFile(
+    id: string,
+    path: string,
+    request: FileReadOptions,
+    options: OperationOptions,
+  ): Promise<Uint8Array> {
+    return this.#file(
+      "read_file",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        const seconds = fileSeconds(timeout);
+        // downloadFile(path, 0) drops the 0, because 0 is not a string path,
+        // and Daytona then applies its 30-minute default.
+        if (!seconds) {
+          const [file] = await sandbox.fs.downloadFiles([{ source: path }], 0);
+          const body = file?.result;
+          if (!file || file.error || !body) throw downloadFailure(file);
+          return new Uint8Array(
+            typeof body === "string" ? Buffer.from(body) : body,
+          );
+        }
+        const data = await sandbox.fs.downloadFile(path, seconds);
+        return new Uint8Array(data);
+      },
+    );
+  }
+
+  async writeFile(
+    id: string,
+    path: string,
+    data: Uint8Array,
+    request: FileWriteOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file(
+      "write_file",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        await sandbox.fs.uploadFile(
+          Buffer.from(data),
+          path,
+          fileSeconds(timeout),
+        );
+      },
+    );
+  }
+
+  async copyFromLocal(
+    id: string,
+    localPath: string,
+    remotePath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await requireLocalFile(localPath, "copy_from_local");
+    await this.#file(
+      "copy_from_local",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        await sandbox.fs.uploadFile(
+          localPath,
+          remotePath,
+          fileSeconds(timeout),
+        );
+      },
+    );
+  }
+
+  async copyToLocal(
+    id: string,
+    remotePath: string,
+    localPath: string,
+    request: FileCopyOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await requireLocalDestination(localPath, "copy_to_local");
+    await ensureLocalParent(localPath, "copy_to_local");
+    await this.#file(
+      "copy_to_local",
+      id,
+      options,
+      request.timeout,
+      async (sandbox, timeout) => {
+        try {
+          await sandbox.fs.downloadFile(
+            remotePath,
+            localPath,
+            fileSeconds(timeout),
+          );
+        } catch (error) {
+          throw translateLocalCopyError(error, "copy_to_local");
+        }
+      },
+    );
+  }
+
+  async makeDirectory(
+    id: string,
+    path: string,
+    request: MakeDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    if (request.parents === false) {
+      providerError({
+        kind: ErrorKind.Unsupported,
+        operation: "make_directory",
+        field: FileFieldParents,
+        message: "parents false is not available",
+      });
+    }
+    await this.#file(
+      "make_directory",
+      id,
+      options,
+      undefined,
+      async (sandbox) => {
+        await sandbox.fs.createFolder(path, "0755");
+      },
+    );
+  }
+
+  async listDirectory(
+    id: string,
+    path: string,
+    _request: ListDirectoryOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo[]> {
+    return this.#file(
+      "list_directory",
+      id,
+      options,
+      undefined,
+      async (sandbox) => {
+        const entries = await sandbox.fs.listFiles(path);
+        return entries.map((entry) => daytonaFileInfo(entry));
+      },
+    );
+  }
+
+  async stat(
+    id: string,
+    path: string,
+    _request: StatOptions,
+    options: OperationOptions,
+  ): Promise<FileInfo> {
+    return this.#file("stat", id, options, undefined, async (sandbox) =>
+      daytonaFileInfo(await sandbox.fs.getFileDetails(path)),
+    );
+  }
+
+  async remove(
+    id: string,
+    path: string,
+    request: RemoveOptions,
+    options: OperationOptions,
+  ): Promise<void> {
+    await this.#file("remove", id, options, undefined, async (sandbox) => {
+      await sandbox.fs.deleteFile(path, request.recursive === true);
+    });
+  }
+
+  async #file<T>(
+    operation: string,
+    id: string,
+    options: OperationOptions,
+    timeoutMs: number | undefined,
+    body: (sandbox: DaytonaSandbox, timeout: number | undefined) => Promise<T>,
+  ): Promise<T> {
+    try {
+      throwIfAborted(options.signal);
+      const timeout = wholeSeconds(timeoutMs, operation, ConfigFieldTimeout);
+      const sandbox = await this.native.get(id);
+      throwIfAborted(options.signal);
+      return await body(sandbox, timeout);
+    } catch (error) {
+      throw mapDaytonaError(error, operation);
+    }
+  }
+
   async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(options: OperationOptions): Promise<void> {
@@ -174,8 +380,54 @@ class DaytonaBackend extends BackendBase implements Backend {
   }
 }
 
+function daytonaFileInfo(info: DaytonaFileInfo): FileInfo {
+  const modified = fileDate(info);
+  return {
+    name: info.name,
+    path: info.path || "",
+    type: info.isDir ? FileType.Directory : FileType.File,
+    size: BigInt(info.size),
+    ...(info.mode ? { mode: info.mode } : {}),
+    ...(info.permissions ? { permissions: info.permissions } : {}),
+    ...(info.owner ? { owner: info.owner } : {}),
+    ...(info.group ? { group: info.group } : {}),
+    ...(modified ? { modifiedAt: modified } : {}),
+  };
+}
+
+function fileDate(info: DaytonaFileInfo): Date | undefined {
+  const raw = info.modifiedAt || info.modTime;
+  if (!raw) return undefined;
+  const parsed = Date.parse(raw);
+  if (Number.isNaN(parsed)) return undefined;
+  return new Date(parsed);
+}
+
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
+}
+
+/**
+ * Converts a Kit file timeout (ms) for Daytona upload/download.
+ * Omitted and explicit zero become `0` so Daytona adds no transfer limit.
+ * Daytona's native default for an omitted argument is 30 minutes.
+ */
+function fileSeconds(timeout: number | undefined): number {
+  return timeout ?? 0;
+}
+
+function downloadFailure(file: FileDownloadResponse | undefined): DaytonaError {
+  const details = file?.errorDetails;
+  if (details) {
+    return new DaytonaError(
+      details.message,
+      details.statusCode,
+      undefined,
+      details.code ?? details.errorCode,
+      details.source,
+    );
+  }
+  return new DaytonaError(file?.error ?? "download failed");
 }
 
 /** Native Daytona APIs take whole seconds. Lifecycle zero means no operation timeout. */

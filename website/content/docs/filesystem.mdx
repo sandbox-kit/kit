@@ -1,0 +1,272 @@
+---
+title: Use files
+description: Read, write, copy, mkdir, list, stat, and remove files inside a sandbox.
+---
+
+File calls live on the handle you already have. Daytona and Modal implement the same methods. Create the sandbox on the provider page, or open one you already have from [Manage a sandbox](/docs/lifecycle).
+
+| You want to                   | Call                                    |
+| ----------------------------- | --------------------------------------- |
+| Read the bytes of one file    | [`readFile`](#read-a-file)              |
+| Replace one file              | [`writeFile`](#write-a-file)            |
+| Copy a file from your machine | [`copyFromLocal`](#copy-a-file-in)      |
+| Copy a file onto your machine | [`copyToLocal`](#copy-a-file-out)       |
+| Create a directory            | [`makeDirectory`](#create-a-directory)  |
+| List one directory            | [`listDirectory`](#list-a-directory)    |
+| Read metadata for one path    | [`stat`](#read-metadata)                |
+| Delete a file or directory    | [`remove`](#delete-a-file-or-directory) |
+
+A path inside the sandbox starts with `/`, such as `/tmp/note.txt`. A relative path, a blank path, or a path that contains a NUL byte is rejected before the provider is called, and the error names the field `path`. A path on your machine may be relative to the process, such as `./note.txt`. It must be non-blank and must not contain a NUL byte. A rejected local path names the field `local_path`.
+
+`readFile` and `writeFile` move bytes. Encode text before you write it, and decode text after you read it. `copyFromLocal` and `copyToLocal` use files on your disk.
+
+Leave `timeout` unset to use the client deadline. Set `timeout: 0` when this call should add no deadline of its own. TypeScript records the timeout in milliseconds. Go records it as a `time.Duration`.
+
+TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal` pass that duration to Daytona as a whole number of seconds. `2_000` is two seconds. `1_500` is 1.5 seconds, so those four calls reject it. The error field is `timeout`. An omitted timeout, and an explicit zero, on those four calls are passed as `0`. Daytona adds no transfer limit. When the timeout is omitted, the abort signal carries the client deadline.
+
+`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal. `1_500` ends the call at 1.5 seconds. Every Go file call uses the context as the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal file calls use the context or the abort signal. `1_500` milliseconds ends the call at 1.5 seconds.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
+await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
+	Timeout: sandbox.Duration(1500 * time.Millisecond),
+})
+```
+
+  </Tab>
+</Tabs>
+
+Calls on one handle run one at a time, including lifecycle calls. A second handle for the same sandbox does not wait.
+
+The snippets below assume you already have `sandbox` or `instance`. Each call also has its own project in the [examples](/docs/examples) catalog.
+
+## Read a file
+
+`readFile` returns the bytes of one file. A missing file comes back as not found. A directory path fails at the provider.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const data = await sandbox.filesystem.readFile("/tmp/note.txt");
+const text = new TextDecoder().decode(data);
+console.log(text);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
+if err != nil {
+	return err
+}
+fmt.Printf("%s\n", data)
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file).
+
+## Write a file
+
+`writeFile` replaces the file and creates missing parent directories. An existing file at that path is overwritten.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const body = new TextEncoder().encode("hello\n");
+await sandbox.filesystem.writeFile("/tmp/kit-files/note.txt", body);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+body := []byte("hello\n")
+err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", body, nil)
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/write-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/write-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/write-modal-file).
+
+## Copy a file in
+
+`copyFromLocal` reads a file on your machine and writes it in the sandbox. The local path is the first argument. The remote path is absolute. An existing remote file is replaced, and missing parent directories of that path are created. A missing local file is not found. The error field is `local_path`. A local directory is an invalid argument with the same field.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.copyFromLocal("./note.txt", "/tmp/note.txt");
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+err := instance.Filesystem().CopyFromLocal(ctx, "note.txt", "/tmp/note.txt", nil)
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-into-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-into-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-into-modal).
+
+## Copy a file out
+
+`copyToLocal` copies a sandbox file onto your disk. The remote path comes first. An existing local file is replaced. A missing local parent directory is created. A local directory is an invalid argument, and the field is `local_path`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.copyToLocal("/tmp/note.txt", "./note.txt");
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+err := instance.Filesystem().CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil)
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-from-modal). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-from-daytona) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-from-modal).
+
+## Create a directory
+
+`parents` defaults to true, so the call creates missing parents. Modal accepts a directory that already exists. Daytona returns an error when it already exists.
+
+Set `parents` to false when the parent directory must already exist. Modal then requires that parent, and returns an error if the new directory is already there. Daytona rejects `false` before the call. The error field is `parents`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.makeDirectory("/tmp/kit-files");
+await sandbox.filesystem.makeDirectory("/tmp/kit-files/nested", {
+  parents: false,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
+err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
+	Parents: sandbox.Value(false),
+})
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/make-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/make-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/make-modal-directory).
+
+## List a directory
+
+`listDirectory` returns the entries in that one directory. It does not walk into subdirectories. `size` is a byte count. In TypeScript it is a `bigint`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const entries = await sandbox.filesystem.listDirectory("/tmp/kit-files");
+for (const entry of entries) console.log(entry.name, entry.size);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
+if err != nil {
+	return err
+}
+for _, entry := range entries {
+	fmt.Println(entry.GetName(), entry.GetSize())
+}
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/list-modal-directory). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/list-daytona-directory) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/list-modal-directory).
+
+## Read metadata
+
+`stat` returns one path. A symlink result describes the symlink. Modal can report a symlink. Daytona reports a file or a directory. `mode` is an octal string when the provider supplies one, such as `0644`. `permissions`, `owner`, and `group` are set when the provider supplies them. `modifiedAt` is set when the provider supplies a time.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const info = await sandbox.filesystem.stat("/tmp/note.txt");
+console.log(info.type, info.size, info.mode);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
+if err != nil {
+	return err
+}
+fmt.Println(info.GetType(), info.GetSize(), info.GetMode())
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/stat-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/stat-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/stat-modal-file).
+
+## Delete a file or directory
+
+`remove` deletes a file, or an empty directory. Set `recursive` to delete a directory and its contents. A directory that still has entries fails when you leave the flag unset. A missing path comes back as not found.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.remove("/tmp/note.txt");
+await sandbox.filesystem.remove("/tmp/kit-files", { recursive: true });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+files := instance.Filesystem()
+if err := files.Remove(ctx, "/tmp/note.txt", nil); err != nil {
+	return err
+}
+if err := files.Remove(ctx, "/tmp/kit-files", &sandbox.RemoveOptions{
+	Recursive: sandbox.Value(true),
+}); err != nil {
+	return err
+}
+```
+
+  </Tab>
+</Tabs>
+
+[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/remove-modal-file). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/remove-daytona-file) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/remove-modal-file).

@@ -19,7 +19,7 @@ provider classification are handwritten per language.
 
 ## Handwritten runtime
 
-- `Client` / `Sandbox` facades and lifecycle dispatch
+- `Client` / `Sandbox` facades, lifecycle dispatch, and `Filesystem`
 - TypeScript public create/config input types and materialization to wire
 - Provider selection, native SDK initialization, and cleanup
 - Error wrappers, cause chaining, and provider-native error classification
@@ -27,6 +27,7 @@ provider classification are handwritten per language.
 - Protovalidate evaluation for shared create/config rules (`secure_endpoint` is
   handwritten)
 - Provider checks, field mappings, and config assembly
+- Path validation and provider filesystem bindings
 - Provider orchestration that the mapping inventory cannot express
 
 See [Protobuf SDK boundary](protobuf-sdk-boundary.md) and

@@ -8,6 +8,7 @@
     "---Use the client---",
     "create",
     "lifecycle",
+    "filesystem",
     "configuration",
     "errors",
     "examples"

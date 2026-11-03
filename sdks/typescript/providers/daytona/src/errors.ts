@@ -2,9 +2,12 @@
 // Classification order: existing SandboxError, abort/timeout DOMException,
 // then DaytonaError code/status maps, then unknown. Cause stays on SandboxError.cause.
 
+import { mkdir, stat } from "node:fs/promises";
+import { dirname } from "node:path";
 import { DaytonaError } from "@daytona/sdk";
 import {
   ErrorKind,
+  FileFieldLocalPath,
   SandboxError,
   sandboxError,
   type ErrorInfo,
@@ -128,6 +131,112 @@ function create(input: MappedErrorInput): SandboxError {
     },
     error,
   );
+}
+
+/** Rejects a missing local file or a directory before Daytona reads it. */
+export async function requireLocalFile(
+  localPath: string,
+  operation: string,
+): Promise<void> {
+  let info;
+  try {
+    info = await stat(localPath);
+  } catch (error) {
+    if (nodeCode(error)) throw localFileError(error, operation);
+    throw error;
+  }
+  if (info.isDirectory()) localDirectory(operation);
+}
+
+/** Rejects a local destination that is already a directory. A missing path is left for ensureLocalParent and Daytona's write. */
+export async function requireLocalDestination(
+  localPath: string,
+  operation: string,
+): Promise<void> {
+  try {
+    const info = await stat(localPath);
+    if (info.isDirectory()) localDirectory(operation);
+  } catch (error) {
+    if (nodeCode(error) === "ENOENT") return;
+    if (nodeCode(error)) throw localFileError(error, operation);
+    throw error;
+  }
+}
+
+/** Creates missing local parents. Daytona's downloadFile uses a write that does not create them. */
+export async function ensureLocalParent(
+  localPath: string,
+  operation: string,
+): Promise<void> {
+  const parent = dirname(localPath);
+  if (parent === "." || parent === "/" || parent === "") return;
+  try {
+    await mkdir(parent, { recursive: true });
+  } catch (error) {
+    if (nodeCode(error)) throw localFileError(error, operation);
+    throw error;
+  }
+}
+
+/**
+ * Classifies a local write failure from copyToLocal.
+ * Other errors are returned unchanged for provider mapping.
+ */
+export function translateLocalCopyError(
+  error: unknown,
+  operation: string,
+): unknown {
+  if (error instanceof SandboxError) return error;
+  if (nodeCode(error)) return localFileError(error, operation);
+  if (
+    error instanceof DaytonaError &&
+    error.message.includes("Write stream failed")
+  ) {
+    return sandboxError(
+      {
+        kind: error.message.includes("ENOENT")
+          ? ErrorKind.NotFound
+          : ErrorKind.InvalidArgument,
+        provider: "daytona",
+        operation,
+        field: FileFieldLocalPath,
+        message: error.message,
+      },
+      error,
+    );
+  }
+  return error;
+}
+
+function localDirectory(operation: string): never {
+  providerError({
+    kind: ErrorKind.InvalidArgument,
+    operation,
+    field: FileFieldLocalPath,
+    message: "local path is a directory",
+  });
+}
+
+function localFileError(error: unknown, operation: string): SandboxError {
+  return sandboxError(
+    {
+      kind:
+        nodeCode(error) === "ENOENT"
+          ? ErrorKind.NotFound
+          : ErrorKind.InvalidArgument,
+      provider: "daytona",
+      operation,
+      field: FileFieldLocalPath,
+      message: error instanceof Error ? error.message : "local path failed",
+    },
+    error,
+  );
+}
+
+function nodeCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || !error || !("code" in error))
+    return undefined;
+  return typeof error.code === "string" ? error.code : undefined;
 }
 
 /** Local throw helper for mappings, checks, and config. */

@@ -25,10 +25,11 @@ the client when the provider returns no sandbox ID. When the provider sets
 
 ## Read an error
 
-Initialization, creation, lifecycle calls, and cleanup return the same error
-shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and `Message`.
-`StatusCode`, `ProviderCode`, and `ProviderSource` carry the provider's own
-codes when it sent them.
+Initialization, creation, lifecycle calls, filesystem calls, and cleanup return
+the same error shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and
+`Message`. `StatusCode`, `ProviderCode`, and `ProviderSource` carry the
+provider's own codes when it sent them. `NotFound` covers a missing sandbox or
+a missing file path.
 
 ```go
 var detail *sandbox.Error
@@ -43,9 +44,9 @@ if errors.As(err, &detail) {
 ```
 
 The same switch works for either provider. Runnable examples:
-[Modal unsupported settings](../examples/go/modal/handle-modal-errors/README.md)
+[Modal unsupported settings](../examples/go/modal/errors/handle-modal-errors/README.md)
 and
-[Daytona invalid configuration](../examples/go/daytona/handle-daytona-errors/README.md).
+[Daytona invalid configuration](../examples/go/daytona/errors/handle-daytona-errors/README.md).
 
 Go and TypeScript use the same field string. A rule about one setting names
 that setting, such as `resources.cpu_limit_cores`. A rule about several
@@ -77,9 +78,9 @@ try {
 ```
 
 TypeScript examples:
-[handle-daytona-errors](../examples/typescript/daytona/handle-daytona-errors/README.md)
+[handle-daytona-errors](../examples/typescript/daytona/errors/handle-daytona-errors/README.md)
 and
-[handle-modal-errors](../examples/typescript/modal/handle-modal-errors/README.md).
+[handle-modal-errors](../examples/typescript/modal/errors/handle-modal-errors/README.md).
 
 ## Provider errors
 

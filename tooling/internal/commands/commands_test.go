@@ -99,6 +99,55 @@ func TestContractsGenerationSurfacesBufFailure(t *testing.T) {
 	}
 }
 
+func TestWorkspaceSumCheckSkipsRepoWithoutGoWork(t *testing.T) {
+	repo := repositoryFixture(t)
+	if err := checkWorkspaceSum(context.Background(), repo, "go"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWorkspaceModulesReadsUseBlock(t *testing.T) {
+	repo := repositoryFixture(t)
+	work := "go 1.26.0\n\nuse (\n\t./sdks/go/sandbox\n\t// comment\n\n\t./tooling\n)\n"
+	if err := os.WriteFile(filepath.Join(repo, "go.work"), []byte(work), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	modules, err := workspaceModules(filepath.Join(repo, "go.work"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"sdks/go/sandbox", "tooling"}
+	if !reflect.DeepEqual(modules, want) {
+		t.Fatalf("modules = %#v, want %#v", modules, want)
+	}
+}
+
+func TestWorkspaceSumDriftReportsGraphOnlyChecksums(t *testing.T) {
+	committed := []byte("cel.dev/expr v0.25.2/go.mod h1:def\ngonum.org/v1/plot v0.16.0/go.mod h1:abc\n")
+	rebuilt := []byte("cel.dev/expr v0.25.2/go.mod h1:def\n")
+	extra, missing := workspaceSumDrift(committed, rebuilt)
+	if len(missing) != 0 || len(extra) != 1 || extra[0] != "gonum.org/v1/plot v0.16.0/go.mod" {
+		t.Fatalf("extra=%v missing=%v", extra, missing)
+	}
+	message := formatWorkspaceSumDrift(extra, missing)
+	if !strings.Contains(message, "gonum.org/v1/plot v0.16.0/go.mod") || !strings.Contains(message, "go work sync") {
+		t.Fatalf("drift message = %q", message)
+	}
+}
+
+func TestWorkspaceSumMatchesPackageLoads(t *testing.T) {
+	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !isRepository(root) {
+		t.Fatalf("repository root not found at %s", root)
+	}
+	if err := checkWorkspaceSum(context.Background(), root, "go"); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestVerificationIncludesEveryGoModuleAndExample(t *testing.T) {
 	repo := repositoryFixture(t)
 	runner := &recordingRunner{}
@@ -144,8 +193,8 @@ func TestProtoVerificationUsesBufAndOptionalBaseline(t *testing.T) {
 func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 	repo := repositoryFixture(t)
 	for _, path := range []string{
-		"examples/typescript/daytona/create-daytona-sandbox",
-		"examples/typescript/modal/create-modal-sandbox",
+		"examples/typescript/daytona/configuration/create-daytona-sandbox",
+		"examples/typescript/modal/configuration/create-modal-sandbox",
 	} {
 		dir := filepath.Join(repo, filepath.FromSlash(path))
 		if err := os.MkdirAll(dir, 0o755); err != nil {

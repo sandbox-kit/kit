@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  FileFieldLocalPath,
+  FileFieldPath,
   CreateFieldLifetimeIdleStopAfter,
   CreateFieldLifetimeIdleStopMode,
   CreateFieldNetwork,
@@ -624,5 +626,55 @@ describe("Sandbox lifecycle", () => {
     releaseFirst();
     await Promise.all([first, third]);
     expect(maximumActive).toBe(1);
+  });
+
+  it("rejects a relative sandbox path before the provider call", async () => {
+    const { client, backend } = fixture();
+    const files: Backend = backend;
+    let calls = 0;
+    files.readFile = async () => {
+      calls++;
+      return new Uint8Array();
+    };
+    const sandbox = await client.create();
+    await expect(sandbox.filesystem.readFile("relative.txt")).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "read_file",
+      field: FileFieldPath,
+    });
+    expect(calls).toBe(0);
+  });
+
+  it("reads an absolute path through the provider", async () => {
+    const { client, backend } = fixture();
+    const files: Backend = backend;
+    files.readFile = async (_id, path) => {
+      expect(path).toBe("/workspace/note.txt");
+      return new TextEncoder().encode("hello");
+    };
+    const sandbox = await client.create();
+    const data = await sandbox.filesystem.readFile("/workspace/note.txt");
+    expect(new TextDecoder().decode(data)).toBe("hello");
+  });
+
+  it("requires a local path for copy", async () => {
+    const { client } = fixture();
+    const sandbox = await client.create();
+    await expect(
+      sandbox.filesystem.copyFromLocal("", "/workspace/note.txt"),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "copy_from_local",
+      field: FileFieldLocalPath,
+    });
+  });
+
+  it("reports filesystem methods the provider does not implement", async () => {
+    const { client } = fixture();
+    const sandbox = await client.create();
+    await expect(sandbox.filesystem.stat("/workspace")).rejects.toMatchObject({
+      kind: ErrorKind.Unsupported,
+      operation: "stat",
+    });
   });
 });

@@ -13,7 +13,7 @@ Branch on the kind. The same list applies to every provider. The kind names a ca
 | `Unsupported`       | This provider does not implement the call or the field |
 | `Authentication`    | The credentials were rejected                          |
 | `PermissionDenied`  | The account cannot perform this operation              |
-| `NotFound`          | The sandbox was not found                              |
+| `NotFound`          | The sandbox or the file path was not found             |
 | `RateLimited`       | The provider rate limit was reached                    |
 | `ResourceExhausted` | The provider quota or capacity was reached             |
 | `Canceled`          | The caller canceled the operation                      |
@@ -46,7 +46,7 @@ try {
       );
       break;
     case ErrorKind.NotFound:
-      console.error("The requested sandbox was not found.");
+      console.error("The sandbox or file path was not found.");
       break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
@@ -80,7 +80,7 @@ if errors.As(err, &detail) {
 	case sandbox.ErrorKindPermissionDenied:
 		fmt.Println("Your account does not have permission for this operation.")
 	case sandbox.ErrorKindNotFound:
-		fmt.Println("The requested sandbox was not found.")
+		fmt.Println("The sandbox or file path was not found.")
 	case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
 		fmt.Println("The provider's rate or resource limit was reached.")
 	case sandbox.ErrorKindCanceled:
@@ -110,4 +110,4 @@ An error does not prove that no sandbox exists. The provider may have created on
 
 On Daytona, look the sandbox up with `get` before you retry. Modal `attach` does not perform that lookup.
 
-Runnable projects: [Daytona errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/handle-daytona-errors) and [Modal errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/handle-modal-errors). The Go projects sit beside them under `examples/go/`.
+Runnable projects: [Daytona errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors) and [Modal errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors). The Go projects sit beside them under `examples/go/`.

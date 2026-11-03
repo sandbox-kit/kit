@@ -1,5 +1,5 @@
-// Sandbox handle runtime behavior is handwritten. Lifecycle methods dispatch
-// through optional Backend methods.
+// Sandbox handle runtime behavior is handwritten. Lifecycle and filesystem
+// methods dispatch through optional Backend methods.
 
 import {
   type ArchiveOptions,
@@ -20,6 +20,7 @@ import {
   operationSignal,
   publicTimeoutOptions,
 } from "#client/operation.js";
+import { Filesystem } from "#client/filesystem.js";
 import type {
   Backend,
   DeleteCallOptions,
@@ -41,12 +42,18 @@ export interface SandboxInit {
 
 /**
  * Handle for one cloud sandbox.
- * Lifecycle methods change it. `close` leaves it as it is, and you can keep
+ * Lifecycle methods change it. `filesystem` exposes the shared file
+ * operations. `close` leaves the cloud sandbox as it is, and you can keep
  * using the handle.
  */
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
   readonly #timeout: number | undefined;
+  /**
+   * File operations for this sandbox: read, write, copy, make directory, list,
+   * stat, and remove. Paths inside the sandbox are absolute.
+   */
+  readonly filesystem: Filesystem;
   #info: SandboxInfo;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -55,6 +62,18 @@ export class Sandbox implements AsyncDisposable {
     this.#backend = init.backend;
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
+    this.filesystem = new Filesystem({
+      providerName: this.providerName,
+      id: this.id,
+      backend: this.#backend,
+      run: (operation, options, body) =>
+        this.#serialized(
+          operation,
+          options,
+          options.timeout ?? this.#timeout,
+          body,
+        ),
+    });
   }
   /** Sandbox identifier. */
   get id(): string {
@@ -68,11 +87,18 @@ export class Sandbox implements AsyncDisposable {
   info(): SandboxInfo {
     return clone(this.#info);
   }
-  /** Lifecycle operations this provider implements. */
+  /**
+   * Lifecycle operations this provider implements.
+   * File operations are not lifecycle capabilities; use {@link filesystem}.
+   */
   capabilities(): readonly LifecycleCapability[] {
     return providerCapabilities(this.#backend);
   }
-  /** Reports whether this provider implements `capability`. */
+  /**
+   * Reports whether this provider implements a lifecycle `capability`.
+   * File operations are checked by calling {@link filesystem} methods, not
+   * `supports`.
+   */
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);
   }
