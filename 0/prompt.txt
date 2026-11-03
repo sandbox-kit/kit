@@ -1,0 +1,14 @@
+cool commit and push this to main
+
+---
+
+okay now give me commands for publishing
+
+---
+
+now lets go about golang. do everything around them. 
+bump version, update import provider versions too. install dependency as well as of examples. update replace versions too. and all that which is needed
+
+---
+
+cool u confirm there are no updates to do and we should publish ?
