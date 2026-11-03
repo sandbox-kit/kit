@@ -33,7 +33,7 @@ func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _
 	if err != nil {
 		return err
 	}
-	if len(data) == 0 {
+	if data == nil {
 		data = []byte{}
 	}
 	if err := instance.FileSystem.UploadFile(ctx, data, path); err != nil {
