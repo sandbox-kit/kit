@@ -127,3 +127,7 @@ provider dropdown doesn't look native can u fix styles.
 copy markdown, view as markdown and open in <ai-platform> 
 
 doesn't work correctly in production. as we have no server. can u fix it.
+
+---
+
+commit and push & also update PR desription with all the changes we have made in this branch if its not there.
