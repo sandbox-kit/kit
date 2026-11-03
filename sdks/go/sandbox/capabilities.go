@@ -81,6 +81,14 @@ type SandboxFiles interface {
 	Remove(context.Context, string, string, *RemoveOptions) error
 }
 
+// SandboxProcess runs a command in a sandbox and waits for it to finish.
+// Daytona and Modal implement it. Use Sandbox.Process.
+type SandboxProcess interface {
+	// RunCommand runs one command and returns its exit code and output.
+	// A non-zero exit code is not an error.
+	RunCommand(context.Context, string, *ExecOptions) (*ExecResult, error)
+}
+
 // SandboxDeleter deletes a sandbox.
 // Daytona implements it. Call Sandbox.Delete. Close does not delete the cloud sandbox.
 type SandboxDeleter interface {

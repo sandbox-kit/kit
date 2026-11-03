@@ -10,11 +10,11 @@ types, constructors, methods, errors, or control flow.
 `sandbox.proto`:
 
 - configuration and creation options;
-- sandbox metadata, lifecycle options, filesystem options and results, and
+- sandbox metadata, lifecycle options, filesystem and process options and results, and
   portable error details.
 
 Kit does not declare a protobuf RPC service. Language SDKs expose handwritten
-`Client` / `Sandbox` / `Filesystem` APIs and provider `Backend` adapters over
+`Client` / `Sandbox` / `Filesystem` / `Process` APIs and provider `Backend` adapters over
 vendor SDKs.
 
 Generated Go wire output lives under `sdks/go/internal/contracts/` so only
@@ -32,7 +32,7 @@ representation of portable data.
 
 Handwritten language runtime code owns behavior:
 
-- public `Client`, `Sandbox`, and `Filesystem` facades;
+- public `Client`, `Sandbox`, `Filesystem`, and `Process` facades;
 - TypeScript public create/config input types (materialized to wire privately);
 - provider selection, native SDK initialization, cleanup, and deadlines;
 - private adapter interfaces and private native SDK state;

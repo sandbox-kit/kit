@@ -149,6 +149,16 @@ type (
 	// Set Recursive with Value(true) to remove a directory and its contents.
 	RemoveOptions = sandboxv1.RemoveOptions
 
+	// ExecOptions configures Process.Run. Set exactly one of Argv or Shell.
+	// An omitted Timeout inherits Config.Timeout as the Kit deadline and
+	// passes no provider command timeout. Explicit zero adds no Kit deadline
+	// and no provider command timeout. Provider command timeouts must be
+	// whole seconds.
+	ExecOptions = sandboxv1.ExecOptions
+
+	// ExecResult is the outcome of Process.Run. A non-zero ExitCode is not an error.
+	ExecResult = sandboxv1.ExecResult
+
 	// SandboxInfo is the metadata for one sandbox.
 	// Sandbox.Info returns a copy. State is a SandboxState.
 	SandboxInfo = sandboxv1.SandboxInfo
@@ -212,7 +222,8 @@ type (
 	SandboxState = sandboxv1.SandboxState
 
 	// LifecycleCapability names one lifecycle operation Sandbox.Supports can check.
-	// File operations are not lifecycle capabilities; call Filesystem instead.
+	// File and process operations are not lifecycle capabilities; call
+	// Filesystem or Process instead.
 	LifecycleCapability = sandboxv1.LifecycleCapability
 )
 

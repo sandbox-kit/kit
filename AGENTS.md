@@ -73,9 +73,9 @@ classification are handwritten per language.
 
 For every public feature, update its language's runnable example and guide.
 Use small, independent provider-specific projects under
-`examples/<language>/<provider>/` in `filesystem/`, `configuration/`,
-`lifecycle/`, or `errors/`. Each example demonstrates one operation with its
-own configuration and no provider selector or CLI flags.
+`examples/<language>/<provider>/` in `filesystem/`, `process/`,
+`configuration/`, `lifecycle/`, or `errors/`. Each example demonstrates one
+operation with its own configuration and no provider selector or CLI flags.
 
 Keep examples aligned with the implemented API. Label test doubles and local
 verification limits clearly. Verify changed examples before handoff and update

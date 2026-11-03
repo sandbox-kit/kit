@@ -2,7 +2,8 @@
 //
 // Pass [New] to sandbox.NewClient. Create requires an image. Set Scope.AppName
 // to an existing Modal app. The backend implements shared filesystem
-// operations through [sandbox.SandboxFiles]. Closing the client releases the
-// local SDK and leaves the Modal sandbox running. Reclaim it with Terminate or
-// a lifetime policy.
+// operations through [sandbox.SandboxFiles] and command execution through
+// [sandbox.SandboxProcess]. Closing the client releases the local SDK and
+// leaves the Modal sandbox running. Reclaim it with Terminate or a lifetime
+// policy.
 package modal

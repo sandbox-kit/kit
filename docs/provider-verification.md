@@ -14,9 +14,11 @@ resolution, and error translation without provisioning cloud resources.
 Filesystem tests cover path validation, local copy classification, timeouts,
 and provider file APIs (Modal `readBytes` / `writeBytes` / `copyFromLocal` /
 `listFiles`; Daytona high-level `FileSystem` plus toolbox list/stat, and
-`downloadFiles` with timeout `0` when Kit adds no transfer limit). Provider
-tests use the pinned SDK's transport/service seams; they do not expose those
-native clients through the public SDK.
+`downloadFiles` with timeout `0` when Kit adds no transfer limit). Process
+tests cover argv/shell exclusivity, working-directory checks, whole-second
+command timeouts, and command mapping (Daytona POSIX-quoted argv; Modal
+`bash -c` for shell). Provider tests use the pinned SDK's transport/service
+seams; they do not expose those native clients through the public SDK.
 
 ## Reference sources
 

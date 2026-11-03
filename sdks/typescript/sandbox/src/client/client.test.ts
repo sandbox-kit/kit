@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  ExecFieldArgv,
+  ExecFieldWorkingDirectory,
   FileFieldLocalPath,
   FileFieldPath,
   CreateFieldLifetimeIdleStopAfter,
@@ -676,5 +678,63 @@ describe("Sandbox lifecycle", () => {
       kind: ErrorKind.Unsupported,
       operation: "stat",
     });
+  });
+
+  it("rejects a process call without argv or shell before the provider", async () => {
+    const { client, backend } = fixture();
+    let calls = 0;
+    backend.run = async () => {
+      calls++;
+      return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+    };
+    const sandbox = await client.create();
+    await expect(sandbox.process.run({})).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldArgv,
+    });
+    expect(calls).toBe(0);
+  });
+
+  it("rejects a relative working directory before the provider", async () => {
+    const { client, backend } = fixture();
+    backend.run = async () => {
+      throw new Error("provider was called");
+    };
+    const sandbox = await client.create();
+    await expect(
+      sandbox.process.run({ argv: ["pwd"], workingDirectory: "relative" }),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldWorkingDirectory,
+    });
+  });
+
+  it("runs argv through the provider and keeps a non-zero exit code", async () => {
+    const { client, backend } = fixture();
+    backend.run = async (_id, request) => {
+      expect(request.argv).toEqual(["echo", "hello"]);
+      return {
+        exitCode: 7,
+        stdout: new TextEncoder().encode("hello\n"),
+        stderr: new Uint8Array(),
+      };
+    };
+    const sandbox = await client.create();
+    const result = await sandbox.process.run({ argv: ["echo", "hello"] });
+    expect(result.exitCode).toBe(7);
+    expect(new TextDecoder().decode(result.stdout)).toBe("hello\n");
+  });
+
+  it("reports process methods the provider does not implement", async () => {
+    const { client } = fixture();
+    const sandbox = await client.create();
+    await expect(sandbox.process.run({ argv: ["true"] })).rejects.toMatchObject(
+      {
+        kind: ErrorKind.Unsupported,
+        operation: "run",
+      },
+    );
   });
 });

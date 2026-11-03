@@ -3071,6 +3071,152 @@ func (x *RemoveOptions) GetRecursive() bool {
 	return false
 }
 
+// ExecOptions configures Process.Run. Set exactly one of argv or shell.
+// Kit validates that exclusivity before the provider call.
+// Nil timeout inherits Config.Timeout as the Kit deadline and passes no
+// provider command timeout. Explicit zero adds no Kit deadline and no
+// provider command timeout. Provider command timeouts must be whole seconds.
+type ExecOptions struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Program and arguments. Mutually exclusive with shell. Must be non-empty when used.
+	Argv []string `protobuf:"bytes,1,rep,name=argv,proto3" json:"argv,omitempty"`
+	// Shell command string. Mutually exclusive with argv.
+	Shell *string `protobuf:"bytes,2,opt,name=shell,proto3,oneof" json:"shell,omitempty"`
+	// Absolute working directory inside the sandbox.
+	WorkingDirectory *string `protobuf:"bytes,3,opt,name=working_directory,json=workingDirectory,proto3,oneof" json:"working_directory,omitempty"`
+	// Environment variables for the command. An empty map is explicit; nil means omitted.
+	Environment   map[string]string    `protobuf:"bytes,4,rep,name=environment,proto3" json:"environment,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Timeout       *durationpb.Duration `protobuf:"bytes,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecOptions) Reset() {
+	*x = ExecOptions{}
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecOptions) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecOptions) ProtoMessage() {}
+
+func (x *ExecOptions) ProtoReflect() protoreflect.Message {
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecOptions.ProtoReflect.Descriptor instead.
+func (*ExecOptions) Descriptor() ([]byte, []int) {
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *ExecOptions) GetArgv() []string {
+	if x != nil {
+		return x.Argv
+	}
+	return nil
+}
+
+func (x *ExecOptions) GetShell() string {
+	if x != nil && x.Shell != nil {
+		return *x.Shell
+	}
+	return ""
+}
+
+func (x *ExecOptions) GetWorkingDirectory() string {
+	if x != nil && x.WorkingDirectory != nil {
+		return *x.WorkingDirectory
+	}
+	return ""
+}
+
+func (x *ExecOptions) GetEnvironment() map[string]string {
+	if x != nil {
+		return x.Environment
+	}
+	return nil
+}
+
+func (x *ExecOptions) GetTimeout() *durationpb.Duration {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
+}
+
+// ExecResult is the outcome of Process.Run. A non-zero exit_code is not an error.
+type ExecResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ExitCode      int32                  `protobuf:"varint,1,opt,name=exit_code,json=exitCode,proto3" json:"exit_code,omitempty"`
+	Stdout        []byte                 `protobuf:"bytes,2,opt,name=stdout,proto3" json:"stdout,omitempty"`
+	Stderr        []byte                 `protobuf:"bytes,3,opt,name=stderr,proto3" json:"stderr,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExecResult) Reset() {
+	*x = ExecResult{}
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExecResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExecResult) ProtoMessage() {}
+
+func (x *ExecResult) ProtoReflect() protoreflect.Message {
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExecResult.ProtoReflect.Descriptor instead.
+func (*ExecResult) Descriptor() ([]byte, []int) {
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *ExecResult) GetExitCode() int32 {
+	if x != nil {
+		return x.ExitCode
+	}
+	return 0
+}
+
+func (x *ExecResult) GetStdout() []byte {
+	if x != nil {
+		return x.Stdout
+	}
+	return nil
+}
+
+func (x *ExecResult) GetStderr() []byte {
+	if x != nil {
+		return x.Stderr
+	}
+	return nil
+}
+
 // SandboxInfo is shared metadata. Optional fields stay absent when the provider did not report them.
 //
 // Example:
@@ -3103,7 +3249,7 @@ type SandboxInfo struct {
 
 func (x *SandboxInfo) Reset() {
 	*x = SandboxInfo{}
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[37]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3115,7 +3261,7 @@ func (x *SandboxInfo) String() string {
 func (*SandboxInfo) ProtoMessage() {}
 
 func (x *SandboxInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[37]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3128,7 +3274,7 @@ func (x *SandboxInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SandboxInfo.ProtoReflect.Descriptor instead.
 func (*SandboxInfo) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{37}
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SandboxInfo) GetId() string {
@@ -3251,7 +3397,7 @@ type ErrorInfo struct {
 
 func (x *ErrorInfo) Reset() {
 	*x = ErrorInfo{}
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[38]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3263,7 +3409,7 @@ func (x *ErrorInfo) String() string {
 func (*ErrorInfo) ProtoMessage() {}
 
 func (x *ErrorInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[38]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3276,7 +3422,7 @@ func (x *ErrorInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ErrorInfo.ProtoReflect.Descriptor instead.
 func (*ErrorInfo) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{38}
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *ErrorInfo) GetKind() ErrorKind {
@@ -3363,7 +3509,7 @@ type MetadataValue struct {
 
 func (x *MetadataValue) Reset() {
 	*x = MetadataValue{}
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[39]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3375,7 +3521,7 @@ func (x *MetadataValue) String() string {
 func (*MetadataValue) ProtoMessage() {}
 
 func (x *MetadataValue) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[39]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3388,7 +3534,7 @@ func (x *MetadataValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataValue.ProtoReflect.Descriptor instead.
 func (*MetadataValue) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{39}
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *MetadataValue) GetValue() isMetadataValue_Value {
@@ -3533,7 +3679,7 @@ type MetadataList struct {
 
 func (x *MetadataList) Reset() {
 	*x = MetadataList{}
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[40]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3545,7 +3691,7 @@ func (x *MetadataList) String() string {
 func (*MetadataList) ProtoMessage() {}
 
 func (x *MetadataList) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[40]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3558,7 +3704,7 @@ func (x *MetadataList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataList.ProtoReflect.Descriptor instead.
 func (*MetadataList) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{40}
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *MetadataList) GetValues() []*MetadataValue {
@@ -3579,7 +3725,7 @@ type MetadataObject struct {
 
 func (x *MetadataObject) Reset() {
 	*x = MetadataObject{}
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[41]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3591,7 +3737,7 @@ func (x *MetadataObject) String() string {
 func (*MetadataObject) ProtoMessage() {}
 
 func (x *MetadataObject) ProtoReflect() protoreflect.Message {
-	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[41]
+	mi := &file_kit_sandbox_v1_sandbox_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3604,7 +3750,7 @@ func (x *MetadataObject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MetadataObject.ProtoReflect.Descriptor instead.
 func (*MetadataObject) Descriptor() ([]byte, []int) {
-	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{41}
+	return file_kit_sandbox_v1_sandbox_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *MetadataObject) GetValues() map[string]*MetadataValue {
@@ -3859,7 +4005,23 @@ const file_kit_sandbox_v1_sandbox_proto_rawDesc = "" +
 	"\atimeout\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12!\n" +
 	"\trecursive\x18\x02 \x01(\bH\x00R\trecursive\x88\x01\x01B\f\n" +
 	"\n" +
-	"_recursive\"\xaf\x05\n" +
+	"_recursive\"\xd3\x02\n" +
+	"\vExecOptions\x12\x12\n" +
+	"\x04argv\x18\x01 \x03(\tR\x04argv\x12\x19\n" +
+	"\x05shell\x18\x02 \x01(\tH\x00R\x05shell\x88\x01\x01\x120\n" +
+	"\x11working_directory\x18\x03 \x01(\tH\x01R\x10workingDirectory\x88\x01\x01\x12N\n" +
+	"\venvironment\x18\x04 \x03(\v2,.kit.sandbox.v1.ExecOptions.EnvironmentEntryR\venvironment\x123\n" +
+	"\atimeout\x18\x05 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x1a>\n" +
+	"\x10EnvironmentEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\b\n" +
+	"\x06_shellB\x14\n" +
+	"\x12_working_directory\"Y\n" +
+	"\n" +
+	"ExecResult\x12\x1b\n" +
+	"\texit_code\x18\x01 \x01(\x05R\bexitCode\x12\x16\n" +
+	"\x06stdout\x18\x02 \x01(\fR\x06stdout\x12\x16\n" +
+	"\x06stderr\x18\x03 \x01(\fR\x06stderr\"\xaf\x05\n" +
 	"\vSandboxInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bprovider\x18\x02 \x01(\tR\bprovider\x12\x17\n" +
@@ -4018,7 +4180,7 @@ func file_kit_sandbox_v1_sandbox_proto_rawDescGZIP() []byte {
 }
 
 var file_kit_sandbox_v1_sandbox_proto_enumTypes = make([]protoimpl.EnumInfo, 11)
-var file_kit_sandbox_v1_sandbox_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
+var file_kit_sandbox_v1_sandbox_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_kit_sandbox_v1_sandbox_proto_goTypes = []any{
 	(SnapshotKind)(0),             // 0: kit.sandbox.v1.SnapshotKind
 	(IsolationKind)(0),            // 1: kit.sandbox.v1.IsolationKind
@@ -4068,17 +4230,20 @@ var file_kit_sandbox_v1_sandbox_proto_goTypes = []any{
 	(*ListDirectoryOptions)(nil),  // 45: kit.sandbox.v1.ListDirectoryOptions
 	(*StatOptions)(nil),           // 46: kit.sandbox.v1.StatOptions
 	(*RemoveOptions)(nil),         // 47: kit.sandbox.v1.RemoveOptions
-	(*SandboxInfo)(nil),           // 48: kit.sandbox.v1.SandboxInfo
-	(*ErrorInfo)(nil),             // 49: kit.sandbox.v1.ErrorInfo
-	(*MetadataValue)(nil),         // 50: kit.sandbox.v1.MetadataValue
-	(*MetadataList)(nil),          // 51: kit.sandbox.v1.MetadataList
-	(*MetadataObject)(nil),        // 52: kit.sandbox.v1.MetadataObject
-	nil,                           // 53: kit.sandbox.v1.CreateOptions.EnvironmentEntry
-	nil,                           // 54: kit.sandbox.v1.CreateOptions.LabelsEntry
-	nil,                           // 55: kit.sandbox.v1.SandboxInfo.LabelsEntry
-	nil,                           // 56: kit.sandbox.v1.MetadataObject.ValuesEntry
-	(*durationpb.Duration)(nil),   // 57: google.protobuf.Duration
-	(*timestamppb.Timestamp)(nil), // 58: google.protobuf.Timestamp
+	(*ExecOptions)(nil),           // 48: kit.sandbox.v1.ExecOptions
+	(*ExecResult)(nil),            // 49: kit.sandbox.v1.ExecResult
+	(*SandboxInfo)(nil),           // 50: kit.sandbox.v1.SandboxInfo
+	(*ErrorInfo)(nil),             // 51: kit.sandbox.v1.ErrorInfo
+	(*MetadataValue)(nil),         // 52: kit.sandbox.v1.MetadataValue
+	(*MetadataList)(nil),          // 53: kit.sandbox.v1.MetadataList
+	(*MetadataObject)(nil),        // 54: kit.sandbox.v1.MetadataObject
+	nil,                           // 55: kit.sandbox.v1.CreateOptions.EnvironmentEntry
+	nil,                           // 56: kit.sandbox.v1.CreateOptions.LabelsEntry
+	nil,                           // 57: kit.sandbox.v1.ExecOptions.EnvironmentEntry
+	nil,                           // 58: kit.sandbox.v1.SandboxInfo.LabelsEntry
+	nil,                           // 59: kit.sandbox.v1.MetadataObject.ValuesEntry
+	(*durationpb.Duration)(nil),   // 60: google.protobuf.Duration
+	(*timestamppb.Timestamp)(nil), // 61: google.protobuf.Timestamp
 }
 var file_kit_sandbox_v1_sandbox_proto_depIdxs = []int32{
 	12, // 0: kit.sandbox.v1.CreateOptions.source:type_name -> kit.sandbox.v1.SandboxSource
@@ -4086,8 +4251,8 @@ var file_kit_sandbox_v1_sandbox_proto_depIdxs = []int32{
 	18, // 2: kit.sandbox.v1.CreateOptions.isolation:type_name -> kit.sandbox.v1.IsolationConfig
 	19, // 3: kit.sandbox.v1.CreateOptions.resources:type_name -> kit.sandbox.v1.Resources
 	20, // 4: kit.sandbox.v1.CreateOptions.placement:type_name -> kit.sandbox.v1.Placement
-	53, // 5: kit.sandbox.v1.CreateOptions.environment:type_name -> kit.sandbox.v1.CreateOptions.EnvironmentEntry
-	54, // 6: kit.sandbox.v1.CreateOptions.labels:type_name -> kit.sandbox.v1.CreateOptions.LabelsEntry
+	55, // 5: kit.sandbox.v1.CreateOptions.environment:type_name -> kit.sandbox.v1.CreateOptions.EnvironmentEntry
+	56, // 6: kit.sandbox.v1.CreateOptions.labels:type_name -> kit.sandbox.v1.CreateOptions.LabelsEntry
 	22, // 7: kit.sandbox.v1.CreateOptions.network:type_name -> kit.sandbox.v1.NetworkConfig
 	24, // 8: kit.sandbox.v1.CreateOptions.security:type_name -> kit.sandbox.v1.SecurityConfig
 	26, // 9: kit.sandbox.v1.CreateOptions.lifetime:type_name -> kit.sandbox.v1.LifetimePolicy
@@ -4108,51 +4273,53 @@ var file_kit_sandbox_v1_sandbox_proto_depIdxs = []int32{
 	3,  // 24: kit.sandbox.v1.PortBinding.transport:type_name -> kit.sandbox.v1.PortTransport
 	25, // 25: kit.sandbox.v1.SecurityConfig.secrets:type_name -> kit.sandbox.v1.SecretReference
 	4,  // 26: kit.sandbox.v1.SecretReference.injection:type_name -> kit.sandbox.v1.SecretInjection
-	57, // 27: kit.sandbox.v1.LifetimePolicy.maximum_lifetime:type_name -> google.protobuf.Duration
+	60, // 27: kit.sandbox.v1.LifetimePolicy.maximum_lifetime:type_name -> google.protobuf.Duration
 	27, // 28: kit.sandbox.v1.LifetimePolicy.idle_terminate:type_name -> kit.sandbox.v1.AutomaticAction
 	27, // 29: kit.sandbox.v1.LifetimePolicy.idle_stop:type_name -> kit.sandbox.v1.AutomaticAction
 	27, // 30: kit.sandbox.v1.LifetimePolicy.idle_pause:type_name -> kit.sandbox.v1.AutomaticAction
 	27, // 31: kit.sandbox.v1.LifetimePolicy.stopped_archive:type_name -> kit.sandbox.v1.AutomaticAction
 	27, // 32: kit.sandbox.v1.LifetimePolicy.stopped_delete:type_name -> kit.sandbox.v1.AutomaticAction
 	5,  // 33: kit.sandbox.v1.AutomaticAction.mode:type_name -> kit.sandbox.v1.PolicyMode
-	57, // 34: kit.sandbox.v1.AutomaticAction.after:type_name -> google.protobuf.Duration
-	57, // 35: kit.sandbox.v1.ProvisioningOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 36: kit.sandbox.v1.ProvisioningOptions.queue_timeout:type_name -> google.protobuf.Duration
+	60, // 34: kit.sandbox.v1.AutomaticAction.after:type_name -> google.protobuf.Duration
+	60, // 35: kit.sandbox.v1.ProvisioningOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 36: kit.sandbox.v1.ProvisioningOptions.queue_timeout:type_name -> google.protobuf.Duration
 	6,  // 37: kit.sandbox.v1.ProvisioningOptions.wait_for:type_name -> kit.sandbox.v1.WaitCondition
 	30, // 38: kit.sandbox.v1.ReadinessProbe.command:type_name -> kit.sandbox.v1.CommandProbe
-	48, // 39: kit.sandbox.v1.CreateResult.sandbox:type_name -> kit.sandbox.v1.SandboxInfo
-	57, // 40: kit.sandbox.v1.StartOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 41: kit.sandbox.v1.StopOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 42: kit.sandbox.v1.PauseOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 43: kit.sandbox.v1.TerminateOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 44: kit.sandbox.v1.ArchiveOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 45: kit.sandbox.v1.DeleteOptions.timeout:type_name -> google.protobuf.Duration
+	50, // 39: kit.sandbox.v1.CreateResult.sandbox:type_name -> kit.sandbox.v1.SandboxInfo
+	60, // 40: kit.sandbox.v1.StartOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 41: kit.sandbox.v1.StopOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 42: kit.sandbox.v1.PauseOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 43: kit.sandbox.v1.TerminateOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 44: kit.sandbox.v1.ArchiveOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 45: kit.sandbox.v1.DeleteOptions.timeout:type_name -> google.protobuf.Duration
 	7,  // 46: kit.sandbox.v1.FileInfo.type:type_name -> kit.sandbox.v1.FileType
-	58, // 47: kit.sandbox.v1.FileInfo.modified_at:type_name -> google.protobuf.Timestamp
-	57, // 48: kit.sandbox.v1.FileReadOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 49: kit.sandbox.v1.FileWriteOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 50: kit.sandbox.v1.FileCopyOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 51: kit.sandbox.v1.MakeDirectoryOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 52: kit.sandbox.v1.ListDirectoryOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 53: kit.sandbox.v1.StatOptions.timeout:type_name -> google.protobuf.Duration
-	57, // 54: kit.sandbox.v1.RemoveOptions.timeout:type_name -> google.protobuf.Duration
-	18, // 55: kit.sandbox.v1.SandboxInfo.isolation:type_name -> kit.sandbox.v1.IsolationConfig
-	19, // 56: kit.sandbox.v1.SandboxInfo.resources:type_name -> kit.sandbox.v1.Resources
-	55, // 57: kit.sandbox.v1.SandboxInfo.labels:type_name -> kit.sandbox.v1.SandboxInfo.LabelsEntry
-	58, // 58: kit.sandbox.v1.SandboxInfo.created_at:type_name -> google.protobuf.Timestamp
-	52, // 59: kit.sandbox.v1.SandboxInfo.provider_metadata:type_name -> kit.sandbox.v1.MetadataObject
-	8,  // 60: kit.sandbox.v1.SandboxInfo.state:type_name -> kit.sandbox.v1.SandboxState
-	10, // 61: kit.sandbox.v1.ErrorInfo.kind:type_name -> kit.sandbox.v1.ErrorKind
-	51, // 62: kit.sandbox.v1.MetadataValue.list:type_name -> kit.sandbox.v1.MetadataList
-	52, // 63: kit.sandbox.v1.MetadataValue.object:type_name -> kit.sandbox.v1.MetadataObject
-	50, // 64: kit.sandbox.v1.MetadataList.values:type_name -> kit.sandbox.v1.MetadataValue
-	56, // 65: kit.sandbox.v1.MetadataObject.values:type_name -> kit.sandbox.v1.MetadataObject.ValuesEntry
-	50, // 66: kit.sandbox.v1.MetadataObject.ValuesEntry.value:type_name -> kit.sandbox.v1.MetadataValue
-	67, // [67:67] is the sub-list for method output_type
-	67, // [67:67] is the sub-list for method input_type
-	67, // [67:67] is the sub-list for extension type_name
-	67, // [67:67] is the sub-list for extension extendee
-	0,  // [0:67] is the sub-list for field type_name
+	61, // 47: kit.sandbox.v1.FileInfo.modified_at:type_name -> google.protobuf.Timestamp
+	60, // 48: kit.sandbox.v1.FileReadOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 49: kit.sandbox.v1.FileWriteOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 50: kit.sandbox.v1.FileCopyOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 51: kit.sandbox.v1.MakeDirectoryOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 52: kit.sandbox.v1.ListDirectoryOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 53: kit.sandbox.v1.StatOptions.timeout:type_name -> google.protobuf.Duration
+	60, // 54: kit.sandbox.v1.RemoveOptions.timeout:type_name -> google.protobuf.Duration
+	57, // 55: kit.sandbox.v1.ExecOptions.environment:type_name -> kit.sandbox.v1.ExecOptions.EnvironmentEntry
+	60, // 56: kit.sandbox.v1.ExecOptions.timeout:type_name -> google.protobuf.Duration
+	18, // 57: kit.sandbox.v1.SandboxInfo.isolation:type_name -> kit.sandbox.v1.IsolationConfig
+	19, // 58: kit.sandbox.v1.SandboxInfo.resources:type_name -> kit.sandbox.v1.Resources
+	58, // 59: kit.sandbox.v1.SandboxInfo.labels:type_name -> kit.sandbox.v1.SandboxInfo.LabelsEntry
+	61, // 60: kit.sandbox.v1.SandboxInfo.created_at:type_name -> google.protobuf.Timestamp
+	54, // 61: kit.sandbox.v1.SandboxInfo.provider_metadata:type_name -> kit.sandbox.v1.MetadataObject
+	8,  // 62: kit.sandbox.v1.SandboxInfo.state:type_name -> kit.sandbox.v1.SandboxState
+	10, // 63: kit.sandbox.v1.ErrorInfo.kind:type_name -> kit.sandbox.v1.ErrorKind
+	53, // 64: kit.sandbox.v1.MetadataValue.list:type_name -> kit.sandbox.v1.MetadataList
+	54, // 65: kit.sandbox.v1.MetadataValue.object:type_name -> kit.sandbox.v1.MetadataObject
+	52, // 66: kit.sandbox.v1.MetadataList.values:type_name -> kit.sandbox.v1.MetadataValue
+	59, // 67: kit.sandbox.v1.MetadataObject.values:type_name -> kit.sandbox.v1.MetadataObject.ValuesEntry
+	52, // 68: kit.sandbox.v1.MetadataObject.ValuesEntry.value:type_name -> kit.sandbox.v1.MetadataValue
+	69, // [69:69] is the sub-list for method output_type
+	69, // [69:69] is the sub-list for method input_type
+	69, // [69:69] is the sub-list for extension type_name
+	69, // [69:69] is the sub-list for extension extendee
+	0,  // [0:69] is the sub-list for field type_name
 }
 
 func init() { file_kit_sandbox_v1_sandbox_proto_init() }
@@ -4189,8 +4356,9 @@ func file_kit_sandbox_v1_sandbox_proto_init() {
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[33].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[36].OneofWrappers = []any{}
 	file_kit_sandbox_v1_sandbox_proto_msgTypes[37].OneofWrappers = []any{}
-	file_kit_sandbox_v1_sandbox_proto_msgTypes[38].OneofWrappers = []any{}
-	file_kit_sandbox_v1_sandbox_proto_msgTypes[39].OneofWrappers = []any{
+	file_kit_sandbox_v1_sandbox_proto_msgTypes[39].OneofWrappers = []any{}
+	file_kit_sandbox_v1_sandbox_proto_msgTypes[40].OneofWrappers = []any{}
+	file_kit_sandbox_v1_sandbox_proto_msgTypes[41].OneofWrappers = []any{
 		(*MetadataValue_Boolean)(nil),
 		(*MetadataValue_Text)(nil),
 		(*MetadataValue_SignedInteger)(nil),
@@ -4206,7 +4374,7 @@ func file_kit_sandbox_v1_sandbox_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_kit_sandbox_v1_sandbox_proto_rawDesc), len(file_kit_sandbox_v1_sandbox_proto_rawDesc)),
 			NumEnums:      11,
-			NumMessages:   46,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

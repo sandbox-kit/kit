@@ -1,7 +1,7 @@
 // Client runtime behavior is handwritten. Portable request and response data
 // remain generated from protobuf. This module owns construction and create /
 // attach / get / close; validation, errors, and the Sandbox handle
-// (lifecycle + filesystem) live beside it.
+// (lifecycle + filesystem + process) live beside it.
 
 import type {
   CreateOptions,
@@ -42,6 +42,7 @@ export type {
 } from "#client/types.js";
 export { ErrorKind, SandboxError, sandboxError } from "#client/errors.js";
 export { Filesystem } from "#client/filesystem.js";
+export { Process } from "#client/process.js";
 export { Sandbox } from "#client/sandbox.js";
 export { validateConfig, validateCreateOptions } from "#client/validation.js";
 

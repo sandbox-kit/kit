@@ -131,7 +131,9 @@ Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md
 Files inside a sandbox are described in the [filesystem guide](filesystem.md).
 
 Creation covers the sandbox itself. GPU requests, resizing, storage volumes,
-browsers, process execution, and macOS or Windows creation are outside it.
+browsers, streaming process handles, sessions, PTY, and macOS or Windows
+creation are outside it. Blocking command execution is covered in
+[process](process.md).
 
 See [configuration](configuration.md), [lifecycle](sandbox-lifecycle.md), and
 [filesystem](filesystem.md).

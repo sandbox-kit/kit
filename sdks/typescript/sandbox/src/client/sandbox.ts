@@ -1,5 +1,5 @@
-// Sandbox handle runtime behavior is handwritten. Lifecycle and filesystem
-// methods dispatch through optional Backend methods.
+// Sandbox handle runtime behavior is handwritten. Lifecycle, filesystem, and
+// process methods dispatch through optional Backend methods.
 
 import {
   type ArchiveOptions,
@@ -21,6 +21,7 @@ import {
   publicTimeoutOptions,
 } from "#client/operation.js";
 import { Filesystem } from "#client/filesystem.js";
+import { Process } from "#client/process.js";
 import type {
   Backend,
   DeleteCallOptions,
@@ -43,8 +44,8 @@ export interface SandboxInit {
 /**
  * Handle for one cloud sandbox.
  * Lifecycle methods change it. `filesystem` exposes the shared file
- * operations. `close` leaves the cloud sandbox as it is, and you can keep
- * using the handle.
+ * operations. `process` runs commands. `close` leaves the cloud sandbox as
+ * it is, and you can keep using the handle.
  */
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
@@ -54,6 +55,11 @@ export class Sandbox implements AsyncDisposable {
    * stat, and remove. Paths inside the sandbox are absolute.
    */
   readonly filesystem: Filesystem;
+  /**
+   * Command runner for this sandbox. Set exactly one of `argv` or `shell`.
+   * A working directory, when set, must be absolute.
+   */
+  readonly process: Process;
   #info: SandboxInfo;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -62,18 +68,31 @@ export class Sandbox implements AsyncDisposable {
     this.#backend = init.backend;
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
-    this.filesystem = new Filesystem({
-      providerName: this.providerName,
-      id: this.id,
-      backend: this.#backend,
-      run: (operation, options, body) =>
-        this.#serialized(
+    const self = this;
+    const host = {
+      get providerName() {
+        return self.providerName;
+      },
+      get id() {
+        return self.id;
+      },
+      get backend() {
+        return self.#backend;
+      },
+      run: <T>(
+        operation: string,
+        options: OperationOptions,
+        body: (signal: AbortSignal | undefined) => Promise<T>,
+      ): Promise<T> =>
+        self.#serialized(
           operation,
           options,
-          options.timeout ?? this.#timeout,
+          options.timeout ?? self.#timeout,
           body,
         ),
-    });
+    };
+    this.filesystem = new Filesystem(host);
+    this.process = new Process(host);
   }
   /** Sandbox identifier. */
   get id(): string {
@@ -89,15 +108,16 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Lifecycle operations this provider implements.
-   * File operations are not lifecycle capabilities; use {@link filesystem}.
+   * File and process operations are not lifecycle capabilities; use
+   * {@link filesystem} or {@link process}.
    */
   capabilities(): readonly LifecycleCapability[] {
     return providerCapabilities(this.#backend);
   }
   /**
    * Reports whether this provider implements a lifecycle `capability`.
-   * File operations are checked by calling {@link filesystem} methods, not
-   * `supports`.
+   * File and process operations are checked by calling {@link filesystem} or
+   * {@link process} methods, not `supports`.
    */
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);

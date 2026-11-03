@@ -5,6 +5,8 @@ import {
   type Sandbox as ModalSandbox,
 } from "modal";
 import {
+  ErrorKind,
+  ExecFieldTimeout,
   FileType,
   type FileInfo,
   type OperationOptions,
@@ -16,6 +18,8 @@ import type {
   Config,
   CreateOptions,
   CreateResult,
+  ExecOptions,
+  ExecResult,
   ExitResult,
   FileCopyOptions,
   FileReadOptions,
@@ -33,6 +37,7 @@ import {
 } from "#mappings/mappings.js";
 import {
   mapModalError,
+  providerError,
   requireLocalDestination,
   requireLocalFile,
   translateLocalCopyError,
@@ -263,6 +268,36 @@ class ModalBackend extends BackendBase implements Backend {
     });
   }
 
+  async run(
+    id: string,
+    request: ExecOptions,
+    options: OperationOptions,
+  ): Promise<ExecResult> {
+    return this.#file("run", id, options, async (sandbox) => {
+      const command = modalCommand(request);
+      const timeoutMs = execTimeoutMs(request.timeout);
+      const process = await sandbox.exec(command, {
+        mode: "binary",
+        stdout: "pipe",
+        stderr: "pipe",
+        timeoutMs,
+        ...(request.workingDirectory === undefined
+          ? {}
+          : { workdir: request.workingDirectory }),
+        ...(request.environment === undefined
+          ? {}
+          : { env: request.environment }),
+      });
+      await process.closeStdin();
+      const [stdout, stderr, exitCode] = await Promise.all([
+        process.stdout.readBytes(),
+        process.stderr.readBytes(),
+        process.wait(),
+      ]);
+      return { exitCode, stdout, stderr };
+    });
+  }
+
   async #file<T>(
     operation: string,
     id: string,
@@ -357,6 +392,29 @@ function abortableDelay(
     };
     signal?.addEventListener("abort", onAbort, { once: true });
   });
+}
+
+function modalCommand(request: ExecOptions): string[] {
+  if (request.shell !== undefined) return ["bash", "-c", request.shell];
+  return [...(request.argv ?? [])];
+}
+
+/**
+ * Maps Kit ExecOptions.timeout (ms) to Modal's timeoutMs.
+ * Omitted and explicit zero become 0 (no command timeout). Non-zero values
+ * must be whole seconds; Modal rejects fractional durations.
+ */
+function execTimeoutMs(timeout: number | undefined): number {
+  if (timeout === undefined) return 0;
+  if (!Number.isFinite(timeout) || timeout < 0 || timeout % 1_000 !== 0) {
+    providerError({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldTimeout,
+      message: "timeout must be a whole number of seconds",
+    });
+  }
+  return timeout;
 }
 
 /** Selects Modal as the provider for the shared Sandbox Kit client. */

@@ -8,8 +8,8 @@ import (
 
 // Sandbox is the handle for one cloud sandbox.
 // ID and Info describe it. Lifecycle methods change it. Filesystem returns the
-// shared file operations. Close does not change the cloud sandbox. You can keep
-// using the handle.
+// shared file operations. Process runs commands. Close does not change the
+// cloud sandbox. You can keep using the handle.
 //
 // Example:
 //
@@ -94,7 +94,8 @@ func (s *Sandbox) Info() *SandboxInfo {
 }
 
 // Capabilities lists the lifecycle operations this provider implements.
-// File operations are not lifecycle capabilities; call Filesystem instead.
+// File and process operations are not lifecycle capabilities; call Filesystem
+// or Process instead.
 // Pass a value to Supports, or compare it with LifecycleCapabilityPause and the other capability constants.
 func (s *Sandbox) Capabilities() []LifecycleCapability {
 	if s == nil || s.operations == nil || s.currentID() == "" {
@@ -116,7 +117,8 @@ func (s *Sandbox) currentID() string {
 }
 
 // Supports reports whether this provider implements a lifecycle capability.
-// File operations are checked by calling Filesystem methods, not Supports.
+// File and process operations are checked by calling Filesystem or Process
+// methods, not Supports.
 func (s *Sandbox) Supports(capability LifecycleCapability) bool {
 	for _, candidate := range s.Capabilities() {
 		if candidate == capability {

@@ -25,6 +25,8 @@ import {
   type DeleteOptions as ProtoDeleteOptions,
   type ErrorInfo as ProtoErrorInfo,
   type ExitResult as ProtoExitResult,
+  type ExecOptions as ProtoExecOptions,
+  type ExecResult as ProtoExecResult,
   type FileCopyOptions as ProtoFileCopyOptions,
   type FileInfo as ProtoFileInfo,
   type FileReadOptions as ProtoFileReadOptions,
@@ -111,6 +113,13 @@ export type ListDirectoryOptions = DurationFieldsToMs<
 >;
 export type StatOptions = DurationFieldsToMs<StripProto<ProtoStatOptions>>;
 export type RemoveOptions = DurationFieldsToMs<StripProto<ProtoRemoveOptions>>;
+/**
+ * Public process run options for `Backend` and provider adapters (ms
+ * timeouts). Set exactly one of `argv` or `shell`.
+ */
+export type ExecOptions = DurationFieldsToMs<StripProto<ProtoExecOptions>>;
+/** Outcome of `Process.run`. A non-zero `exitCode` is not an error. */
+export type ExecResult = StripProto<ProtoExecResult>;
 export type MetadataValue = StripProto<ProtoMetadataValue>;
 export type MetadataList = StripProto<ProtoMetadataList>;
 export type MetadataObject = StripProto<ProtoMetadataObject>;

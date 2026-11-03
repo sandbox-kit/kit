@@ -16,6 +16,8 @@ import type {
   CreateResult,
   DeleteOptions,
   ExitResult,
+  ExecOptions,
+  ExecResult,
   FileCopyOptions,
   FileInfo,
   FileReadOptions,
@@ -160,6 +162,11 @@ export interface Backend {
     request: RemoveOptions,
     options: OperationOptions,
   ): Promise<void>;
+  run?(
+    id: string,
+    request: ExecOptions,
+    options: OperationOptions,
+  ): Promise<ExecResult>;
   close(options: OperationOptions): Promise<void>;
   closeSandbox(id: string, options: OperationOptions): Promise<void>;
 }

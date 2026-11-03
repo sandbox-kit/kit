@@ -93,6 +93,14 @@ messages:
   CommandProbe:
     fields:
       argv: { min_items: 1 }
+  # ExecOptions exclusivity (argv XOR shell) and absolute working_directory are
+  # handwritten in Process.Run; keep this inventory aligned with that gate.
+  ExecOptions:
+    fields:
+      shell: { nonblank: true }
+      working_directory: { nonblank: true }
+    constraints:
+      - { op: exactly_one, fields: [argv, shell] }
   SecretReference:
     fields:
       reference: { nonblank: true }

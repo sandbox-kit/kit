@@ -1,8 +1,8 @@
 # Go examples
 
 Each project uses the sandbox client and one provider from this repository.
-Projects sit in `filesystem`, `configuration`, `lifecycle`, or `errors`.
-Requires Go 1.26.0 or newer and this checkout.
+Projects sit in `filesystem`, `process`, `configuration`, `lifecycle`, or
+`errors`. Requires Go 1.26.0 or newer and this checkout.
 
 ## Run one
 
@@ -18,8 +18,9 @@ shell variables win. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
 
 Creation programs provision real sandboxes (linked Daytona creates a parent and
-child). Filesystem and lifecycle programs use the configured sandbox ID. Read
-the guide before a destructive stop, terminate, archive, delete, or remove.
+child). Filesystem, process, and lifecycle programs use the configured sandbox
+ID. Read the guide before a destructive stop, terminate, archive, delete, or
+remove.
 Error-handling programs fail locally. Closing a handle leaves the sandbox as it is. Closing the client
 closes your connection to Daytona or Modal.
 
@@ -30,6 +31,7 @@ closes your connection to Daytona or Modal.
 | Project                                                                                      | Demonstrates                            |
 | -------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [create-daytona-sandbox](daytona/configuration/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
+| [run-daytona-command](daytona/process/run-daytona-command/README.md)                         | run one command                         |
 | [read-daytona-file](daytona/filesystem/read-daytona-file/README.md)                          | read one file                           |
 | [write-daytona-file](daytona/filesystem/write-daytona-file/README.md)                        | write one file                          |
 | [copy-file-into-daytona](daytona/filesystem/copy-file-into-daytona/README.md)                | copy a local file in                    |
@@ -67,6 +69,7 @@ closes your connection to Daytona or Modal.
 | Project                                                                                    | Demonstrates                               |
 | ------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md)                 | image creation with resources and policies |
+| [run-modal-command](modal/process/run-modal-command/README.md)                             | run one command                            |
 | [read-modal-file](modal/filesystem/read-modal-file/README.md)                              | read one file                              |
 | [write-modal-file](modal/filesystem/write-modal-file/README.md)                            | write one file                             |
 | [copy-file-into-modal](modal/filesystem/copy-file-into-modal/README.md)                    | copy a local file in                       |
