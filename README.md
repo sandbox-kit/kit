@@ -273,7 +273,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Each page covers one part of the client. Code samples switch between TypeScript and Go. GitHub Actions publishes the same site to https://sandbox-kit.github.io/kit/.
+Open http://localhost:3000. Docs are organized as Quickstart, Concepts, Providers, Guides, and Examples. Code samples switch between TypeScript and Go. GitHub Actions publishes the same site to https://sandbox-kit.github.io/kit/.
 
 These pages are the behavior reference for the same API:
 

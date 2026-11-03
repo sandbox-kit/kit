@@ -1,31 +1,258 @@
 ---
-title: Get started
-description: Open the page for the call you need. Each page stands on its own.
+title: Quickstart
+description: Install Sandbox Kit, create a sandbox, run a command, and write a file.
 ---
 
-Sandbox Kit is one client for the sandbox provider you pass in. Install the core package and that provider's package. An agent uses the client to open a sandbox and control how long it runs.
+Sandbox Kit is a lightweight TypeScript and Go SDK for cloud sandboxes. The core package defines the client; providers plug in as separate packages. Install both, construct a client, then create or open sandboxes.
 
-Open the page that matches the call. You do not need the other pages first.
+| Requirement | Version                   |
+| ----------- | ------------------------- |
+| TypeScript  | Node.js 20, 22, or 24.15+ |
+| Go          | Go 1.26.0+                |
 
-| You want to                                   | Open                                             |
-| --------------------------------------------- | ------------------------------------------------ |
-| Install a provider and create a sandbox       | [Daytona](/docs/daytona) or [Modal](/docs/modal) |
-| Set auth, a timeout, a region, or an app      | [Configure the client](/docs/configuration)      |
-| Choose an image, a size, or a lifetime        | [Create a sandbox](/docs/create)                 |
-| Open a sandbox you already have, or finish it | [Manage a sandbox](/docs/lifecycle)              |
-| Work with files inside the sandbox            | [Use files](/docs/filesystem)                    |
-| Run a command inside the sandbox              | [Run a command](/docs/process)                   |
-| Branch on a failed call                       | [Read an error](/docs/errors)                    |
-| Copy a runnable project                       | [Examples](/docs/examples)                       |
+Language tabs and the Daytona / Modal menu keep your picks in the browser. The menu switches install snippets, create samples, and provider notes.
 
-Code samples have a **TypeScript** tab and a **Go** tab. The choice is saved in this browser.
+## 1. Install
 
-TypeScript needs Node.js 20, 22, or 24.15+. Go needs Go 1.26.0 or later.
+Install the core package and a provider.
 
-<Callout title="Closing the client leaves the sandbox running">
-  `client.close()` and `Client.Close` release the connection in your process.
-  The sandbox keeps running. Finish it from [Manage a sandbox](/docs/lifecycle),
-  or set a lifetime when you [create](/docs/create) it.
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+<ForProvider id="daytona">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/daytona
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/modal
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+## 2. Create a sandbox
+
+<ForProvider id="daytona">Set `DAYTONA_API_KEY`, then run:</ForProvider>
+
+<ForProvider id="modal">
+  Set a Modal token pair and app name (see [Modal](/docs/modal)), then run:
+</ForProvider>
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+<ForProvider id="daytona">
+
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  timeout: 120_000,
+});
+
+const sandbox = await client.create();
+console.log(sandbox.id);
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+import { modal } from "@sandbox-kit/modal";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
+    },
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: process.env.MODAL_ENVIRONMENT ?? "main",
+  },
+  timeout: 120_000,
+});
+
+const sandbox = await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+});
+console.log(sandbox.id);
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+	}},
+	Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+	log.Fatal(err)
+}
+defer client.Close(context.Background())
+
+instance, err := client.Create(context.Background(), nil)
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(instance.ID())
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{
+		TokenPair: &sandbox.TokenPairCredentials{
+			Id:     os.Getenv("MODAL_TOKEN_ID"),
+			Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		},
+	}},
+	Scope: &sandbox.Scope{
+		AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+		Environment: sandbox.Value("main"),
+	},
+	Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+	log.Fatal(err)
+}
+defer client.Close(context.Background())
+
+instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(instance.ID())
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+Provider setup details: [Daytona](/docs/daytona) · [Modal](/docs/modal).
+
+## 3. Run a command
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello from kit"],
+});
+console.log(result.exitCode, new TextDecoder().decode(result.stdout));
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+result, err := instance.Process().Run(context.Background(), &sandbox.ExecOptions{
+	Argv: []string{"echo", "hello from kit"},
+})
+if err != nil {
+	log.Fatal(err)
+}
+fmt.Println(result.GetExitCode(), string(result.GetStdout()))
+```
+
+  </Tab>
+</Tabs>
+
+A non-zero exit code is not an SDK error. Check `exitCode` / `exit_code` yourself. Details: [Run a command](/docs/process).
+
+## 4. Write a file
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await sandbox.filesystem.writeFile(
+  "/tmp/note.txt",
+  new TextEncoder().encode("hello\n"),
+);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+err = instance.Filesystem().WriteFile(
+	context.Background(),
+	"/tmp/note.txt",
+	[]byte("hello\n"),
+	nil,
+)
+```
+
+  </Tab>
+</Tabs>
+
+Paths inside the sandbox are absolute. Details: [Filesystem](/docs/filesystem).
+
+<Callout title="Close does not stop the sandbox">
+  `client.close()` / `Client.Close` and handle `close` release local resources
+  only. The cloud sandbox keeps running until you stop, terminate, archive,
+  delete, or a lifetime policy fires. See [Concepts](/docs/concepts).
 </Callout>
 
-A client that constructs successfully has not checked your credentials. The provider checks them on the first request.
+## Next
+
+| Task                                | Page                                 |
+| ----------------------------------- | ------------------------------------ |
+| Client, handle, and close semantics | [Concepts](/docs/concepts)           |
+| Daytona setup                       | [Daytona](/docs/daytona)             |
+| Modal setup                         | [Modal](/docs/modal)                 |
+| Auth, timeout, region, scope        | [Configuration](/docs/configuration) |
+| Runnable projects                   | [Examples](/docs/examples)           |

@@ -1,9 +1,9 @@
 ---
 title: Daytona
-description: Install the Daytona provider, set an API key, and create a sandbox.
+description: Install, authenticate, and create a Daytona sandbox with the shared client.
 ---
 
-A Daytona sandbox starts from a snapshot. Pass no create options and Sandbox Kit uses the default snapshot for your target. You need a Daytona API key. This client talks to Daytona SDK v0.225.0.
+Provider package for Daytona sandboxes. Default create uses Daytona's default snapshot. Native SDK: Daytona v0.225.0.
 
 ## Install
 
@@ -25,9 +25,9 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
   </Tab>
 </Tabs>
 
-## Create a sandbox
+## Create
 
-Set `DAYTONA_API_KEY`. This program creates one sandbox and prints its id.
+Set `DAYTONA_API_KEY`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -46,7 +46,7 @@ const sandbox = await client.create();
 console.log(sandbox.id);
 ```
 
-`timeout` is milliseconds. `await using` closes the client when the block ends. Call `await client.close()` in a `finally` block when that syntax is unavailable.
+`timeout` is milliseconds. Prefer `await using`; otherwise `await client.close()` in `finally`.
 
   </Tab>
   <Tab value="Go">
@@ -84,14 +84,14 @@ func main() {
 }
 ```
 
-A nil create request uses the default snapshot. `Timeout` is a Go duration.
+Nil create options → default snapshot. Optional strings use `sandbox.Value`.
 
   </Tab>
 </Tabs>
 
-Omit `auth` when the Daytona SDK should use credentials it already finds in the environment. Closing the client here does not delete the sandbox.
+Omit `auth` to let the Daytona SDK resolve credentials from its environment. Closing the client does not delete the sandbox.
 
-## Client settings
+## Configuration
 
 | Setting      | TypeScript               | Go                     |
 | ------------ | ------------------------ | ---------------------- |
@@ -100,17 +100,24 @@ Omit `auth` when the Daytona SDK should use credentials it already finds in the 
 | Organization | `scope.organizationId`   | `Scope.OrganizationId` |
 | Bearer token | `auth.bearerToken.token` | `BearerToken`          |
 
-The default API URL is `https://app.daytona.io/api`. A remote URL must be HTTPS. HTTP is accepted for localhost and loopback. Sandbox Kit does not read the URL from the environment. A bearer token requires an organization id.
+Default API URL: `https://app.daytona.io/api`. Remote URLs require HTTPS. HTTP is allowed for localhost/loopback. Bearer tokens require an organization id. Full rules: [Configuration](/docs/configuration).
 
-In Go, set an optional string with `sandbox.Value`. Full field rules are on [Configure the client](/docs/configuration).
+## Operations
 
-## Where to go next
+| Area      | Support                                                           |
+| --------- | ----------------------------------------------------------------- |
+| Create    | Default snapshot, named snapshot, or image (+ resources)          |
+| Open      | `get` (verified). `attach` unsupported                            |
+| Lifecycle | `refresh`, `start`, `stop`, `pause`, `archive`, `delete`, `close` |
+| Files     | Full filesystem API — [Filesystem](/docs/filesystem)              |
+| Process   | `run` — [Run a command](/docs/process)                            |
 
-| You want to                                       | Open                                                                                                                                                                                                                                                                |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| An image, a named snapshot, a size, or a lifetime | [Create a sandbox](/docs/create#daytona)                                                                                                                                                                                                                            |
-| Look up, stop, or delete a sandbox                | [Manage a sandbox](/docs/lifecycle#open-a-sandbox)                                                                                                                                                                                                                  |
-| Work with files                                   | [Use files](/docs/filesystem)                                                                                                                                                                                                                                       |
-| Run a command                                     | [Run a command](/docs/process)                                                                                                                                                                                                                                      |
-| A failed call                                     | [Read an error](/docs/errors)                                                                                                                                                                                                                                       |
-| A project you can run                             | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox) and the [Go project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox) |
+CPU: whole cores. Memory/disk: whole GiB as MiB. Resource overrides require an image source.
+
+## Related
+
+| Topic                 | Link                                                                                                                                                                                                                                                  |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image, size, policies | [Create](/docs/create#daytona)                                                                                                                                                                                                                        |
+| get / stop / delete   | [Lifecycle](/docs/lifecycle)                                                                                                                                                                                                                          |
+| Example project       | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox) |

@@ -1,9 +1,9 @@
 ---
 title: Modal
-description: Install the Modal provider, set a token pair and an app name, and create a sandbox from an image.
+description: Install, authenticate, and create a Modal sandbox from a registry image.
 ---
 
-A Modal sandbox starts from a container image. You need a Modal token pair and an app that already exists. This client talks to Modal SDK v0.11.1.
+Provider package for Modal sandboxes. Create requires a registry image, a token pair, and an existing Modal app. Native SDK: Modal v0.11.1.
 
 ## Install
 
@@ -25,9 +25,9 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
   </Tab>
 </Tabs>
 
-## Create a sandbox
+## Create
 
-Set `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`. This program uses the environment `main` when `MODAL_ENVIRONMENT` is unset.
+Set `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`. Default environment: `main`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -60,7 +60,7 @@ const sandbox = await client.create({
 console.log(sandbox.id);
 ```
 
-`timeout` and `maximumLifetime` are milliseconds. `memoryMib` is a bigint. `await using` closes the client when the block ends. Call `await client.close()` in a `finally` block when that syntax is unavailable.
+`timeout` and `maximumLifetime` are milliseconds. `memoryMib` is a bigint.
 
   </Tab>
   <Tab value="Go">
@@ -119,15 +119,37 @@ func main() {
   </Tab>
 </Tabs>
 
-Omit `auth` when the Modal SDK should use credentials it already finds in the environment or a Modal profile. `scope.appName` stays required. `endpoint` is rejected. Closing the client does not terminate the sandbox.
+Omit `auth` to use Modal SDK / profile credentials. `scope.appName` remains required. `endpoint` is rejected. Closing the client does not terminate the sandbox.
 
-## Where to go next
+## Configuration
 
-| You want to                                    | Open                                                                                                                                                                                                                                                      |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A command, a region, ports, or an idle timeout | [Create a sandbox](/docs/create#modal)                                                                                                                                                                                                                    |
-| Attach to a sandbox and terminate it           | [Manage a sandbox](/docs/lifecycle#terminate)                                                                                                                                                                                                             |
-| Work with files                                | [Use files](/docs/filesystem)                                                                                                                                                                                                                             |
-| Run a command                                  | [Run a command](/docs/process)                                                                                                                                                                                                                            |
-| A failed call                                  | [Read an error](/docs/errors)                                                                                                                                                                                                                             |
-| A project you can run                          | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox) and the [Go project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox) |
+| Setting       | Notes                                              |
+| ------------- | -------------------------------------------------- |
+| Token pair    | `auth.tokenPair` / `TokenPair`                     |
+| OAuth refresh | Supported with client id and one secret or JWT key |
+| App           | `scope.appName` — required                         |
+| Environment   | `scope.environment` (often `main`)                 |
+| Region        | `region` — default placement preference            |
+| Endpoint      | Unsupported                                        |
+
+Full rules: [Configuration](/docs/configuration).
+
+## Operations
+
+| Area      | Support                                                                                   |
+| --------- | ----------------------------------------------------------------------------------------- |
+| Create    | Registry image; runtime, isolation, resources, network, ports, secrets, readiness, labels |
+| Open      | `attach` (id only). `get` / `refresh` unsupported                                         |
+| Lifecycle | `terminate`, `close`. Start/stop/pause/archive/delete unsupported                         |
+| Files     | Full filesystem API — [Filesystem](/docs/filesystem)                                      |
+| Process   | `run` — [Run a command](/docs/process)                                                    |
+
+When set, resources require ≥ 0.125 CPU and ≥ 128 MiB. Disk cannot be raised at create.
+
+## Related
+
+| Topic                  | Link                                                                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Resources, idle, ports | [Create](/docs/create#modal)                                                                                                                                                                                                                |
+| attach / terminate     | [Lifecycle](/docs/lifecycle)                                                                                                                                                                                                                |
+| Example project        | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox) |

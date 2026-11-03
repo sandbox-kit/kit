@@ -1,33 +1,57 @@
 ---
 title: Create a sandbox
-description: Choose an image or a snapshot, set a size, and decide how long the sandbox lives.
+description: Image or snapshot, resources, lifetime, and placement options for create.
 ---
 
-`client.create` in TypeScript and `Client.Create` in Go return a handle. The handle's id is the sandbox you created. Construct the client on your provider page, or on [Configure the client](/docs/configuration).
+`client.create` / `Client.Create` returns a sandbox handle. Build the client first ([Daytona](/docs/daytona), [Modal](/docs/modal), or [Configuration](/docs/configuration)).
 
-Leave a field out to keep the provider's default. The client rejects a field that provider does not support, before it makes the call. Branch on that failure in [Read an error](/docs/errors).
+Omitted fields keep provider defaults. Unsupported fields fail in Kit before the provider call ([Errors](/docs/errors)).
 
-TypeScript durations on this request are milliseconds. A missing property means the field was omitted. Go uses `sandbox.Value` for an optional number, including zero, and `sandbox.Duration` for a timeout or a delay.
+| Language   | Durations                                                        | Optionals          |
+| ---------- | ---------------------------------------------------------------- | ------------------ |
+| TypeScript | milliseconds; missing property = omitted                         | nested objects     |
+| Go         | `sandbox.Duration`; numbers via `sandbox.Value` (including zero) | pointers / `Value` |
 
 ## Units
 
-|           | Daytona                                                               | Modal                                                       |
-| --------- | --------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Source    | Omit for the default snapshot, or pass a snapshot or an image         | Registry image, required                                    |
-| CPU       | Whole cores                                                           | Fractional cores, minimum 0.125, step 0.001                 |
-| Memory    | Whole GiB, written as MiB (`4096` is 4 GiB)                           | MiB, minimum 128 when set                                   |
-| Disk      | Whole GiB, written as MiB                                             | Cannot be set                                               |
-| Lifetime  | TTL, and stop, pause, archive, or delete policies                     | Maximum lifetime and idle termination                       |
-| Placement | `region` on the client. A placement block on this request is rejected | `placement` on this request. Client `region` is the default |
+Switch Daytona or Modal above for units and create samples. Account quotas, image names, regions, and capacity are checked by the provider.
 
-Account quotas, image names, regions, and capacity are checked by the provider.
+<ForProvider id="daytona">
 
-## Daytona
+|           | Daytona                                                               |
+| --------- | --------------------------------------------------------------------- |
+| Source    | Omit for the default snapshot, or pass a snapshot or an image         |
+| CPU       | Whole cores                                                           |
+| Memory    | Whole GiB, written as MiB (`4096` is 4 GiB)                           |
+| Disk      | Whole GiB, written as MiB                                             |
+| Lifetime  | TTL, and stop, pause, archive, or delete policies                     |
+| Placement | `region` on the client. A placement block on this request is rejected |
 
 A size override requires an image. A snapshot create keeps the snapshot's size.
 
+</ForProvider>
+
+<ForProvider id="modal">
+
+|           | Modal                                                       |
+| --------- | ----------------------------------------------------------- |
+| Source    | Registry image, required                                    |
+| CPU       | Fractional cores, minimum 0.125, step 0.001                 |
+| Memory    | MiB, minimum 128 when set                                   |
+| Disk      | Cannot be set                                               |
+| Lifetime  | Maximum lifetime and idle termination                       |
+| Placement | `placement` on this request. Client `region` is the default |
+
+Pass a registry image. The app name belongs on the client, not on this request. Leave a resource out to keep Modal's default.
+
+</ForProvider>
+
+## Example
+
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
+
+<ForProvider id="daytona">
 
 ```ts
 const sandbox = await client.create({
@@ -40,37 +64,9 @@ const sandbox = await client.create({
 });
 ```
 
-  </Tab>
-  <Tab value="Go">
+</ForProvider>
 
-```go
-instance, err := client.Create(ctx, &sandbox.CreateOptions{
-	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
-		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
-	}},
-	Resources: &sandbox.Resources{
-		CpuCores:  sandbox.Value(2.0),
-		MemoryMib: sandbox.Value(uint64(4096)),
-		DiskMib:   sandbox.Value(uint64(8192)),
-	},
-})
-```
-
-  </Tab>
-</Tabs>
-
-Name a snapshot by its reference, for example `daytona-small`. In TypeScript that is `source: { snapshot: { reference } }`. Set the toolbox language and user on `runtime`.
-
-A linked sandbox must be ephemeral. The client rejects the request otherwise.
-
-Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
-
-## Modal
-
-Pass a registry image. The app name belongs on the client, not on this request. Leave a resource out to keep Modal's default.
-
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
+<ForProvider id="modal">
 
 ```ts
 import { PolicyMode } from "@sandbox-kit/sandbox";
@@ -91,8 +87,29 @@ const sandbox = await client.create({
 
 `PolicyMode.After` starts the idle timer. `PolicyMode.Disabled` turns idle termination off.
 
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(2.0),
+		MemoryMib: sandbox.Value(uint64(4096)),
+		DiskMib:   sandbox.Value(uint64(8192)),
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
 
 ```go
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
@@ -117,15 +134,33 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 })
 ```
 
+</ForProvider>
+
   </Tab>
 </Tabs>
+
+<ForProvider id="daytona">
+
+Name a snapshot by its reference, for example `daytona-small`. In TypeScript that is `source: { snapshot: { reference } }`. Set the toolbox language and user on `runtime`.
+
+A linked sandbox must be ephemeral. The client rejects the request otherwise.
+
+Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
+
+</ForProvider>
+
+<ForProvider id="modal">
 
 Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
 
 Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies. Projects for [resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources), [idle timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-idle), [placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-placement), and [readiness](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-ready) are in the repository. Go projects sit beside them under `examples/go/modal/`.
 
-## What you get back
+</ForProvider>
 
-`info()` in TypeScript and `Info()` in Go return a copy of the metadata. Editing that copy does not change the sandbox. Reported CPU and memory can differ from the numbers you sent.
+## Result
 
-This client creates the sandbox, manages its lifetime, works with files, and runs commands inside it. See [Use files](/docs/filesystem) and [Run a command](/docs/process). Streaming sessions, PTY, GPU requests, resizing, extra storage, and browsers are outside this surface.
+`info()` / `Info()` returns a **copy** of metadata. Mutating it does not change the sandbox. Reported CPU/memory can differ from requested values.
+
+After create: [Filesystem](/docs/filesystem), [Run a command](/docs/process), [Lifecycle](/docs/lifecycle).
+
+Not in this surface: streaming sessions, PTY, GPU, resize, extra storage, browsers.

@@ -18,6 +18,7 @@ import {
 } from "@/lib/shared";
 import { useFumadocsLoader } from "fumadocs-core/source/client";
 import { Suspense, use } from "react";
+import { DocsProviderSelect } from "@/components/provider-context";
 import { useMDXComponents } from "@/components/mdx";
 
 export const Route = createFileRoute("/docs/$")({
@@ -65,6 +66,7 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
           markdownUrl={markdownUrl}
           githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/website/content/docs/${path}`}
         />
+        <DocsProviderSelect path={path} />
       </div>
       <DocsBody>
         <MDX components={useMDXComponents()} />

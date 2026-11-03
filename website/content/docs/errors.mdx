@@ -1,11 +1,11 @@
 ---
-title: Read an error
-description: Branch on the error kind. The same kinds come back from every provider.
+title: Errors
+description: SandboxError / *sandbox.Error kinds, fields, and provider causes.
 ---
 
-A failed call throws in TypeScript and returns an error in Go. Both carry a kind, the provider, the operation, and, when a setting was rejected, the field that failed.
+TypeScript throws `SandboxError`. Go returns `*sandbox.Error`. Both include `kind`, `provider`, `operation`, `message`, and `field` when a setting was rejected.
 
-Branch on the kind. The same list applies to every provider. The kind names a category. It does not mean the call is safe to retry. Sandbox Kit does not retry for you.
+Kinds are shared across providers. A kind is a category—not a retry policy. Kit does not retry.
 
 | Kind                | What happened                                          |
 | ------------------- | ------------------------------------------------------ |
@@ -19,7 +19,7 @@ Branch on the kind. The same list applies to every provider. The kind names a ca
 | `Canceled`          | The caller canceled the operation                      |
 | `Timeout`           | The deadline fired                                     |
 
-## Branch on the kind
+## Handle by kind
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -98,16 +98,14 @@ if errors.As(err, &detail) {
   </Tab>
 </Tabs>
 
-## Read the field
+## Field paths
 
-Go and TypeScript use the same field string. A rule about one setting names that setting, such as `resources.cpu_cores`. A rule about several settings names their parent, such as `network`.
+Field strings match across languages (for example `resources.cpu_cores`). Rules that cover several settings use the parent (`network`). TypeScript exports constants such as `CreateFieldResourcesCpuCores` for comparisons.
 
-In TypeScript, compare `error.field` with the constants exported from `@sandbox-kit/sandbox`, such as `CreateFieldResourcesCpuCores`.
+## After failure
 
-## After a failure
+An error does not prove no sandbox was created—the provider may have succeeded before a later step failed, and the error does not include that id. Lifecycle failures can occur after the provider already mutated state.
 
-An error does not prove that no sandbox exists. The provider may have created one before a later step failed, and the error does not include that id. A lifecycle call can fail after the provider has already changed the sandbox.
+On Daytona, `get` before retry. Modal `attach` does not verify existence.
 
-On Daytona, look the sandbox up with `get` before you retry. Modal `attach` does not perform that lookup.
-
-Runnable projects: [Daytona errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors) and [Modal errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors). The Go projects sit beside them under `examples/go/`.
+Examples: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors) · Go twins under `examples/go/`.

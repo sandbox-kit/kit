@@ -1,56 +1,74 @@
 ---
 title: Run a command
-description: Run a command inside a sandbox and wait for the exit code and output.
+description: Blocking Process.run — argv or shell, cwd, env, timeouts, and exit codes.
 ---
 
-Command calls live on the handle you already have. Daytona and Modal implement the same `run` method. Create the sandbox on the provider page, or open one you already have from [Manage a sandbox](/docs/lifecycle).
+Use `sandbox.process.run` (TypeScript) or `Process().Run` (Go) on an open handle. Providers share the same options and result shape; switch Daytona or Modal above for mapping and edge cases.
 
-| You want to                           | Call                    |
-| ------------------------------------- | ----------------------- |
-| Run a command and wait for the result | [`run`](#run-a-command) |
+| Method        | Returns                                                                |
+| ------------- | ---------------------------------------------------------------------- |
+| `run` / `Run` | `exitCode` / `exit_code`, `stdout`, `stderr` when the command finishes |
 
-Set exactly one of `argv` or `shell`. `argv` is the program and its arguments, such as `["echo", "hello"]`. `shell` is one shell command string, such as `"echo hello"`. Setting both, or neither, fails before the provider is called. The error field is `argv`. A blank `shell` fails with field `shell`.
+Prerequisite: create or open a sandbox ([Daytona](/docs/daytona), [Modal](/docs/modal), or [Lifecycle](/docs/lifecycle)).
 
-Daytona receives a shell string. Kit maps `argv` to a POSIX-quoted command. Modal receives an argument vector. Kit maps `shell` to `bash -c`.
+## Options
 
-A working directory, when set, must be absolute: `/workspace`. A relative path, a blank path, or a path that contains a NUL byte is rejected before the provider is called. The error field is `working_directory`. `environment` sets variables for that command. An omitted map leaves the provider default. An empty map is explicit.
+Set **exactly one** of:
 
-`run` returns when the command finishes with `exitCode` / `exit_code`, `stdout`, and `stderr`. A non-zero exit code is not an SDK error. Check the exit code in your program. Daytona's basic exec returns stdout only; `stderr` is empty. Modal collects both streams.
+| Field   | Meaning                  | Example             |
+| ------- | ------------------------ | ------------------- |
+| `argv`  | Program + arguments      | `["echo", "hello"]` |
+| `shell` | One shell command string | `"echo hello"`      |
 
-Leave `timeout` unset to use the client deadline. Set `timeout: 0` when this call should add no deadline of its own. TypeScript records the timeout in milliseconds. Go records it as a `time.Duration`.
+| Field              | Rules                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------ |
+| Both or neither    | Rejected before the provider call. Field: `argv`                                           |
+| Blank `shell`      | Rejected. Field: `shell`                                                                   |
+| `workingDirectory` | Absolute path when set (`/workspace`). Relative, blank, or NUL → field `working_directory` |
+| `environment`      | Map for this call only. Omitted → provider default. Empty map is explicit                  |
+| `timeout`          | TypeScript: ms. Go: `time.Duration`. Omit → client deadline. `0` → no extra Kit deadline   |
 
-An omitted command timeout, and an explicit zero, are passed to the provider as no command limit. Daytona's omitted native default is 10 seconds, so Kit passes `0` instead. Provider command timeouts must be whole seconds. `2_000` milliseconds is two seconds. `1_500` is rejected. The error field is `timeout`. When the timeout is omitted, the abort signal or context still carries the client deadline.
+### Provider mapping
 
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
+<ForProvider id="daytona">
 
-```ts
-const result = await sandbox.process.run({
-  argv: ["echo", "hello"],
-  timeout: 5_000,
-});
-```
+| Kit input                      | Daytona                                                   |
+| ------------------------------ | --------------------------------------------------------- |
+| `argv`                         | POSIX-quoted shell string                                 |
+| `shell`                        | shell as-is                                               |
+| omitted / zero timeout         | command timeout `0` (avoids Daytona's 10s native default) |
+| fractional seconds (`1500` ms) | rejected (`timeout`)                                      |
 
-  </Tab>
-  <Tab value="Go">
+</ForProvider>
 
-```go
-result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv:    []string{"echo", "hello"},
-	Timeout: sandbox.Duration(5 * time.Second),
-})
-```
+<ForProvider id="modal">
 
-  </Tab>
-</Tabs>
+| Kit input                      | Modal                |
+| ------------------------------ | -------------------- |
+| `argv`                         | argv as-is           |
+| `shell`                        | `bash -c`            |
+| omitted / zero timeout         | command timeout `0`  |
+| fractional seconds (`1500` ms) | rejected (`timeout`) |
 
-Calls on one handle run one at a time, including lifecycle and filesystem calls. A second handle for the same sandbox does not wait.
+</ForProvider>
 
-The snippets below assume you already have `sandbox` or `instance`. Each call also has its own project in the [examples](/docs/examples) catalog.
+### Result
 
-## Run a command
+| Field                    | Notes                            |
+| ------------------------ | -------------------------------- |
+| `exitCode` / `exit_code` | Non-zero is **not** an SDK error |
+| `stdout`                 | Bytes                            |
+| `stderr`                 | See provider note below          |
 
-`run` waits for the command to finish and returns the exit code and collected output.
+<ForProvider id="daytona">
+  Daytona basic exec leaves `stderr` empty; stdout may include merged streams.
+</ForProvider>
+
+<ForProvider id="modal">Modal collects both `stdout` and `stderr`.</ForProvider>
+
+Calls on one handle are serialized with lifecycle and filesystem. A second handle for the same sandbox does not wait.
+
+## argv
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -58,6 +76,7 @@ The snippets below assume you already have `sandbox` or `instance`. Each call al
 ```ts
 const result = await sandbox.process.run({
   argv: ["echo", "hello from kit"],
+  timeout: 5_000,
 });
 console.log(result.exitCode, new TextDecoder().decode(result.stdout));
 ```
@@ -67,7 +86,8 @@ console.log(result.exitCode, new TextDecoder().decode(result.stdout));
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hello from kit"},
+	Argv:    []string{"echo", "hello from kit"},
+	Timeout: sandbox.Duration(5 * time.Second),
 })
 if err != nil {
 	return err
@@ -78,11 +98,23 @@ fmt.Printf("exit=%d stdout=%q\n", result.GetExitCode(), string(result.GetStdout(
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-command) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-command). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-command) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-command).
+<ForProvider id="daytona">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-command)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-command)
+</ForProvider>
 
-## Run a shell string
+<ForProvider id="modal">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-command)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-command)
+</ForProvider>
 
-Pass `shell` when the command is one string. Do not set `argv` on the same call.
+## shell
+
+Do not set `argv` on the same call.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -92,6 +124,16 @@ const result = await sandbox.process.run({
   shell: 'echo "hello from shell"',
 });
 ```
+
+<ForProvider id="daytona">
+  Daytona runs the string as shell. Modal wraps with `bash -c` instead—same Kit
+  call shape.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal runs this as `bash -c`. Daytona uses the shell string as-is—same Kit
+  call shape.
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
@@ -105,11 +147,23 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-shell-command) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-shell-command). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-shell-command) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-shell-command).
+<ForProvider id="daytona">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-shell-command)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-shell-command)
+</ForProvider>
+
+<ForProvider id="modal">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-shell-command)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-shell-command)
+</ForProvider>
 
 ## Working directory and environment
 
-Set an absolute working directory and environment variables for that call only.
+Applies to that call only.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -136,13 +190,23 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
   </Tab>
 </Tabs>
 
-Working directory: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-cwd) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-cwd). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-cwd) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-cwd).
+<ForProvider id="daytona">
+cwd: [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-cwd) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-cwd)
 
-Environment: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-env) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-env). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-env) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-env).
+env: [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-env) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-env)
 
-## Check a non-zero exit code
+</ForProvider>
 
-A finished command with a non-zero exit code is still a successful SDK call. Read `exitCode` / `exit_code` in your program.
+<ForProvider id="modal">
+cwd: [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-cwd) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-cwd)
+
+env: [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-env) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-env)
+
+</ForProvider>
+
+## Non-zero exit code
+
+Transport and validation failures still return errors. A finished command with exit `7` does not.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -172,8 +236,24 @@ if result.GetExitCode() != 7 {
   </Tab>
 </Tabs>
 
-[Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-check-exit) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-check-exit). Go: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-check-exit) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-check-exit).
+<ForProvider id="daytona">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-check-exit)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-check-exit)
+</ForProvider>
 
-## Outside this surface
+<ForProvider id="modal">
+  Examples:
+  [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-check-exit)
+  ·
+  [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-check-exit)
+</ForProvider>
 
-Streaming stdin/stdout, long-lived sessions, PTY, and Daytona `code_run` are outside this surface. Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
+## Limits
+
+Not supported: streaming I/O, interactive sessions, PTY.
+
+<ForProvider id="daytona">
+  Daytona `code_run` is not exposed through Kit.
+</ForProvider>

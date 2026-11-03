@@ -1,6 +1,6 @@
-# Sandbox Kit docs
+# Sandbox Kit docs site
 
-User guide for the Sandbox Kit client. The site is a Fumadocs app on TanStack Start. Pages live in `content/docs`.
+User guide for the Sandbox Kit SDK—a lightweight, provider-pluggable client for cloud sandboxes. Fumadocs + TanStack Start. Source pages: `content/docs`.
 
 ```sh
 npm install
@@ -13,8 +13,16 @@ Open http://localhost:3000.
 npm run build:pages
 ```
 
-That build is the GitHub Pages site. GitHub Actions publishes it from `main` to https://sandbox-kit.github.io/kit/. In the repository settings, set Pages to deploy from GitHub Actions.
+GitHub Actions publishes from `main` to https://sandbox-kit.github.io/kit/. Set Pages to deploy from GitHub Actions.
 
-TypeScript and Go share each page. The language tab is stored in the browser. Each page covers one part of the client: a provider setup, create, lifecycle, filesystem, process, configuration, or errors.
+## Structure
 
-The behavior reference for the same API stays in the repository `docs/` directory. Runnable projects stay in `examples/`.
+| Section    | Pages                                                                     |
+| ---------- | ------------------------------------------------------------------------- |
+| Quickstart | `index`                                                                   |
+| Concepts   | `concepts`                                                                |
+| Providers  | `daytona`, `modal`                                                        |
+| Guides     | `configuration`, `create`, `lifecycle`, `filesystem`, `process`, `errors` |
+| Examples   | `examples`                                                                |
+
+Language tabs (TypeScript / Go) persist in the browser. Behavior reference for the same API lives in the repository `docs/` directory. Runnable projects live in `examples/`.
