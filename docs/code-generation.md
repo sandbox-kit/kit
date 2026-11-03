@@ -57,13 +57,13 @@ the SDK.
 
 ## Inputs
 
-| Input                             | Defines                                                                            |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
+| Input                             | Defines                                                                                                     |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, filesystem and process options, metadata, errors) |
-| `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
-| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
-| `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
-| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories          |
+| `specs/validation.yaml`           | Create Protovalidate inventory, plus handwritten `ExecOptions` process gates                                |
+| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten)                          |
+| `specs/contracts.yaml`            | Metadata/error contract limits                                                                              |
+| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories                                   |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -141,6 +141,9 @@ Shared create and client-config validation is declared as Protovalidate options
 on `proto/` messages and evaluated in each SDK (`ValidateCreateOptions` /
 `ValidateConfig`). Keep `specs/validation.yaml` and `specs/client.yaml` aligned
 with those annotations. The `secure_endpoint` config check is handwritten.
+`ExecOptions` process rules (argv XOR shell, blank shell, absolute working
+directory, whole-second provider timeouts) are handwritten in `Process.Run` and
+provider adapters; inventory them under `ExecOptions` in `validation.yaml`.
 Both languages preserve explicit zero/false and supply no defaults.
 
 ## Provider checks

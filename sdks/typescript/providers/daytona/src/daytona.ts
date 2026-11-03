@@ -358,29 +358,29 @@ class DaytonaBackend extends BackendBase implements Backend {
     request: ExecOptions,
     options: OperationOptions,
   ): Promise<ExecResult> {
-    return this.#file(
-      "run",
-      id,
-      options,
-      request.timeout,
-      async (sandbox, timeout) => {
-        const command = daytonaCommand(request);
-        // Omitted and explicit zero become 0 so Daytona adds no command limit
-        // (its omitted default is 10 seconds).
-        const seconds = timeout ?? 0;
-        const response = await sandbox.process.executeCommand(
-          command,
-          request.workingDirectory,
-          request.environment,
-          seconds,
-        );
-        return {
-          exitCode: response.exitCode,
-          stdout: new TextEncoder().encode(response.result ?? ""),
-          stderr: new Uint8Array(),
-        };
-      },
-    );
+    try {
+      throwIfAborted(options.signal);
+      const timeout = wholeSeconds(request.timeout, "run", ExecFieldTimeout);
+      const sandbox = await this.native.get(id);
+      throwIfAborted(options.signal);
+      const command = daytonaCommand(request);
+      // Omitted and explicit zero become 0 so Daytona adds no command limit
+      // (its omitted default is 10 seconds).
+      const seconds = timeout ?? 0;
+      const response = await sandbox.process.executeCommand(
+        command,
+        request.workingDirectory,
+        request.environment,
+        seconds,
+      );
+      return {
+        exitCode: response.exitCode,
+        stdout: new TextEncoder().encode(response.result ?? ""),
+        stderr: new Uint8Array(),
+      };
+    } catch (error) {
+      throw mapDaytonaError(error, "run");
+    }
   }
 
   async #file<T>(
@@ -392,9 +392,7 @@ class DaytonaBackend extends BackendBase implements Backend {
   ): Promise<T> {
     try {
       throwIfAborted(options.signal);
-      const field =
-        operation === "run" ? ExecFieldTimeout : ConfigFieldTimeout;
-      const timeout = wholeSeconds(timeoutMs, operation, field);
+      const timeout = wholeSeconds(timeoutMs, operation, ConfigFieldTimeout);
       const sandbox = await this.native.get(id);
       throwIfAborted(options.signal);
       return await body(sandbox, timeout);

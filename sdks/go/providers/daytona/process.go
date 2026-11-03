@@ -51,6 +51,7 @@ func (b *backend) RunCommand(ctx context.Context, id string, request *sandbox.Ex
 	return &sandbox.ExecResult{
 		ExitCode: int32(response.ExitCode),
 		Stdout:   []byte(response.Result),
+		Stderr:   []byte{},
 	}, nil
 }
 

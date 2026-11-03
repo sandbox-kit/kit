@@ -89,6 +89,31 @@ func TestProcessRejectsBothArgvAndShell(t *testing.T) {
 	}
 }
 
+func TestProcessRejectsBlankShell(t *testing.T) {
+	client, err := sandbox.NewClient(&processProvider{backend: &processBackend{
+		run: func(context.Context, string, *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
+			t.Fatal("provider was called")
+			return nil, nil
+		},
+	}}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, shell := range []string{"", "   "} {
+		_, err = instance.Process().Run(context.Background(), &sandbox.ExecOptions{
+			Shell: sandbox.Value(shell),
+		})
+		var detail *sandbox.Error
+		if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.ExecFieldShell || detail.Operation != "run" {
+			t.Fatalf("shell %q: unexpected error: %v", shell, err)
+		}
+	}
+}
+
 func TestProcessRejectsRelativeWorkingDirectory(t *testing.T) {
 	client, err := sandbox.NewClient(&processProvider{backend: &processBackend{
 		run: func(context.Context, string, *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
@@ -104,8 +129,8 @@ func TestProcessRejectsRelativeWorkingDirectory(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = instance.Process().Run(context.Background(), &sandbox.ExecOptions{
-		Argv:              []string{"pwd"},
-		WorkingDirectory:  sandbox.Value("relative"),
+		Argv:             []string{"pwd"},
+		WorkingDirectory: sandbox.Value("relative"),
 	})
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.ExecFieldWorkingDirectory {

@@ -43,12 +43,12 @@ Set **exactly one** of:
 
 <ForProvider id="modal">
 
-| Kit input                      | Modal                |
-| ------------------------------ | -------------------- |
-| `argv`                         | argv as-is           |
-| `shell`                        | `bash -c`            |
-| omitted / zero timeout         | command timeout `0`  |
-| fractional seconds (`1500` ms) | rejected (`timeout`) |
+| Kit input                      | Modal                                                          |
+| ------------------------------ | -------------------------------------------------------------- |
+| `argv`                         | argv as-is                                                     |
+| `shell`                        | `bash -c`                                                      |
+| omitted / zero timeout         | no command limit — TS omits `timeoutMs` (never `0`); Go `Timeout: 0` |
+| fractional seconds (`1500` ms) | rejected (`timeout`)                                                 |
 
 </ForProvider>
 
@@ -61,7 +61,7 @@ Set **exactly one** of:
 | `stderr`                 | See provider note below          |
 
 <ForProvider id="daytona">
-  Daytona basic exec leaves `stderr` empty; stdout may include merged streams.
+  Daytona basic exec leaves `stderr` empty (Go: non-nil empty slice); stdout may include merged streams.
 </ForProvider>
 
 <ForProvider id="modal">Modal collects both `stdout` and `stderr`.</ForProvider>

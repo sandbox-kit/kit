@@ -15,8 +15,9 @@ streams and Kit collects them before returning.
   Modal is called. The error field is `argv`.
 - A relative working directory is rejected before Modal is called. The error
   field is `working_directory`.
-- Provider command timeouts must be whole seconds. The error field is
-  `timeout`.
+- An omitted or zero command timeout adds no Modal command limit (Kit passes
+  `Timeout: 0`). Provider command timeouts must be whole seconds. The error
+  field is `timeout`.
 
 ## Run
 

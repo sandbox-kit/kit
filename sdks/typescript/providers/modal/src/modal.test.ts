@@ -548,4 +548,65 @@ describe("Modal provider orchestration", () => {
     });
     expect(lookedUp).toBe(false);
   });
+
+  it("omits Modal exec timeoutMs for an omitted or zero timeout", async () => {
+    const seen: Array<number | undefined> = [];
+    const nativeSandbox = {
+      async exec(_command: string[], params?: { readonly timeoutMs?: number }) {
+        seen.push(params?.timeoutMs);
+        throw new Error("stop after timeout is recorded");
+      },
+    } as unknown as ModalSandbox;
+    const backend = new ModalProvider(() => ({
+      apps: {
+        async fromName(): Promise<App> {
+          throw new Error("unexpected app lookup");
+        },
+      },
+      images: {
+        fromRegistry(): Image {
+          return {} as Image;
+        },
+      },
+      proxies: {
+        async fromName(): Promise<Proxy> {
+          throw new Error("unexpected proxy lookup");
+        },
+      },
+      secrets: {
+        async fromName(): Promise<never> {
+          throw new Error("unexpected secret lookup");
+        },
+      },
+      sandboxes: {
+        async create(): Promise<ModalSandbox> {
+          throw new Error("unexpected create");
+        },
+        async fromId(): Promise<ModalSandbox> {
+          return nativeSandbox;
+        },
+      },
+      close(): void {},
+    })).initialize({ scope: { appName: "app" } });
+    if (backend.run === undefined) throw new Error("run is missing");
+
+    await expect(
+      backend.run("sandbox-1", { argv: ["echo", "hi"] }, {}),
+    ).rejects.toThrow("stop after timeout is recorded");
+    await expect(
+      backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 0 }, {}),
+    ).rejects.toThrow("stop after timeout is recorded");
+    await expect(
+      backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 5_000 }, {}),
+    ).rejects.toThrow("stop after timeout is recorded");
+    await expect(
+      backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 1_500 }, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: "timeout",
+      operation: "run",
+    });
+
+    expect(seen).toEqual([undefined, undefined, 5_000]);
+  });
 });

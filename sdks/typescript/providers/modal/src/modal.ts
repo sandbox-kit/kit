@@ -280,7 +280,8 @@ class ModalBackend extends BackendBase implements Backend {
         mode: "binary",
         stdout: "pipe",
         stderr: "pipe",
-        timeoutMs,
+        // Modal rejects an explicit timeoutMs of 0; omit the field for no limit.
+        ...(timeoutMs === undefined ? {} : { timeoutMs }),
         ...(request.workingDirectory === undefined
           ? {}
           : { workdir: request.workingDirectory }),
@@ -401,11 +402,11 @@ function modalCommand(request: ExecOptions): string[] {
 
 /**
  * Maps Kit ExecOptions.timeout (ms) to Modal's timeoutMs.
- * Omitted and explicit zero become 0 (no command timeout). Non-zero values
- * must be whole seconds; Modal rejects fractional durations.
+ * Omitted and explicit zero become undefined so Kit omits timeoutMs (Modal
+ * rejects an explicit 0). Non-zero values must be whole seconds.
  */
-function execTimeoutMs(timeout: number | undefined): number {
-  if (timeout === undefined) return 0;
+function execTimeoutMs(timeout: number | undefined): number | undefined {
+  if (timeout === undefined || timeout === 0) return undefined;
   if (!Number.isFinite(timeout) || timeout < 0 || timeout % 1_000 !== 0) {
     providerError({
       kind: ErrorKind.InvalidArgument,

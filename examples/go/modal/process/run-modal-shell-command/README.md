@@ -14,7 +14,8 @@ streams.
 - Set exactly one of `argv` or `shell`. Setting both, or neither, fails before
   Modal is called. The error field is `argv`.
 - A blank `shell` fails with field `shell`. Kit maps `shell` to `bash -c`.
-- Provider command timeouts must be whole seconds.
+- An omitted or zero command timeout adds no Modal command limit (Kit passes
+  `Timeout: 0`). Provider command timeouts must be whole seconds.
 
 ## Run
 

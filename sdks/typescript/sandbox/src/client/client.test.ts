@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ExecFieldArgv,
+  ExecFieldShell,
   ExecFieldWorkingDirectory,
   FileFieldLocalPath,
   FileFieldPath,
@@ -639,7 +640,9 @@ describe("Sandbox lifecycle", () => {
       return new Uint8Array();
     };
     const sandbox = await client.create();
-    await expect(sandbox.filesystem.readFile("relative.txt")).rejects.toMatchObject({
+    await expect(
+      sandbox.filesystem.readFile("relative.txt"),
+    ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "read_file",
       field: FileFieldPath,
@@ -685,7 +688,11 @@ describe("Sandbox lifecycle", () => {
     let calls = 0;
     backend.run = async () => {
       calls++;
-      return { exitCode: 0, stdout: new Uint8Array(), stderr: new Uint8Array() };
+      return {
+        exitCode: 0,
+        stdout: new Uint8Array(),
+        stderr: new Uint8Array(),
+      };
     };
     const sandbox = await client.create();
     await expect(sandbox.process.run({})).rejects.toMatchObject({
@@ -694,6 +701,21 @@ describe("Sandbox lifecycle", () => {
       field: ExecFieldArgv,
     });
     expect(calls).toBe(0);
+  });
+
+  it("rejects a blank shell before the provider", async () => {
+    const { client, backend } = fixture();
+    backend.run = async () => {
+      throw new Error("provider was called");
+    };
+    const sandbox = await client.create();
+    for (const shell of ["", "   "]) {
+      await expect(sandbox.process.run({ shell })).rejects.toMatchObject({
+        kind: ErrorKind.InvalidArgument,
+        operation: "run",
+        field: ExecFieldShell,
+      });
+    }
   });
 
   it("rejects a relative working directory before the provider", async () => {

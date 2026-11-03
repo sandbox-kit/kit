@@ -78,8 +78,11 @@ missing parents are created, and an existing directory is accepted.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
 `shell`. Kit maps `shell` to `bash -c` for Modal. A non-zero exit code is not
-an SDK error—check `exitCode`. Modal collects both stdout and stderr. Provider
-command timeouts must be whole seconds.
+an SDK error—check `exitCode`. Modal collects both stdout and stderr. An
+omitted or zero command timeout adds no Modal command limit: Kit omits
+`timeoutMs` and must not send `timeoutMs: 0` (Modal rejects it). Provider
+command timeouts must be whole seconds (`2000` is two seconds; `1500` is
+rejected).
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
