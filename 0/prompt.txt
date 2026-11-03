@@ -1,0 +1,7 @@
+is there any outdated .md .mdx, user facing or sdk builders both plz update it. 
+
++ if there is obselete code which was written due to certain changes which are removed u should remove that.
+
+---
+
+also comments within code ? specially godoc comments.
