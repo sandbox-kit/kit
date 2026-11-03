@@ -1,6 +1,7 @@
 package sandbox_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -68,4 +69,39 @@ func ExampleMetadataObjectAsMap() {
 	fmt.Println(values["team"])
 	// Output:
 	// platform
+}
+
+func ExampleExecOptions() {
+	opts := &sandbox.ExecOptions{
+		Argv:    []string{"echo", "hello from kit"},
+		Timeout: sandbox.Duration(5 * time.Second),
+	}
+	fmt.Println(opts.Argv[0], opts.Timeout.AsDuration())
+	// Output:
+	// echo 5s
+}
+
+func ExampleProcess_Run() {
+	// Obtain Process from a live Sandbox handle (Create, Get, or Attach).
+	// A nil handle fails before any provider call.
+	_, err := (*sandbox.Sandbox)(nil).Process().Run(context.Background(), &sandbox.ExecOptions{
+		Argv: []string{"echo", "hello from kit"},
+	})
+	var detail *sandbox.Error
+	if errors.As(err, &detail) {
+		fmt.Println(detail.Kind)
+	}
+	// Output:
+	// ERROR_KIND_FAILED_PRECONDITION
+}
+
+func ExampleFilesystem_WriteFile() {
+	// Obtain Filesystem from a live Sandbox handle (Create, Get, or Attach).
+	err := (*sandbox.Sandbox)(nil).Filesystem().WriteFile(context.Background(), "/tmp/note.txt", []byte("hello\n"), nil)
+	var detail *sandbox.Error
+	if errors.As(err, &detail) {
+		fmt.Println(detail.Kind)
+	}
+	// Output:
+	// ERROR_KIND_FAILED_PRECONDITION
 }

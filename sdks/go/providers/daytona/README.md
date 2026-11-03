@@ -85,19 +85,32 @@ exists. A missing file passed to `CopyFromLocal` is not found, and the error
 field is `local_path`. A local directory is an invalid argument with the same
 field. `CopyToLocal` creates a missing local parent directory.
 
+`Process().Run` runs one command and waits for the result. Set exactly one of
+`Argv` or `Shell`. Kit maps `Argv` to a POSIX-quoted shell string for Daytona.
+A non-zero exit code is success for the SDK—read `GetExitCode`. Daytona's basic
+exec returns stdout only; `stderr` is empty. An omitted command timeout is
+passed as `0` so Daytona does not apply its 10-second native default. Provider
+command timeouts must be whole seconds.
+
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create
 uses the snapshot's resources.
 
 ## Examples
 
-| Operation   | Program                                                                                                                                     |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)             |
-| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)                          |
-| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
-| Look up     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)                       |
-| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                     |
+| Operation     | Program                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create        | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)             |
+| Run a command | [run-daytona-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-command)                         |
+| Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process)                                      |
+| Read a file   | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)                          |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem)                                           |
+| Policies      | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
+| Look up       | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)                       |
+| All           | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                     |
+
+pkg.go.dev also shows `ExampleNew_*` samples in this package for create,
+lifecycle, process, and filesystem.
 
 ## License
 

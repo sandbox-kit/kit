@@ -92,6 +92,15 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 [Go Modal](../examples/go/modal/process/run-modal-command/README.md) ·
 [TypeScript Modal](../examples/typescript/modal/process/run-modal-command/README.md).
 
+## Shell, working directory, environment, and exit codes
+
+| Topic              | Go Daytona                                                                 | TypeScript Daytona                                                                       | Go Modal                                                             | TypeScript Modal                                                                   |
+| ------------------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Shell string       | [run-daytona-shell-command](../examples/go/daytona/process/run-daytona-shell-command/README.md) | [run-daytona-shell-command](../examples/typescript/daytona/process/run-daytona-shell-command/README.md) | [run-modal-shell-command](../examples/go/modal/process/run-modal-shell-command/README.md) | [run-modal-shell-command](../examples/typescript/modal/process/run-modal-shell-command/README.md) |
+| Working directory  | [run-daytona-with-cwd](../examples/go/daytona/process/run-daytona-with-cwd/README.md) | [run-daytona-with-cwd](../examples/typescript/daytona/process/run-daytona-with-cwd/README.md) | [run-modal-with-cwd](../examples/go/modal/process/run-modal-with-cwd/README.md) | [run-modal-with-cwd](../examples/typescript/modal/process/run-modal-with-cwd/README.md) |
+| Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md) | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md) | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md) | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md) |
+| Non-zero exit code | [run-daytona-check-exit](../examples/go/daytona/process/run-daytona-check-exit/README.md) | [run-daytona-check-exit](../examples/typescript/daytona/process/run-daytona-check-exit/README.md) | [run-modal-check-exit](../examples/go/modal/process/run-modal-check-exit/README.md) | [run-modal-check-exit](../examples/typescript/modal/process/run-modal-check-exit/README.md) |
+
 ## Provider notes
 
 - Streaming stdin/stdout, long-lived sessions, PTY, and Daytona `code_run` are

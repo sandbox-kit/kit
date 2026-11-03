@@ -46,7 +46,7 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
   </Tab>
 </Tabs>
 
-Calls on one handle run one at a time, including lifecycle calls. A second handle for the same sandbox does not wait.
+Calls on one handle run one at a time, including lifecycle and process calls. A second handle for the same sandbox does not wait.
 
 The snippets below assume you already have `sandbox` or `instance`. Each call also has its own project in the [examples](/docs/examples) catalog.
 

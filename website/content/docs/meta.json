@@ -9,6 +9,7 @@
     "create",
     "lifecycle",
     "filesystem",
+    "process",
     "configuration",
     "errors",
     "examples"

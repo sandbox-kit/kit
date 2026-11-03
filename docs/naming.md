@@ -45,13 +45,14 @@ proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
 tooling/                   Developer CLI and YAML inventory loaders
 examples/go/<provider>/      One folder per provider; examples sit under
-                             filesystem/, configuration/, lifecycle/, or errors/
+                             filesystem/, process/, configuration/, lifecycle/,
+                             or errors/
 sdks/typescript/contracts/   Generated protobuf wire types (@sandbox-kit/contracts)
 sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
   src/client/                Client runtime split across focused modules:
                                client.ts (Client + public re-exports),
-                               sandbox.ts (handle), filesystem.ts, types.ts,
-                               errors.ts, validation.ts, operation.ts
+                               sandbox.ts (handle), filesystem.ts, process.ts,
+                               types.ts, errors.ts, validation.ts, operation.ts
                                (deadlines/signals)
   src/contracts/             Public type aliases over protobuf messages
   src/metadata/              Metadata map helpers
@@ -61,7 +62,8 @@ sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-
   src/checks/                Provider create checks
   src/config/                Native SDK client configuration
 examples/typescript/<provider>/ One package per example under
-                             filesystem/, configuration/, lifecycle/, or errors/
+                             filesystem/, process/, configuration/, lifecycle/,
+                             or errors/
 ```
 
 Published TypeScript packages expose only their root export (`.`). Cross-folder

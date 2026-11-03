@@ -87,19 +87,30 @@ to `CopyFromLocal` is not found, and the error field is `local_path`. A local
 directory is an invalid argument with the same field. `CopyToLocal` creates a
 missing local parent directory.
 
+`Process().Run` runs one command and waits for the result. Set exactly one of
+`Argv` or `Shell`. Kit maps `Shell` to `bash -c` for Modal. A non-zero exit
+code is success for the SDK—read `GetExitCode`. Modal collects both stdout and
+stderr. Provider command timeouts must be whole seconds.
+
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at
 create time.
 
 ## Examples
 
-| Operation   | Program                                                                                                                                 |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Create      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox)               |
-| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file)                            |
-| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
-| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox)                   |
-| All         | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                 |
+| Operation     | Program                                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Create        | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox)               |
+| Run a command | [run-modal-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-command)                           |
+| Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process)                                    |
+| Read a file   | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file)                            |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem)                                         |
+| Resources     | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
+| Attach        | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox)                   |
+| All           | [Go examples](https://github.com/sandbox-kit/kit/tree/main/examples/go)                                                                 |
+
+pkg.go.dev also shows `ExampleNew_*` samples in this package for create,
+lifecycle, process, and filesystem.
 
 ## License
 

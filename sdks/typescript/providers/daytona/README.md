@@ -84,6 +84,14 @@ found, and the error field is `local_path`. A local directory is an invalid
 argument with the same field. `copyToLocal` creates a missing local parent
 directory.
 
+**Commands** through `sandbox.process.run`. Set exactly one of `argv` or
+`shell`. Kit maps `argv` to a POSIX-quoted shell string for Daytona. A
+non-zero exit code is not an SDK error—check `exitCode`. Daytona's basic exec
+returns stdout only; `stderr` is empty. An omitted command timeout is passed
+as `0` so Daytona does not apply its 10-second native default. Provider
+command timeouts must be whole seconds (`2000` is two seconds; `1500` is
+rejected).
+
 Daytona does not support unverified `attach`. Use `client.get(id)` for a
 provider-verified handle.
 
@@ -93,13 +101,16 @@ inherit snapshot resources.
 
 ## Examples
 
-| Example     | Project                                                                                                                               |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation    | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)             |
-| Read a file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file)                       |
-| Policies    | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies) |
-| Retrieval   | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/get-daytona-sandbox)                   |
-| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                               |
+| Example       | Project                                                                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creation      | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)             |
+| Run a command | [run-daytona-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-command)                         |
+| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process)                                                |
+| Read a file   | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file)                          |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem)                                          |
+| Policies      | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies) |
+| Retrieval     | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/get-daytona-sandbox)                       |
+| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                                            |
 
 ## License
 

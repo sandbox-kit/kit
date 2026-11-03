@@ -41,6 +41,10 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | ------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Daytona creation          | [go](go/daytona/configuration/create-daytona-sandbox/README.md)       | [typescript](typescript/daytona/configuration/create-daytona-sandbox/README.md)       |
 | Daytona run command       | [go](go/daytona/process/run-daytona-command/README.md)                | [typescript](typescript/daytona/process/run-daytona-command/README.md)                |
+| Daytona shell command     | [go](go/daytona/process/run-daytona-shell-command/README.md)          | [typescript](typescript/daytona/process/run-daytona-shell-command/README.md)          |
+| Daytona run with cwd      | [go](go/daytona/process/run-daytona-with-cwd/README.md)               | [typescript](typescript/daytona/process/run-daytona-with-cwd/README.md)               |
+| Daytona run with env      | [go](go/daytona/process/run-daytona-with-env/README.md)               | [typescript](typescript/daytona/process/run-daytona-with-env/README.md)               |
+| Daytona check exit        | [go](go/daytona/process/run-daytona-check-exit/README.md)             | [typescript](typescript/daytona/process/run-daytona-check-exit/README.md)             |
 | Daytona read file         | [go](go/daytona/filesystem/read-daytona-file/README.md)               | [typescript](typescript/daytona/filesystem/read-daytona-file/README.md)               |
 | Daytona write file        | [go](go/daytona/filesystem/write-daytona-file/README.md)              | [typescript](typescript/daytona/filesystem/write-daytona-file/README.md)              |
 | Daytona copy in           | [go](go/daytona/filesystem/copy-file-into-daytona/README.md)          | [typescript](typescript/daytona/filesystem/copy-file-into-daytona/README.md)          |
@@ -74,6 +78,10 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Daytona errors            | [go](go/daytona/errors/handle-daytona-errors/README.md)               | [typescript](typescript/daytona/errors/handle-daytona-errors/README.md)               |
 | Modal creation            | [go](go/modal/configuration/create-modal-sandbox/README.md)           | [typescript](typescript/modal/configuration/create-modal-sandbox/README.md)           |
 | Modal run command         | [go](go/modal/process/run-modal-command/README.md)                    | [typescript](typescript/modal/process/run-modal-command/README.md)                    |
+| Modal shell command       | [go](go/modal/process/run-modal-shell-command/README.md)              | [typescript](typescript/modal/process/run-modal-shell-command/README.md)              |
+| Modal run with cwd        | [go](go/modal/process/run-modal-with-cwd/README.md)                   | [typescript](typescript/modal/process/run-modal-with-cwd/README.md)                   |
+| Modal run with env        | [go](go/modal/process/run-modal-with-env/README.md)                   | [typescript](typescript/modal/process/run-modal-with-env/README.md)                   |
+| Modal check exit          | [go](go/modal/process/run-modal-check-exit/README.md)                 | [typescript](typescript/modal/process/run-modal-check-exit/README.md)                 |
 | Modal read file           | [go](go/modal/filesystem/read-modal-file/README.md)                   | [typescript](typescript/modal/filesystem/read-modal-file/README.md)                   |
 | Modal write file          | [go](go/modal/filesystem/write-modal-file/README.md)                  | [typescript](typescript/modal/filesystem/write-modal-file/README.md)                  |
 | Modal copy in             | [go](go/modal/filesystem/copy-file-into-modal/README.md)              | [typescript](typescript/modal/filesystem/copy-file-into-modal/README.md)              |

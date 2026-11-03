@@ -32,6 +32,10 @@ closes your connection to Daytona or Modal.
 | -------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [create-daytona-sandbox](daytona/configuration/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
 | [run-daytona-command](daytona/process/run-daytona-command/README.md)                         | run one command                         |
+| [run-daytona-shell-command](daytona/process/run-daytona-shell-command/README.md)             | run one shell string                    |
+| [run-daytona-with-cwd](daytona/process/run-daytona-with-cwd/README.md)                       | run with working directory              |
+| [run-daytona-with-env](daytona/process/run-daytona-with-env/README.md)                       | run with environment variables          |
+| [run-daytona-check-exit](daytona/process/run-daytona-check-exit/README.md)                   | non-zero exit in the result             |
 | [read-daytona-file](daytona/filesystem/read-daytona-file/README.md)                          | read one file                           |
 | [write-daytona-file](daytona/filesystem/write-daytona-file/README.md)                        | write one file                          |
 | [copy-file-into-daytona](daytona/filesystem/copy-file-into-daytona/README.md)                | copy a local file in                    |
@@ -70,6 +74,10 @@ closes your connection to Daytona or Modal.
 | ------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md)                 | image creation with resources and policies |
 | [run-modal-command](modal/process/run-modal-command/README.md)                             | run one command                            |
+| [run-modal-shell-command](modal/process/run-modal-shell-command/README.md)                 | run one shell string                       |
+| [run-modal-with-cwd](modal/process/run-modal-with-cwd/README.md)                           | run with working directory                 |
+| [run-modal-with-env](modal/process/run-modal-with-env/README.md)                           | run with environment variables             |
+| [run-modal-check-exit](modal/process/run-modal-check-exit/README.md)                       | non-zero exit in the result                |
 | [read-modal-file](modal/filesystem/read-modal-file/README.md)                              | read one file                              |
 | [write-modal-file](modal/filesystem/write-modal-file/README.md)                            | write one file                             |
 | [copy-file-into-modal](modal/filesystem/copy-file-into-modal/README.md)                    | copy a local file in                       |

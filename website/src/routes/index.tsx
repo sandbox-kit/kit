@@ -24,7 +24,7 @@ function Home() {
         <p className="mt-5 max-w-xl text-lg leading-relaxed text-fd-muted-foreground">
           Sandbox Kit is the client an agent uses with a cloud sandbox. Pass in
           a provider. The same client opens the sandbox where that agent writes
-          files, clones a repository, and runs its work.
+          files, runs commands, and finishes its work.
         </p>
         <p className="mt-8 text-sm leading-relaxed text-fd-muted-foreground">
           <Link
