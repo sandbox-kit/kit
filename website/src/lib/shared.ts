@@ -39,6 +39,24 @@ export function assetUrl(path: string) {
   return `${base}${path.replace(/^\//, "")}`;
 }
 
+/** Absolute URL for a root-relative site path (applies `BASE_URL` once). */
+export function absoluteSiteUrl(path: string) {
+  const base = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const withBase =
+    !base || normalized === base || normalized.startsWith(`${base}/`)
+      ? normalized
+      : `${base}${normalized}`;
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}${withBase}`;
+  }
+  // Static prerender for GitHub Pages project site.
+  if (base === "/kit") {
+    return `https://sandbox-kit.github.io${withBase}`;
+  }
+  return withBase;
+}
+
 const getImageUrl = createGetUrl(docsImageRoute);
 
 export function getPageImageUrl(page: { slugs: string[]; locale?: string }) {

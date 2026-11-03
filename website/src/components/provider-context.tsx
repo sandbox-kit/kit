@@ -4,11 +4,16 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { buttonVariants } from "fumadocs-ui/components/ui/button";
+import { cn } from "@/lib/cn";
 import {
   DEFAULT_DOC_PROVIDER,
   DOC_PROVIDER_STORAGE_KEY,
@@ -73,28 +78,83 @@ export function useDocProvider(): ProviderContextValue {
   return ctx;
 }
 
-const providerSelectClassName =
-  "cursor-pointer rounded-md border border-fd-border bg-fd-background px-2 py-1 text-sm font-medium text-fd-foreground outline-none focus-visible:ring-2 focus-visible:ring-fd-ring";
-
 export function ProviderSelect({ className }: { className?: string }) {
   const { provider, setProvider, providers } = useDocProvider();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const current =
+    providers.find((item) => item.id === provider) ?? providers[0]!;
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   return (
-    <select
-      aria-label="Provider"
-      className={className ?? providerSelectClassName}
-      value={provider}
-      onChange={(event) => {
-        const next = event.target.value;
-        if (isDocProviderId(next)) setProvider(next);
-      }}
-    >
-      {providers.map((item) => (
-        <option key={item.id} value={item.id}>
-          {item.label}
-        </option>
-      ))}
-    </select>
+    <div ref={rootRef} className={cn("relative", className)}>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className={cn(
+          buttonVariants({
+            variant: "secondary",
+            size: "sm",
+          }),
+          "gap-1.5",
+          open && "bg-fd-accent text-fd-accent-foreground",
+        )}
+        onClick={() => setOpen((value) => !value)}
+      >
+        {current.label}
+        <ChevronDown className="size-3.5 text-fd-muted-foreground" />
+      </button>
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Provider"
+          className="absolute end-0 top-[calc(100%+0.35rem)] z-50 min-w-40 rounded-xl border border-fd-border bg-fd-popover p-1 text-fd-popover-foreground shadow-md"
+        >
+          {providers.map((item) => {
+            const selected = item.id === provider;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                className={cn(
+                  "flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm hover:bg-fd-accent hover:text-fd-accent-foreground",
+                  selected && "bg-fd-accent text-fd-accent-foreground",
+                )}
+                onClick={() => {
+                  setProvider(item.id);
+                  setOpen(false);
+                }}
+              >
+                <span>{item.label}</span>
+                {selected ? (
+                  <Check className="ms-auto size-3.5 text-fd-muted-foreground" />
+                ) : (
+                  <span className="ms-auto size-3.5" aria-hidden />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -108,7 +168,7 @@ export function DocsProviderSelect({ path }: { path: string }) {
       .split("/")
       .pop() ?? "";
   if (PROVIDER_SCOPED_PAGES.has(slug)) return null;
-  return <ProviderSelect className={`ms-auto ${providerSelectClassName}`} />;
+  return <ProviderSelect className="ms-auto" />;
 }
 
 export function ForProvider({
