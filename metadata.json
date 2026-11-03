@@ -1,0 +1,50 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6GA167VFNR88C6H0YC83GD8",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-process",
+  "checkpoints_count": 15,
+  "files_touched": [
+    "README.md",
+    "website/.gitignore",
+    "website/README.md",
+    "website/content/docs/concepts.mdx",
+    "website/content/docs/configuration.mdx",
+    "website/content/docs/create.mdx",
+    "website/content/docs/daytona.mdx",
+    "website/content/docs/errors.mdx",
+    "website/content/docs/examples.mdx",
+    "website/content/docs/filesystem.mdx",
+    "website/content/docs/index.mdx",
+    "website/content/docs/lifecycle.mdx",
+    "website/content/docs/meta.json",
+    "website/content/docs/modal.mdx",
+    "website/content/docs/process.mdx",
+    "website/src/components/home-code-sample.tsx",
+    "website/src/components/mdx.tsx",
+    "website/src/components/provider-context.tsx",
+    "website/src/components/tabs.tsx",
+    "website/src/lib/providers.ts",
+    "website/src/routes/__root.tsx",
+    "website/src/routes/docs/$.tsx",
+    "website/src/routes/index.tsx",
+    "website/src/styles/app.css",
+    "website/vite.config.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 257968,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 14603264,
+    "output_tokens": 69914,
+    "api_call_count": 11
+  }
+}

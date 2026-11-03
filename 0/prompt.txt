@@ -1,0 +1,115 @@
+https://www.daytona.io/docs/en/process-code-execution/ 
+https://modal.com/docs/guide/sandbox-spawn 
+
+and find more things around code & command & process execution.
+
+from both the docs.
+
+we need to add it as unfieid interface
+
+---
+
+u know from all the sessions of thing project that what all mistakes can happen. 
+
+u know that info and implelment taking care of all those things and implement it. if u need help lemme know before u start
+
+---
+
+go with your recommendation
+
+---
+
+create a branch commit push to branch create a PR with nice title and descriptoion explining changes + also with diagrams.
+
+---
+
+add more and more examples for this. 
++ also can u update the user facing docs, readme, .md of sdks which npm and pkg.go.dev shows. 
+
+U must also include Example for godoc docs as it shows there. 
+
+do it for both this changes as well as file system and anything u feel should be added.
+
+---
+
+can u also update website.
+
+---
+
+commit and push
+
+---
+
+update PR descritpino
+
+---
+
+how to start website in local ?
+
+---
+
+say require is not defined ? when I access
+http://localhost:3000/docs/process
+
+---
+
+outside of docs folder
+
+every .md .mdx in website too should be user facing plz fix that u have wrote like story. 
+
+u are technical writer of devtool company. now fix it 
+make more section in website for better structuing it. 
+
+take inspiration from from some of the best sdk documentation u can find out.
+
+---
+
++ we are not just for modal and daytona we will add more don't mention it we are just modal and daytona
+
+---
+
+and we are not api we are lightweight sdk, with provider plugaable. u can make your own words using this concept.
+
+---
+
+Now where code is shown on guides. 
+
+wher languages are changes on that same row at the end we need to have dropdown to change provider daytona modal etc. 
+
+and code documentation changes according to it. 
+
+as provider specifric edgecases are show there. 
+
+make sense.
+
+---
+
+does this look good or should we have it on sidebar for choosing provider ? below search bar ?
+
+---
+
+go ahead.
+
+---
+
+i think having provider (naming) beside it in their is really awkward ?
+
+---
+
+does search works across the providers  ?
+
+---
+
+also can u make it more buetiful the main page. 
+
+show also code samples which people can see. 
+
+it should be just one view. 
+
+like not scrollable.
+
+---
+
+go doesn't show imports 
+
++ on laptop screen the code editor on below looks empty. u should either shrink down height or do somthin about it
