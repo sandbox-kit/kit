@@ -1,0 +1,18 @@
+https://www.daytona.io/docs/en/process-code-execution/ 
+https://modal.com/docs/guide/sandbox-spawn 
+
+and find more things around code & command & process execution.
+
+from both the docs.
+
+we need to add it as unfieid interface
+
+---
+
+u know from all the sessions of thing project that what all mistakes can happen. 
+
+u know that info and implelment taking care of all those things and implement it. if u need help lemme know before u start
+
+---
+
+go with your recommendation
