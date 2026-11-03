@@ -3,7 +3,7 @@ module github.com/sandbox-kit/kit/sdks/go/internal/sdk
 go 1.26.0
 
 require (
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.3
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.4
 	google.golang.org/protobuf v1.36.12
 )
 
