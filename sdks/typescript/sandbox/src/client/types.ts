@@ -1,5 +1,5 @@
 // Public client / provider / backend contracts are handwritten facades over
-// portable protobuf config and create/lifecycle option types.
+// portable protobuf config, create/lifecycle, and filesystem option types.
 
 import type { MessageInitShape } from "@bufbuild/protobuf";
 import {

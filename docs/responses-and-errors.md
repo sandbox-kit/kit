@@ -25,10 +25,11 @@ the client when the provider returns no sandbox ID. When the provider sets
 
 ## Read an error
 
-Initialization, creation, lifecycle calls, and cleanup return the same error
-shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and `Message`.
-`StatusCode`, `ProviderCode`, and `ProviderSource` carry the provider's own
-codes when it sent them.
+Initialization, creation, lifecycle calls, filesystem calls, and cleanup return
+the same error shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and
+`Message`. `StatusCode`, `ProviderCode`, and `ProviderSource` carry the
+provider's own codes when it sent them. `NotFound` covers a missing sandbox or
+a missing file path.
 
 ```go
 var detail *sandbox.Error

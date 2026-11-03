@@ -25,8 +25,9 @@ Modal needs a token pair and an existing app:
 [TypeScript](typescript/modal/configuration/create-modal-sandbox/README.md).
 
 Creation examples provision real resources. Filesystem and lifecycle examples
-use the sandbox ID in `.env`. A filesystem example reads, writes, or deletes
-the path you set. Stop, terminate, archive, and delete can destroy the sandbox.
+use the sandbox ID in `.env`. A filesystem example runs one file operation
+(read, write, copy, mkdir, list, stat, or remove) on the path you set. Stop,
+terminate, archive, and delete can destroy the sandbox.
 Error-handling examples fail locally. `Client.Close` closes your connection to
 Daytona or Modal. `Sandbox.Close` does not change the sandbox, and you can keep
 using the handle.

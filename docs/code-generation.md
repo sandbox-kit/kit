@@ -59,7 +59,7 @@ the SDK.
 
 | Input                             | Defines                                                                            |
 | --------------------------------- | ---------------------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, metadata, errors)        |
+| `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, filesystem options, metadata, errors) |
 | `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
 | `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
 | `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
@@ -85,8 +85,9 @@ plus per-provider classification mappers. Go provider helpers
 `sdks/go/internal/sdk`. `RejectUnmapped` sets `Provider` to the provider name
 and `Field` to the parent path plus the leftover protobuf name.
 
-Handwritten `CreateField*`, `ConfigField*`, `InfoField*`, and `ResultField*`
-constants are the field paths used by validation, mappings, and errors.
+Handwritten `CreateField*`, `ConfigField*`, `InfoField*`, `ResultField*`, and
+`FileField*` constants are the field paths used by validation, mappings, and
+errors.
 
 `specs/contracts.yaml` names the shared metadata and error messages.
 Portable messages come from standard protobuf generation into contract packages.
@@ -249,18 +250,19 @@ Backend state capture and metadata cloning are handwritten in the SDK runtime
 5. Run the CLI verification command.
 
 SDK orchestration that the inventory cannot express stays in handwritten
-provider integration files (Go `sandbox.go`, `creation.go`, and, where the
-provider observes native state, `lifecycle.go` and `metadata.go`; TypeScript
-provider-named `.ts` plus `mappings.ts` files): lookup sequences, source
-selection, readiness, and remaining provider semantics. Handwritten
-`provider_mappings` / `provider_config` own field conversions and native client
-configuration; handwritten `provider_checks` enforces create checks; handwritten
-`errors` classifies native provider errors.
+provider integration files (Go `sandbox.go`, `creation.go`, `filesystem.go`,
+and, where the provider observes native state, `lifecycle.go` and
+`metadata.go`; TypeScript provider-named `.ts` plus `mappings.ts` files):
+lookup sequences, source selection, readiness, filesystem bindings, and
+remaining provider semantics. Handwritten `provider_mappings` /
+`provider_config` own field conversions and native client configuration;
+handwritten `provider_checks` enforces create checks; handwritten `errors`
+classifies native provider errors.
 
-Lifecycle option and result types come from protobuf contracts. Handle methods,
-typed provider dispatch, capability discovery, and close coordination remain
-handwritten runtime code on `Client`, `Sandbox`, and provider `Backend`
-adapters.
+Lifecycle and filesystem option and result types come from protobuf contracts.
+Handle methods, typed provider dispatch, lifecycle capability discovery,
+filesystem backend methods, and close coordination remain handwritten runtime
+code on `Client`, `Sandbox` / `Filesystem`, and provider `Backend` adapters.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

@@ -59,8 +59,9 @@ type SandboxArchiver interface {
 	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
 }
 
-// SandboxFiles reads and writes files in a sandbox.
-// Daytona and Modal implement it. Call Sandbox.Filesystem.
+// SandboxFiles performs file operations in a sandbox: read, write, copy to or
+// from the caller, make directory, list directory, stat, and remove.
+// Daytona and Modal implement it. Use Sandbox.Filesystem.
 type SandboxFiles interface {
 	// ReadFile returns the bytes of one file.
 	ReadFile(context.Context, string, string, *FileReadOptions) ([]byte, error)

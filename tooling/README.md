@@ -45,8 +45,9 @@ Use `--repo /absolute/path/to/kit` elsewhere.
 `--against` to add a breaking-change comparison against a Git or Buf input.
 
 `generate contracts-go` / `contracts-typescript` run `buf generate` using the
-root `buf.gen.yaml` (Go + TypeScript plugins) and refresh contract packages
-under `sdks/<language>/contracts/`. Protovalidate options travel with the
+root `buf.gen.yaml` (Go + TypeScript plugins). Go contracts land in
+`sdks/go/internal/contracts/`; TypeScript contracts land in
+`sdks/typescript/contracts/`. Protovalidate options travel with the
 descriptors; SDKs evaluate create and client-config rules at runtime
 (`secure_endpoint` stays handwritten). `contracts-typescript` also runs
 `npm run build` in `sdks/typescript/contracts` so `@sandbox-kit/contracts`

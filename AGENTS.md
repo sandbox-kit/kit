@@ -33,8 +33,8 @@ public client owns cleanup through `Close`.
   fields, and plain allowlists. The client materializes wire messages privately
   for Protovalidate. Application code depends on `@sandbox-kit/sandbox` (and a
   provider); `@sandbox-kit/contracts` is an internal SDK dependency.
-- Creation returns a sandbox handle. Implement lifecycle methods on that handle
-  separately from creation configuration.
+- Creation returns a sandbox handle. Implement lifecycle and filesystem methods
+  on that handle separately from creation configuration.
 - Preserve field presence, units, source kinds, and provider defaults.
 - Reject unsupported intent before provider calls. Account quotas, permissions,
   and capacity remain provider-enforced.
@@ -72,9 +72,10 @@ classification are handwritten per language.
 ## Examples and documentation
 
 For every public feature, update its language's runnable example and guide.
-Use small, independent provider-specific projects under `examples/<language>/`.
-Each example demonstrates one operation with its own configuration and no provider
-selector or CLI flags.
+Use small, independent provider-specific projects under
+`examples/<language>/<provider>/` in `filesystem/`, `configuration/`,
+`lifecycle/`, or `errors/`. Each example demonstrates one operation with its
+own configuration and no provider selector or CLI flags.
 
 Keep examples aligned with the implemented API. Label test doubles and local
 verification limits clearly. Verify changed examples before handoff and update

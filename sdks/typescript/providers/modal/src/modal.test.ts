@@ -255,7 +255,7 @@ describe("Modal mappings", () => {
     });
   });
 
-  it("applies generated environment and network checks before mapping", () => {
+  it("applies environment and network checks before mapping", () => {
     const config = { scope: { appName: "app" } };
     expect(() =>
       mapCreateRequest(

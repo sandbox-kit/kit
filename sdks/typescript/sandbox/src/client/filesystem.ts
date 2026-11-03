@@ -29,7 +29,12 @@ interface FilesystemHost {
   ): Promise<T>;
 }
 
-/** File operations for one sandbox. Paths inside the sandbox are absolute. */
+/**
+ * File operations for one sandbox: read, write, copy to or from the caller,
+ * make directory, list directory, stat, and remove. Paths inside the sandbox
+ * are absolute. An omitted operation timeout uses the client timeout; explicit
+ * zero adds no Kit deadline.
+ */
 export class Filesystem {
   constructor(private readonly host: FilesystemHost) {}
 
@@ -109,7 +114,11 @@ export class Filesystem {
     );
   }
 
-  /** Copies a sandbox file onto the caller's disk. */
+  /**
+   * Copies a sandbox file onto the caller's disk.
+   * Missing local parent directories are created. An existing local directory
+   * is rejected.
+   */
   copyToLocal(
     remotePath: string,
     localPath: string,

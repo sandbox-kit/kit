@@ -90,7 +90,7 @@ const fetched = await client.get(id); // provider-verified lookup
 | `delete`         | Delete (`wait` when supported)                |
 | `terminate`      | Terminate (`wait` when supported)             |
 | `close`          | Close the handle. The sandbox keeps running   |
-| `filesystem`     | Read, write, copy, list, and remove files     |
+| `filesystem`     | Read, write, copy, list, mkdir, stat, remove  |
 
 `supports` reports whether the provider implements that operation. An
 unimplemented method throws before the provider call. A provider rejection,

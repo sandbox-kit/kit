@@ -133,10 +133,11 @@ Modal needs a token pair and an existing app:
 [TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
 [Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
 
-Creation examples provision real sandboxes. Lifecycle examples use the ID in
-`.env` (stop / terminate / archive / delete can destroy that resource).
-Error-handling examples fail locally and create nothing. Skip copying
-`.env.example` if you already have a configured `.env`.
+Creation examples provision real sandboxes. Filesystem and lifecycle examples
+use the ID in `.env` (stop / terminate / archive / delete can destroy that
+resource; filesystem examples use the path you set). Error-handling examples
+fail locally and create nothing. Skip copying `.env.example` if you already
+have a configured `.env`.
 
 Full catalog: [examples/README.md](examples/README.md) ·
 [TypeScript](examples/typescript/README.md) · [Go](examples/go/README.md).
@@ -260,7 +261,7 @@ These pages are the behavior reference for the same API:
 | [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
 | [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies           |
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities         |
-| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, remove   |
+| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove |
 | [Providers](docs/providers.md)                                                                                 | Daytona and Modal                 |
 | [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes |
 | [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes         |

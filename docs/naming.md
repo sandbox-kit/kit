@@ -8,7 +8,7 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 
 | Concept                 | Go name               | Responsibility                                       |
 | ----------------------- | --------------------- | ---------------------------------------------------- |
-| Public SDK              | `sandbox`             | Configuration, lifecycle, and shared metadata        |
+| Public SDK              | `sandbox`             | Configuration, lifecycle, filesystem, and metadata   |
 | Provider selection      | `Provider`            | `Name()` and `NewClient(*Config)`                    |
 | Initialized integration | `Backend`             | Provider identity and local SDK cleanup              |
 | Optional creation       | `SandboxCreator`      | `Create()` when the provider supports creation       |
@@ -17,8 +17,8 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Client settings         | `Config`              | Provider, auth, scope, endpoint, region, timeout     |
 | Creation request        | `CreateOptions`       | Source, runtime, resources, and creation policies    |
 | Backend result          | `CreateResult`        | Shared sandbox metadata                              |
-| Public handle           | `Sandbox`             | Identity, copied metadata, and lifecycle methods     |
-| Files in the sandbox    | `Filesystem`          | Read, write, copy, list, stat, and remove            |
+| Public handle           | `Sandbox`             | Identity, copied metadata, lifecycle, and files      |
+| Files in the sandbox    | `Filesystem`          | Read, write, copy, mkdir, list, stat, and remove     |
 
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
 the SDK runtime. TypeScript app-facing `CreateOptions` / `Config` are handwritten
@@ -88,7 +88,7 @@ handwritten aliases such as `sandbox_data_contracts.go` /
 | `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions                   |
 | `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks                          |
 | `config/provider_config.ts`                              | Native SDK configuration assembly (TS)                   |
-| `capabilities.go`                                        | Optional backend operation interfaces (Go)               |
+| `capabilities.go`                                        | Lifecycle and filesystem backend interfaces (Go)         |
 | `creation.go`                                            | Provider create planning (Go)                            |
 | `lifecycle.go`                                           | Provider lifecycle calls (Go)                            |
 | `filesystem.go`                                          | Filesystem calls on the sandbox handle (Go)              |
@@ -105,9 +105,9 @@ those files.
 ## Language conventions
 
 Field-path constants use names such as `CreateFieldResourcesCpuCores`,
-`ConfigFieldScopeAppName`, `InfoFieldResources`, and `ResultFieldExitCode`.
-Their values retain
-canonical protobuf field names, including nested paths.
+`ConfigFieldScopeAppName`, `InfoFieldResources`, `ResultFieldExitCode`,
+`FileFieldPath`, and `FileFieldLocalPath`. Their values retain canonical
+protobuf field names, including nested paths.
 
 Protobuf and YAML use snake_case semantic field names. Generated Go contract
 types follow protobuf Go naming (`CpuCores`, `MemoryMib`, `OutboundCidrs`,

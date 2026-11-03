@@ -46,7 +46,7 @@ try {
       );
       break;
     case ErrorKind.NotFound:
-      console.error("The requested sandbox was not found.");
+      console.error("The sandbox or file path was not found.");
       break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
@@ -80,7 +80,7 @@ if errors.As(err, &detail) {
 	case sandbox.ErrorKindPermissionDenied:
 		fmt.Println("Your account does not have permission for this operation.")
 	case sandbox.ErrorKindNotFound:
-		fmt.Println("The requested sandbox was not found.")
+		fmt.Println("The sandbox or file path was not found.")
 	case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
 		fmt.Println("The provider's rate or resource limit was reached.")
 	case sandbox.ErrorKindCanceled:

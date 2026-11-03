@@ -66,26 +66,28 @@ not terminate the sandbox.
 Provider-verified `get` / `refresh`, start, stop, pause, archive, and delete are
 unsupported.
 
-**Files** through `sandbox.filesystem`. Paths in the sandbox are absolute.
-A file timeout is the abort signal. `1_500` ends the call at 1.5 seconds.
-`parents` defaults to true: missing parents are created, and an existing
-directory is accepted. `parents: false` requires the parent to exist. A
-missing file passed to `copyFromLocal` is not found before Modal is called,
-and the error field is `local_path`. A local directory is an invalid argument
-with the same field. `copyToLocal` creates a missing local parent directory.
+**Files** through `sandbox.filesystem`: `readFile`, `writeFile`,
+`copyFromLocal`, `copyToLocal`, `makeDirectory`, `listDirectory`, `stat`, and
+`remove`. Paths in the sandbox are absolute. A file timeout is the abort
+signal. `1_500` ends the call at 1.5 seconds. `parents` defaults to true:
+missing parents are created, and an existing directory is accepted.
+`parents: false` requires the parent to exist. A missing file passed to
+`copyFromLocal` is not found before Modal is called, and the error field is
+`local_path`. A local directory is an invalid argument with the same field.
+`copyToLocal` creates a missing local parent directory.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
 
 ## Examples
 
-| Example     | Project                                                                                                                           |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Example     | Project                                                                                                                                         |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | Creation    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox)               |
-| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                         |
+| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                            |
 | Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) |
-| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)               |
-| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                           |
+| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)                   |
+| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                                         |
 
 ## License
 

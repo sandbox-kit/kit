@@ -10,7 +10,8 @@ import (
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 )
 
-// Filesystem reads and writes files inside one sandbox.
+// Filesystem performs file operations inside one sandbox: read, write, copy to
+// or from the caller, make directory, list directory, stat, and remove.
 // Obtain it from Sandbox.Filesystem. Paths in the sandbox are absolute.
 // A nil timeout inherits Config.Timeout. Explicit zero adds no Kit deadline.
 type Filesystem struct {
@@ -67,6 +68,7 @@ func (f *Filesystem) CopyFromLocal(ctx context.Context, localPath, remotePath st
 
 // CopyToLocal copies the file at remotePath to localPath.
 // remotePath is absolute. localPath is a path on the caller's machine.
+// Missing local parent directories are created. An existing local directory is rejected.
 func (f *Filesystem) CopyToLocal(ctx context.Context, remotePath, localPath string, options *FileCopyOptions) error {
 	return f.call(ctx, "copy_to_local", options.GetTimeout(), remotePath, &localPath, func(operationContext context.Context, id string) error {
 		files, err := f.files("copy_to_local")
@@ -125,8 +127,9 @@ func (f *Filesystem) Stat(ctx context.Context, path string, options *StatOptions
 }
 
 // Remove deletes the file at path.
-// Set RemoveOptions.Recursive with Value(true) to delete a directory and its contents.
-// An omitted recursive flag removes a file or an empty directory.
+// path is absolute. Set RemoveOptions.Recursive with Value(true) to delete a
+// directory and its contents. An omitted recursive flag removes a file or an
+// empty directory.
 func (f *Filesystem) Remove(ctx context.Context, path string, options *RemoveOptions) error {
 	return f.call(ctx, "remove", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("remove")

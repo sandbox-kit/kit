@@ -211,8 +211,8 @@ type (
 	// SandboxState is the lifecycle state reported on SandboxInfo.
 	SandboxState = sandboxv1.SandboxState
 
-	// LifecycleCapability names one operation Sandbox.Supports can check.
-	// The value means the provider implements that operation.
+	// LifecycleCapability names one lifecycle operation Sandbox.Supports can check.
+	// File operations are not lifecycle capabilities; call Filesystem instead.
 	LifecycleCapability = sandboxv1.LifecycleCapability
 )
 

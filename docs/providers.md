@@ -34,6 +34,7 @@ await using client = new Client({
 | Open an existing sandbox            | `attach` (ID only)                 | `get` (provider lookup)                    |
 | Start, stop, pause, archive, delete | Unsupported                        | Supported                                  |
 | Terminate                           | Supported                          | Unsupported                                |
+| Filesystem                          | Same eight shared methods          | Same eight shared methods                  |
 
 `supports` reports whether the provider implements that operation. A missing
 operation fails before the provider call. Daytona still accepts or rejects a

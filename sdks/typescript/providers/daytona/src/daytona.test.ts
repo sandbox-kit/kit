@@ -1,3 +1,4 @@
+import { mkdtemp, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -265,7 +266,7 @@ describe("Daytona mappings", () => {
     );
   });
 
-  it("applies generated network and policy checks before mapping", () => {
+  it("applies network and policy checks before mapping", () => {
     expect(() =>
       mapCreateRequest({
         network: { outboundCidrs: ["not-a-cidr"] },
@@ -677,6 +678,41 @@ describe("Daytona provider orchestration", () => {
       field: FileFieldLocalPath,
       operation: "copy_to_local",
     });
+  });
+
+  it("creates missing local parents before Daytona downloads", async () => {
+    const root = await mkdtemp(join(tmpdir(), "kit-copy-parent-"));
+    const local = join(root, "nested", "out.txt");
+    let downloadedTo = "";
+    const backend = new DaytonaProvider(() => ({
+      async create(): Promise<DaytonaSandbox> {
+        throw new Error("unused");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        return {
+          fs: {
+            async downloadFile(_remote: string, destination: string) {
+              downloadedTo = destination;
+              await writeFile(destination, "ok");
+            },
+          },
+        } as unknown as DaytonaSandbox;
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    const copyToLocal = backend.copyToLocal;
+    if (!copyToLocal) throw new Error("copyToLocal is missing");
+    await copyToLocal.call(
+      backend,
+      "sandbox-1",
+      "/tmp/note.txt",
+      local,
+      {},
+      {},
+    );
+    expect(downloadedTo).toBe(local);
+    const parent = await stat(join(root, "nested"));
+    expect(parent.isDirectory()).toBe(true);
   });
 
   it("classifies a local write failure from copyToLocal", async () => {

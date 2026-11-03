@@ -43,6 +43,7 @@ import {
   mapSandboxInfo,
 } from "#mappings/mappings.js";
 import {
+  ensureLocalParent,
   mapDaytonaError,
   providerError,
   requireLocalDestination,
@@ -264,6 +265,7 @@ class DaytonaBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     await requireLocalDestination(localPath, "copy_to_local");
+    await ensureLocalParent(localPath, "copy_to_local");
     await this.#file(
       "copy_to_local",
       id,
@@ -405,7 +407,11 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
 }
 
-/** Upload and download treat an omitted argument as 30 minutes. Zero adds no Daytona limit. */
+/**
+ * Converts a Kit file timeout (ms) for Daytona upload/download.
+ * Omitted and explicit zero become `0` so Daytona adds no transfer limit.
+ * Daytona's native default for an omitted argument is 30 minutes.
+ */
 function fileSeconds(timeout: number | undefined): number {
   return timeout ?? 0;
 }

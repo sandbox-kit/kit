@@ -5,14 +5,18 @@ Go and TypeScript bindings target Modal v0.11.1 and Daytona v0.225.0
 APIs; pinned SDK source and compilation determine the signatures and
 serialization used by this checkout.
 
-This review covers authentication, mapped creation settings, and lifecycle
-bindings. Local tests verify conversions, validation, SDK request serialization,
-and ownership.
-They do not prove live scheduling or account capacity. Lifecycle contract tests
-cover capability dispatch, metadata updates, class checks, attachment semantics,
-provider-class capability resolution, and error translation without provisioning
-cloud resources. Provider tests use the pinned SDK's transport/service seams;
-they do not expose those native clients through the public SDK.
+This review covers authentication, mapped creation settings, lifecycle
+bindings, and filesystem bindings. Local tests verify conversions, validation,
+SDK request serialization, and ownership. They do not prove live scheduling or
+account capacity. Lifecycle contract tests cover capability dispatch, metadata
+updates, class checks, attachment semantics, provider-class capability
+resolution, and error translation without provisioning cloud resources.
+Filesystem tests cover path validation, local copy classification, timeouts,
+and provider file APIs (Modal `readBytes` / `writeBytes` / `copyFromLocal` /
+`listFiles`; Daytona high-level `FileSystem` plus toolbox list/stat, and
+`downloadFiles` with timeout `0` when Kit adds no transfer limit). Provider
+tests use the pinned SDK's transport/service seams; they do not expose those
+native clients through the public SDK.
 
 ## Reference sources
 

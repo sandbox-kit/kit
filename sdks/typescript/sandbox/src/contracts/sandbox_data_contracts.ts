@@ -90,11 +90,19 @@ export type ArchiveOptions = DurationFieldsToMs<
 export type DeleteOptions = DurationFieldsToMs<StripProto<ProtoDeleteOptions>>;
 export type ExitResult = StripProto<ProtoExitResult>;
 export type FileInfo = StripProto<ProtoFileInfo>;
-export type FileReadOptions = DurationFieldsToMs<StripProto<ProtoFileReadOptions>>;
+/**
+ * Public filesystem call options for `Backend` and provider adapters (ms
+ * timeouts). Same duration remapping as {@link CreateOptions}.
+ */
+export type FileReadOptions = DurationFieldsToMs<
+  StripProto<ProtoFileReadOptions>
+>;
 export type FileWriteOptions = DurationFieldsToMs<
   StripProto<ProtoFileWriteOptions>
 >;
-export type FileCopyOptions = DurationFieldsToMs<StripProto<ProtoFileCopyOptions>>;
+export type FileCopyOptions = DurationFieldsToMs<
+  StripProto<ProtoFileCopyOptions>
+>;
 export type MakeDirectoryOptions = DurationFieldsToMs<
   StripProto<ProtoMakeDirectoryOptions>
 >;
