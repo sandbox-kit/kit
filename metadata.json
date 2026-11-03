@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6H0V2KEEVBD4ZW1N7C7KFKS",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-process",
+  "checkpoints_count": 13,
+  "files_touched": [
+    "AGENTS.md",
+    "docs/api-declarations.md",
+    "docs/code-generation.md",
+    "docs/process.md",
+    "examples/go/daytona/process/run-daytona-command/README.md",
+    "examples/go/daytona/process/run-daytona-shell-command/README.md",
+    "examples/go/modal/process/run-modal-command/README.md",
+    "examples/go/modal/process/run-modal-shell-command/README.md",
+    "examples/typescript/daytona/process/run-daytona-command/README.md",
+    "examples/typescript/daytona/process/run-daytona-shell-command/README.md",
+    "examples/typescript/modal/process/run-modal-command/README.md",
+    "examples/typescript/modal/process/run-modal-shell-command/README.md",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/daytona/process.go",
+    "sdks/go/providers/modal/README.md",
+    "sdks/go/sandbox/tests/process_test.go",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/daytona/src/daytona.ts",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/providers/modal/src/modal.test.ts",
+    "sdks/typescript/providers/modal/src/modal.ts",
+    "sdks/typescript/sandbox/src/client/client.test.ts",
+    "specs/validation.yaml",
+    "website/content/docs/process.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 268252,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 5491584,
+    "output_tokens": 22806,
+    "api_call_count": 10
+  }
+}
