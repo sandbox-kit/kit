@@ -1,0 +1,25 @@
+cool should I merge it do u see any mistakes, errors, validations, for the changes we have made  ?
+
+u must always have backed by reason strong reason with proof 
+U can say no if there ain't.
+
+---
+
+cool should I merge it do u see any mistakes, errors, validations, issues for the changes we have made  ?
+
+u must always have backed by reason strong reason with proof 
+U can say no if there ain't.
+
+---
+
+and Go WriteFile’s nil→[]byte{} nudge.
+
+meaning ?
+
+---
+
+data == nil ?
+
+---
+
+cool do it lemme know if that change is correct ?
