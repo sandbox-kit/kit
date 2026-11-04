@@ -44,6 +44,12 @@ var goTestModules = []string{
 	"examples/go/daytona/filesystem/remove-daytona-file",
 	"examples/go/daytona/filesystem/stat-daytona-file",
 	"examples/go/daytona/filesystem/write-daytona-file",
+	"examples/go/daytona/process/run-daytona-check-exit",
+	"examples/go/daytona/process/run-daytona-command",
+	"examples/go/daytona/process/run-daytona-shell-command",
+	"examples/go/daytona/process/run-daytona-with-cwd",
+	"examples/go/daytona/process/run-daytona-with-env",
+	"examples/go/daytona/process/run-daytona-with-timeout",
 	"examples/go/modal/filesystem/copy-file-from-modal",
 	"examples/go/modal/filesystem/copy-file-into-modal",
 	"examples/go/modal/filesystem/list-modal-directory",
@@ -52,6 +58,12 @@ var goTestModules = []string{
 	"examples/go/modal/filesystem/remove-modal-file",
 	"examples/go/modal/filesystem/stat-modal-file",
 	"examples/go/modal/filesystem/write-modal-file",
+	"examples/go/modal/process/run-modal-check-exit",
+	"examples/go/modal/process/run-modal-command",
+	"examples/go/modal/process/run-modal-shell-command",
+	"examples/go/modal/process/run-modal-with-cwd",
+	"examples/go/modal/process/run-modal-with-env",
+	"examples/go/modal/process/run-modal-with-timeout",
 }
 
 var typescriptTestModules = []struct {
