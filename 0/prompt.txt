@@ -1,0 +1,17 @@
+lets prepare for launching golang sdk
+
+---
+
+make it 0.1.5 we don't need to match with typescript
+
+---
+
+@go.work:75-78 also u must replace here version too.
+
+---
+
+there are process example also not included there in use
+
+---
+
+have we install depedeny of gosdk and examples again ? and should we commit this
