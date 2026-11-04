@@ -75,6 +75,12 @@ await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
   <Tab value="Go">
 
 ```go
+import (
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
 	Timeout: sandbox.Duration(1500 * time.Millisecond),
 })
@@ -102,6 +108,8 @@ console.log(text);
   <Tab value="Go">
 
 ```go
+import "fmt"
+
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
 if err != nil {
 	return err
@@ -248,6 +256,8 @@ err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
 <ForProvider id="modal">
 
 ```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
 err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
 	Parents: sandbox.Value(false),
 })
@@ -282,6 +292,8 @@ for (const entry of entries) console.log(entry.name, entry.size);
   <Tab value="Go">
 
 ```go
+import "fmt"
+
 entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 if err != nil {
 	return err
@@ -318,6 +330,8 @@ console.log(info.type, info.size, info.mode);
   <Tab value="Go">
 
 ```go
+import "fmt"
+
 info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 if err != nil {
 	return err
@@ -352,6 +366,8 @@ await sandbox.filesystem.remove("/tmp/kit-files", { recursive: true });
   <Tab value="Go">
 
 ```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
 files := instance.Filesystem()
 if err := files.Remove(ctx, "/tmp/note.txt", nil); err != nil {
 	return err

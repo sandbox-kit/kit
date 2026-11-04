@@ -62,6 +62,8 @@ console.log(sandbox.id);
 <ForProvider id="daytona">
 
 ```go
+import "os"
+
 instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
 if err != nil {
 	return err
@@ -76,6 +78,8 @@ if err := instance.Refresh(ctx); err != nil {
 <ForProvider id="modal">
 
 ```go
+import "os"
+
 instance, err := client.Attach(ctx, os.Getenv("MODAL_SANDBOX_ID"))
 if err != nil {
 	return err
@@ -97,6 +101,8 @@ These four calls are Daytona calls. `stop` asks Daytona to stop the sandbox. The
   <Tab value="TypeScript">
 
 ```ts
+import { LifecycleCapability } from "@sandbox-kit/sandbox";
+
 const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 
 if (!sandbox.supports(LifecycleCapability.Stop)) {
@@ -113,6 +119,14 @@ console.log(sandbox.id, info.state);
   <Tab value="Go">
 
 ```go
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
 if err != nil {
 	return err
@@ -160,6 +174,13 @@ await sandbox.delete({ timeout: 60_000 });
   <Tab value="Go">
 
 ```go
+import (
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
 if err != nil {
 	return err
@@ -192,6 +213,8 @@ Modal rejects `delete`. Use [terminate](#terminate) instead.
   <Tab value="TypeScript">
 
 ```ts
+import { LifecycleCapability } from "@sandbox-kit/sandbox";
+
 const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
 
 if (!sandbox.supports(LifecycleCapability.Terminate)) {
@@ -208,6 +231,14 @@ console.log(sandbox.id, exit.exitCode);
   <Tab value="Go">
 
 ```go
+import (
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 instance, err := client.Attach(ctx, os.Getenv("MODAL_SANDBOX_ID"))
 if err != nil {
 	return err
@@ -251,6 +282,8 @@ Prefer `await using` when the client lifetime matches the block. Client dispose 
   <Tab value="Go">
 
 ```go
+import "context"
+
 defer client.Close(context.Background())
 ```
 

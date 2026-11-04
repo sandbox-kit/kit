@@ -110,6 +110,13 @@ console.log(result.exitCode, new TextDecoder().decode(result.stdout));
   <Tab value="Go">
 
 ```go
+import (
+	"fmt"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Argv:    []string{"echo", "hello from kit"},
 	Timeout: sandbox.Duration(5 * time.Second),
@@ -163,6 +170,8 @@ const result = await sandbox.process.run({
   <Tab value="Go">
 
 ```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Shell: sandbox.Value(`echo "hello from shell"`),
 })
@@ -204,6 +213,8 @@ const result = await sandbox.process.run({
   <Tab value="Go">
 
 ```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Argv:             []string{"printenv", "KIT_DEMO"},
 	WorkingDirectory: sandbox.Value("/tmp"),
@@ -246,6 +257,12 @@ if (result.exitCode !== 7) {
   <Tab value="Go">
 
 ```go
+import (
+	"fmt"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Shell: sandbox.Value("exit 7"),
 })

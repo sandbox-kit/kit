@@ -70,6 +70,13 @@ The provider's own error is `error.cause`.
   <Tab value="Go">
 
 ```go
+import (
+	"errors"
+	"fmt"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
 var detail *sandbox.Error
 if errors.As(err, &detail) {
 	switch detail.Kind {
