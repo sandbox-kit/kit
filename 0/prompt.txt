@@ -79,3 +79,7 @@ cool now there would be .md, docs, .mdx and user facing sdks readme which shows 
 you are technical writer for devtool company and documentation engineer
 
 plz update outdated things. put yourself in shoes of users and write it. its for people who uses sdk not for kit builders who is building sandbox-kit
+
+---
+
+yes commit an push
