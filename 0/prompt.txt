@@ -1,7 +1,1 @@
-cool lets prepare this typescript sdk for publish update. 
-
-install dependency, example dependecy after bumping version u can find open issue about steps to do ig
-
----
-
-install depednecy of typescript sdk and examples of typescript to update the lock ?
+cool should we commit and push ot main ?
