@@ -7,6 +7,26 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+func TestCloneExecOptionsPreservesEmptyEnvironment(t *testing.T) {
+	options := &ExecOptions{Argv: []string{"echo"}, Environment: map[string]string{}}
+	cloned := cloneExecOptions(options)
+	if cloned.Environment == nil {
+		t.Fatal("explicit empty environment became nil")
+	}
+	options.Environment["X"] = "1"
+	if _, ok := cloned.Environment["X"]; ok {
+		t.Fatal("clone aliases original environment")
+	}
+}
+
+func TestCloneExecResultPreservesEmptyOutput(t *testing.T) {
+	result := &ExecResult{ExitCode: 0, Stdout: []byte{}, Stderr: []byte{}}
+	cloned := cloneExecResult(result)
+	if cloned.Stdout == nil || cloned.Stderr == nil {
+		t.Fatalf("empty output became nil: stdout=%#v stderr=%#v", cloned.Stdout, cloned.Stderr)
+	}
+}
+
 func TestCopiedMetadataRetainsNumbersAndOwnership(t *testing.T) {
 	big := uint64(math.MaxUint64)
 	metadata := &MetadataObject{Values: map[string]*MetadataValue{

@@ -8,18 +8,18 @@ facades; see [protobuf SDK boundary](protobuf-sdk-boundary.md).
 YAML does not declare a parallel public API surface. Remaining specs inventory
 provider rules, validation, and contracts:
 
-| Spec                                          | Role                                            |
-| --------------------------------------------- | ----------------------------------------------- |
-| `specs/providers/*.yaml`                      | Provider mapping/check inventories and bindings |
-| `specs/validation.yaml` / `specs/client.yaml` | Portable create/config validation inventories   |
-| `specs/contracts.yaml`                        | Portable metadata/error contract limits         |
+| Spec                                          | Role                                                                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `specs/providers/*.yaml`                      | Provider mapping/check inventories and bindings                                                               |
+| `specs/validation.yaml` / `specs/client.yaml` | Create/config Protovalidate inventories; `validation.yaml` also lists handwritten `ExecOptions` process gates |
+| `specs/contracts.yaml`                        | Portable metadata/error contract limits                                                                       |
 
 Error payloads (`ErrorInfo` / `ErrorKind`) live in protobuf. Wrappers and
 provider classification are handwritten per language.
 
 ## Handwritten runtime
 
-- `Client` / `Sandbox` facades, lifecycle dispatch, and `Filesystem`
+- `Client` / `Sandbox` facades, lifecycle dispatch, `Filesystem`, and `Process`
 - TypeScript public create/config input types and materialization to wire
 - Provider selection, native SDK initialization, and cleanup
 - Error wrappers, cause chaining, and provider-native error classification
@@ -27,7 +27,7 @@ provider classification are handwritten per language.
 - Protovalidate evaluation for shared create/config rules (`secure_endpoint` is
   handwritten)
 - Provider checks, field mappings, and config assembly
-- Path validation and provider filesystem bindings
+- Path validation and provider filesystem / process bindings
 - Provider orchestration that the mapping inventory cannot express
 
 See [Protobuf SDK boundary](protobuf-sdk-boundary.md) and

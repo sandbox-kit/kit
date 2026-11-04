@@ -1,0 +1,26 @@
+import { modal } from "@sandbox-kit/modal";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
+    },
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: process.env.MODAL_ENVIRONMENT || "main",
+  },
+  timeout: 120_000,
+});
+
+const sandbox = await client.attach(process.env.MODAL_SANDBOX_ID!);
+const result = await sandbox.process.run({
+  argv: ["echo", "hello with timeout"],
+  timeout: 5_000,
+});
+console.log(
+  `exit=${result.exitCode} stdout=${JSON.stringify(new TextDecoder().decode(result.stdout))} stderr=${JSON.stringify(new TextDecoder().decode(result.stderr))}`,
+);

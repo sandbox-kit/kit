@@ -10,6 +10,7 @@ import {
   ConfigFieldTimeout,
   CreateFieldProvisioningTimeout,
   ErrorKind,
+  ExecFieldTimeout,
   FileFieldParents,
   FileType,
   type FileInfo,
@@ -24,6 +25,8 @@ import type {
   CreateResult,
   ArchiveOptions,
   DeleteOptions,
+  ExecOptions,
+  ExecResult,
   FileCopyOptions,
   FileReadOptions,
   FileWriteOptions,
@@ -350,6 +353,36 @@ class DaytonaBackend extends BackendBase implements Backend {
     });
   }
 
+  async run(
+    id: string,
+    request: ExecOptions,
+    options: OperationOptions,
+  ): Promise<ExecResult> {
+    try {
+      throwIfAborted(options.signal);
+      const timeout = wholeSeconds(request.timeout, "run", ExecFieldTimeout);
+      const sandbox = await this.native.get(id);
+      throwIfAborted(options.signal);
+      const command = daytonaCommand(request);
+      // Omitted and explicit zero become 0 so Daytona adds no command limit
+      // (its omitted default is 10 seconds).
+      const seconds = timeout ?? 0;
+      const response = await sandbox.process.executeCommand(
+        command,
+        request.workingDirectory,
+        request.environment,
+        seconds,
+      );
+      return {
+        exitCode: response.exitCode,
+        stdout: new TextEncoder().encode(response.result ?? ""),
+        stderr: new Uint8Array(),
+      };
+    } catch (error) {
+      throw mapDaytonaError(error, "run");
+    }
+  }
+
   async #file<T>(
     operation: string,
     id: string,
@@ -445,6 +478,20 @@ function wholeSeconds(
       message: "timeout must be a whole number of seconds",
     });
   return value / 1_000;
+}
+
+function daytonaCommand(request: ExecOptions): string {
+  if (request.shell !== undefined) return request.shell;
+  return posixShellJoin(request.argv ?? []);
+}
+
+function posixShellJoin(argv: readonly string[]): string {
+  return argv.map(posixQuote).join(" ");
+}
+
+function posixQuote(value: string): string {
+  if (value === "") return "''";
+  return "'" + value.replaceAll("'", `'"'"'`) + "'";
 }
 
 /** Selects Daytona as the provider for the shared Sandbox Kit client. */

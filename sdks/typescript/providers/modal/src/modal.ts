@@ -5,6 +5,8 @@ import {
   type Sandbox as ModalSandbox,
 } from "modal";
 import {
+  ErrorKind,
+  ExecFieldTimeout,
   FileType,
   type FileInfo,
   type OperationOptions,
@@ -16,6 +18,8 @@ import type {
   Config,
   CreateOptions,
   CreateResult,
+  ExecOptions,
+  ExecResult,
   ExitResult,
   FileCopyOptions,
   FileReadOptions,
@@ -33,6 +37,7 @@ import {
 } from "#mappings/mappings.js";
 import {
   mapModalError,
+  providerError,
   requireLocalDestination,
   requireLocalFile,
   translateLocalCopyError,
@@ -163,7 +168,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileReadOptions,
     options: OperationOptions,
   ): Promise<Uint8Array> {
-    return this.#file("read_file", id, options, async (sandbox) =>
+    return this.#withSandbox("read_file", id, options, async (sandbox) =>
       sandbox.filesystem.readBytes(path),
     );
   }
@@ -175,7 +180,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileWriteOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("write_file", id, options, async (sandbox) => {
+    await this.#withSandbox("write_file", id, options, async (sandbox) => {
       await sandbox.filesystem.writeBytes(data, path);
     });
   }
@@ -188,7 +193,7 @@ class ModalBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     await requireLocalFile(localPath, "copy_from_local");
-    await this.#file("copy_from_local", id, options, async (sandbox) => {
+    await this.#withSandbox("copy_from_local", id, options, async (sandbox) => {
       try {
         await sandbox.filesystem.copyFromLocal(localPath, remotePath);
       } catch (error) {
@@ -205,7 +210,7 @@ class ModalBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     await requireLocalDestination(localPath, "copy_to_local");
-    await this.#file("copy_to_local", id, options, async (sandbox) => {
+    await this.#withSandbox("copy_to_local", id, options, async (sandbox) => {
       try {
         await sandbox.filesystem.copyToLocal(remotePath, localPath);
       } catch (error) {
@@ -220,7 +225,7 @@ class ModalBackend extends BackendBase implements Backend {
     request: MakeDirectoryOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("make_directory", id, options, async (sandbox) => {
+    await this.#withSandbox("make_directory", id, options, async (sandbox) => {
       await sandbox.filesystem.makeDirectory(path, {
         createParents: request.parents ?? true,
       });
@@ -233,7 +238,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: ListDirectoryOptions,
     options: OperationOptions,
   ): Promise<FileInfo[]> {
-    return this.#file("list_directory", id, options, async (sandbox) => {
+    return this.#withSandbox("list_directory", id, options, async (sandbox) => {
       const entries = await sandbox.filesystem.listFiles(path);
       return entries.map((entry) => modalFileInfo(entry));
     });
@@ -245,7 +250,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: StatOptions,
     options: OperationOptions,
   ): Promise<FileInfo> {
-    return this.#file("stat", id, options, async (sandbox) =>
+    return this.#withSandbox("stat", id, options, async (sandbox) =>
       modalFileInfo(await sandbox.filesystem.stat(path)),
     );
   }
@@ -256,14 +261,45 @@ class ModalBackend extends BackendBase implements Backend {
     request: RemoveOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("remove", id, options, async (sandbox) => {
+    await this.#withSandbox("remove", id, options, async (sandbox) => {
       await sandbox.filesystem.remove(path, {
         recursive: request.recursive === true,
       });
     });
   }
 
-  async #file<T>(
+  async run(
+    id: string,
+    request: ExecOptions,
+    options: OperationOptions,
+  ): Promise<ExecResult> {
+    return this.#withSandbox("run", id, options, async (sandbox) => {
+      const command = modalCommand(request);
+      const timeoutMs = execTimeoutMs(request.timeout);
+      const process = await sandbox.exec(command, {
+        mode: "binary",
+        stdout: "pipe",
+        stderr: "pipe",
+        // Modal rejects an explicit timeoutMs of 0; omit the field for no limit.
+        ...(timeoutMs === undefined ? {} : { timeoutMs }),
+        ...(request.workingDirectory === undefined
+          ? {}
+          : { workdir: request.workingDirectory }),
+        ...(request.environment === undefined
+          ? {}
+          : { env: request.environment }),
+      });
+      await process.closeStdin();
+      const [stdout, stderr, exitCode] = await Promise.all([
+        process.stdout.readBytes(),
+        process.stderr.readBytes(),
+        process.wait(),
+      ]);
+      return { exitCode, stdout, stderr };
+    });
+  }
+
+  async #withSandbox<T>(
     operation: string,
     id: string,
     options: OperationOptions,
@@ -357,6 +393,29 @@ function abortableDelay(
     };
     signal?.addEventListener("abort", onAbort, { once: true });
   });
+}
+
+function modalCommand(request: ExecOptions): string[] {
+  if (request.shell !== undefined) return ["bash", "-c", request.shell];
+  return [...(request.argv ?? [])];
+}
+
+/**
+ * Maps Kit ExecOptions.timeout (ms) to Modal's timeoutMs.
+ * Omitted and explicit zero become undefined so Kit omits timeoutMs (Modal
+ * rejects an explicit 0). Non-zero values must be whole seconds.
+ */
+function execTimeoutMs(timeout: number | undefined): number | undefined {
+  if (timeout === undefined || timeout === 0) return undefined;
+  if (!Number.isFinite(timeout) || timeout < 0 || timeout % 1_000 !== 0) {
+    providerError({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldTimeout,
+      message: "timeout must be a whole number of seconds",
+    });
+  }
+  return timeout;
 }
 
 /** Selects Modal as the provider for the shared Sandbox Kit client. */

@@ -1,16 +1,19 @@
 {
-  "title": "Guides",
+  "title": "Documentation",
   "pages": [
     "index",
+    "concepts",
     "---Providers---",
     "daytona",
     "modal",
-    "---Use the client---",
+    "---Guides---",
+    "configuration",
     "create",
     "lifecycle",
     "filesystem",
-    "configuration",
+    "process",
     "errors",
+    "---Examples---",
     "examples"
   ]
 }

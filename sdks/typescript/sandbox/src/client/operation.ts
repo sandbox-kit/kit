@@ -65,12 +65,25 @@ function abortReason(signal: AbortSignal): DOMException {
     : new DOMException("The operation was aborted", "AbortError");
 }
 
+/**
+ * Resolves with `operation`, or rejects promptly when `signal` aborts.
+ * Pass a factory to start work only when the signal is not already aborted.
+ * Pass an already-started promise when the caller must keep that work alive
+ * (for example handle serialization after an in-flight abort).
+ */
 export async function awaitWithSignal<T>(
-  operation: () => Promise<T>,
+  operation: (() => Promise<T>) | Promise<T>,
   signal?: AbortSignal,
 ): Promise<T> {
+  if (typeof operation === "function") {
+    if (signal?.aborted) throw abortReason(signal);
+    return raceSignal(operation(), signal);
+  }
+  return raceSignal(operation, signal);
+}
+
+function raceSignal<T>(pending: Promise<T>, signal?: AbortSignal): Promise<T> {
   if (signal?.aborted) throw abortReason(signal);
-  const pending = operation();
   if (signal === undefined) return pending;
   return new Promise<T>((resolve, reject) => {
     const aborted = () => reject(abortReason(signal));

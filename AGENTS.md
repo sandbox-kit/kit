@@ -59,7 +59,8 @@ than regenerating parallel structs. Portable error payloads (`ErrorInfo` /
 classification are handwritten per language.
 
 - Keep portable create and client-config rules in `.proto` (Protovalidate); keep
-  YAML as a human inventory aligned with those annotations.
+  YAML as a human inventory aligned with those annotations. Invent handwritten
+  `ExecOptions` process gates under `ExecOptions` in `specs/validation.yaml`.
 - Document SDK orchestration that remains handwritten.
 - Compare references with the pinned SDK version. Resolve conflicting docs
   explicitly rather than guessing semantics.
@@ -73,9 +74,9 @@ classification are handwritten per language.
 
 For every public feature, update its language's runnable example and guide.
 Use small, independent provider-specific projects under
-`examples/<language>/<provider>/` in `filesystem/`, `configuration/`,
-`lifecycle/`, or `errors/`. Each example demonstrates one operation with its
-own configuration and no provider selector or CLI flags.
+`examples/<language>/<provider>/` in `filesystem/`, `process/`,
+`configuration/`, `lifecycle/`, or `errors/`. Each example demonstrates one
+operation with its own configuration and no provider selector or CLI flags.
 
 Keep examples aligned with the implemented API. Label test doubles and local
 verification limits clearly. Verify changed examples before handoff and update

@@ -57,13 +57,13 @@ the SDK.
 
 ## Inputs
 
-| Input                             | Defines                                                                            |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
-| `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, filesystem options, metadata, errors) |
-| `specs/validation.yaml`           | Portable create-validation inventory (mirrors Protovalidate options in proto)      |
-| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten) |
-| `specs/contracts.yaml`            | Metadata/error contract limits                                                     |
-| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories          |
+| Input                             | Defines                                                                                                     |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `proto/kit/sandbox/v1/`           | Public portable types (config, create, lifecycle options, filesystem and process options, metadata, errors) |
+| `specs/validation.yaml`           | Create Protovalidate inventory, plus handwritten `ExecOptions` process gates                                |
+| `specs/client.yaml`               | Config validation inventory (mirrors Protovalidate; `secure_endpoint` handwritten)                          |
+| `specs/contracts.yaml`            | Metadata/error contract limits                                                                              |
+| `specs/providers/<provider>.yaml` | Provider capability, check, mapping, and error-classification inventories                                   |
 
 Specs use `version: 1`. Strict loading rejects unknown YAML keys, extra documents,
 and unsupported versions. Shared fields use protobuf names; SDK symbols belong
@@ -141,6 +141,9 @@ Shared create and client-config validation is declared as Protovalidate options
 on `proto/` messages and evaluated in each SDK (`ValidateCreateOptions` /
 `ValidateConfig`). Keep `specs/validation.yaml` and `specs/client.yaml` aligned
 with those annotations. The `secure_endpoint` config check is handwritten.
+`ExecOptions` process rules (argv XOR shell, blank shell, absolute working
+directory, whole-second provider timeouts) are handwritten in `Process.Run` and
+provider adapters; inventory them under `ExecOptions` in `validation.yaml`.
 Both languages preserve explicit zero/false and supply no defaults.
 
 ## Provider checks
@@ -251,18 +254,20 @@ Backend state capture and metadata cloning are handwritten in the SDK runtime
 
 SDK orchestration that the inventory cannot express stays in handwritten
 provider integration files (Go `sandbox.go`, `creation.go`, `filesystem.go`,
+`process.go`,
 and, where the provider observes native state, `lifecycle.go` and
 `metadata.go`; TypeScript provider-named `.ts` plus `mappings.ts` files):
-lookup sequences, source selection, readiness, filesystem bindings, and
-remaining provider semantics. Handwritten `provider_mappings` /
+lookup sequences, source selection, readiness, filesystem and process bindings,
+and remaining provider semantics. Handwritten `provider_mappings` /
 `provider_config` own field conversions and native client configuration;
 handwritten `provider_checks` enforces create checks; handwritten `errors`
 classifies native provider errors.
 
-Lifecycle and filesystem option and result types come from protobuf contracts.
-Handle methods, typed provider dispatch, lifecycle capability discovery,
-filesystem backend methods, and close coordination remain handwritten runtime
-code on `Client`, `Sandbox` / `Filesystem`, and provider `Backend` adapters.
+Lifecycle, filesystem, and process option and result types come from protobuf
+contracts. Handle methods, typed provider dispatch, lifecycle capability
+discovery, filesystem and process backend methods, and close coordination
+remain handwritten runtime code on `Client`, `Sandbox` / `Filesystem` /
+`Process`, and provider `Backend` adapters.
 
 See [tooling](../tooling/README.md), [naming](naming.md), and
 [reference verification](provider-verification.md).

@@ -74,6 +74,37 @@ const attached = await client.attach(id); // provider must support attach
 const fetched = await client.get(id); // provider-verified lookup
 ```
 
+## Run a command
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello from kit"],
+});
+console.log(result.exitCode, new TextDecoder().decode(result.stdout));
+```
+
+Set exactly one of `argv` or `shell`. A non-zero exit code is not an SDK
+error—check `exitCode`. Optional `workingDirectory` must be absolute.
+`environment` applies to that call only. Omit `timeout` to use the client
+deadline; use `0` for no extra deadline on this call. Aborting the signal
+rejects the `await`; the remote command may keep running. See the
+[process guide](https://github.com/sandbox-kit/kit/blob/main/docs/process.md).
+
+## Read and write files
+
+```ts
+await sandbox.filesystem.writeFile(
+  "/tmp/note.txt",
+  new TextEncoder().encode("hello\n"),
+);
+const data = await sandbox.filesystem.readFile("/tmp/note.txt");
+console.log(new TextDecoder().decode(data));
+```
+
+Sandbox paths are absolute. The same handle also supports `copyFromLocal`,
+`copyToLocal`, `makeDirectory`, `listDirectory`, `stat`, and `remove`. See the
+[filesystem guide](https://github.com/sandbox-kit/kit/blob/main/docs/filesystem.md).
+
 ## Sandbox handle
 
 | Method           | Purpose                                       |
@@ -91,6 +122,7 @@ const fetched = await client.get(id); // provider-verified lookup
 | `terminate`      | Terminate (`wait` when supported)             |
 | `close`          | Close the handle. The sandbox keeps running   |
 | `filesystem`     | Read, write, copy, list, mkdir, stat, remove  |
+| `process`        | Run a command and wait for exit code + output |
 
 `supports` reports whether the provider implements that operation. An
 unimplemented method throws before the provider call. A provider rejection,

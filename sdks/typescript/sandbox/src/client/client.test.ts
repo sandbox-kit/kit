@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  ExecFieldArgv,
+  ExecFieldShell,
+  ExecFieldWorkingDirectory,
   FileFieldLocalPath,
   FileFieldPath,
   CreateFieldLifetimeIdleStopAfter,
@@ -45,6 +48,9 @@ class RecordingBackend implements Backend {
   createCalls = 0;
   terminated = false;
   lastCreateRequest: CreateOptions | undefined;
+  // Optional Backend methods tests attach at runtime.
+  run?: Backend["run"];
+  readFile?: Backend["readFile"];
 
   async create(
     request: CreateOptions,
@@ -628,6 +634,130 @@ describe("Sandbox lifecycle", () => {
     expect(maximumActive).toBe(1);
   });
 
+  it("holds serialization until an aborted in-flight provider call settles", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const backend: Backend = {
+      name: "serial-inflight-abort",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({
+        id,
+        provider: "serial-inflight-abort",
+        state: SandboxState.Running,
+      }),
+      start: async (id) => {
+        active++;
+        maximumActive = Math.max(maximumActive, active);
+        await firstBlocked;
+        active--;
+        return {
+          id,
+          provider: "serial-inflight-abort",
+          state: SandboxState.Running,
+        };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("sandbox-existing");
+    const controller = new AbortController();
+
+    const first = sandbox.start({ signal: controller.signal });
+    await Promise.resolve();
+    controller.abort();
+    await expect(first).rejects.toMatchObject({ kind: ErrorKind.Canceled });
+
+    const second = sandbox.start();
+    await Promise.resolve();
+    expect(active).toBe(1);
+    expect(maximumActive).toBe(1);
+
+    releaseFirst();
+    await second;
+    expect(maximumActive).toBe(1);
+  });
+
+  it("holds process serialization until an aborted in-flight run settles", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const { client, backend } = fixture();
+    backend.run = async () => {
+      active++;
+      maximumActive = Math.max(maximumActive, active);
+      await firstBlocked;
+      active--;
+      return {
+        exitCode: 0,
+        stdout: new Uint8Array(),
+        stderr: new Uint8Array(),
+      };
+    };
+    const sandbox = await client.create();
+    const controller = new AbortController();
+
+    const first = sandbox.process.run({
+      argv: ["sleep", "1"],
+      signal: controller.signal,
+    });
+    await Promise.resolve();
+    controller.abort();
+    await expect(first).rejects.toMatchObject({ kind: ErrorKind.Canceled });
+
+    const second = sandbox.process.run({ argv: ["true"] });
+    await Promise.resolve();
+    expect(active).toBe(1);
+    expect(maximumActive).toBe(1);
+
+    releaseFirst();
+    await second;
+    expect(maximumActive).toBe(1);
+  });
+
+  it("holds filesystem serialization until an aborted in-flight read settles", async () => {
+    let active = 0;
+    let maximumActive = 0;
+    let releaseFirst!: () => void;
+    const firstBlocked = new Promise<void>((resolve) => {
+      releaseFirst = resolve;
+    });
+    const { client, backend } = fixture();
+    backend.readFile = async () => {
+      active++;
+      maximumActive = Math.max(maximumActive, active);
+      await firstBlocked;
+      active--;
+      return new TextEncoder().encode("ok");
+    };
+    const sandbox = await client.create();
+    const controller = new AbortController();
+
+    const first = sandbox.filesystem.readFile("/tmp/a.txt", {
+      signal: controller.signal,
+    });
+    await Promise.resolve();
+    controller.abort();
+    await expect(first).rejects.toMatchObject({ kind: ErrorKind.Canceled });
+
+    const second = sandbox.filesystem.readFile("/tmp/b.txt");
+    await Promise.resolve();
+    expect(active).toBe(1);
+    expect(maximumActive).toBe(1);
+
+    releaseFirst();
+    await second;
+    expect(maximumActive).toBe(1);
+  });
+
   it("rejects a relative sandbox path before the provider call", async () => {
     const { client, backend } = fixture();
     const files: Backend = backend;
@@ -637,7 +767,9 @@ describe("Sandbox lifecycle", () => {
       return new Uint8Array();
     };
     const sandbox = await client.create();
-    await expect(sandbox.filesystem.readFile("relative.txt")).rejects.toMatchObject({
+    await expect(
+      sandbox.filesystem.readFile("relative.txt"),
+    ).rejects.toMatchObject({
       kind: ErrorKind.InvalidArgument,
       operation: "read_file",
       field: FileFieldPath,
@@ -676,5 +808,82 @@ describe("Sandbox lifecycle", () => {
       kind: ErrorKind.Unsupported,
       operation: "stat",
     });
+  });
+
+  it("rejects a process call without argv or shell before the provider", async () => {
+    const { client, backend } = fixture();
+    let calls = 0;
+    backend.run = async () => {
+      calls++;
+      return {
+        exitCode: 0,
+        stdout: new Uint8Array(),
+        stderr: new Uint8Array(),
+      };
+    };
+    const sandbox = await client.create();
+    await expect(sandbox.process.run({})).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldArgv,
+    });
+    expect(calls).toBe(0);
+  });
+
+  it("rejects a blank shell before the provider", async () => {
+    const { client, backend } = fixture();
+    backend.run = async () => {
+      throw new Error("provider was called");
+    };
+    const sandbox = await client.create();
+    for (const shell of ["", "   "]) {
+      await expect(sandbox.process.run({ shell })).rejects.toMatchObject({
+        kind: ErrorKind.InvalidArgument,
+        operation: "run",
+        field: ExecFieldShell,
+      });
+    }
+  });
+
+  it("rejects a relative working directory before the provider", async () => {
+    const { client, backend } = fixture();
+    backend.run = async () => {
+      throw new Error("provider was called");
+    };
+    const sandbox = await client.create();
+    await expect(
+      sandbox.process.run({ argv: ["pwd"], workingDirectory: "relative" }),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      operation: "run",
+      field: ExecFieldWorkingDirectory,
+    });
+  });
+
+  it("runs argv through the provider and keeps a non-zero exit code", async () => {
+    const { client, backend } = fixture();
+    backend.run = async (_id, request) => {
+      expect(request.argv).toEqual(["echo", "hello"]);
+      return {
+        exitCode: 7,
+        stdout: new TextEncoder().encode("hello\n"),
+        stderr: new Uint8Array(),
+      };
+    };
+    const sandbox = await client.create();
+    const result = await sandbox.process.run({ argv: ["echo", "hello"] });
+    expect(result.exitCode).toBe(7);
+    expect(new TextDecoder().decode(result.stdout)).toBe("hello\n");
+  });
+
+  it("reports process methods the provider does not implement", async () => {
+    const { client } = fixture();
+    const sandbox = await client.create();
+    await expect(sandbox.process.run({ argv: ["true"] })).rejects.toMatchObject(
+      {
+        kind: ErrorKind.Unsupported,
+        operation: "run",
+      },
+    );
   });
 });

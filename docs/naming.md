@@ -19,6 +19,7 @@ Use names that read clearly at the call site. Public Go APIs follow Go
 | Backend result          | `CreateResult`        | Shared sandbox metadata                              |
 | Public handle           | `Sandbox`             | Identity, copied metadata, lifecycle, and files      |
 | Files in the sandbox    | `Filesystem`          | Read, write, copy, mkdir, list, stat, and remove     |
+| Commands in the sandbox | `Process`             | Run a command and wait for exit code and output      |
 
 Public portable types come from protobuf contracts (`kit.sandbox.v1`) aliased in
 the SDK runtime. TypeScript app-facing `CreateOptions` / `Config` are handwritten
@@ -44,13 +45,14 @@ proto/kit/sandbox/v1/       Shared contracts
 specs/                     Portable validation and mapping inventories
 tooling/                   Developer CLI and YAML inventory loaders
 examples/go/<provider>/      One folder per provider; examples sit under
-                             filesystem/, configuration/, lifecycle/, or errors/
+                             filesystem/, process/, configuration/, lifecycle/,
+                             or errors/
 sdks/typescript/contracts/   Generated protobuf wire types (@sandbox-kit/contracts)
 sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
   src/client/                Client runtime split across focused modules:
                                client.ts (Client + public re-exports),
-                               sandbox.ts (handle), filesystem.ts, types.ts,
-                               errors.ts, validation.ts, operation.ts
+                               sandbox.ts (handle), filesystem.ts, process.ts,
+                               types.ts, errors.ts, validation.ts, operation.ts
                                (deadlines/signals)
   src/contracts/             Public type aliases over protobuf messages
   src/metadata/              Metadata map helpers
@@ -60,7 +62,8 @@ sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-
   src/checks/                Provider create checks
   src/config/                Native SDK client configuration
 examples/typescript/<provider>/ One package per example under
-                             filesystem/, configuration/, lifecycle/, or errors/
+                             filesystem/, process/, configuration/, lifecycle/,
+                             or errors/
 ```
 
 Published TypeScript packages expose only their root export (`.`). Cross-folder
@@ -79,35 +82,37 @@ Portable messages and enums come from standard protobuf contract packages plus
 handwritten aliases such as `sandbox_data_contracts.go` /
 `sandbox_data_contracts.ts`. SDK helpers are handwritten.
 
-| File                                                     | Purpose                                                  |
-| -------------------------------------------------------- | -------------------------------------------------------- |
-| `create_validation.go`                                   | Shared CreateOptions validation                          |
-| `sdks/go/internal/sdk`                                   | `RejectUnmapped`, `OptionalDuration`, `WithErrorContext` |
-| `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)                      |
-| `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field`             |
-| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions                   |
-| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks                          |
-| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)                   |
-| `capabilities.go`                                        | Lifecycle and filesystem backend interfaces (Go)         |
-| `creation.go`                                            | Provider create planning (Go)                            |
-| `lifecycle.go`                                           | Provider lifecycle calls (Go)                            |
-| `filesystem.go`                                          | Filesystem calls on the sandbox handle (Go)              |
-| `metadata.go`                                            | Observed sandbox metadata (Go)                           |
-| `operation.go`                                           | Sandbox handle operation gate (Go)                       |
+| File                                                     | Purpose                                                    |
+| -------------------------------------------------------- | ---------------------------------------------------------- |
+| `create_validation.go`                                   | Shared CreateOptions validation                            |
+| `sdks/go/internal/sdk`                                   | `RejectUnmapped`, `OptionalDuration`, `WithErrorContext`   |
+| `field_paths.go` / `config_paths.go`                     | Canonical field-path constants (Go)                        |
+| `field_paths.ts` / `config_paths.ts`                     | Same protobuf paths for TS `ErrorInfo.field`               |
+| `provider_mappings.go` / `mappings/provider_mappings.ts` | Request and metadata field conversions                     |
+| `provider_checks.go` / `checks/provider_checks.ts`       | Provider-specific create checks                            |
+| `config/provider_config.ts`                              | Native SDK configuration assembly (TS)                     |
+| `capabilities.go`                                        | Lifecycle, filesystem, and process backend interfaces (Go) |
+| `creation.go`                                            | Provider create planning (Go)                              |
+| `lifecycle.go`                                           | Provider lifecycle calls (Go)                              |
+| `filesystem.go`                                          | Filesystem calls on the sandbox handle (Go)                |
+| `process.go`                                             | Process.Run on the sandbox handle (Go)                     |
+| `metadata.go`                                            | Observed sandbox metadata (Go)                             |
+| `operation.go`                                           | Sandbox handle operation gate (Go)                         |
 
 Handwritten runtime and provider files own client/orchestration behavior and
 metadata clone helpers. Go providers keep SDK calls in `sandbox.go` and the
 create plan in `creation.go`. Daytona also keeps lifecycle calls in
 `lifecycle.go` and observed metadata in `metadata.go`. Filesystem adapters live
-in each provider's `filesystem.go`. Keep YAML inventories aligned when changing
-those files.
+in each provider's `filesystem.go`. Process adapters live in each provider's
+`process.go`. Keep YAML inventories aligned when changing those files.
 
 ## Language conventions
 
 Field-path constants use names such as `CreateFieldResourcesCpuCores`,
 `ConfigFieldScopeAppName`, `InfoFieldResources`, `ResultFieldExitCode`,
-`FileFieldPath`, and `FileFieldLocalPath`. Their values retain canonical
-protobuf field names, including nested paths.
+`FileFieldPath`, `FileFieldLocalPath`, `ExecFieldArgv`, and
+`ExecFieldWorkingDirectory`. Their values retain canonical protobuf field
+names, including nested paths.
 
 Protobuf and YAML use snake_case semantic field names. Generated Go contract
 types follow protobuf Go naming (`CpuCores`, `MemoryMib`, `OutboundCidrs`,

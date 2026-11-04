@@ -51,7 +51,7 @@ type (
 )
 
 // Duration converts a Go duration into the timeout value used by Config,
-// lifecycle options, and Filesystem option messages.
+// lifecycle options, Filesystem option messages, and Process.Run.
 func Duration(value time.Duration) *durationpb.Duration {
 	return durationpb.New(value)
 }

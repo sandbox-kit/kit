@@ -76,18 +76,29 @@ missing parents are created, and an existing directory is accepted.
 `local_path`. A local directory is an invalid argument with the same field.
 `copyToLocal` creates a missing local parent directory.
 
+**Commands** through `sandbox.process.run`. Set exactly one of `argv` or
+`shell`. `shell` runs as `bash -c`. A non-zero exit code is not an SDK
+error—check `exitCode`. Modal returns both stdout and stderr. Omit or zero
+`timeout` for no Modal command limit (the client omits `timeoutMs`; sending
+`0` is rejected by Modal). Command timeouts must be whole seconds (`2000` is
+two seconds; `1500` is rejected). Aborting the signal rejects the `await`; the
+remote command may keep running.
+
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.
 
 ## Examples
 
-| Example     | Project                                                                                                                                         |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation    | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox)               |
-| Read a file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                            |
-| Resources   | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) |
-| Attach      | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)                   |
-| Full index  | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                                         |
+| Example       | Project                                                                                                                                         |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creation      | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox)               |
+| Run a command | [run-modal-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-command)                           |
+| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process)                                              |
+| Read a file   | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                            |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem)                                        |
+| Resources     | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) |
+| Attach        | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)                   |
+| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                                         |
 
 ## License
 

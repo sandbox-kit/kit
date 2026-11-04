@@ -35,6 +35,7 @@ await using client = new Client({
 | Start, stop, pause, archive, delete | Unsupported                        | Supported                                  |
 | Terminate                           | Supported                          | Unsupported                                |
 | Filesystem                          | Same eight shared methods          | Same eight shared methods                  |
+| Process                             | Same blocking `Run`                | Same blocking `Run`                        |
 
 `supports` reports whether the provider implements that operation. A missing
 operation fails before the provider call. Daytona still accepts or rejects a
@@ -48,9 +49,11 @@ Closing the client closes your connection to the provider. The sandboxes keep
 running. Closing a handle leaves the sandbox as it is. You can keep using the
 handle. The next call returns the provider's result.
 
-The public API covers create, lifecycle, and files inside the sandbox. GPU
-requests, resizing, storage volumes, browsers, process execution, and macOS
-or Windows creation are outside it.
+The public API covers create, lifecycle, files, and blocking command execution
+inside the sandbox. GPU requests, resizing, storage volumes, browsers,
+streaming process handles, sessions, PTY, and macOS or Windows creation are
+outside it.
 
 See [configuration](configuration.md), [creation](sandbox-creation.md),
-[lifecycle](sandbox-lifecycle.md), and [filesystem](filesystem.md).
+[lifecycle](sandbox-lifecycle.md), [filesystem](filesystem.md), and
+[process](process.md).

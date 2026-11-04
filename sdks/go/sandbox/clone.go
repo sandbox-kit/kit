@@ -26,6 +26,39 @@ func cloneSandboxInfo(info *SandboxInfo) *SandboxInfo {
 	return out
 }
 
+// cloneExecOptions returns an owned copy that preserves an explicit empty
+// environment map. proto.Clone alone drops empty maps.
+func cloneExecOptions(options *ExecOptions) *ExecOptions {
+	if options == nil {
+		return nil
+	}
+	out := proto.Clone(options).(*ExecOptions)
+	if options.Environment != nil && out.Environment == nil {
+		out.Environment = map[string]string{}
+	}
+	if options.Argv != nil && out.Argv == nil {
+		out.Argv = []string{}
+	}
+	return out
+}
+
+// cloneExecResult returns an owned copy that preserves empty stdout and stderr
+// slices. proto.Clone alone drops empty bytes, which would break the Daytona
+// non-nil empty stderr contract.
+func cloneExecResult(result *ExecResult) *ExecResult {
+	if result == nil {
+		return nil
+	}
+	out := proto.Clone(result).(*ExecResult)
+	if result.Stdout != nil && out.Stdout == nil {
+		out.Stdout = []byte{}
+	}
+	if result.Stderr != nil && out.Stderr == nil {
+		out.Stderr = []byte{}
+	}
+	return out
+}
+
 func preserveCreateOptionsCollections(src, dst *CreateOptions) {
 	if src.Environment != nil && dst.Environment == nil {
 		dst.Environment = map[string]string{}

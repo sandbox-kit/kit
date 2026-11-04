@@ -6,7 +6,7 @@
 // [Client.Close] and [Sandbox.Close] release local resources. They leave the
 // cloud sandbox running. Stop, terminate, archive, or delete it with a
 // lifecycle method the provider supports. Use [Sandbox.Filesystem] for file
-// operations.
+// operations and [Sandbox.Process] to run commands.
 //
 // When a call fails, use errors.As with [*Error]. Kind is the shared category.
 // Field names the setting to change, such as "resources.cpu_cores" or "endpoint".

@@ -11,13 +11,14 @@ import {
 } from "fumadocs-ui/layouts/docs/page";
 import { baseOptions } from "@/lib/layout.shared";
 import {
+  absoluteSiteUrl,
   assetUrl,
   getPageImageUrl,
   getPageMarkdownUrl,
   gitConfig,
 } from "@/lib/shared";
-import { useFumadocsLoader } from "fumadocs-core/source/client";
-import { Suspense, use } from "react";
+import { Suspense, use, useEffect, useState } from "react";
+import { DocsProviderSelect } from "@/components/provider-context";
 import { useMDXComponents } from "@/components/mdx";
 
 export const Route = createFileRoute("/docs/$")({
@@ -32,9 +33,9 @@ export const Route = createFileRoute("/docs/$")({
       path: page.path,
       title: page.data.title,
       description: page.data.description,
-      markdownUrl: assetUrl(getPageMarkdownUrl(page).url),
+      // Root-relative without BASE_URL — fumadocs page actions add BASE_URL once.
+      markdownUrl: getPageMarkdownUrl(page).url,
       imageUrl: assetUrl(getPageImageUrl(page).url),
-      pageTree: await source.serializePageTree(source.getPageTree()),
     };
   },
   head: ({ loaderData }) => ({
@@ -54,6 +55,11 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
 
   const { toc } = use(page.load());
   const MDX = page.body;
+  // AI tools fetch this URL; point at the static .md file, not the SPA HTML page.
+  const [markdownPageUrl, setMarkdownPageUrl] = useState(markdownUrl);
+  useEffect(() => {
+    setMarkdownPageUrl(absoluteSiteUrl(markdownUrl));
+  }, [markdownUrl]);
 
   return (
     <DocsPage toc={toc}>
@@ -63,8 +69,10 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
         <MarkdownCopyButton markdownUrl={markdownUrl} />
         <ViewOptionsPopover
           markdownUrl={markdownUrl}
+          pageUrl={markdownPageUrl}
           githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/website/content/docs/${path}`}
         />
+        <DocsProviderSelect path={path} />
       </div>
       <DocsBody>
         <MDX components={useMDXComponents()} />
@@ -74,9 +82,11 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
 }
 
 function Page() {
-  const { path, pageTree, markdownUrl } = useFumadocsLoader(
-    Route.useLoaderData(),
-  );
+  const { path, markdownUrl } = Route.useLoaderData();
+  // Build the tree in the component (SSR + client). Do not put it through
+  // serializePageTree: that imports react-dom/server.edge (CJS `require`), which
+  // breaks SPA navigation and has no server to call on GitHub Pages.
+  const pageTree = source.getPageTree();
 
   return (
     <DocsLayout {...baseOptions()} tree={pageTree}>

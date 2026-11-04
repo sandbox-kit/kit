@@ -380,3 +380,15 @@ const FileFieldLocalPath = "local_path"
 
 // FileFieldParents is the canonical path "parents" on MakeDirectoryOptions.
 const FileFieldParents = "parents"
+
+// ExecFieldArgv is the canonical path "argv" on ExecOptions.
+const ExecFieldArgv = "argv"
+
+// ExecFieldShell is the canonical path "shell" on ExecOptions.
+const ExecFieldShell = "shell"
+
+// ExecFieldWorkingDirectory is the canonical path "working_directory" on ExecOptions.
+const ExecFieldWorkingDirectory = "working_directory"
+
+// ExecFieldTimeout is the canonical path "timeout" on ExecOptions.
+const ExecFieldTimeout = "timeout"

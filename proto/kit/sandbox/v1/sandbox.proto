@@ -561,6 +561,32 @@ message RemoveOptions {
   google.protobuf.Duration timeout = 1;
   optional bool recursive = 2;
 }
+
+// ExecOptions configures Process.Run. Set exactly one of argv or shell.
+// Kit validates that exclusivity before the provider call.
+// Nil timeout inherits Config.Timeout as the Kit deadline. Explicit zero adds
+// no Kit deadline. Both omit and zero mean no provider command limit; a
+// provider may send an explicit zero when its omitted native default would
+// impose one. Provider command timeouts must be whole seconds.
+message ExecOptions {
+  // Program and arguments. Mutually exclusive with shell. Must be non-empty when used.
+  repeated string argv = 1;
+  // Shell command string. Mutually exclusive with argv.
+  optional string shell = 2;
+  // Absolute working directory inside the sandbox.
+  optional string working_directory = 3;
+  // Environment variables for the command. An empty map is explicit; nil means omitted.
+  map<string, string> environment = 4;
+  google.protobuf.Duration timeout = 5;
+}
+
+// ExecResult is the outcome of Process.Run. A non-zero exit_code is not an error.
+message ExecResult {
+  int32 exit_code = 1;
+  bytes stdout = 2;
+  bytes stderr = 3;
+}
+
 // SandboxState is a portable lifecycle state. ProviderState retains the native value.
 enum SandboxState {
   SANDBOX_STATE_UNKNOWN = 0;

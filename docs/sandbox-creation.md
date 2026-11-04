@@ -121,8 +121,9 @@ ready waiting also requires a readiness probe and a positive creation timeout.
 `Info()` returns a copy of the metadata. Editing that copy leaves the handle
 unchanged. Errors include a kind, field, and message. The provider's own error
 stays available as the cause. Go forwards cancellation into the provider call.
-TypeScript checks the abort signal before each provider call. Kit does not
-retry, and it does not delete a sandbox when a call fails.
+TypeScript rejects the `await` on abort; create itself is not queued behind
+other client calls. Kit does not retry, and it does not delete a sandbox when a
+call fails.
 
 Closing the client closes your connection to the provider. The sandbox keeps
 running. Closing a handle leaves the sandbox as it is. You can keep using the
@@ -131,7 +132,9 @@ Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md
 Files inside a sandbox are described in the [filesystem guide](filesystem.md).
 
 Creation covers the sandbox itself. GPU requests, resizing, storage volumes,
-browsers, process execution, and macOS or Windows creation are outside it.
+browsers, streaming process handles, sessions, PTY, and macOS or Windows
+creation are outside it. Blocking command execution is covered in
+[process](process.md).
 
 See [configuration](configuration.md), [lifecycle](sandbox-lifecycle.md), and
 [filesystem](filesystem.md).

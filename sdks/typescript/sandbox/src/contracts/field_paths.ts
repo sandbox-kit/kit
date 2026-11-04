@@ -380,3 +380,15 @@ export const FileFieldLocalPath = "local_path" as const;
 
 /** Canonical path "parents" on MakeDirectoryOptions. */
 export const FileFieldParents = "parents" as const;
+
+/** Canonical path "argv" on ExecOptions. */
+export const ExecFieldArgv = "argv" as const;
+
+/** Canonical path "shell" on ExecOptions. */
+export const ExecFieldShell = "shell" as const;
+
+/** Canonical path "working_directory" on ExecOptions. */
+export const ExecFieldWorkingDirectory = "working_directory" as const;
+
+/** Canonical path "timeout" on ExecOptions. */
+export const ExecFieldTimeout = "timeout" as const;

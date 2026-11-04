@@ -1,5 +1,5 @@
-// Sandbox handle runtime behavior is handwritten. Lifecycle and filesystem
-// methods dispatch through optional Backend methods.
+// Sandbox handle runtime behavior is handwritten. Lifecycle, filesystem, and
+// process methods dispatch through optional Backend methods.
 
 import {
   type ArchiveOptions,
@@ -21,6 +21,7 @@ import {
   publicTimeoutOptions,
 } from "#client/operation.js";
 import { Filesystem } from "#client/filesystem.js";
+import { Process } from "#client/process.js";
 import type {
   Backend,
   DeleteCallOptions,
@@ -43,8 +44,8 @@ export interface SandboxInit {
 /**
  * Handle for one cloud sandbox.
  * Lifecycle methods change it. `filesystem` exposes the shared file
- * operations. `close` leaves the cloud sandbox as it is, and you can keep
- * using the handle.
+ * operations. `process` runs commands. `close` leaves the cloud sandbox as
+ * it is, and you can keep using the handle.
  */
 export class Sandbox implements AsyncDisposable {
   readonly #backend: Backend;
@@ -54,6 +55,11 @@ export class Sandbox implements AsyncDisposable {
    * stat, and remove. Paths inside the sandbox are absolute.
    */
   readonly filesystem: Filesystem;
+  /**
+   * Command runner for this sandbox. Set exactly one of `argv` or `shell`.
+   * A working directory, when set, must be absolute.
+   */
+  readonly process: Process;
   #info: SandboxInfo;
   #tail: Promise<void> = Promise.resolve();
   constructor(token: typeof sandboxConstructorToken, init: SandboxInit) {
@@ -62,18 +68,31 @@ export class Sandbox implements AsyncDisposable {
     this.#backend = init.backend;
     this.#info = clone(init.info);
     this.#timeout = init.timeout;
-    this.filesystem = new Filesystem({
-      providerName: this.providerName,
-      id: this.id,
-      backend: this.#backend,
-      run: (operation, options, body) =>
-        this.#serialized(
+    const self = this;
+    const host = {
+      get providerName() {
+        return self.providerName;
+      },
+      get id() {
+        return self.id;
+      },
+      get backend() {
+        return self.#backend;
+      },
+      run: <T>(
+        operation: string,
+        options: OperationOptions,
+        body: (signal: AbortSignal | undefined) => Promise<T>,
+      ): Promise<T> =>
+        self.#serialized(
           operation,
           options,
-          options.timeout ?? this.#timeout,
+          options.timeout ?? self.#timeout,
           body,
         ),
-    });
+    };
+    this.filesystem = new Filesystem(host);
+    this.process = new Process(host);
   }
   /** Sandbox identifier. */
   get id(): string {
@@ -89,15 +108,16 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Lifecycle operations this provider implements.
-   * File operations are not lifecycle capabilities; use {@link filesystem}.
+   * File and process operations are not lifecycle capabilities; use
+   * {@link filesystem} or {@link process}.
    */
   capabilities(): readonly LifecycleCapability[] {
     return providerCapabilities(this.#backend);
   }
   /**
    * Reports whether this provider implements a lifecycle `capability`.
-   * File operations are checked by calling {@link filesystem} methods, not
-   * `supports`.
+   * File and process operations are checked by calling {@link filesystem} or
+   * {@link process} methods, not `supports`.
    */
   supports(capability: LifecycleCapability): boolean {
     return this.capabilities().includes(capability);
@@ -114,16 +134,13 @@ export class Sandbox implements AsyncDisposable {
       async (signal) => {
         const method = this.#backend.refresh;
         if (!method) unsupported(this.providerName, "refresh");
-        const info = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              operationOptions(options, signal),
-            ),
-          signal,
+        return this.#storeInfo(
+          await method.call(
+            this.#backend,
+            this.id,
+            operationOptions(options, signal),
+          ),
         );
-        return this.#storeInfo(info);
       },
     );
   }
@@ -188,17 +205,12 @@ export class Sandbox implements AsyncDisposable {
       async (signal) => {
         const method = this.#backend.terminate;
         if (!method) unsupported(this.providerName, "terminate");
-        const result = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              { ...request },
-              operationOptions(call, signal),
-            ),
-          signal,
+        return method.call(
+          this.#backend,
+          this.id,
+          { ...request },
+          operationOptions(call, signal),
         );
-        return result;
       },
     );
   }
@@ -238,16 +250,9 @@ export class Sandbox implements AsyncDisposable {
    * Closing a Daytona handle does not contact Daytona. Closing a Modal handle does not terminate the sandbox.
    */
   async close(options: OperationOptions = {}): Promise<void> {
-    await this.#serialized("close", options, this.#timeout, async (signal) => {
-      await awaitWithSignal(
-        () =>
-          this.#backend.closeSandbox(
-            this.id,
-            operationOptions(options, signal),
-          ),
-        signal,
-      );
-    });
+    await this.#serialized("close", options, this.#timeout, (signal) =>
+      this.#backend.closeSandbox(this.id, operationOptions(options, signal)),
+    );
   }
   async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
@@ -280,17 +285,14 @@ export class Sandbox implements AsyncDisposable {
       options.timeout ?? this.#timeout,
       async (signal) => {
         if (!method) unsupported(this.providerName, operation);
-        const info = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              { ...request },
-              operationOptions(options, signal),
-            ),
-          signal,
+        return this.#storeInfo(
+          await method.call(
+            this.#backend,
+            this.id,
+            { ...request },
+            operationOptions(options, signal),
+          ),
         );
-        return this.#storeInfo(info);
       },
     );
   }
@@ -300,6 +302,9 @@ export class Sandbox implements AsyncDisposable {
     this.#info = stored;
     return clone(stored);
   }
+  // One active provider call per handle. Abort/timeout still rejects the
+  // caller promptly (providers often ignore AbortSignal). The gate stays held
+  // until provider work settles so a follow-up call cannot overlap it.
   async #serialized<T>(
     operation: string,
     options: OperationOptions,
@@ -313,17 +318,26 @@ export class Sandbox implements AsyncDisposable {
     });
     let acquired = false;
     let scoped: ReturnType<typeof operationSignal> | undefined;
+    let work: Promise<T> | undefined;
     try {
       scoped = operationSignal(options, timeout);
-      await awaitWithSignal(() => previous, scoped.signal);
+      await awaitWithSignal(previous, scoped.signal);
       acquired = true;
-      return await body(scoped.signal);
+      work = body(scoped.signal);
+      // Race the already-started provider promise so abort rejects promptly
+      // without dropping that promise (unlock still waits on it below).
+      return await awaitWithSignal(work, scoped.signal);
     } catch (error) {
       throw withContext(error, this.providerName, operation);
     } finally {
       scoped?.dispose();
-      if (acquired) unlock();
-      else void previous.then(unlock, unlock);
+      if (!acquired) {
+        void previous.then(unlock, unlock);
+      } else {
+        // Do not await work here: that would delay abort/timeout rejection when
+        // the provider ignores the signal. Unlock when the native call settles.
+        void Promise.resolve(work).then(unlock, unlock);
+      }
     }
   }
 }

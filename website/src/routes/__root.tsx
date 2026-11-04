@@ -7,6 +7,7 @@ import {
 import * as React from "react";
 import appCss from "@/styles/app.css?url";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
+import { ProviderProvider } from "@/components/provider-context";
 import { assetUrl } from "@/lib/shared";
 
 export const Route = createRootRoute({
@@ -21,7 +22,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "One interface for your sandbox providers. The client an agent uses to work in a cloud sandbox, from TypeScript or Go.",
+          "Lightweight TypeScript and Go SDK for cloud sandboxes. Pluggable providers, one client for create, lifecycle, files, and commands.",
       },
     ],
     links: [
@@ -43,7 +44,9 @@ function RootComponent() {
           theme={{ defaultTheme: "light" }}
           search={{ options: { type: "static" } }}
         >
-          <Outlet />
+          <ProviderProvider>
+            <Outlet />
+          </ProviderProvider>
         </RootProvider>
         <Scripts />
       </body>

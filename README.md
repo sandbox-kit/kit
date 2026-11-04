@@ -43,6 +43,14 @@ await using client = new Client({
 
 const sandbox = await client.create();
 console.log(sandbox.id);
+
+const result = await sandbox.process.run({ argv: ["echo", "hello from kit"] });
+console.log(result.exitCode, new TextDecoder().decode(result.stdout));
+
+await sandbox.filesystem.writeFile(
+  "/tmp/note.txt",
+  new TextEncoder().encode("hello\n"),
+);
 ```
 
 Use `await client.close()` in a `finally` block when `await using` is not
@@ -90,6 +98,18 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(instance.ID())
+
+	result, err := instance.Process().Run(context.Background(), &sandbox.ExecOptions{
+		Argv: []string{"echo", "hello from kit"},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(result.GetExitCode(), string(result.GetStdout()))
+
+	if err := instance.Filesystem().WriteFile(context.Background(), "/tmp/note.txt", []byte("hello\n"), nil); err != nil {
+		panic(err)
+	}
 }
 ```
 
@@ -133,9 +153,10 @@ Modal needs a token pair and an existing app:
 [TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
 [Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
 
-Creation examples provision real sandboxes. Filesystem and lifecycle examples
+Creation examples provision real sandboxes. Filesystem, process, and lifecycle examples
 use the ID in `.env` (stop / terminate / archive / delete can destroy that
-resource; filesystem examples use the path you set). Error-handling examples
+resource; filesystem examples use the path you set; process examples run one
+command). Error-handling examples
 fail locally and create nothing. Skip copying `.env.example` if you already
 have a configured `.env`.
 
@@ -240,7 +261,7 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·
 [lifecycle](docs/sandbox-lifecycle.md) ·
-[filesystem](docs/filesystem.md).
+[filesystem](docs/filesystem.md), and [process](docs/process.md).
 
 ## Documentation
 
@@ -252,20 +273,21 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Each page covers one part of the client. Code samples switch between TypeScript and Go. GitHub Actions publishes the same site to https://sandbox-kit.github.io/kit/.
+Open http://localhost:3000. Docs are organized as Quickstart, Concepts, Providers, Guides, and Examples. Code samples switch between TypeScript and Go. GitHub Actions publishes the same site to https://sandbox-kit.github.io/kit/.
 
 These pages are the behavior reference for the same API:
 
-| Guide                                                                                                          | Covers                            |
-| -------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines  |
-| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies           |
-| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities         |
-| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove |
-| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                 |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes |
-| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes         |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                 |
+| Guide                                                                                                          | Covers                                        |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines              |
+| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                       |
+| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                     |
+| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove  |
+| [Process](docs/process.md)                                                                                     | Run a command and wait for exit code + output |
+| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                             |
+| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes             |
+| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                     |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                             |
 
 ## License
 

@@ -1,0 +1,62 @@
+---
+title: Concepts
+description: Lightweight SDK model—client, handle, pluggable providers, capabilities, close.
+---
+
+Sandbox Kit is a lightweight SDK over provider native clients. Depend on `@sandbox-kit/sandbox` (or the Go `sandbox` module) plus a provider module. Swap the provider; keep the same client surface.
+
+## Client
+
+Construct one client with a provider and config. Invalid config fails immediately. Credentials are not verified until the first provider request.
+
+| Language   | Construct                                           |
+| ---------- | --------------------------------------------------- |
+| TypeScript | `new Client({ provider, ... })`                     |
+| Go         | `sandbox.NewClient(provider, &sandbox.Config{...})` |
+
+Shared config fields: `auth`, `scope`, `endpoint`, `region`, `timeout`. See [Configuration](/docs/configuration).
+
+## Sandbox handle
+
+`create` and the provider's open method (for example Daytona `get`, Modal `attach`) return a handle. Use that handle for lifecycle, filesystem, and process calls.
+
+| Language   | Handle API                                                                        |
+| ---------- | --------------------------------------------------------------------------------- |
+| TypeScript | `sandbox.id`, `sandbox.filesystem`, `sandbox.process`, lifecycle methods          |
+| Go         | `instance.ID()`, `instance.Filesystem()`, `instance.Process()`, lifecycle methods |
+
+## Providers
+
+Providers are pluggable. Each one is its own package that adapts a native SDK to the shared client. Depend only on the provider you need; add another module when you add a backend.
+
+| Provider                 | Open existing sandbox     | Native SDK           |
+| ------------------------ | ------------------------- | -------------------- |
+| [Daytona](/docs/daytona) | `get` (provider-verified) | Daytona SDK v0.225.0 |
+| [Modal](/docs/modal)     | `attach` (id only)        | Modal SDK v0.11.1    |
+
+Apps construct `Client` / `NewClient` with the chosen provider. Provider modules stay outside the core SDK.
+
+## Capabilities
+
+`supports` / `Supports` reports whether the provider implements an operation. An unsupported call fails in Kit before any provider request. Daytona can still reject a supported lifecycle call for a specific sandbox; that rejection returns as a provider error.
+
+## Concurrency
+
+Calls on one handle run one at a time (lifecycle, filesystem, and process). A second handle for the same sandbox id does not serialize with the first. Abort or deadline rejects the TypeScript `await` (and ends the Go wait), but the handle stays busy until that provider call settles.
+
+## Close
+
+| Call                     | Effect                                   |
+| ------------------------ | ---------------------------------------- |
+| Client `close` / `Close` | Closes the local provider SDK connection |
+| Handle `close` / `Close` | Releases local handle resources          |
+
+Neither call stops, terminates, archives, or deletes the cloud sandbox. You can keep using the handle after handle `close` fails only if the provider still accepts calls; prefer an explicit lifecycle method to reclaim the sandbox.
+
+## Errors
+
+Failed calls throw `SandboxError` in TypeScript and return `*sandbox.Error` in Go. Both expose `kind`, `field`, `operation`, and `message`. See [Errors](/docs/errors).
+
+## Out of scope
+
+Streaming stdin/stdout, long-lived process sessions, PTY, Daytona `code_run`, GPU requests, resizing, and browsers are not part of this client.

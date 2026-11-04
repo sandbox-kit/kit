@@ -1,8 +1,9 @@
 version: 1
-# Portable CreateOptions rules. Declared as Protovalidate options on
-# proto/kit/sandbox/v1/sandbox.proto and enforced by language Protovalidate
-# libraries (ValidateCreateOptions). Keep this inventory aligned with those
-# annotations. Provider-specific checks stay in provider adapters / YAML.
+# Portable create validation mirrors Protovalidate options on
+# proto/kit/sandbox/v1/sandbox.proto (ValidateCreateOptions). ExecOptions is
+# not Protovalidate: Process.Run and provider adapters enforce those gates in
+# handwritten code. Keep this inventory aligned with both. Provider-specific
+# create checks stay in provider adapters / YAML.
 messages:
   SandboxSource:
     constraints:
@@ -93,6 +94,19 @@ messages:
   CommandProbe:
     fields:
       argv: { min_items: 1 }
+  # Handwritten process gates (not Protovalidate). Process.Run enforces
+  # exactly_one, shell empty after TrimSpace (Go) / trim() (TypeScript),
+  # argv min_items, and absolute working_directory. Whitespace-only shell
+  # fails field shell. Provider adapters enforce whole-second timeout.
+  ExecOptions:
+    fields:
+      argv: { min_items: 1 }
+      # nonblank after TrimSpace / trim(); whitespace-only is blank.
+      shell: { nonblank: true }
+      working_directory: { nonblank: true, format: absolute_path }
+      timeout: { minimum: 0, format: whole_seconds }
+    constraints:
+      - { op: exactly_one, fields: [argv, shell] }
   SecretReference:
     fields:
       reference: { nonblank: true }

@@ -31,6 +31,7 @@ import {
   FileFieldLocalPath,
   FileFieldParents,
   CreateFieldProvisioningTimeout,
+  ExecFieldTimeout,
 } from "@sandbox-kit/sandbox";
 import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { describe, expect, it } from "vitest";
@@ -743,5 +744,87 @@ describe("Daytona provider orchestration", () => {
       field: FileFieldLocalPath,
       operation: "copy_to_local",
     });
+  });
+
+  it("maps Process.run argv, timeouts, and empty stderr for Daytona", async () => {
+    const seen: Array<{
+      command: string;
+      cwd?: string;
+      env?: Record<string, string>;
+      timeout?: number;
+    }> = [];
+    const backend = new DaytonaProvider(() => ({
+      async create(): Promise<DaytonaSandbox> {
+        throw new Error("native create");
+      },
+      async get(): Promise<DaytonaSandbox> {
+        return {
+          process: {
+            async executeCommand(
+              command: string,
+              cwd?: string,
+              env?: Record<string, string>,
+              timeout?: number,
+            ) {
+              seen.push({
+                command,
+                ...(cwd === undefined ? {} : { cwd }),
+                ...(env === undefined ? {} : { env }),
+                ...(timeout === undefined ? {} : { timeout }),
+              });
+              return { exitCode: 0, result: "ok\n" };
+            },
+          },
+        } as unknown as DaytonaSandbox;
+      },
+      async [Symbol.asyncDispose](): Promise<void> {},
+    })).initialize({});
+    if (backend.run === undefined) throw new Error("run is missing");
+
+    const argvResult = await backend.run(
+      "sandbox-1",
+      { argv: ["echo", "hello world", "it's"] },
+      {},
+    );
+    await backend.run("sandbox-1", { shell: "echo hi", timeout: 0 }, {});
+    await backend.run(
+      "sandbox-1",
+      {
+        argv: ["pwd"],
+        workingDirectory: "/workspace",
+        environment: { KIT_DEMO: "from-kit" },
+        timeout: 5_000,
+      },
+      {},
+    );
+    await expect(
+      backend.run("sandbox-1", { argv: ["true"], timeout: 1_500 }, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      field: ExecFieldTimeout,
+      operation: "run",
+    });
+
+    expect(argvResult).toEqual({
+      exitCode: 0,
+      stdout: new TextEncoder().encode("ok\n"),
+      stderr: new Uint8Array(),
+    });
+    expect(seen).toEqual([
+      {
+        command: `'echo' 'hello world' 'it'"'"'s'`,
+        timeout: 0,
+      },
+      {
+        command: "echo hi",
+        timeout: 0,
+      },
+      {
+        command: `'pwd'`,
+        cwd: "/workspace",
+        env: { KIT_DEMO: "from-kit" },
+        timeout: 5,
+      },
+    ]);
   });
 });

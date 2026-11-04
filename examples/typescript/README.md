@@ -1,9 +1,9 @@
 # TypeScript examples
 
 Independent Node.js projects. Each selects one provider and demonstrates one
-operation. Projects sit in `filesystem`, `configuration`, `lifecycle`, or
-`errors`. Requires Node.js 24.15.0 (or Node.js 20/22), npm 11.19.0, and this
-checkout.
+operation. Projects sit in `filesystem`, `process`, `configuration`,
+`lifecycle`, or `errors`. Requires Node.js 24.15.0 (or Node.js 20/22), npm
+11.19.0, and this checkout.
 
 Examples use the public `@sandbox-kit/sandbox` API: nested exclusive fields
 (`auth: { apiKey: … }`, `source: { image: … }`), millisecond timeouts, and plain
@@ -20,7 +20,7 @@ npm run build
 npm start
 ```
 
-Creation examples provision real cloud resources. Filesystem and lifecycle
+Creation examples provision real cloud resources. Filesystem, process, and lifecycle
 examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
 the client closes your connection to Daytona or Modal. Modal setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
@@ -32,6 +32,12 @@ the client closes your connection to Daytona or Modal. Modal setup:
 | Project                                                                                      | Demonstrates                            |
 | -------------------------------------------------------------------------------------------- | --------------------------------------- |
 | [create-daytona-sandbox](daytona/configuration/create-daytona-sandbox/README.md)             | default Daytona snapshot                |
+| [run-daytona-command](daytona/process/run-daytona-command/README.md)                         | run one command                         |
+| [run-daytona-shell-command](daytona/process/run-daytona-shell-command/README.md)             | run one shell string                    |
+| [run-daytona-with-cwd](daytona/process/run-daytona-with-cwd/README.md)                       | run with working directory              |
+| [run-daytona-with-env](daytona/process/run-daytona-with-env/README.md)                       | run with environment variables          |
+| [run-daytona-with-timeout](daytona/process/run-daytona-with-timeout/README.md)               | run with a whole-second timeout         |
+| [run-daytona-check-exit](daytona/process/run-daytona-check-exit/README.md)                   | non-zero exit in the result             |
 | [read-daytona-file](daytona/filesystem/read-daytona-file/README.md)                          | read one file                           |
 | [write-daytona-file](daytona/filesystem/write-daytona-file/README.md)                        | write one file                          |
 | [copy-file-into-daytona](daytona/filesystem/copy-file-into-daytona/README.md)                | copy a local file in                    |
@@ -69,6 +75,12 @@ the client closes your connection to Daytona or Modal. Modal setup:
 | Project                                                                                    | Demonstrates                               |
 | ------------------------------------------------------------------------------------------ | ------------------------------------------ |
 | [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md)                 | image creation with resources and policies |
+| [run-modal-command](modal/process/run-modal-command/README.md)                             | run one command                            |
+| [run-modal-shell-command](modal/process/run-modal-shell-command/README.md)                 | run one shell string                       |
+| [run-modal-with-cwd](modal/process/run-modal-with-cwd/README.md)                           | run with working directory                 |
+| [run-modal-with-env](modal/process/run-modal-with-env/README.md)                           | run with environment variables             |
+| [run-modal-with-timeout](modal/process/run-modal-with-timeout/README.md)                   | run with a whole-second timeout            |
+| [run-modal-check-exit](modal/process/run-modal-check-exit/README.md)                       | non-zero exit in the result                |
 | [read-modal-file](modal/filesystem/read-modal-file/README.md)                              | read one file                              |
 | [write-modal-file](modal/filesystem/write-modal-file/README.md)                            | write one file                             |
 | [copy-file-into-modal](modal/filesystem/copy-file-into-modal/README.md)                    | copy a local file in                       |
