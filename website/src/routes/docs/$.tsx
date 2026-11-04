@@ -17,7 +17,6 @@ import {
   getPageMarkdownUrl,
   gitConfig,
 } from "@/lib/shared";
-import { useFumadocsLoader } from "fumadocs-core/source/client";
 import { Suspense, use, useEffect, useState } from "react";
 import { DocsProviderSelect } from "@/components/provider-context";
 import { useMDXComponents } from "@/components/mdx";
@@ -37,7 +36,6 @@ export const Route = createFileRoute("/docs/$")({
       // Root-relative without BASE_URL — fumadocs page actions add BASE_URL once.
       markdownUrl: getPageMarkdownUrl(page).url,
       imageUrl: assetUrl(getPageImageUrl(page).url),
-      pageTree: await source.serializePageTree(source.getPageTree()),
     };
   },
   head: ({ loaderData }) => ({
@@ -84,9 +82,11 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
 }
 
 function Page() {
-  const { path, pageTree, markdownUrl } = useFumadocsLoader(
-    Route.useLoaderData(),
-  );
+  const { path, markdownUrl } = Route.useLoaderData();
+  // Build the tree in the component (SSR + client). Do not put it through
+  // serializePageTree: that imports react-dom/server.edge (CJS `require`), which
+  // breaks SPA navigation and has no server to call on GitHub Pages.
+  const pageTree = source.getPageTree();
 
   return (
     <DocsLayout {...baseOptions()} tree={pageTree}>
