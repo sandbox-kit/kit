@@ -1,0 +1,57 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6JSRGZB4B1SSGVCP2WFVTF0",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-process",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/process.md",
+    "examples/README.md",
+    "examples/go/README.md",
+    "examples/go/daytona/process/run-daytona-with-timeout/.env.example",
+    "examples/go/daytona/process/run-daytona-with-timeout/README.md",
+    "examples/go/daytona/process/run-daytona-with-timeout/go.mod",
+    "examples/go/daytona/process/run-daytona-with-timeout/go.sum",
+    "examples/go/daytona/process/run-daytona-with-timeout/main.go",
+    "examples/go/modal/process/run-modal-with-timeout/.env.example",
+    "examples/go/modal/process/run-modal-with-timeout/README.md",
+    "examples/go/modal/process/run-modal-with-timeout/go.mod",
+    "examples/go/modal/process/run-modal-with-timeout/go.sum",
+    "examples/go/modal/process/run-modal-with-timeout/main.go",
+    "examples/typescript/README.md",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/.env.example",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/.gitignore",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/README.md",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/package-lock.json",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/package.json",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/src/main.ts",
+    "examples/typescript/daytona/process/run-daytona-with-timeout/tsconfig.json",
+    "examples/typescript/modal/process/run-modal-with-timeout/.env.example",
+    "examples/typescript/modal/process/run-modal-with-timeout/.gitignore",
+    "examples/typescript/modal/process/run-modal-with-timeout/README.md",
+    "examples/typescript/modal/process/run-modal-with-timeout/package-lock.json",
+    "examples/typescript/modal/process/run-modal-with-timeout/package.json",
+    "examples/typescript/modal/process/run-modal-with-timeout/src/main.ts",
+    "examples/typescript/modal/process/run-modal-with-timeout/tsconfig.json",
+    "sdks/go/sandbox/tests/process_test.go",
+    "specs/validation.yaml",
+    "website/content/docs/examples.mdx",
+    "website/content/docs/process.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 53221,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 3379200,
+    "output_tokens": 17978,
+    "api_call_count": 3
+  }
+}

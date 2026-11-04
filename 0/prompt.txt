@@ -1,0 +1,25 @@
+is it ready to merge ? should we publish this branch both sdks ? or is there any critical mistakes bugs, validation errors, mappiings and what not find anything and everything u can which is bad. 
+
+u can say no if u found none. 
+
+but everything should be backed by strong reason + u must also check provicer sdks in both the languages for proof.
+
+---
+
+explian in short what needs to be change ?
+
+---
+
+Add a timeout/cancel process example
+Align validation.yaml “nonblank” wording with trim behavior
+Add Go handle serialization/abort tests like TS
+
+do it
+
+---
+
+For the code present, we get this error:
+```
+Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
+```
+Fix it, verify, and then give a concise explanation. @examples/typescript/daytona/process/run-daytona-with-timeout/src/main.ts:7-10
