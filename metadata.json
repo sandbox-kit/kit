@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M6JN1QZXJ7MR7WGZJHWBX5WF",
+  "strategy": "manual-commit",
+  "branch": "feat/sandbox-process",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "docs/process.md",
+    "examples/go/daytona/process/run-daytona-command/README.md",
+    "examples/go/daytona/process/run-daytona-shell-command/README.md",
+    "examples/go/modal/process/run-modal-check-exit/README.md",
+    "examples/go/modal/process/run-modal-command/README.md",
+    "examples/go/modal/process/run-modal-shell-command/README.md",
+    "examples/go/modal/process/run-modal-with-cwd/README.md",
+    "examples/go/modal/process/run-modal-with-env/README.md",
+    "examples/typescript/daytona/process/run-daytona-command/README.md",
+    "examples/typescript/daytona/process/run-daytona-shell-command/README.md",
+    "examples/typescript/daytona/process/run-daytona-with-env/README.md",
+    "examples/typescript/modal/process/run-modal-check-exit/README.md",
+    "examples/typescript/modal/process/run-modal-command/README.md",
+    "examples/typescript/modal/process/run-modal-shell-command/README.md",
+    "examples/typescript/modal/process/run-modal-with-cwd/README.md",
+    "examples/typescript/modal/process/run-modal-with-env/README.md",
+    "sdks/go/providers/daytona/README.md",
+    "sdks/go/providers/modal/README.md",
+    "sdks/go/sandbox/README.md",
+    "sdks/go/sandbox/sandbox_data_contracts.go",
+    "sdks/typescript/providers/daytona/README.md",
+    "sdks/typescript/providers/modal/README.md",
+    "sdks/typescript/sandbox/README.md",
+    "website/content/docs/process.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 31399,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2993280,
+    "output_tokens": 9568,
+    "api_call_count": 1
+  }
+}

@@ -1,0 +1,81 @@
+Reveiw all the changes whicha re made in this branch
+
+and check if there are erros, validatoins errors, mapping errors, mistakes, improvisation. something off, very wrong. code smells
+
+find everything 
+
+u can say yes or no if u adont find one. 
+
++ also every decision should be baced by strong reason + u must also check provider sdk.
+
+---
+
+explian in very very simple language this. crisp and no noise.
+
+---
+
+fix it.
+
+---
+
+there would be  code which got obselte was written due to above bug. 
+
+u might want to fix it.
+
+---
+
+was there anything u mentioned here we haven't looked at.
+
+---
+
+u have fixes for everything which are great or need help of me.
+
+---
+
+I think abort signal is really concerning as i think any provider in typescript/ javascript doesn't provide it.
+
+---
+
+cool do we need changes around what u mentioned that needs me
+
+---
+
+review the changes which u have done which are uncommited rn. 
+
+also check if thats backed by strong reason and when u check the daytona and modal provider
+
+things are good and doesn't break things.
+
+---
+
+do it.
+
+---
+
+cool commit and push and also update PR descriptoin
+
+can u also update PR description whole which explains really well with diagrams evdery changes.
+
+---
+
+is there anything u would like to fix and there is still fix needed ?
+
+or its ready to push. check sdks not docs. as we knwo we want to still update on docs.
+
+---
+
+are u sure ?
+
+---
+
+regardles update push to branch update PR descriptoin with diagrams
+
+---
+
+cool now there would be .md, docs, .mdx and user facing sdks readme which shows up in npm and pkg.go.dev 
+
++ also there are examples and its readme if anything became outdated plz update it. 
+
+you are technical writer for devtool company and documentation engineer
+
+plz update outdated things. put yourself in shoes of users and write it. its for people who uses sdk not for kit builders who is building sandbox-kit
