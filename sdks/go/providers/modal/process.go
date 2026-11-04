@@ -132,10 +132,14 @@ func collectProcess(ctx context.Context, process *modalsdk.ContainerProcess) (st
 		stderr, stderrErr = io.ReadAll(process.Stderr)
 	}()
 	exitCode, err = process.Wait(ctx, nil)
-	wg.Wait()
 	if err != nil {
+		// Modal wires exec stdio with context.Background(), so a canceled Wait
+		// alone leaves ReadAll blocked. Close unblocks those reads.
+		closeProcessStreams(process)
+		wg.Wait()
 		return nil, nil, 0, err
 	}
+	wg.Wait()
 	if stdoutErr != nil {
 		return nil, nil, 0, stdoutErr
 	}
@@ -149,4 +153,13 @@ func collectProcess(ctx context.Context, process *modalsdk.ContainerProcess) (st
 		stderr = []byte{}
 	}
 	return stdout, stderr, exitCode, nil
+}
+
+func closeProcessStreams(process *modalsdk.ContainerProcess) {
+	if process.Stdout != nil {
+		_ = process.Stdout.Close()
+	}
+	if process.Stderr != nil {
+		_ = process.Stderr.Close()
+	}
 }
