@@ -86,12 +86,11 @@ field is `local_path`. A local directory is an invalid argument with the same
 field. `CopyToLocal` creates a missing local parent directory.
 
 `Process().Run` runs one command and waits for the result. Set exactly one of
-`Argv` or `Shell`. Kit maps `Argv` to a POSIX-quoted shell string for Daytona.
-A non-zero exit code is success for the SDK—read `GetExitCode`. Daytona's basic
-exec returns stdout only; `stderr` is a non-nil empty slice. An omitted or zero
-command timeout is passed as `0` so Daytona does not apply its 10-second native
-default.
-Provider command timeouts must be whole seconds.
+`Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero
+exit code is success for the SDK—read `GetExitCode`. Daytona returns stdout
+only; `stderr` is a non-nil empty slice. Omit or zero `Timeout` so the command
+is not capped by Daytona's 10-second native default. Command timeouts must be
+whole seconds. Cancel the context to stop waiting.
 
 CPU is a whole number of cores. Memory and disk are a whole number of GiB,
 written as MiB. A resource override requires an image source. A snapshot create

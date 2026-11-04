@@ -6,8 +6,8 @@ Run `echo hello from kit` with `Process.Run` / `sandbox.process.run` using
 ## What this means
 
 The call waits for the command to finish and returns `exit_code`, `stdout`,
-and `stderr`. A non-zero exit code is not an SDK error. Modal pipes both
-streams and Kit collects them before returning.
+and `stderr`. A non-zero exit code is not an SDK error. Modal returns both
+stdout and stderr.
 
 ## Edge cases
 
@@ -15,9 +15,8 @@ streams and Kit collects them before returning.
   Modal is called. The error field is `argv`.
 - A relative working directory is rejected before Modal is called. The error
   field is `working_directory`.
-- An omitted or zero command timeout adds no Modal command limit (Kit passes
-  `Timeout: 0`). Provider command timeouts must be whole seconds. The error
-  field is `timeout`.
+- Omit or zero `Timeout` for no Modal command limit. Command timeouts must be
+  whole seconds. The error field is `timeout`. Cancel the context to stop waiting.
 
 ## Run
 

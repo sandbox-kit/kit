@@ -150,10 +150,11 @@ type (
 	RemoveOptions = sandboxv1.RemoveOptions
 
 	// ExecOptions configures Process.Run. Set exactly one of Argv or Shell.
-	// An omitted Timeout inherits Config.Timeout as the Kit deadline.
-	// Explicit zero adds no Kit deadline. Both omit and zero mean no provider
-	// command limit: Daytona receives an explicit 0; Modal omits the limit.
-	// Provider command timeouts must be whole seconds.
+	// An omitted Timeout uses Config.Timeout as the call deadline. Explicit
+	// zero adds no extra deadline for this call. Both omit and zero also mean
+	// no provider command limit (Daytona uses 0 so its 10s native default does
+	// not apply; Modal adds no command limit). Command timeouts must be whole
+	// seconds.
 	ExecOptions = sandboxv1.ExecOptions
 
 	// ExecResult is the outcome of Process.Run. A non-zero ExitCode is not an error.

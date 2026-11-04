@@ -85,12 +85,12 @@ argument with the same field. `copyToLocal` creates a missing local parent
 directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
-`shell`. Kit maps `argv` to a POSIX-quoted shell string for Daytona. A
-non-zero exit code is not an SDK error—check `exitCode`. Daytona's basic exec
-returns stdout only; `stderr` is empty. An omitted or zero command timeout is
-passed as `0` so Daytona does not apply its 10-second native default. Provider
-command timeouts must be whole seconds (`2000` is two seconds; `1500` is
-rejected).
+`shell`. `argv` is sent as a POSIX-quoted shell string. A non-zero exit code
+is not an SDK error—check `exitCode`. Daytona returns stdout only; `stderr` is
+empty. Omit or zero `timeout` so the command is not capped by Daytona's
+10-second native default. Command timeouts must be whole seconds (`2000` is
+two seconds; `1500` is rejected). Aborting the signal rejects the `await`; the
+remote command may keep running.
 
 Daytona does not support unverified `attach`. Use `client.get(id)` for a
 provider-verified handle.

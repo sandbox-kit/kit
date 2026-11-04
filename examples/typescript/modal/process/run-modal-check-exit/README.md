@@ -6,8 +6,7 @@ loads that sandbox with `client.attach`.
 ## What this means
 
 The call waits for the command to finish and returns `exit_code`, `stdout`,
-and `stderr`. A non-zero exit code is not an SDK error. Modal collects both
-streams.
+and `stderr`. A non-zero exit code is not an SDK error. Modal returns both stdout and stderr.
 
 ## Edge cases
 

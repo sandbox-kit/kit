@@ -14,8 +14,8 @@ returns stdout only; `stderr` is empty.
 - Set exactly one of `argv` or `shell`. Setting both, or neither, fails before
   Daytona is called. The error field is `argv`.
 - A blank `shell` fails with field `shell`.
-- An omitted or zero command timeout passes `0` to Daytona so it adds no
-  command limit. Provider command timeouts must be whole seconds.
+- Omit or zero `timeout` so Daytona does not apply its 10-second native
+  default. Command timeouts must be whole seconds.
 
 ## Run
 

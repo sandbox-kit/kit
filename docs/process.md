@@ -1,73 +1,85 @@
 # Process
 
-Command calls live on the sandbox handle, next to lifecycle and filesystem.
-Daytona and Modal implement the same `Run` method. Open the handle with
-`Create`, Daytona `Get`, or Modal `Attach`, then call `Process` /
-`sandbox.process`.
+Run a command inside an open sandbox and wait for it to finish. Use the same
+options on Daytona and Modal.
 
 | You want to                           | Go    | TypeScript |
 | ------------------------------------- | ----- | ---------- |
 | Run a command and wait for the result | `Run` | `run`      |
 
-Calls on one handle run one at a time, including lifecycle and filesystem
-calls. A second handle for the same sandbox does not wait.
+Open a handle with `Create`, Daytona `Get`, or Modal `Attach`, then call
+`Process()` / `sandbox.process`.
+
+Calls on one handle run one at a time (including filesystem and lifecycle). A
+second handle for the same sandbox does not wait on the first.
 
 ## Command shape
 
 Set exactly one of `argv` or `shell`.
 
-- `argv` is the program and its arguments, such as `["echo", "hello"]`.
-- `shell` is one shell command string, such as `"echo hello"`.
+- `argv` — program and arguments, for example `["echo", "hello"]`
+- `shell` — one shell command string, for example `"echo hello"`
 
-Setting both, or neither, fails before the provider is called. The error field
-is `argv`. A blank `shell` fails with field `shell`.
+Setting both or neither fails with field `argv`. A blank `shell` fails with
+field `shell`.
 
-Daytona receives a shell string. Kit maps `argv` to a POSIX-quoted command.
-Modal receives an argument vector. Kit maps `shell` to `bash -c`.
+How providers run the command:
+
+| You pass | Daytona                   | Modal                    |
+| -------- | ------------------------- | ------------------------ |
+| `argv`   | POSIX-quoted shell string | argument list as-is      |
+| `shell`  | shell string as-is        | `bash -c` with that text |
 
 ## Working directory and environment
 
-A working directory, when set, must be absolute: `/workspace`. A relative
-path, a blank path, or a path that contains a NUL byte is rejected before the
-provider is called. The error field is `working_directory`.
+`workingDirectory` / `WorkingDirectory`, when set, must be an absolute path
+such as `/workspace`. Relative, blank, or NUL-containing paths fail with field
+`working_directory`.
 
-`environment` sets variables for that command. An omitted map leaves the
-provider default. An empty map means add no variables for this call. Kit keeps
-empty distinct from omit; Daytona's TypeScript SDK may coerce `{}` to omit
-before the wire call, with the same runtime effect.
+`environment` / `Environment` adds variables for that call only:
+
+- Omit the map to leave the provider default alone.
+- Pass an empty map to add no variables for this call.
 
 ## Result
 
-`Run` returns when the command finishes:
+When the command finishes you get:
 
-- `exit_code` / `exitCode`
+- `exitCode` / `exit_code`
 - `stdout`
 - `stderr`
 
-A non-zero exit code is not an SDK error. Check the exit code in your program.
+A non-zero exit code is **not** an SDK error. Check the exit code in your
+code.
 
-Daytona's basic exec returns stdout only. `stderr` is empty on Daytona (Go
-returns a non-nil empty slice). Modal pipes both streams and Kit collects them.
+| Provider | Output                                                            |
+| -------- | ----------------------------------------------------------------- |
+| Daytona  | stdout only; `stderr` is empty (Go returns a non-nil empty slice) |
+| Modal    | both stdout and stderr                                            |
 
-## Timeouts
+## Timeouts and cancel
 
-Leave the timeout unset to use the client deadline. Set it to zero when this
-call should add no Kit deadline. TypeScript records the timeout in
-milliseconds. Go records it as a `time.Duration`.
+| Setting                      | Meaning                                                                                                                           |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Omit `timeout`               | Use the client default deadline for this call                                                                                     |
+| `timeout: 0` / `Duration(0)` | Do not add an extra client deadline for this call                                                                                 |
+| Positive timeout             | Cap this call; must be a whole number of seconds (`5000` ms or `5 * time.Second` is fine; `1500` ms is rejected, field `timeout`) |
 
-An omitted command timeout, and an explicit zero, mean no provider command
-limit. When the timeout is omitted, the abort signal or context still carries
-the client deadline. Go cancels the provider wait when that context ends.
-TypeScript rejects the await on abort, but the remote command may keep running
-until the provider finishes (native Daytona/Modal exec APIs do not take the
-signal).
+Omit or zero also means **no separate provider command limit**. Provider
+quirks:
 
-Daytona's omitted native default is 10 seconds, so Kit always sends command
-timeout `0` when the Kit timeout is omitted or zero. Modal adds no command
-limit when the timeout is omitted or zero: Go passes `Timeout: 0`; TypeScript
-omits `timeoutMs` and must not send `timeoutMs: 0` (Modal rejects it).
-Provider command timeouts must be whole seconds. `2000` milliseconds is two
-seconds. `1500` is rejected. The error field is `timeout`.
+- **Daytona** — if you omit a native timeout, Daytona defaults to 10 seconds.
+  This client therefore uses timeout `0` for omit/zero so the command is not
+  capped at 10 seconds.
+- **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
+  omits `timeoutMs` (sending `0` is rejected by Modal).
+
+Cancel behavior:
+
+- **Go** — cancel or deadline on the context ends the wait and returns an
+  error.
+- **TypeScript** — abort rejects the `await`. The remote command may keep
+  running; Daytona and Modal exec do not take an `AbortSignal`.
 
 ```ts
 const result = await sandbox.process.run({
@@ -78,8 +90,8 @@ const result = await sandbox.process.run({
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-    Argv:    []string{"echo", "hello"},
-    Timeout: sandbox.Duration(5 * time.Second),
+	Argv:    []string{"echo", "hello"},
+	Timeout: sandbox.Duration(5 * time.Second),
 })
 ```
 
@@ -92,7 +104,7 @@ console.log(result.exitCode, new TextDecoder().decode(result.stdout));
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-    Argv: []string{"echo", "hello from kit"},
+	Argv: []string{"echo", "hello from kit"},
 })
 ```
 
@@ -101,7 +113,7 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 [Go Modal](../examples/go/modal/process/run-modal-command/README.md) ·
 [TypeScript Modal](../examples/typescript/modal/process/run-modal-command/README.md).
 
-## Shell, working directory, environment, and exit codes
+## More examples
 
 | Topic              | Go Daytona                                                                                      | TypeScript Daytona                                                                                      | Go Modal                                                                                  | TypeScript Modal                                                                                  |
 | ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -110,9 +122,10 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 | Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md)           | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md)           | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md)           | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md)           |
 | Non-zero exit code | [run-daytona-check-exit](../examples/go/daytona/process/run-daytona-check-exit/README.md)       | [run-daytona-check-exit](../examples/typescript/daytona/process/run-daytona-check-exit/README.md)       | [run-modal-check-exit](../examples/go/modal/process/run-modal-check-exit/README.md)       | [run-modal-check-exit](../examples/typescript/modal/process/run-modal-check-exit/README.md)       |
 
-## Provider notes
+## Limits
 
-- Streaming stdin/stdout, long-lived sessions, PTY, and Daytona `code_run` are
-  outside this surface.
-- Closing the handle leaves the sandbox as it is. Closing the client closes
-  your connection to the provider.
+Streaming stdin/stdout, long-lived sessions, PTY, and Daytona `code_run` are
+not part of this API.
+
+Closing the handle leaves the sandbox running. Closing the client closes your
+connection to the provider.

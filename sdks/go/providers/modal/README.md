@@ -88,10 +88,10 @@ directory is an invalid argument with the same field. `CopyToLocal` creates a
 missing local parent directory.
 
 `Process().Run` runs one command and waits for the result. Set exactly one of
-`Argv` or `Shell`. Kit maps `Shell` to `bash -c` for Modal. A non-zero exit
-code is success for the SDK—read `GetExitCode`. Modal collects both stdout and
-stderr. An omitted or zero command timeout adds no Modal command limit (Kit
-passes `Timeout: 0`). Provider command timeouts must be whole seconds.
+`Argv` or `Shell`. `Shell` runs as `bash -c`. A non-zero exit code is success
+for the SDK—read `GetExitCode`. Modal returns both stdout and stderr. Omit or
+zero `Timeout` for no Modal command limit. Command timeouts must be whole
+seconds. Cancel the context to stop waiting.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB of
 memory. Omitted values keep Modal's defaults. Disk size cannot be raised at

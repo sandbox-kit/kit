@@ -6,17 +6,16 @@ Run one shell string with `Process.Run` / `sandbox.process.run` using
 ## What this means
 
 The call waits for the command to finish and returns `exit_code`, `stdout`,
-and `stderr`. A non-zero exit code is not an SDK error. Modal collects both
-streams.
+and `stderr`. A non-zero exit code is not an SDK error. Modal returns both stdout and stderr.
 
 ## Edge cases
 
 - Set exactly one of `argv` or `shell`. Setting both, or neither, fails before
   Modal is called. The error field is `argv`.
-- A blank `shell` fails with field `shell`. Kit maps `shell` to `bash -c`.
-- An omitted or zero command timeout adds no Modal command limit: TypeScript
-  omits `timeoutMs` and must not send `timeoutMs: 0`. Provider command
-  timeouts must be whole seconds.
+- A blank `shell` fails with field `shell`. `shell` runs as `bash -c`.
+- Omit or zero `timeout` for no Modal command limit (the client omits
+  `timeoutMs`; sending `0` is rejected by Modal). Command timeouts must be
+  whole seconds.
 
 ## Run
 

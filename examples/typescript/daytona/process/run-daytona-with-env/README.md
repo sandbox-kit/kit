@@ -12,7 +12,7 @@ returns stdout only; `stderr` is empty.
 ## Edge cases
 
 - An omitted `environment` map leaves the Daytona default. An empty map adds
-  no variables for this call (Daytona's TypeScript SDK may coerce `{}` to omit).
+  no variables for this call.
 - These variables apply to this command, not to later calls on the same handle.
 
 ## Run

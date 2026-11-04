@@ -58,7 +58,9 @@ fmt.Println(result.GetExitCode(), string(result.GetStdout()))
 
 Set exactly one of `Argv` or `Shell`. A non-zero exit code is not an SDK
 error—check `GetExitCode`. Optional `WorkingDirectory` must be absolute.
-`Environment` applies to that call only. See
+`Environment` applies to that call only. Omit `Timeout` to use the client
+deadline; use `Duration(0)` for no extra deadline on this call. Cancel the
+context to stop waiting. See
 [Process](https://github.com/sandbox-kit/kit/blob/main/docs/process.md).
 
 ## Read and write files

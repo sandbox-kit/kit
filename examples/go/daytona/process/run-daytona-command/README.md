@@ -15,8 +15,8 @@ returns stdout only; `stderr` is empty.
   Daytona is called. The error field is `argv`.
 - A relative working directory is rejected before Daytona is called. The error
   field is `working_directory`.
-- An omitted or zero command timeout passes `0` to Daytona so it adds no
-  command limit. Provider command timeouts must be whole seconds.
+- Omit or zero `timeout` so Daytona does not apply its 10-second native
+  default. Command timeouts must be whole seconds. Cancel the context to stop waiting.
 
 ## Run
 

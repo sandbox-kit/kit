@@ -85,13 +85,18 @@ console.log(result.exitCode, new TextDecoder().decode(result.stdout));
 
 Set exactly one of `argv` or `shell`. A non-zero exit code is not an SDK
 error—check `exitCode`. Optional `workingDirectory` must be absolute.
-`environment` applies to that call only. See the
+`environment` applies to that call only. Omit `timeout` to use the client
+deadline; use `0` for no extra deadline on this call. Aborting the signal
+rejects the `await`; the remote command may keep running. See the
 [process guide](https://github.com/sandbox-kit/kit/blob/main/docs/process.md).
 
 ## Read and write files
 
 ```ts
-await sandbox.filesystem.writeFile("/tmp/note.txt", new TextEncoder().encode("hello\n"));
+await sandbox.filesystem.writeFile(
+  "/tmp/note.txt",
+  new TextEncoder().encode("hello\n"),
+);
 const data = await sandbox.filesystem.readFile("/tmp/note.txt");
 console.log(new TextDecoder().decode(data));
 ```

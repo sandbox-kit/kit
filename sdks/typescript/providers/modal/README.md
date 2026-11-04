@@ -77,12 +77,12 @@ missing parents are created, and an existing directory is accepted.
 `copyToLocal` creates a missing local parent directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
-`shell`. Kit maps `shell` to `bash -c` for Modal. A non-zero exit code is not
-an SDK error—check `exitCode`. Modal collects both stdout and stderr. An
-omitted or zero command timeout adds no Modal command limit: Kit omits
-`timeoutMs` and must not send `timeoutMs: 0` (Modal rejects it). Provider
-command timeouts must be whole seconds (`2000` is two seconds; `1500` is
-rejected).
+`shell`. `shell` runs as `bash -c`. A non-zero exit code is not an SDK
+error—check `exitCode`. Modal returns both stdout and stderr. Omit or zero
+`timeout` for no Modal command limit (the client omits `timeoutMs`; sending
+`0` is rejected by Modal). Command timeouts must be whole seconds (`2000` is
+two seconds; `1500` is rejected). Aborting the signal rejects the `await`; the
+remote command may keep running.
 
 When you set resources, Modal requires at least 0.125 CPU cores and 128 MiB
 memory. Omitted values keep Modal defaults. Disk size cannot be raised at create.

@@ -20,35 +20,35 @@ Set **exactly one** of:
 | `argv`  | Program + arguments      | `["echo", "hello"]` |
 | `shell` | One shell command string | `"echo hello"`      |
 
-| Field              | Rules                                                                                                                                         |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Both or neither    | Rejected before the provider call. Field: `argv`                                                                                              |
-| Blank `shell`      | Rejected. Field: `shell`                                                                                                                      |
-| `workingDirectory` | Absolute path when set (`/workspace`). Relative, blank, or NUL → field `working_directory`                                                    |
-| `environment`      | Map for this call only. Omitted → provider default. Empty → add none (Daytona TS may coerce `{}` to omit)                                     |
-| `timeout`          | TypeScript: ms. Go: `time.Duration`. Omit → client deadline. `0` → no extra Kit deadline. TS abort rejects the await; remote may keep running |
+| Field              | Rules                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| Both or neither    | Rejected. Field: `argv`                                                               |
+| Blank `shell`      | Rejected. Field: `shell`                                                              |
+| `workingDirectory` | Absolute when set (`/workspace`). Relative, blank, or NUL → field `working_directory` |
+| `environment`      | For this call only. Omit → provider default. Empty map → add no variables             |
+| `timeout`          | TypeScript: ms. Go: `time.Duration`. See [Timeouts and cancel](#timeouts-and-cancel)  |
 
-### Provider mapping
+### How providers run it
 
 <ForProvider id="daytona">
 
-| Kit input                      | Daytona                                                   |
-| ------------------------------ | --------------------------------------------------------- |
-| `argv`                         | POSIX-quoted shell string                                 |
-| `shell`                        | shell as-is                                               |
-| omitted / zero timeout         | command timeout `0` (avoids Daytona's 10s native default) |
-| fractional seconds (`1500` ms) | rejected (`timeout`)                                      |
+| You pass               | On Daytona                                                      |
+| ---------------------- | --------------------------------------------------------------- |
+| `argv`                 | POSIX-quoted shell string                                       |
+| `shell`                | shell string as-is                                              |
+| omit / zero timeout    | no command limit (`0`, so Daytona does not use its 10s default) |
+| fractional (`1500` ms) | rejected (`timeout`)                                            |
 
 </ForProvider>
 
 <ForProvider id="modal">
 
-| Kit input                      | Modal                                                                |
-| ------------------------------ | -------------------------------------------------------------------- |
-| `argv`                         | argv as-is                                                           |
-| `shell`                        | `bash -c`                                                            |
-| omitted / zero timeout         | no command limit — TS omits `timeoutMs` (never `0`); Go `Timeout: 0` |
-| fractional seconds (`1500` ms) | rejected (`timeout`)                                                 |
+| You pass               | On Modal                                                              |
+| ---------------------- | --------------------------------------------------------------------- |
+| `argv`                 | argument list as-is                                                   |
+| `shell`                | `bash -c`                                                             |
+| omit / zero timeout    | no command limit (TypeScript omits `timeoutMs`; Go uses `Timeout: 0`) |
+| fractional (`1500` ms) | rejected (`timeout`)                                                  |
 
 </ForProvider>
 
@@ -61,13 +61,35 @@ Set **exactly one** of:
 | `stderr`                 | See provider note below          |
 
 <ForProvider id="daytona">
-  Daytona basic exec leaves `stderr` empty (Go: non-nil empty slice); stdout may
-  include merged streams.
+  Daytona returns stdout only; `stderr` is empty (Go: non-nil empty slice).
+  stdout may include merged streams.
 </ForProvider>
 
-<ForProvider id="modal">Modal collects both `stdout` and `stderr`.</ForProvider>
+<ForProvider id="modal">Modal returns both `stdout` and `stderr`.</ForProvider>
 
-Calls on one handle are serialized with lifecycle and filesystem. A second handle for the same sandbox does not wait.
+Calls on one handle run one at a time with lifecycle and filesystem. A second
+handle for the same sandbox does not wait.
+
+## Timeouts and cancel
+
+| Setting        | Meaning                                                           |
+| -------------- | ----------------------------------------------------------------- |
+| Omit `timeout` | Use the client default deadline                                   |
+| `0`            | No extra client deadline for this call                            |
+| Positive value | Cap this call; must be whole seconds (`5000` ok, `1500` rejected) |
+
+Omit or zero also means no separate provider command limit (see the mapping
+table above).
+
+<ForProvider id="daytona">
+  Cancel the Go context to end the wait. In TypeScript, abort rejects the
+  `await`; the remote command may keep running.
+</ForProvider>
+
+<ForProvider id="modal">
+  Cancel the Go context to end the wait. In TypeScript, abort rejects the
+  `await`; the remote command may keep running.
+</ForProvider>
 
 ## argv
 
@@ -127,13 +149,12 @@ const result = await sandbox.process.run({
 ```
 
 <ForProvider id="daytona">
-  Daytona runs the string as shell. Modal wraps with `bash -c` instead—same Kit
-  call shape.
+  Daytona runs the string as shell. On Modal the same call uses `bash -c`.
 </ForProvider>
 
 <ForProvider id="modal">
-  Modal runs this as `bash -c`. Daytona uses the shell string as-is—same Kit
-  call shape.
+  Modal runs this as `bash -c`. On Daytona the same call uses the shell string
+  as-is.
 </ForProvider>
 
   </Tab>
@@ -256,5 +277,5 @@ if result.GetExitCode() != 7 {
 Not supported: streaming I/O, interactive sessions, PTY.
 
 <ForProvider id="daytona">
-  Daytona `code_run` is not exposed through Kit.
+  Daytona `code_run` is not available on this API.
 </ForProvider>

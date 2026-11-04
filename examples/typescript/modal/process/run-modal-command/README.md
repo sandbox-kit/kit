@@ -6,8 +6,7 @@ opens that sandbox with `client.attach`.
 ## What this means
 
 The call waits for the command to finish and returns `exitCode`, `stdout`, and
-`stderr`. A non-zero exit code is not an SDK error. Modal pipes both streams
-and Kit collects them before returning.
+`stderr`. A non-zero exit code is not an SDK error. Modal returns both stdout and stderr.
 
 ## Edge cases
 
@@ -15,10 +14,11 @@ and Kit collects them before returning.
   Modal is called. The error field is `argv`.
 - A relative working directory is rejected before Modal is called. The error
   field is `working_directory`.
-- An omitted or zero command timeout adds no Modal command limit: TypeScript
-  omits `timeoutMs` and must not send `timeoutMs: 0`. Provider command
-  timeouts must be whole seconds (`2000` is valid; `1500` is rejected). The
-  error field is `timeout`.
+- Omit or zero `timeout` for no Modal command limit (the client omits
+  `timeoutMs`; sending `0` is rejected by Modal). Command timeouts must be
+  whole seconds (`2000` is valid; `1500` is rejected). The error field is
+  `timeout`. Aborting the signal rejects the await; the remote command may
+  keep running.
 
 ## Run
 
