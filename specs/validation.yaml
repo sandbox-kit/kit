@@ -95,11 +95,13 @@ messages:
     fields:
       argv: { min_items: 1 }
   # Handwritten process gates (not Protovalidate). Process.Run enforces
-  # exactly_one, blank shell, argv min_items, and absolute working_directory.
-  # Provider adapters enforce whole-second timeout (field timeout).
+  # exactly_one, shell empty after TrimSpace (Go) / trim() (TypeScript),
+  # argv min_items, and absolute working_directory. Whitespace-only shell
+  # fails field shell. Provider adapters enforce whole-second timeout.
   ExecOptions:
     fields:
       argv: { min_items: 1 }
+      # nonblank after TrimSpace / trim(); whitespace-only is blank.
       shell: { nonblank: true }
       working_directory: { nonblank: true, format: absolute_path }
       timeout: { minimum: 0, format: whole_seconds }

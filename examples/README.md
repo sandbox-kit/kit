@@ -44,6 +44,7 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Daytona shell command     | [go](go/daytona/process/run-daytona-shell-command/README.md)          | [typescript](typescript/daytona/process/run-daytona-shell-command/README.md)          |
 | Daytona run with cwd      | [go](go/daytona/process/run-daytona-with-cwd/README.md)               | [typescript](typescript/daytona/process/run-daytona-with-cwd/README.md)               |
 | Daytona run with env      | [go](go/daytona/process/run-daytona-with-env/README.md)               | [typescript](typescript/daytona/process/run-daytona-with-env/README.md)               |
+| Daytona run with timeout  | [go](go/daytona/process/run-daytona-with-timeout/README.md)           | [typescript](typescript/daytona/process/run-daytona-with-timeout/README.md)           |
 | Daytona check exit        | [go](go/daytona/process/run-daytona-check-exit/README.md)             | [typescript](typescript/daytona/process/run-daytona-check-exit/README.md)             |
 | Daytona read file         | [go](go/daytona/filesystem/read-daytona-file/README.md)               | [typescript](typescript/daytona/filesystem/read-daytona-file/README.md)               |
 | Daytona write file        | [go](go/daytona/filesystem/write-daytona-file/README.md)              | [typescript](typescript/daytona/filesystem/write-daytona-file/README.md)              |
@@ -81,6 +82,7 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Modal shell command       | [go](go/modal/process/run-modal-shell-command/README.md)              | [typescript](typescript/modal/process/run-modal-shell-command/README.md)              |
 | Modal run with cwd        | [go](go/modal/process/run-modal-with-cwd/README.md)                   | [typescript](typescript/modal/process/run-modal-with-cwd/README.md)                   |
 | Modal run with env        | [go](go/modal/process/run-modal-with-env/README.md)                   | [typescript](typescript/modal/process/run-modal-with-env/README.md)                   |
+| Modal run with timeout    | [go](go/modal/process/run-modal-with-timeout/README.md)               | [typescript](typescript/modal/process/run-modal-with-timeout/README.md)               |
 | Modal check exit          | [go](go/modal/process/run-modal-check-exit/README.md)                 | [typescript](typescript/modal/process/run-modal-check-exit/README.md)                 |
 | Modal read file           | [go](go/modal/filesystem/read-modal-file/README.md)                   | [typescript](typescript/modal/filesystem/read-modal-file/README.md)                   |
 | Modal write file          | [go](go/modal/filesystem/write-modal-file/README.md)                  | [typescript](typescript/modal/filesystem/write-modal-file/README.md)                  |

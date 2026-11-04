@@ -20,8 +20,8 @@ Set exactly one of `argv` or `shell`.
 - `argv` — program and arguments, for example `["echo", "hello"]`
 - `shell` — one shell command string, for example `"echo hello"`
 
-Setting both or neither fails with field `argv`. A blank `shell` fails with
-field `shell`.
+Setting both or neither fails with field `argv`. A blank or whitespace-only
+`shell` (after trim) fails with field `shell`.
 
 How providers run the command:
 
@@ -122,6 +122,7 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 | Shell string       | [run-daytona-shell-command](../examples/go/daytona/process/run-daytona-shell-command/README.md) | [run-daytona-shell-command](../examples/typescript/daytona/process/run-daytona-shell-command/README.md) | [run-modal-shell-command](../examples/go/modal/process/run-modal-shell-command/README.md) | [run-modal-shell-command](../examples/typescript/modal/process/run-modal-shell-command/README.md) |
 | Working directory  | [run-daytona-with-cwd](../examples/go/daytona/process/run-daytona-with-cwd/README.md)           | [run-daytona-with-cwd](../examples/typescript/daytona/process/run-daytona-with-cwd/README.md)           | [run-modal-with-cwd](../examples/go/modal/process/run-modal-with-cwd/README.md)           | [run-modal-with-cwd](../examples/typescript/modal/process/run-modal-with-cwd/README.md)           |
 | Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md)           | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md)           | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md)           | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md)           |
+| Timeout            | [run-daytona-with-timeout](../examples/go/daytona/process/run-daytona-with-timeout/README.md)   | [run-daytona-with-timeout](../examples/typescript/daytona/process/run-daytona-with-timeout/README.md)   | [run-modal-with-timeout](../examples/go/modal/process/run-modal-with-timeout/README.md)   | [run-modal-with-timeout](../examples/typescript/modal/process/run-modal-with-timeout/README.md)   |
 | Non-zero exit code | [run-daytona-check-exit](../examples/go/daytona/process/run-daytona-check-exit/README.md)       | [run-daytona-check-exit](../examples/typescript/daytona/process/run-daytona-check-exit/README.md)       | [run-modal-check-exit](../examples/go/modal/process/run-modal-check-exit/README.md)       | [run-modal-check-exit](../examples/typescript/modal/process/run-modal-check-exit/README.md)       |
 
 ## Limits

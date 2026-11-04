@@ -3,7 +3,9 @@ package sandbox_test
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
@@ -227,5 +229,118 @@ func TestProcessUnsupportedWithoutCapability(t *testing.T) {
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Operation != "run" {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestProcessCancelEndsWait(t *testing.T) {
+	started := make(chan struct{})
+	backend := &processBackend{run: func(ctx context.Context, _ string, _ *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
+		close(started)
+		<-ctx.Done()
+		return nil, ctx.Err()
+	}}
+	client, err := sandbox.NewClient(&processProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	errCh := make(chan error, 1)
+	go func() {
+		_, runErr := instance.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"sleep", "1"}})
+		errCh <- runErr
+	}()
+	select {
+	case <-started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("provider did not start")
+	}
+	cancel()
+	runErr := <-errCh
+	var detail *sandbox.Error
+	if !errors.Is(runErr, context.Canceled) || !errors.As(runErr, &detail) || detail.Kind != sandbox.ErrorKindCanceled || detail.Operation != "run" {
+		t.Fatalf("unexpected error: %v", runErr)
+	}
+}
+
+func TestProcessHoldsSerializationUntilCanceledInFlightSettles(t *testing.T) {
+	var active atomic.Int32
+	var maxActive atomic.Int32
+	releaseFirst := make(chan struct{})
+	firstStarted := make(chan struct{})
+	var firstCall atomic.Bool
+
+	backend := &processBackend{run: func(ctx context.Context, _ string, _ *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
+		n := active.Add(1)
+		for {
+			old := maxActive.Load()
+			if n <= old || maxActive.CompareAndSwap(old, n) {
+				break
+			}
+		}
+		defer active.Add(-1)
+
+		if firstCall.CompareAndSwap(false, true) {
+			close(firstStarted)
+			<-releaseFirst
+			if err := ctx.Err(); err != nil {
+				return nil, err
+			}
+		}
+		return &sandbox.ExecResult{ExitCode: 0, Stdout: []byte{}, Stderr: []byte{}}, nil
+	}}
+	client, err := sandbox.NewClient(&processProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	firstErr := make(chan error, 1)
+	go func() {
+		_, runErr := instance.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"sleep", "1"}})
+		firstErr <- runErr
+	}()
+	select {
+	case <-firstStarted:
+	case <-time.After(2 * time.Second):
+		t.Fatal("first provider call did not start")
+	}
+	cancel()
+
+	secondErr := make(chan error, 1)
+	go func() {
+		_, runErr := instance.Process().Run(context.Background(), &sandbox.ExecOptions{Argv: []string{"true"}})
+		secondErr <- runErr
+	}()
+
+	deadline := time.Now().Add(200 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		if active.Load() != 1 {
+			t.Fatalf("expected one in-flight provider call, got %d", active.Load())
+		}
+		if maxActive.Load() != 1 {
+			t.Fatalf("expected max concurrency 1, got %d", maxActive.Load())
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+
+	close(releaseFirst)
+	runErr := <-firstErr
+	var detail *sandbox.Error
+	if !errors.Is(runErr, context.Canceled) || !errors.As(runErr, &detail) || detail.Kind != sandbox.ErrorKindCanceled {
+		t.Fatalf("first call: unexpected error: %v", runErr)
+	}
+	if err := <-secondErr; err != nil {
+		t.Fatalf("second call: %v", err)
+	}
+	if maxActive.Load() != 1 {
+		t.Fatalf("expected max concurrency 1, got %d", maxActive.Load())
 	}
 }
