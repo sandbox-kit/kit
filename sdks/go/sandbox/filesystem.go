@@ -176,13 +176,17 @@ func (f *Filesystem) files(operation string) (SandboxFiles, error) {
 }
 
 func absoluteSandboxPath(owner *Sandbox, operation, path string) error {
+	return absolutePath(owner, operation, path, FileFieldPath, "sandbox-kit: sandbox path must be absolute")
+}
+
+func absolutePath(owner *Sandbox, operation, path, field, message string) error {
 	if path == "" || !strings.HasPrefix(path, "/") || strings.ContainsRune(path, 0) {
 		return NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidArgument,
 			Provider:  owner.ProviderName(),
 			Operation: operation,
-			Field:     FileFieldPath,
-			Message:   "sandbox-kit: sandbox path must be absolute",
+			Field:     field,
+			Message:   message,
 		}, nil)
 	}
 	return nil

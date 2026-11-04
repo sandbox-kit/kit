@@ -168,7 +168,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileReadOptions,
     options: OperationOptions,
   ): Promise<Uint8Array> {
-    return this.#file("read_file", id, options, async (sandbox) =>
+    return this.#withSandbox("read_file", id, options, async (sandbox) =>
       sandbox.filesystem.readBytes(path),
     );
   }
@@ -180,7 +180,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: FileWriteOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("write_file", id, options, async (sandbox) => {
+    await this.#withSandbox("write_file", id, options, async (sandbox) => {
       await sandbox.filesystem.writeBytes(data, path);
     });
   }
@@ -193,7 +193,7 @@ class ModalBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     await requireLocalFile(localPath, "copy_from_local");
-    await this.#file("copy_from_local", id, options, async (sandbox) => {
+    await this.#withSandbox("copy_from_local", id, options, async (sandbox) => {
       try {
         await sandbox.filesystem.copyFromLocal(localPath, remotePath);
       } catch (error) {
@@ -210,7 +210,7 @@ class ModalBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     await requireLocalDestination(localPath, "copy_to_local");
-    await this.#file("copy_to_local", id, options, async (sandbox) => {
+    await this.#withSandbox("copy_to_local", id, options, async (sandbox) => {
       try {
         await sandbox.filesystem.copyToLocal(remotePath, localPath);
       } catch (error) {
@@ -225,7 +225,7 @@ class ModalBackend extends BackendBase implements Backend {
     request: MakeDirectoryOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("make_directory", id, options, async (sandbox) => {
+    await this.#withSandbox("make_directory", id, options, async (sandbox) => {
       await sandbox.filesystem.makeDirectory(path, {
         createParents: request.parents ?? true,
       });
@@ -238,7 +238,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: ListDirectoryOptions,
     options: OperationOptions,
   ): Promise<FileInfo[]> {
-    return this.#file("list_directory", id, options, async (sandbox) => {
+    return this.#withSandbox("list_directory", id, options, async (sandbox) => {
       const entries = await sandbox.filesystem.listFiles(path);
       return entries.map((entry) => modalFileInfo(entry));
     });
@@ -250,7 +250,7 @@ class ModalBackend extends BackendBase implements Backend {
     _request: StatOptions,
     options: OperationOptions,
   ): Promise<FileInfo> {
-    return this.#file("stat", id, options, async (sandbox) =>
+    return this.#withSandbox("stat", id, options, async (sandbox) =>
       modalFileInfo(await sandbox.filesystem.stat(path)),
     );
   }
@@ -261,7 +261,7 @@ class ModalBackend extends BackendBase implements Backend {
     request: RemoveOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#file("remove", id, options, async (sandbox) => {
+    await this.#withSandbox("remove", id, options, async (sandbox) => {
       await sandbox.filesystem.remove(path, {
         recursive: request.recursive === true,
       });
@@ -273,7 +273,7 @@ class ModalBackend extends BackendBase implements Backend {
     request: ExecOptions,
     options: OperationOptions,
   ): Promise<ExecResult> {
-    return this.#file("run", id, options, async (sandbox) => {
+    return this.#withSandbox("run", id, options, async (sandbox) => {
       const command = modalCommand(request);
       const timeoutMs = execTimeoutMs(request.timeout);
       const process = await sandbox.exec(command, {
@@ -299,7 +299,7 @@ class ModalBackend extends BackendBase implements Backend {
     });
   }
 
-  async #file<T>(
+  async #withSandbox<T>(
     operation: string,
     id: string,
     options: OperationOptions,

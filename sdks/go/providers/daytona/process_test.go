@@ -16,17 +16,17 @@ func TestPosixShellJoin(t *testing.T) {
 	}
 }
 
-func TestExecTimeout(t *testing.T) {
-	if got, err := execTimeout("run", nil); err != nil || got != 0 {
+func TestCommandTimeout(t *testing.T) {
+	if got, err := commandTimeout("run", nil); err != nil || got != 0 {
 		t.Fatalf("nil timeout = %v, %v", got, err)
 	}
-	if got, err := execTimeout("run", sandbox.Duration(0)); err != nil || got != 0 {
+	if got, err := commandTimeout("run", sandbox.Duration(0)); err != nil || got != 0 {
 		t.Fatalf("zero timeout = %v, %v", got, err)
 	}
-	if got, err := execTimeout("run", sandbox.Duration(5*time.Second)); err != nil || got != 5*time.Second {
+	if got, err := commandTimeout("run", sandbox.Duration(5*time.Second)); err != nil || got != 5*time.Second {
 		t.Fatalf("whole timeout = %v, %v", got, err)
 	}
-	_, err := execTimeout("run", sandbox.Duration(1500*time.Millisecond))
+	_, err := commandTimeout("run", sandbox.Duration(1500*time.Millisecond))
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) || detail.Field != sandbox.ExecFieldTimeout {
 		t.Fatalf("fractional timeout = %#v", err)

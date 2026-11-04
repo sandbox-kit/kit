@@ -35,13 +35,13 @@ func (p *Process) Run(ctx context.Context, options *ExecOptions) (*ExecResult, e
 		if err != nil {
 			return err
 		}
-		result, err = runner.RunCommand(operationContext, id, cloneMessage(options))
+		result, err = runner.RunCommand(operationContext, id, cloneExecOptions(options))
 		return err
 	})
 	if err != nil {
 		return nil, err
 	}
-	return cloneMessage(result), nil
+	return cloneExecResult(result), nil
 }
 
 func (p *Process) call(ctx context.Context, operation string, options *ExecOptions, invoke func(context.Context, string) error) error {
@@ -117,16 +117,13 @@ func validateExecOptions(owner *Sandbox, operation string, options *ExecOptions)
 		}, nil)
 	}
 	if options.WorkingDirectory != nil {
-		path := *options.WorkingDirectory
-		if path == "" || !strings.HasPrefix(path, "/") || strings.ContainsRune(path, 0) {
-			return NewError(&ErrorInfo{
-				Kind:      ErrorKindInvalidArgument,
-				Provider:  owner.ProviderName(),
-				Operation: operation,
-				Field:     ExecFieldWorkingDirectory,
-				Message:   "sandbox-kit: working directory must be absolute",
-			}, nil)
-		}
+		return absolutePath(
+			owner,
+			operation,
+			*options.WorkingDirectory,
+			ExecFieldWorkingDirectory,
+			"sandbox-kit: working directory must be absolute",
+		)
 	}
 	return nil
 }

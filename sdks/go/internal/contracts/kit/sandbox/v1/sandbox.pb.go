@@ -3073,9 +3073,10 @@ func (x *RemoveOptions) GetRecursive() bool {
 
 // ExecOptions configures Process.Run. Set exactly one of argv or shell.
 // Kit validates that exclusivity before the provider call.
-// Nil timeout inherits Config.Timeout as the Kit deadline and passes no
-// provider command timeout. Explicit zero adds no Kit deadline and no
-// provider command timeout. Provider command timeouts must be whole seconds.
+// Nil timeout inherits Config.Timeout as the Kit deadline. Explicit zero adds
+// no Kit deadline. Both omit and zero mean no provider command limit; a
+// provider may send an explicit zero when its omitted native default would
+// impose one. Provider command timeouts must be whole seconds.
 type ExecOptions struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Program and arguments. Mutually exclusive with shell. Must be non-empty when used.

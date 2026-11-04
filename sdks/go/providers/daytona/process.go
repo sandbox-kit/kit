@@ -23,7 +23,7 @@ func (b *backend) RunCommand(ctx context.Context, id string, request *sandbox.Ex
 	if err != nil {
 		return nil, err
 	}
-	timeout, err := execTimeout("run", request.GetTimeout())
+	timeout, err := commandTimeout("run", request.GetTimeout())
 	if err != nil {
 		return nil, err
 	}
@@ -87,15 +87,12 @@ func daytonaCommand(request *sandbox.ExecOptions) (string, error) {
 	return posixShellJoin(request.Argv), nil
 }
 
-// execTimeout maps Kit ExecOptions.timeout to Daytona's command timeout.
+// commandTimeout maps Kit ExecOptions.timeout to Daytona's command timeout.
 // Nil and explicit zero become 0 so Daytona adds no command limit (its omitted
 // default is 10 seconds). Non-zero values must be whole seconds.
-func execTimeout(operation string, value *durationpb.Duration) (time.Duration, error) {
-	timeout := sdk.OptionalDuration(value)
-	if timeout == nil {
-		return 0, nil
-	}
-	if *timeout < 0 || *timeout%time.Second != 0 {
+func commandTimeout(operation string, value *durationpb.Duration) (time.Duration, error) {
+	timeout, ok := sdk.WholeSecondDuration(value)
+	if !ok {
 		return 0, sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidArgument,
 			Provider:  "daytona",
@@ -104,7 +101,7 @@ func execTimeout(operation string, value *durationpb.Duration) (time.Duration, e
 			Message:   "sandbox-kit daytona: timeout must be a whole number of seconds",
 		}, nil)
 	}
-	return *timeout, nil
+	return timeout, nil
 }
 
 func posixShellJoin(argv []string) string {

@@ -32,7 +32,9 @@ path, a blank path, or a path that contains a NUL byte is rejected before the
 provider is called. The error field is `working_directory`.
 
 `environment` sets variables for that command. An omitted map leaves the
-provider default. An empty map is explicit.
+provider default. An empty map means add no variables for this call. Kit keeps
+empty distinct from omit; Daytona's TypeScript SDK may coerce `{}` to omit
+before the wire call, with the same runtime effect.
 
 ## Result
 
@@ -55,13 +57,17 @@ milliseconds. Go records it as a `time.Duration`.
 
 An omitted command timeout, and an explicit zero, mean no provider command
 limit. When the timeout is omitted, the abort signal or context still carries
-the client deadline.
+the client deadline. Go cancels the provider wait when that context ends.
+TypeScript rejects the await on abort, but the remote command may keep running
+until the provider finishes (native Daytona/Modal exec APIs do not take the
+signal).
 
-Daytona's omitted native default is 10 seconds, so Kit sends command timeout
-`0`. Modal adds no command limit when the timeout is omitted or zero: Go passes
-`Timeout: 0`; TypeScript omits `timeoutMs` and must not send `timeoutMs: 0`
-(Modal rejects it). Provider command timeouts must be whole seconds. `2000`
-milliseconds is two seconds. `1500` is rejected. The error field is `timeout`.
+Daytona's omitted native default is 10 seconds, so Kit always sends command
+timeout `0` when the Kit timeout is omitted or zero. Modal adds no command
+limit when the timeout is omitted or zero: Go passes `Timeout: 0`; TypeScript
+omits `timeoutMs` and must not send `timeoutMs: 0` (Modal rejects it).
+Provider command timeouts must be whole seconds. `2000` milliseconds is two
+seconds. `1500` is rejected. The error field is `timeout`.
 
 ```ts
 const result = await sandbox.process.run({

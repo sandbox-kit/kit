@@ -164,6 +164,33 @@ func TestProcessRunsArgv(t *testing.T) {
 	}
 }
 
+func TestProcessPreservesExplicitEmptyEnvironment(t *testing.T) {
+	backend := &processBackend{run: func(_ context.Context, _ string, options *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
+		if options.Environment == nil {
+			t.Fatal("explicit empty environment became nil")
+		}
+		return &sandbox.ExecResult{ExitCode: 0, Stdout: []byte{}, Stderr: []byte{}}, nil
+	}}
+	client, err := sandbox.NewClient(&processProvider{backend: backend}, &sandbox.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := instance.Process().Run(context.Background(), &sandbox.ExecOptions{
+		Argv:        []string{"true"},
+		Environment: map[string]string{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Stdout == nil || result.Stderr == nil {
+		t.Fatalf("empty output became nil: stdout=%#v stderr=%#v", result.Stdout, result.Stderr)
+	}
+}
+
 func TestProcessNonZeroExitIsSuccess(t *testing.T) {
 	backend := &processBackend{run: func(context.Context, string, *sandbox.ExecOptions) (*sandbox.ExecResult, error) {
 		return &sandbox.ExecResult{ExitCode: 7, Stderr: []byte("boom\n")}, nil

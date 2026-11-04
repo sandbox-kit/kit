@@ -20,13 +20,13 @@ Set **exactly one** of:
 | `argv`  | Program + arguments      | `["echo", "hello"]` |
 | `shell` | One shell command string | `"echo hello"`      |
 
-| Field              | Rules                                                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------ |
-| Both or neither    | Rejected before the provider call. Field: `argv`                                           |
-| Blank `shell`      | Rejected. Field: `shell`                                                                   |
-| `workingDirectory` | Absolute path when set (`/workspace`). Relative, blank, or NUL → field `working_directory` |
-| `environment`      | Map for this call only. Omitted → provider default. Empty map is explicit                  |
-| `timeout`          | TypeScript: ms. Go: `time.Duration`. Omit → client deadline. `0` → no extra Kit deadline   |
+| Field              | Rules                                                                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Both or neither    | Rejected before the provider call. Field: `argv`                                                                                              |
+| Blank `shell`      | Rejected. Field: `shell`                                                                                                                      |
+| `workingDirectory` | Absolute path when set (`/workspace`). Relative, blank, or NUL → field `working_directory`                                                    |
+| `environment`      | Map for this call only. Omitted → provider default. Empty → add none (Daytona TS may coerce `{}` to omit)                                     |
+| `timeout`          | TypeScript: ms. Go: `time.Duration`. Omit → client deadline. `0` → no extra Kit deadline. TS abort rejects the await; remote may keep running |
 
 ### Provider mapping
 
@@ -43,10 +43,10 @@ Set **exactly one** of:
 
 <ForProvider id="modal">
 
-| Kit input                      | Modal                                                          |
-| ------------------------------ | -------------------------------------------------------------- |
-| `argv`                         | argv as-is                                                     |
-| `shell`                        | `bash -c`                                                      |
+| Kit input                      | Modal                                                                |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `argv`                         | argv as-is                                                           |
+| `shell`                        | `bash -c`                                                            |
 | omitted / zero timeout         | no command limit — TS omits `timeoutMs` (never `0`); Go `Timeout: 0` |
 | fractional seconds (`1500` ms) | rejected (`timeout`)                                                 |
 
@@ -61,7 +61,8 @@ Set **exactly one** of:
 | `stderr`                 | See provider note below          |
 
 <ForProvider id="daytona">
-  Daytona basic exec leaves `stderr` empty (Go: non-nil empty slice); stdout may include merged streams.
+  Daytona basic exec leaves `stderr` empty (Go: non-nil empty slice); stdout may
+  include merged streams.
 </ForProvider>
 
 <ForProvider id="modal">Modal collects both `stdout` and `stderr`.</ForProvider>
