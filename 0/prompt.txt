@@ -1,0 +1,31 @@
+you are really sdk builder and have specilization in sdk building
+
+lemme know whatever changes we have made in this branch is correct and we should publish it. 
+
+check if there are any bugs.
+
+so we can fix and publish. every thing u found out must have strong reason with proof and also u must confirm that with having provider + programming language sdks so its not lie.
+
+---
+
+fix it ? + this is server side sdk u know that ?
+
+---
+
+u sure about it right. ? validated againest both the providers ?
+
+---
+
+u earlier said its not just in process. if there is anywhere else too plz fix that in this branch only.
+
+---
+
+if there is obselete code with this changes u must remove it.
+
+---
+
+For the code present, we get this error:
+```
+Property 'run' does not exist on type 'RecordingBackend'.
+```
+Fix it, verify, and then give a concise explanation. @sdks/typescript/sandbox/src/client/client.test.ts:831-834
