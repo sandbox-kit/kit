@@ -23,3 +23,7 @@ For the code present, we get this error:
 Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.
 ```
 Fix it, verify, and then give a concise explanation. @examples/typescript/daytona/process/run-daytona-with-timeout/src/main.ts:7-10
+
+---
+
+commit and push to branch and update pr description with Diagrams.
