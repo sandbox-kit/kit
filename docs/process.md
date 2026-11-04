@@ -77,9 +77,11 @@ quirks:
 Cancel behavior:
 
 - **Go** — cancel or deadline on the context ends the wait and returns an
-  error.
+  error. The handle stays busy until that provider call returns.
 - **TypeScript** — abort rejects the `await`. The remote command may keep
-  running; Daytona and Modal exec do not take an `AbortSignal`.
+  running; Daytona and Modal exec do not take an `AbortSignal`. The handle
+  still stays busy until that provider call settles, so the next call on the
+  same handle does not overlap it.
 
 ```ts
 const result = await sandbox.process.run({

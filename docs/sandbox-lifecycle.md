@@ -74,12 +74,15 @@ the provider's exact value. `Terminal` is present when the provider reports
 that the sandbox is finished. A later lifecycle call still goes to the provider,
 and Kit returns that result.
 
-Each SDK serializes lifecycle transitions on one handle. This does not
-serialize a different handle or process referring to the same remote sandbox. A
-caller waiting behind an in-progress transition can still cancel its context or
-abort signal, or reach its deadline. Go forwards that context into the native
-SDK. TypeScript checks the abort signal before each native call, so a canceled
-operation does not start the next provider request.
+Each SDK serializes lifecycle transitions on one handle (with filesystem and
+process). This does not serialize a different handle or process referring to
+the same remote sandbox. A caller waiting behind an in-progress transition can
+still cancel its context or abort signal, or reach its deadline. Go forwards
+that context into the native SDK and keeps the handle busy until the provider
+call returns. TypeScript rejects the `await` on abort or deadline; Daytona and
+Modal often ignore `AbortSignal` mid-call, so the remote work may continue, but
+the handle stays busy until that provider call settles. A queued call that is
+canceled before it starts never reaches the provider.
 
 ## Provider support
 

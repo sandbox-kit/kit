@@ -15,8 +15,10 @@ Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 | Read metadata for one path    | `Stat`          | `stat`          |
 | Delete a file or directory    | `Remove`        | `remove`        |
 
-Calls on one handle run one at a time, including lifecycle calls. A second
-handle for the same sandbox does not wait.
+Calls on one handle run one at a time, including lifecycle and process. A
+second handle for the same sandbox does not wait. Abort or deadline rejects the
+TypeScript `await` (and ends the Go wait), but the handle stays busy until that
+provider call settles so the next call does not overlap it.
 
 ## Paths
 

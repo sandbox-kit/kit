@@ -13,7 +13,7 @@ import type {
   StatOptions,
 } from "#contracts/sandbox_data_contracts.js";
 import { ErrorKind, sandboxError, unsupported } from "#client/errors.js";
-import { awaitWithSignal, operationOptions } from "#client/operation.js";
+import { operationOptions } from "#client/operation.js";
 import type { Backend, OperationOptions } from "#client/types.js";
 
 type FileCall<T> = T & OperationOptions;
@@ -46,16 +46,12 @@ export class Filesystem {
     return this.#call("read_file", path, options, (signal) => {
       const method = this.host.backend.readFile;
       if (!method) unsupported(this.host.providerName, "read_file");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        requestFields(options),
+        operationOptions(options, signal),
       );
     });
   }
@@ -69,17 +65,13 @@ export class Filesystem {
     return this.#call("write_file", path, options, (signal) => {
       const method = this.host.backend.writeFile;
       if (!method) unsupported(this.host.providerName, "write_file");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            data,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        data,
+        requestFields(options),
+        operationOptions(options, signal),
       );
     });
   }
@@ -98,17 +90,13 @@ export class Filesystem {
       (signal) => {
         const method = this.host.backend.copyFromLocal;
         if (!method) unsupported(this.host.providerName, "copy_from_local");
-        return awaitWithSignal(
-          () =>
-            method.call(
-              this.host.backend,
-              this.host.id,
-              localPath,
-              remotePath,
-              requestFields(options),
-              operationOptions(options, signal),
-            ),
-          signal,
+        return method.call(
+          this.host.backend,
+          this.host.id,
+          localPath,
+          remotePath,
+          requestFields(options),
+          operationOptions(options, signal),
         );
       },
     );
@@ -132,17 +120,13 @@ export class Filesystem {
       (signal) => {
         const method = this.host.backend.copyToLocal;
         if (!method) unsupported(this.host.providerName, "copy_to_local");
-        return awaitWithSignal(
-          () =>
-            method.call(
-              this.host.backend,
-              this.host.id,
-              remotePath,
-              localPath,
-              requestFields(options),
-              operationOptions(options, signal),
-            ),
-          signal,
+        return method.call(
+          this.host.backend,
+          this.host.id,
+          remotePath,
+          localPath,
+          requestFields(options),
+          operationOptions(options, signal),
         );
       },
     );
@@ -160,16 +144,12 @@ export class Filesystem {
     return this.#call("make_directory", path, options, (signal) => {
       const method = this.host.backend.makeDirectory;
       if (!method) unsupported(this.host.providerName, "make_directory");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            directoryRequest(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        directoryRequest(options),
+        operationOptions(options, signal),
       );
     });
   }
@@ -182,16 +162,12 @@ export class Filesystem {
     return this.#call("list_directory", path, options, (signal) => {
       const method = this.host.backend.listDirectory;
       if (!method) unsupported(this.host.providerName, "list_directory");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        requestFields(options),
+        operationOptions(options, signal),
       );
     });
   }
@@ -201,16 +177,12 @@ export class Filesystem {
     return this.#call("stat", path, options, (signal) => {
       const method = this.host.backend.stat;
       if (!method) unsupported(this.host.providerName, "stat");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        requestFields(options),
+        operationOptions(options, signal),
       );
     });
   }
@@ -223,16 +195,12 @@ export class Filesystem {
     return this.#call("remove", path, options, (signal) => {
       const method = this.host.backend.remove;
       if (!method) unsupported(this.host.providerName, "remove");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            path,
-            removeRequest(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        path,
+        removeRequest(options),
+        operationOptions(options, signal),
       );
     });
   }

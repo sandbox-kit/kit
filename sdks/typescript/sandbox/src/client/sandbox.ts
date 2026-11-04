@@ -134,16 +134,13 @@ export class Sandbox implements AsyncDisposable {
       async (signal) => {
         const method = this.#backend.refresh;
         if (!method) unsupported(this.providerName, "refresh");
-        const info = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              operationOptions(options, signal),
-            ),
-          signal,
+        return this.#storeInfo(
+          await method.call(
+            this.#backend,
+            this.id,
+            operationOptions(options, signal),
+          ),
         );
-        return this.#storeInfo(info);
       },
     );
   }
@@ -208,17 +205,12 @@ export class Sandbox implements AsyncDisposable {
       async (signal) => {
         const method = this.#backend.terminate;
         if (!method) unsupported(this.providerName, "terminate");
-        const result = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              { ...request },
-              operationOptions(call, signal),
-            ),
-          signal,
+        return method.call(
+          this.#backend,
+          this.id,
+          { ...request },
+          operationOptions(call, signal),
         );
-        return result;
       },
     );
   }
@@ -258,16 +250,9 @@ export class Sandbox implements AsyncDisposable {
    * Closing a Daytona handle does not contact Daytona. Closing a Modal handle does not terminate the sandbox.
    */
   async close(options: OperationOptions = {}): Promise<void> {
-    await this.#serialized("close", options, this.#timeout, async (signal) => {
-      await awaitWithSignal(
-        () =>
-          this.#backend.closeSandbox(
-            this.id,
-            operationOptions(options, signal),
-          ),
-        signal,
-      );
-    });
+    await this.#serialized("close", options, this.#timeout, (signal) =>
+      this.#backend.closeSandbox(this.id, operationOptions(options, signal)),
+    );
   }
   async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
@@ -300,17 +285,14 @@ export class Sandbox implements AsyncDisposable {
       options.timeout ?? this.#timeout,
       async (signal) => {
         if (!method) unsupported(this.providerName, operation);
-        const info = await awaitWithSignal(
-          () =>
-            method.call(
-              this.#backend,
-              this.id,
-              { ...request },
-              operationOptions(options, signal),
-            ),
-          signal,
+        return this.#storeInfo(
+          await method.call(
+            this.#backend,
+            this.id,
+            { ...request },
+            operationOptions(options, signal),
+          ),
         );
-        return this.#storeInfo(info);
       },
     );
   }
@@ -320,6 +302,9 @@ export class Sandbox implements AsyncDisposable {
     this.#info = stored;
     return clone(stored);
   }
+  // One active provider call per handle. Abort/timeout still rejects the
+  // caller promptly (providers often ignore AbortSignal). The gate stays held
+  // until provider work settles so a follow-up call cannot overlap it.
   async #serialized<T>(
     operation: string,
     options: OperationOptions,
@@ -333,17 +318,26 @@ export class Sandbox implements AsyncDisposable {
     });
     let acquired = false;
     let scoped: ReturnType<typeof operationSignal> | undefined;
+    let work: Promise<T> | undefined;
     try {
       scoped = operationSignal(options, timeout);
-      await awaitWithSignal(() => previous, scoped.signal);
+      await awaitWithSignal(previous, scoped.signal);
       acquired = true;
-      return await body(scoped.signal);
+      work = body(scoped.signal);
+      // Race the already-started provider promise so abort rejects promptly
+      // without dropping that promise (unlock still waits on it below).
+      return await awaitWithSignal(work, scoped.signal);
     } catch (error) {
       throw withContext(error, this.providerName, operation);
     } finally {
       scoped?.dispose();
-      if (acquired) unlock();
-      else void previous.then(unlock, unlock);
+      if (!acquired) {
+        void previous.then(unlock, unlock);
+      } else {
+        // Do not await work here: that would delay abort/timeout rejection when
+        // the provider ignores the signal. Unlock when the native call settles.
+        void Promise.resolve(work).then(unlock, unlock);
+      }
     }
   }
 }

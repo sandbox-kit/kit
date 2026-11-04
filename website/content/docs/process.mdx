@@ -83,12 +83,14 @@ table above).
 
 <ForProvider id="daytona">
   Cancel the Go context to end the wait. In TypeScript, abort rejects the
-  `await`; the remote command may keep running.
+  `await`; the remote command may keep running. Either way the handle stays busy
+  until that provider call settles.
 </ForProvider>
 
 <ForProvider id="modal">
   Cancel the Go context to end the wait. In TypeScript, abort rejects the
-  `await`; the remote command may keep running.
+  `await`; the remote command may keep running. Either way the handle stays busy
+  until that provider call settles.
 </ForProvider>
 
 ## argv

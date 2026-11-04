@@ -42,7 +42,7 @@ Apps construct `Client` / `NewClient` with the chosen provider. Provider modules
 
 ## Concurrency
 
-Calls on one handle run one at a time (lifecycle, filesystem, and process). A second handle for the same sandbox id does not serialize with the first.
+Calls on one handle run one at a time (lifecycle, filesystem, and process). A second handle for the same sandbox id does not serialize with the first. Abort or deadline rejects the TypeScript `await` (and ends the Go wait), but the handle stays busy until that provider call settles.
 
 ## Close
 

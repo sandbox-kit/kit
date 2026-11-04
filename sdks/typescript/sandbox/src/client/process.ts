@@ -11,7 +11,7 @@ import type {
   ExecResult,
 } from "#contracts/sandbox_data_contracts.js";
 import { ErrorKind, sandboxError, unsupported } from "#client/errors.js";
-import { awaitWithSignal, operationOptions } from "#client/operation.js";
+import { operationOptions } from "#client/operation.js";
 import type { Backend, OperationOptions } from "#client/types.js";
 
 type ProcessCall = ExecOptions & OperationOptions;
@@ -45,15 +45,11 @@ export class Process {
     return this.host.run("run", options, (signal) => {
       const method = this.host.backend.run;
       if (!method) unsupported(this.host.providerName, "run");
-      return awaitWithSignal(
-        () =>
-          method.call(
-            this.host.backend,
-            this.host.id,
-            requestFields(options),
-            operationOptions(options, signal),
-          ),
-        signal,
+      return method.call(
+        this.host.backend,
+        this.host.id,
+        requestFields(options),
+        operationOptions(options, signal),
       );
     });
   }

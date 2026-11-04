@@ -18,6 +18,10 @@ Use `sandbox.filesystem` / `Filesystem()` on an open handle. Providers implement
 
 Prerequisite: [create](/docs/create) or [open](/docs/lifecycle) a sandbox.
 
+Calls on one handle run one at a time with lifecycle and process. Abort or
+deadline rejects the TypeScript `await` (and ends the Go wait), but the handle
+stays busy until that provider call settles.
+
 ## Paths and bytes
 
 | Path kind    | Rule                                                         | Error field  |

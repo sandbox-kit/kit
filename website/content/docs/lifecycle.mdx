@@ -14,6 +14,10 @@ Operate on a handle from `create`, or open one by id. Switch Daytona or Modal ab
 
 Check support with `supports` / `Supports` (`LifecycleCapability*` in Go). Unsupported ops fail before the provider call. Daytona may still reject a supported op for a given sandbox.
 
+Calls on one handle run one at a time with filesystem and process. Abort or
+deadline rejects the TypeScript `await` (and ends the Go wait), but the handle
+stays busy until that provider call settles.
+
 Snippets assume a constructed `client` ([Daytona](/docs/daytona) / [Modal](/docs/modal)).
 
 ## Open a sandbox
