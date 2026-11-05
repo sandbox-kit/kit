@@ -1,6 +1,6 @@
 ---
 title: Concepts
-description: Client, sandbox handle, providers, capabilities, and close.
+description: Client, handle, filesystem, process, providers, concurrency, and close.
 ---
 
 Sandbox Kit is an SDK. You construct a client with a provider and config; the client calls that provider for create, lifecycle, filesystem, and process work. Application code stays on the shared client surface.
@@ -130,11 +130,6 @@ const sandbox = await client.create({
   source: { image: { reference: "daytonaio/playground:latest" } },
 });
 console.log(sandbox.id);
-
-await sandbox.filesystem.writeFile("/tmp/note.txt", data);
-const result = await sandbox.process.run({ argv: ["echo", "hi"] });
-// result: { exitCode, stdout, stderr }
-console.log(result);
 ```
 
 </ForProvider>
@@ -146,11 +141,6 @@ const sandbox = await client.create({
   source: { image: { reference: "alpine:3.21" } },
 });
 console.log(sandbox.id);
-
-await sandbox.filesystem.writeFile("/tmp/note.txt", data);
-const result = await sandbox.process.run({ argv: ["echo", "hi"] });
-// result: { exitCode, stdout, stderr }
-console.log(result);
 ```
 
 </ForProvider>
@@ -170,16 +160,6 @@ if err != nil {
 	return err
 }
 fmt.Println(instance.ID())
-
-err = instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", data, nil)
-result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hi"},
-})
-if err != nil {
-	return err
-}
-// result: ExitCode, Stdout, Stderr
-fmt.Println(result)
 ```
 
 </ForProvider>
@@ -196,10 +176,74 @@ if err != nil {
 	return err
 }
 fmt.Println(instance.ID())
+```
 
-err = instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", data, nil)
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+## Filesystem
+
+Sandbox paths are absolute. Write, read, copy, list, and remove go through the handle. More: [Filesystem](/docs/filesystem).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const body = new TextEncoder().encode("hello from kit\n");
+await sandbox.filesystem.writeFile("/tmp/note.txt", body);
+
+const bytes = await sandbox.filesystem.readFile("/tmp/note.txt");
+console.log(new TextDecoder().decode(bytes));
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+err = instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", []byte("hello from kit\n"), nil)
+if err != nil {
+	return err
+}
+
+data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
+if err != nil {
+	return err
+}
+fmt.Printf("%s", data)
+```
+
+  </Tab>
+</Tabs>
+
+## Process
+
+Run one command and wait for it to finish. A non-zero exit code is **not** an SDK error—check `exitCode` yourself. More: [Process](/docs/process).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello from kit"],
+  workingDirectory: "/tmp",
+  environment: { KIT_DEMO: "from-kit" },
+  timeout: 5_000,
+});
+// result: { exitCode, stdout, stderr }
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hi"},
+	Argv:             []string{"echo", "hello from kit"},
+	WorkingDirectory: sandbox.Value("/tmp"),
+	Environment:      map[string]string{"KIT_DEMO": "from-kit"},
+	Timeout:          sandbox.Duration(5 * time.Second),
 })
 if err != nil {
 	return err
@@ -207,8 +251,6 @@ if err != nil {
 // result: ExitCode, Stdout, Stderr
 fmt.Println(result)
 ```
-
-</ForProvider>
 
   </Tab>
 </Tabs>
@@ -318,6 +360,8 @@ Unsupported calls fail before anything reaches the cloud. The cloud can still re
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
+<ForProvider id="daytona">
+
 ```ts
 import { LifecycleCapability } from "@sandbox-kit/sandbox";
 
@@ -326,8 +370,24 @@ if (!sandbox.supports(LifecycleCapability.Stop)) {
 }
 ```
 
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+import { LifecycleCapability } from "@sandbox-kit/sandbox";
+
+if (!sandbox.supports(LifecycleCapability.Terminate)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be terminated`);
+}
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
+
+<ForProvider id="daytona">
 
 ```go
 import "github.com/sandbox-kit/kit/sdks/go/sandbox"
@@ -337,42 +397,160 @@ if !instance.Supports(sandbox.LifecycleCapabilityStop) {
 }
 ```
 
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
+if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
+	return fmt.Errorf("sandbox %s cannot be terminated", instance.ID())
+}
+```
+
+</ForProvider>
+
   </Tab>
 </Tabs>
 
 ## Concurrency
 
-Calls on one handle run one at a time. A second handle for the same sandbox id does not share that queue.
+Calls on **one handle** run one at a time. Starting two awaits does not overlap them—the second waits until the first settles. Abort or cancel rejects your wait promptly; the handle stays busy until the provider call finishes. A second handle for the same sandbox id has its own queue, so those calls can run together.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
 ```ts
+// Queued on one handle — `two` starts only after `one` finishes.
+const one = sandbox.process.run({ argv: ["echo", "one"] });
+const two = sandbox.process.run({ argv: ["echo", "two"] });
+const [first, second] = await Promise.all([one, two]);
+console.log(first, second);
+
+// Abort ends the wait; the handle stays busy until the provider call settles.
 const ac = new AbortController();
 const pending = sandbox.process.run({
   argv: ["sleep", "30"],
   signal: ac.signal,
 });
-ac.abort(); // rejects the await; handle stays busy until the in-flight call finishes
+ac.abort();
 await pending.catch(() => {});
 ```
+
+<ForProvider id="daytona">
+
+```ts
+// Parallel work: another handle for the same id has its own queue.
+const other = await client.get(sandbox.id);
+await Promise.all([
+  sandbox.process.run({ argv: ["echo", "a"] }),
+  other.process.run({ argv: ["echo", "b"] }),
+]);
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+// Parallel work: another handle for the same id has its own queue.
+const other = await client.attach(sandbox.id);
+await Promise.all([
+  sandbox.process.run({ argv: ["echo", "a"] }),
+  other.process.run({ argv: ["echo", "b"] }),
+]);
+```
+
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
 
 ```go
-ctx, cancel := context.WithCancel(ctx)
-defer cancel()
+// Two goroutines still serialize on one handle — the second waits for the first.
+errCh := make(chan error, 2)
+go func() {
+	_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+		Argv: []string{"echo", "one"},
+	})
+	errCh <- err
+}()
+go func() {
+	_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+		Argv: []string{"echo", "two"},
+	})
+	errCh <- err
+}()
+for range 2 {
+	if err := <-errCh; err != nil {
+		return err
+	}
+}
 
+// Cancel ends the wait; the handle stays busy until the provider call settles.
+runCtx, cancel := context.WithCancel(ctx)
+defer cancel()
 go func() {
 	time.Sleep(10 * time.Millisecond)
-	cancel() // ends the wait; handle stays busy until the in-flight call finishes
+	cancel()
 }()
-
-_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+_, _ = instance.Process().Run(runCtx, &sandbox.ExecOptions{
 	Argv: []string{"sleep", "30"},
 })
 ```
+
+<ForProvider id="daytona">
+
+```go
+// Parallel work: another handle for the same id has its own queue.
+other, err := client.Get(ctx, instance.ID())
+if err != nil {
+	return err
+}
+errCh = make(chan error, 2)
+go func() {
+	_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "a"}})
+	errCh <- err
+}()
+go func() {
+	_, err := other.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "b"}})
+	errCh <- err
+}()
+for range 2 {
+	if err := <-errCh; err != nil {
+		return err
+	}
+}
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+// Parallel work: another handle for the same id has its own queue.
+other, err := client.Attach(ctx, instance.ID())
+if err != nil {
+	return err
+}
+errCh = make(chan error, 2)
+go func() {
+	_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "a"}})
+	errCh <- err
+}()
+go func() {
+	_, err := other.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "b"}})
+	errCh <- err
+}()
+for range 2 {
+	if err := <-errCh; err != nil {
+		return err
+	}
+}
+```
+
+</ForProvider>
 
   </Tab>
 </Tabs>
@@ -404,8 +582,6 @@ _ = instance.Close(context.Background()) // local handle resources only
 
 Kinds, field paths, and handling: [Errors](/docs/errors).
 
-## API surface
+## SDK reference
 
-Types, methods, parameters, and return values: [API reference](/docs/api) ([Client](/docs/api/client), [Sandbox](/docs/api/sandbox), [Filesystem](/docs/api/filesystem), [Process](/docs/api/process)).
-
-Streaming I/O, interactive sessions, PTY, GPU, resize, and browsers are outside this SDK.
+Types, methods, parameters, and return values: [SDK reference](/docs/sdk) ([Client](/docs/sdk/client), [Sandbox](/docs/sdk/sandbox), [Filesystem](/docs/sdk/filesystem), [Process](/docs/sdk/process)).

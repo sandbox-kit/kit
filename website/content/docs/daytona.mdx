@@ -98,7 +98,7 @@ Omit `auth` to let the Daytona SDK pick credentials from its environment. Closin
 
 | Setting      | Field                    |
 | ------------ | ------------------------ |
-| API URL      | `endpoint`               |
+| Endpoint     | `endpoint`               |
 | Target       | `region`                 |
 | Organization | `scope.organizationId`   |
 | Bearer token | `auth.bearerToken.token` |
@@ -130,7 +130,7 @@ await using client = new Client({
 
 | Setting      | Field                  |
 | ------------ | ---------------------- |
-| API URL      | `Config.Endpoint`      |
+| Endpoint     | `Config.Endpoint`      |
 | Target       | `Config.Region`        |
 | Organization | `Scope.OrganizationId` |
 | Bearer token | `BearerToken`          |
@@ -168,7 +168,7 @@ client, err := sandbox.NewClient(daytona.New(), config)
   </Tab>
 </Tabs>
 
-Default API URL: `https://app.daytona.io/api`. Remote URLs need HTTPS; HTTP is allowed for localhost. Bearer tokens need an organization id. Full rules: [Configuration](/docs/configuration).
+Default endpoint: `https://app.daytona.io/api`. Remote URLs need HTTPS; HTTP is allowed for localhost. Bearer tokens need an organization id. Full rules: [Configuration](/docs/configuration).
 
 ## What works
 
@@ -190,12 +190,12 @@ CPU is whole cores. Memory and disk are whole GiB expressed as MiB. Resource ove
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-Sample: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)
+Example: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)
 
   </Tab>
   <Tab value="Go">
 
-Sample: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)
+Example: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)
 
   </Tab>
 </Tabs>

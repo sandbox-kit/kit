@@ -396,7 +396,7 @@ A linked sandbox must be ephemeral; Kit rejects the request otherwise.
 
 Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` (`After` / `Disabled`). You cannot combine a positive stop delay with a positive pause delay.
 
-Samples: [Examples](/docs/examples).
+See [Examples](/docs/examples).
 
 </ForProvider>
 
@@ -404,7 +404,7 @@ Samples: [Examples](/docs/examples).
 
 Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
 
-Disk size, an API endpoint override, and stop / pause / archive / delete policies are rejected.
+Disk size, an endpoint override, and stop / pause / archive / delete policies are rejected.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -454,7 +454,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
   </Tab>
 </Tabs>
 
-Samples: [Examples](/docs/examples).
+See [Examples](/docs/examples).
 
 </ForProvider>
 

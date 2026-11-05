@@ -20,7 +20,7 @@ Validates config and initializes the selected provider. Throws on invalid config
 
 | Name     | Type                                      | Description                                                                      |
 | -------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
-| `config` | [`ClientConfig`](/docs/api/configuration) | Provider plus shared settings (`auth`, `scope`, `endpoint`, `region`, `timeout`) |
+| `config` | [`ClientConfig`](/docs/sdk/configuration) | Provider plus shared settings (`auth`, `scope`, `endpoint`, `region`, `timeout`) |
 
 **Returns**
 
@@ -53,7 +53,7 @@ Validates config and initializes the provider. Invalid config returns a nil clie
 | Name       | Type                                 | Description                                                        |
 | ---------- | ------------------------------------ | ------------------------------------------------------------------ |
 | `provider` | `Provider`                           | Provider constructor from a provider package                       |
-| `config`   | [`*Config`](/docs/api/configuration) | Shared settings (`Auth`, `Scope`, `Endpoint`, `Region`, `Timeout`) |
+| `config`   | [`*Config`](/docs/sdk/configuration) | Shared settings (`Auth`, `Scope`, `Endpoint`, `Region`, `Timeout`) |
 
 **Returns**
 
@@ -110,12 +110,12 @@ Creates one sandbox and returns its handle. Omit the request (or pass `{}`) to u
 
 | Name       | Type                                                      | Description                                         |
 | ---------- | --------------------------------------------------------- | --------------------------------------------------- |
-| `request?` | [`CreateOptions`](/docs/api/create-options)               | Create body. Omitted fields keep provider defaults. |
-| `options?` | [`OperationOptions`](/docs/api/sandbox#operation-options) | Call `timeout` (ms) and optional `signal`           |
+| `request?` | [`CreateOptions`](/docs/sdk/create-options)               | Create body. Omitted fields keep provider defaults. |
+| `options?` | [`OperationOptions`](/docs/sdk/sandbox#operation-options) | Call `timeout` (ms) and optional `signal`           |
 
 **Returns**
 
-`Promise<`[`Sandbox`](/docs/api/sandbox)`>` — handle for the new sandbox
+`Promise<`[`Sandbox`](/docs/sdk/sandbox)`>` — handle for the new sandbox
 
 **Example**
 
@@ -157,7 +157,7 @@ Creates one sandbox and returns its handle. A nil request uses provider defaults
 | Name      | Type                                         | Description                   |
 | --------- | -------------------------------------------- | ----------------------------- |
 | `ctx`     | `context.Context`                            | Cancellation and deadline     |
-| `request` | [`*CreateOptions`](/docs/api/create-options) | Create body; nil for defaults |
+| `request` | [`*CreateOptions`](/docs/sdk/create-options) | Create body; nil for defaults |
 
 **Returns**
 

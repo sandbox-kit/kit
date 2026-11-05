@@ -3,7 +3,7 @@ title: CreateOptions
 description: Create request body and nested option types.
 ---
 
-Request body for [`Client.create`](/docs/api/client#create). Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
+Request body for [`Client.create`](/docs/sdk/client#create). Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
 
 ## CreateOptions
 
@@ -330,7 +330,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 
 | Field   | Description                                                                   |
 | ------- | ----------------------------------------------------------------------------- |
-| `mode`  | [`PolicyMode`](/docs/api/enums#policymode): `Default`, `Disabled`, or `After` |
+| `mode`  | [`PolicyMode`](/docs/sdk/enums#policymode): `Default`, `Disabled`, or `After` |
 | `after` | Delay when mode is `After`. Zero means immediate, not disabled.               |
 
   </Tab>
@@ -338,7 +338,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 
 | Field   | Description                                                                   |
 | ------- | ----------------------------------------------------------------------------- |
-| `Mode`  | [`PolicyMode`](/docs/api/enums#policymode): `Default`, `Disabled`, or `After` |
+| `Mode`  | [`PolicyMode`](/docs/sdk/enums#policymode): `Default`, `Disabled`, or `After` |
 | `After` | Delay when mode is `After`. Zero means immediate, not disabled.               |
 
   </Tab>
@@ -353,7 +353,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | -------------- | ----------------------------------------------------------------- |
 | `timeout`      | Deadline for the create call                                      |
 | `queueTimeout` | How long creation may sit in a queue                              |
-| `waitFor`      | [`WaitCondition`](/docs/api/enums#waitcondition) before returning |
+| `waitFor`      | [`WaitCondition`](/docs/sdk/enums#waitcondition) before returning |
 
 <ForProvider id="daytona">
   `timeout` must be whole seconds. Omit or `0` still leaves Daytona's **60s**
@@ -373,7 +373,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | -------------- | ----------------------------------------------------------------- |
 | `Timeout`      | Deadline for the create call                                      |
 | `QueueTimeout` | How long creation may sit in a queue                              |
-| `WaitFor`      | [`WaitCondition`](/docs/api/enums#waitcondition) before returning |
+| `WaitFor`      | [`WaitCondition`](/docs/sdk/enums#waitcondition) before returning |
 
 <ForProvider id="daytona">
   `Timeout` must be whole seconds. Omit or zero still leaves Daytona's **60s**
@@ -419,7 +419,7 @@ Set either a TCP port or a command.
 
 | Field              | Description                                                 |
 | ------------------ | ----------------------------------------------------------- |
-| `egress`           | [`EgressMode`](/docs/api/enums#egressmode)                  |
+| `egress`           | [`EgressMode`](/docs/sdk/enums#egressmode)                  |
 | `outboundCidrs`    | Outbound CIDR allowlist. Present empty list means deny-all. |
 | `outboundDomains`  | Outbound domain allowlist                                   |
 | `inboundCidrs`     | Inbound CIDR allowlist                                      |
@@ -435,7 +435,7 @@ Set either a TCP port or a command.
 
 | Field              | Description                                                 |
 | ------------------ | ----------------------------------------------------------- |
-| `Egress`           | [`EgressMode`](/docs/api/enums#egressmode)                  |
+| `Egress`           | [`EgressMode`](/docs/sdk/enums#egressmode)                  |
 | `OutboundCidrs`    | Outbound CIDR allowlist. Present empty list means deny-all. |
 | `OutboundDomains`  | Outbound domain allowlist                                   |
 | `InboundCidrs`     | Inbound CIDR allowlist                                      |

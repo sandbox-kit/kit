@@ -3,7 +3,7 @@ title: Client config
 description: ClientConfig, Config, auth credentials, and Scope.
 ---
 
-Passed at client construction. Credentials are checked on the first provider call, not at construction. Do not log the config object—it holds secrets.
+Passed at client construction. Credentials are checked on the first provider call, not at construction.
 
 ## Config
 
@@ -26,7 +26,7 @@ type Config = {
 | ----------- | -------------------- | ---------------------------------------------------------------------- |
 | `provider`  | `Provider`           | Provider constructor from a provider package                           |
 | `auth?`     | [`AuthInput`](#auth) | Credential set. Omit to use env/profile credentials from the provider. |
-| `endpoint?` | `string`             | API base URL override. Remote URLs must be HTTPS.                      |
+| `endpoint?` | `string`             | Provider endpoint URL override. Remote URLs must be HTTPS.             |
 | `region?`   | `string`             | Default region or target preference                                    |
 | `scope?`    | [`Scope`](#scope)    | App, environment, organization, or project                             |
 | `timeout?`  | `number`             | Default deadline (ms) for calls that omit their own timeout            |
@@ -65,7 +65,7 @@ Pass `config` to `NewClient(provider, config)`.
 | Field      | Description                                                         |
 | ---------- | ------------------------------------------------------------------- |
 | `Auth`     | Credential set. Nil uses env/profile credentials from the provider. |
-| `Endpoint` | API base URL override                                               |
+| `Endpoint` | Provider endpoint URL override                                      |
 | `Region`   | Default region or target preference                                 |
 | `Scope`    | App, environment, organization, or project                          |
 | `Timeout`  | Default client deadline via `sandbox.Duration`                      |
@@ -114,7 +114,7 @@ type AuthInput =
 
 | Variant        | Description                                         |
 | -------------- | --------------------------------------------------- |
-| `apiKey`       | Single API key string                               |
+| `apiKey`       | Single key string                                   |
 | `tokenPair`    | Id and secret pair                                  |
 | `bearerToken`  | Bearer or JWT token                                 |
 | `oauthRefresh` | Refresh token plus client id and one secret/JWT key |
@@ -134,7 +134,7 @@ type AuthInput =
 
 | Variant        | Description                                         |
 | -------------- | --------------------------------------------------- |
-| `APIKey`       | Single API key string                               |
+| `APIKey`       | Single key string                                   |
 | `TokenPair`    | Id and secret pair                                  |
 | `BearerToken`  | Bearer or JWT token                                 |
 | `OAuthRefresh` | Refresh token plus client id and one secret/JWT key |

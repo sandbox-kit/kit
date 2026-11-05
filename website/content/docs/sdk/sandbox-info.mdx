@@ -7,10 +7,10 @@ Returned by info and many lifecycle methods. Values are a **copy**; mutating the
 
 <Note>
   <ForLanguage id="typescript">
-    From [`sandbox.info()`](/docs/api/sandbox#read-metadata).
+    From [`sandbox.info()`](/docs/sdk/sandbox#read-metadata).
   </ForLanguage>
   <ForLanguage id="go">
-    From [`instance.Info()`](/docs/api/sandbox#read-metadata).
+    From [`instance.Info()`](/docs/sdk/sandbox#read-metadata).
   </ForLanguage>
 </Note>
 
@@ -31,7 +31,7 @@ Returned by info and many lifecycle methods. Values are a **copy**; mutating the
 | `labels`           | Labels when reported                                    |
 | `createdAt`        | Creation time when reported                             |
 | `providerMetadata` | Extra provider metadata object                          |
-| `state`            | Portable [`SandboxState`](/docs/api/enums#sandboxstate) |
+| `state`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate) |
 | `terminal`         | Whether the lifecycle is permanently complete           |
 
 **Example**
@@ -58,7 +58,7 @@ console.log(info);
 | `Labels`           | Labels when reported                                    |
 | `CreatedAt`        | Creation time when reported                             |
 | `ProviderMetadata` | Extra provider metadata object                          |
-| `State`            | Portable [`SandboxState`](/docs/api/enums#sandboxstate) |
+| `State`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate) |
 | `Terminal`         | Whether the lifecycle is permanently complete           |
 
 **Example**

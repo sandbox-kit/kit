@@ -43,7 +43,7 @@ if err != nil {
 | `provider` | Provider constructor                                                                        |
 | `auth`     | One of `apiKey`, `tokenPair`, `bearerToken`, `oauthRefresh`. Omit to use provider env creds |
 | `scope`    | App, environment, or organization                                                           |
-| `endpoint` | API base URL override                                                                       |
+| `endpoint` | Provider endpoint URL override                                                              |
 | `region`   | Target / default placement                                                                  |
 | `timeout`  | Default deadline for calls that omit their own                                              |
 
@@ -168,7 +168,7 @@ client, err := sandbox.NewClient(modal.New(), config)
 
 | Setting      | What to pass                                      |
 | ------------ | ------------------------------------------------- |
-| API key      | `auth.apiKey.key`                                 |
+| `apiKey`     | `auth.apiKey.key`                                 |
 | Bearer token | `auth.bearerToken.token`, plus an organization id |
 | Endpoint     | `endpoint`. Default `https://app.daytona.io/api`  |
 | Target       | `region`. Omit for the default target             |
@@ -190,7 +190,7 @@ await using client = new Client({
 
 | Setting      | What to pass                                            |
 | ------------ | ------------------------------------------------------- |
-| API key      | `APIKey`                                                |
+| `APIKey`     | `APIKey`                                                |
 | Bearer token | `BearerToken`, plus an organization id                  |
 | Endpoint     | `Config.Endpoint`. Default `https://app.daytona.io/api` |
 | Target       | `Config.Region`. Omit for the default target            |
@@ -386,7 +386,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 ## Credentials
 
-Do not log the config object—it holds secrets. Construction does not contact the provider. Bad credentials fail on the first create or open. See [Errors](/docs/errors).
+Construction does not contact the provider. Bad credentials fail on the first create or open. See [Errors](/docs/errors).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -402,8 +402,6 @@ const config = {
 
 await using client = new Client(config);
 ```
-
-Keep secrets out of logs—do not `JSON.stringify(config)`.
 
 </ForProvider>
 
@@ -425,8 +423,6 @@ const config = {
 await using client = new Client(config);
 ```
 
-Keep secrets out of logs—do not `JSON.stringify(config)`.
-
 </ForProvider>
 
   </Tab>
@@ -443,8 +439,6 @@ config := &sandbox.Config{
 }
 client, err := sandbox.NewClient(daytona.New(), config)
 ```
-
-Keep secrets out of logs—do not `fmt.Printf("%+v", config)`.
 
 </ForProvider>
 
@@ -466,8 +460,6 @@ config := &sandbox.Config{
 }
 client, err := sandbox.NewClient(modal.New(), config)
 ```
-
-Keep secrets out of logs—do not `fmt.Printf("%+v", config)`.
 
 </ForProvider>
 

@@ -3,7 +3,7 @@ title: Sandbox
 description: Handle for one sandbox — lifecycle, info, filesystem, and process.
 ---
 
-Handle from [`Client.create`](/docs/api/client#create), [`get`](/docs/api/client#get), or [`attach`](/docs/api/client#attach). Lifecycle methods that return info also update the handle. `close` only drops local resources—the cloud sandbox keeps running. Call `supports` before a lifecycle method that might be unavailable.
+Handle from [`Client.create`](/docs/sdk/client#create), [`get`](/docs/sdk/client#get), or [`attach`](/docs/sdk/client#attach). Lifecycle methods that return info also update the handle. `close` only drops local resources—the cloud sandbox keeps running. Call `supports` before a lifecycle method that might be unavailable.
 
 ## Properties
 
@@ -14,8 +14,8 @@ Handle from [`Client.create`](/docs/api/client#create), [`get`](/docs/api/client
 | -------------- | ------------------------------------ | -------------------------------- |
 | `id`           | `string`                             | Sandbox identifier               |
 | `providerName` | `string`                             | Provider that owns this sandbox  |
-| `filesystem`   | [`Filesystem`](/docs/api/filesystem) | File operations for this sandbox |
-| `process`      | [`Process`](/docs/api/process)       | Command runner for this sandbox  |
+| `filesystem`   | [`Filesystem`](/docs/sdk/filesystem) | File operations for this sandbox |
+| `process`      | [`Process`](/docs/sdk/process)       | Command runner for this sandbox  |
 
   </Tab>
   <Tab value="Go">
@@ -45,7 +45,7 @@ Returns a **copy** of current metadata. Mutating it does not change the handle.
 
 **Returns**
 
-[`SandboxInfo`](/docs/api/sandbox-info)
+[`SandboxInfo`](/docs/sdk/sandbox-info)
 
 **Example**
 
@@ -67,7 +67,7 @@ Returns a **copy** of current metadata. Mutating it does not change the handle.
 
 **Returns**
 
-[`*SandboxInfo`](/docs/api/sandbox-info)
+[`*SandboxInfo`](/docs/sdk/sandbox-info)
 
 **Example**
 
@@ -97,7 +97,7 @@ Lists lifecycle operations this handle can attempt, or checks one. File and proc
 
 | Name         | Type                                                         | Description                                 |
 | ------------ | ------------------------------------------------------------ | ------------------------------------------- |
-| `capability` | [`LifecycleCapability`](/docs/api/enums#lifecyclecapability) | Capability to test (`Stop`, `Terminate`, …) |
+| `capability` | [`LifecycleCapability`](/docs/sdk/enums#lifecyclecapability) | Capability to test (`Stop`, `Terminate`, …) |
 
 **Returns**
 
@@ -139,7 +139,7 @@ Lists lifecycle operations this handle can attempt, or checks one.
 
 | Name         | Type                                                         | Description        |
 | ------------ | ------------------------------------------------------------ | ------------------ |
-| `capability` | [`LifecycleCapability`](/docs/api/enums#lifecyclecapability) | Capability to test |
+| `capability` | [`LifecycleCapability`](/docs/sdk/enums#lifecyclecapability) | Capability to test |
 
 **Returns**
 
