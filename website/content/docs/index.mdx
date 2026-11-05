@@ -3,18 +3,24 @@ title: Quickstart
 description: Install Sandbox Kit, create a sandbox, run a command, and write a file.
 ---
 
-Sandbox Kit is a lightweight TypeScript and Go SDK for cloud sandboxes. The core package defines the client; providers plug in as separate packages. Install both, construct a client, then create or open sandboxes.
+Sandbox Kit is an SDK for cloud sandboxes. Install the core package and a provider, create a sandbox, then run commands and read files through the same client.
 
-| Requirement | Version                   |
-| ----------- | ------------------------- |
-| TypeScript  | Node.js 20, 22, or 24.15+ |
-| Go          | Go 1.26.0+                |
+Use the language tabs and the provider control to switch snippets. Your choices stick in the browser.
 
-Language tabs and the Daytona / Modal menu keep your picks in the browser. The menu switches install snippets, create samples, and provider notes.
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Requires Node.js 20, 22, or 24.15+.
+
+  </Tab>
+  <Tab value="Go">
+
+Requires Go 1.26.0+.
+
+  </Tab>
+</Tabs>
 
 ## 1. Install
-
-Install the core package and a provider.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -61,10 +67,10 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 
 ## 2. Create a sandbox
 
-<ForProvider id="daytona">Set `DAYTONA_API_KEY`, then run:</ForProvider>
+<ForProvider id="daytona">Set `DAYTONA_API_KEY`, then:</ForProvider>
 
 <ForProvider id="modal">
-  Set a Modal token pair and app name (see [Modal](/docs/modal)), then run:
+  Set a Modal token pair and app name ([Modal](/docs/modal)), then:
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
@@ -210,7 +216,10 @@ func main() {
   </Tab>
 </Tabs>
 
-Provider setup details: [Daytona](/docs/daytona) · [Modal](/docs/modal).
+<ForProvider id="daytona">
+  Provider setup: [Daytona](/docs/daytona).
+</ForProvider>
+<ForProvider id="modal">Provider setup: [Modal](/docs/modal).</ForProvider>
 
 ## 3. Run a command
 
@@ -248,7 +257,7 @@ fmt.Println(result.GetExitCode(), string(result.GetStdout()))
   </Tab>
 </Tabs>
 
-A non-zero exit code is not an SDK error. Check `exitCode` / `exit_code` yourself. Details: [Run a command](/docs/process).
+A non-zero exit code is not an SDK error—check `exitCode` yourself. More options: [Run a command](/docs/process).
 
 ## 4. Write a file
 
@@ -279,20 +288,20 @@ err = instance.Filesystem().WriteFile(
   </Tab>
 </Tabs>
 
-Paths inside the sandbox are absolute. Details: [Filesystem](/docs/filesystem).
+Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 
 <Callout title="Close does not stop the sandbox">
-  `client.close()` / `Client.Close` and handle `close` release local resources
-  only. The cloud sandbox keeps running until you stop, terminate, archive,
-  delete, or a lifetime policy fires. See [Concepts](/docs/concepts).
+  `client.close()` and handle `close` only release local resources. The cloud
+  sandbox keeps running until you stop, terminate, archive, delete, or a
+  lifetime policy ends it. See [Concepts](/docs/concepts).
 </Callout>
 
 ## Next
 
-| Task                                | Page                                 |
-| ----------------------------------- | ------------------------------------ |
-| Client, handle, and close semantics | [Concepts](/docs/concepts)           |
-| Daytona setup                       | [Daytona](/docs/daytona)             |
-| Modal setup                         | [Modal](/docs/modal)                 |
-| Auth, timeout, region, scope        | [Configuration](/docs/configuration) |
-| Runnable projects                   | [Examples](/docs/examples)           |
+|                          |                                      |
+| ------------------------ | ------------------------------------ |
+| How the client works     | [Concepts](/docs/concepts)           |
+| Daytona setup            | [Daytona](/docs/daytona)             |
+| Modal setup              | [Modal](/docs/modal)                 |
+| Auth, region, timeouts   | [Configuration](/docs/configuration) |
+| Runnable sample projects | [Examples](/docs/examples)           |

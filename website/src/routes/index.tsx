@@ -3,8 +3,10 @@ import { HomeLayout } from "fumadocs-ui/layouts/home";
 import { HomeCodeSample } from "@/components/home-code-sample";
 import { baseOptions } from "@/lib/layout.shared";
 import { assetUrl } from "@/lib/shared";
+import { siteSocialHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
+  head: () => siteSocialHead(),
   component: Home,
 });
 
@@ -41,8 +43,8 @@ function Home() {
               Sandbox Kit
             </h1>
             <p className="mt-3 max-w-md text-[clamp(0.85rem,1.4vw,1.125rem)] leading-relaxed text-fd-muted-foreground sm:mt-4 min-[700px]:mt-5">
-              Lightweight TypeScript and Go SDK for cloud sandboxes. Plug in a
-              provider—one client for create, files, and commands.
+              SDK for cloud sandboxes in TypeScript or Go. Plug in a provider;
+              the client talks to it for create, files, and commands.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3 sm:mt-6 min-[700px]:mt-8">
               <Link
@@ -61,13 +63,13 @@ function Home() {
               </Link>
             </div>
             <p className="mt-5 hidden font-mono text-[11px] tracking-wide text-fd-muted-foreground uppercase min-[700px]:mt-8 min-[700px]:block">
-              Daytona · Modal · your provider next
+              One client · many providers
             </p>
           </section>
 
           <section className="home-sample flex min-h-0 min-w-0 flex-col justify-center min-[700px]:ps-2">
             <p className="mb-2 shrink-0 font-mono text-[11px] tracking-wide text-fd-muted-foreground uppercase">
-              Same call shape on every provider
+              Create, then run
             </p>
             <div className="min-h-0 w-full shrink">
               <HomeCodeSample />

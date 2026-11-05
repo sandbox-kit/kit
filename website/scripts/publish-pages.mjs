@@ -12,15 +12,17 @@ const paths = [
   "/llms-full.txt",
   ...docFiles
     .filter((name) => name.endsWith(".mdx"))
-    .flatMap((name) => {
+    .map((name) => {
       const slug = name.replace(/\.mdx$/, "");
       const page = slug === "index" ? "" : `/${slug}`;
-      return [`/docs${page === "" ? "/index.md" : `${page}.md`}`, `/og/docs${page}/image.webp`];
+      return `/docs${page === "" ? "/index.md" : `${page}.md`}`;
     }),
 ];
 
 for (const path of paths) {
-  const response = await server.fetch(new Request(`http://localhost${base}${path}`));
+  const response = await server.fetch(
+    new Request(`http://localhost${base}${path}`),
+  );
   if (!response.ok) {
     throw new Error(`${path} returned ${response.status}`);
   }

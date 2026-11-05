@@ -1,6 +1,6 @@
-# Sandbox Kit docs site
+# Docs site
 
-User guide for the Sandbox Kit SDK—a lightweight, provider-pluggable client for cloud sandboxes. Fumadocs + TanStack Start. Source pages: `content/docs`.
+Fumadocs + TanStack Start site for the Sandbox Kit SDK user guide. Pages live in `content/docs`.
 
 ```sh
 npm install
@@ -13,16 +13,6 @@ Open http://localhost:3000.
 npm run build:pages
 ```
 
-GitHub Actions publishes from `main` to https://sandbox-kit.github.io/kit/. Set Pages to deploy from GitHub Actions.
+GitHub Actions deploys `main` to https://sandbox-kit.github.io/kit/. Set Pages to deploy from GitHub Actions.
 
-## Structure
-
-| Section    | Pages                                                                     |
-| ---------- | ------------------------------------------------------------------------- |
-| Quickstart | `index`                                                                   |
-| Concepts   | `concepts`                                                                |
-| Providers  | `daytona`, `modal`                                                        |
-| Guides     | `configuration`, `create`, `lifecycle`, `filesystem`, `process`, `errors` |
-| Examples   | `examples`                                                                |
-
-Language tabs (TypeScript / Go) persist in the browser. Behavior reference for the same API lives in the repository `docs/` directory. Runnable projects live in `examples/`.
+Language and provider tabs persist in the browser. Runnable samples are linked from the Examples page into the repo `examples/` tree.

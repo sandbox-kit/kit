@@ -2,7 +2,8 @@ import { createGetUrl } from "fumadocs-core/source";
 
 export const appName = "Sandbox Kit";
 export const docsRoute = "/docs";
-export const docsImageRoute = "/og/docs";
+/** Production origin for absolute OG/canonical URLs on GitHub Pages. */
+export const siteOrigin = "https://sandbox-kit.github.io";
 
 export const gitConfig = {
   user: "sandbox-kit",
@@ -52,15 +53,7 @@ export function absoluteSiteUrl(path: string) {
   }
   // Static prerender for GitHub Pages project site.
   if (base === "/kit") {
-    return `https://sandbox-kit.github.io${withBase}`;
+    return `${siteOrigin}${withBase}`;
   }
   return withBase;
-}
-
-const getImageUrl = createGetUrl(docsImageRoute);
-
-export function getPageImageUrl(page: { slugs: string[]; locale?: string }) {
-  const segments = [...page.slugs, "image.webp"];
-
-  return { segments, url: getImageUrl(segments, page.locale) };
 }

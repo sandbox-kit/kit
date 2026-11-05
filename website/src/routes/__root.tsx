@@ -9,6 +9,7 @@ import appCss from "@/styles/app.css?url";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
 import { ProviderProvider } from "@/components/provider-context";
 import { assetUrl } from "@/lib/shared";
+import { siteDescription } from "@/lib/seo";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -19,11 +20,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       { title: "Sandbox Kit" },
-      {
-        name: "description",
-        content:
-          "Lightweight TypeScript and Go SDK for cloud sandboxes. Pluggable providers, one client for create, lifecycle, files, and commands.",
-      },
+      { name: "description", content: siteDescription },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

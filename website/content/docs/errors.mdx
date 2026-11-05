@@ -3,26 +3,80 @@ title: Errors
 description: SandboxError / *sandbox.Error kinds, fields, and provider causes.
 ---
 
-TypeScript throws `SandboxError`. Go returns `*sandbox.Error`. Both include `kind`, `provider`, `operation`, `message`, and `field` when a setting was rejected.
+Failed calls surface a typed error with `kind`, `provider`, `operation`, `message`, and `field` when a setting was rejected.
 
-Kinds are shared across providers. A kind is a category—not a retry policy. Kit does not retry.
+Kinds are categories, not retry advice. Kit does not retry.
 
 | Kind                | What happened                                          |
 | ------------------- | ------------------------------------------------------ |
 | `InvalidArgument`   | The request shape is wrong                             |
 | `Unsupported`       | This provider does not implement the call or the field |
-| `Authentication`    | The credentials were rejected                          |
+| `Authentication`    | Credentials were rejected                              |
 | `PermissionDenied`  | The account cannot perform this operation              |
-| `NotFound`          | The sandbox or the file path was not found             |
-| `RateLimited`       | The provider rate limit was reached                    |
-| `ResourceExhausted` | The provider quota or capacity was reached             |
+| `NotFound`          | The sandbox or file path was not found                 |
+| `RateLimited`       | Provider rate limit reached                            |
+| `ResourceExhausted` | Provider quota or capacity reached                     |
 | `Canceled`          | The caller canceled the operation                      |
 | `Timeout`           | The deadline fired                                     |
+
+## Invalid config
+
+Bad client config fails before any provider call. TypeScript throws; Go returns `(*Client, error)`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { Client, SandboxError } from "@sandbox-kit/sandbox";
+
+try {
+  new Client({ provider, timeout: -1 });
+} catch (error) {
+  if (error instanceof SandboxError) {
+    console.error(error.kind);
+    console.error(error.field);
+    console.error(error.message);
+  }
+  throw error;
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(provider, &sandbox.Config{
+	Timeout: sandbox.Duration(-1 * time.Second),
+})
+if err != nil {
+	var detail *sandbox.Error
+	if errors.As(err, &detail) {
+		fmt.Println(detail.Kind)
+		fmt.Println(detail.Field)
+		fmt.Println(detail.Message)
+	}
+	return err
+}
+_ = client
+```
+
+  </Tab>
+</Tabs>
 
 ## Handle by kind
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
+
+Throws `SandboxError`.
 
 ```ts
 import { ErrorKind, SandboxError } from "@sandbox-kit/sandbox";
@@ -41,22 +95,20 @@ try {
       console.error("Check your provider credentials.");
       break;
     case ErrorKind.PermissionDenied:
-      console.error(
-        "Your account does not have permission for this operation.",
-      );
+      console.error("Your account cannot perform this operation.");
       break;
     case ErrorKind.NotFound:
-      console.error("The sandbox or file path was not found.");
+      console.error("Sandbox or file path not found.");
       break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
-      console.error("The provider's rate or resource limit was reached.");
+      console.error("Provider rate or resource limit reached.");
       break;
     case ErrorKind.Canceled:
-      console.error("The operation was canceled.");
+      console.error("Operation canceled.");
       break;
     case ErrorKind.Timeout:
-      console.error("The operation timed out.");
+      console.error("Operation timed out.");
       break;
     default:
       console.error(error);
@@ -68,6 +120,8 @@ The provider's own error is `error.cause`.
 
   </Tab>
   <Tab value="Go">
+
+Returns `*sandbox.Error`.
 
 ```go
 import (
@@ -85,15 +139,15 @@ if errors.As(err, &detail) {
 	case sandbox.ErrorKindAuthentication:
 		fmt.Println("Check your provider credentials.")
 	case sandbox.ErrorKindPermissionDenied:
-		fmt.Println("Your account does not have permission for this operation.")
+		fmt.Println("Your account cannot perform this operation.")
 	case sandbox.ErrorKindNotFound:
-		fmt.Println("The sandbox or file path was not found.")
+		fmt.Println("Sandbox or file path not found.")
 	case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
-		fmt.Println("The provider's rate or resource limit was reached.")
+		fmt.Println("Provider rate or resource limit reached.")
 	case sandbox.ErrorKindCanceled:
-		fmt.Println("The operation was canceled.")
+		fmt.Println("Operation canceled.")
 	case sandbox.ErrorKindTimeout:
-		fmt.Println("The operation timed out.")
+		fmt.Println("Operation timed out.")
 	default:
 		fmt.Println(err)
 	}
@@ -107,12 +161,135 @@ if errors.As(err, &detail) {
 
 ## Field paths
 
-Field strings match across languages (for example `resources.cpu_cores`). Rules that cover several settings use the parent (`network`). TypeScript exports constants such as `CreateFieldResourcesCpuCores` for comparisons.
+Field strings are shared (for example `resources.cpu_cores`). Rules that cover several settings use the parent (`network`).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import {
+  CreateFieldResourcesCpuCores,
+  SandboxError,
+} from "@sandbox-kit/sandbox";
+
+try {
+  await client.create({ resources: { cpuCores: -1 } });
+} catch (error) {
+  if (
+    error instanceof SandboxError &&
+    error.field === CreateFieldResourcesCpuCores
+  ) {
+    console.error("bad cpuCores:", error.message);
+  }
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+_, err := client.Create(ctx, &sandbox.CreateOptions{
+	Resources: &sandbox.Resources{CpuCores: sandbox.Value(-1.0)},
+})
+var detail *sandbox.Error
+if errors.As(err, &detail) && detail.Field == sandbox.CreateFieldResourcesCpuCores {
+	fmt.Println("bad cpuCores:", detail.Message)
+}
+```
+
+  </Tab>
+</Tabs>
 
 ## After failure
 
 An error does not prove no sandbox was created—the provider may have succeeded before a later step failed, and the error does not include that id. Lifecycle failures can occur after the provider already mutated state.
 
-On Daytona, `get` before retry. Modal `attach` does not verify existence.
+<ForProvider id="daytona">
 
-Examples: [Daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors) · [Modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors) · Go twins under `examples/go/`.
+`get` before retry so you know whether the sandbox exists.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+try {
+  await client.create(request);
+} catch (error) {
+  // create may have succeeded before a later step failed — no id on the error
+  if (knownId) {
+    const sandbox = await client.get(knownId);
+    console.log(sandbox.info().state);
+  }
+  throw error;
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, opts)
+if err != nil {
+	// create may have succeeded before a later step failed — no id on the error
+	if knownID != "" {
+		existing, getErr := client.Get(ctx, knownID)
+		if getErr == nil {
+			fmt.Println(existing.Info().State)
+		}
+	}
+	return err
+}
+_ = instance
+```
+
+  </Tab>
+</Tabs>
+
+Samples: [Examples](/docs/examples).
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+`attach` does not verify existence.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+try {
+  await client.create(request);
+} catch (error) {
+  // attach builds a handle from an id only — it does not check Modal
+  if (knownId) {
+    const sandbox = await client.attach(knownId);
+    console.log(sandbox.id);
+  }
+  throw error;
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, opts)
+if err != nil {
+	// Attach builds a handle from an id only — it does not check Modal
+	if knownID != "" {
+		existing, attachErr := client.Attach(ctx, knownID)
+		if attachErr == nil {
+			fmt.Println(existing.ID())
+		}
+	}
+	return err
+}
+_ = instance
+```
+
+  </Tab>
+</Tabs>
+
+Samples: [Examples](/docs/examples).
+
+</ForProvider>

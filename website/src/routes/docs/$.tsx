@@ -10,16 +10,16 @@ import {
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/docs/page";
 import { baseOptions } from "@/lib/layout.shared";
+import { absoluteSiteUrl, getPageMarkdownUrl, gitConfig } from "@/lib/shared";
+import { socialHead } from "@/lib/seo";
+
+import { Suspense, use, useEffect, useMemo, useState } from "react";
 import {
-  absoluteSiteUrl,
-  assetUrl,
-  getPageImageUrl,
-  getPageMarkdownUrl,
-  gitConfig,
-} from "@/lib/shared";
-import { Suspense, use, useEffect, useState } from "react";
-import { DocsProviderSelect } from "@/components/provider-context";
+  DocsProviderSelect,
+  useDocProvider,
+} from "@/components/provider-context";
 import { useMDXComponents } from "@/components/mdx";
+import { filterTocForProvider } from "@/lib/providers";
 
 export const Route = createFileRoute("/docs/$")({
   component: Page,
@@ -31,22 +31,22 @@ export const Route = createFileRoute("/docs/$")({
 
     return {
       path: page.path,
+      pageUrl: page.url,
       title: page.data.title,
-      description: page.data.description,
+      description: page.data.description ?? "",
       // Root-relative without BASE_URL — fumadocs page actions add BASE_URL once.
       markdownUrl: getPageMarkdownUrl(page).url,
-      imageUrl: assetUrl(getPageImageUrl(page).url),
     };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.title} | Sandbox Kit` },
-          { name: "description", content: loaderData.description ?? "" },
-          { property: "og:image", content: loaderData.imageUrl },
-        ]
-      : [],
-  }),
+  head: ({ loaderData }) => {
+    if (!loaderData) return {};
+    return socialHead({
+      title: loaderData.title,
+      description: loaderData.description,
+      path: loaderData.pageUrl,
+      type: "article",
+    });
+  },
 });
 
 function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
@@ -54,6 +54,16 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
   if (!page) throw new Error(`unknown page: ${path}`);
 
   const { toc } = use(page.load());
+  const { provider } = useDocProvider();
+  const pageSlug =
+    path
+      .replace(/\.mdx?$/, "")
+      .split("/")
+      .pop() ?? "";
+  const visibleToc = useMemo(
+    () => filterTocForProvider(pageSlug, toc, provider),
+    [pageSlug, toc, provider],
+  );
   const MDX = page.body;
   // AI tools fetch this URL; point at the static .md file, not the SPA HTML page.
   const [markdownPageUrl, setMarkdownPageUrl] = useState(markdownUrl);
@@ -62,7 +72,7 @@ function Content({ path, markdownUrl }: { path: string; markdownUrl: string }) {
   }, [markdownUrl]);
 
   return (
-    <DocsPage toc={toc}>
+    <DocsPage toc={visibleToc}>
       <DocsTitle>{page.title}</DocsTitle>
       <DocsDescription>{page.description}</DocsDescription>
       <div className="flex flex-row gap-2 items-center border-b -mt-4 pb-6">

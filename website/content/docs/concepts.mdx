@@ -1,62 +1,411 @@
 ---
 title: Concepts
-description: Lightweight SDK model—client, handle, pluggable providers, capabilities, close.
+description: Client, sandbox handle, providers, capabilities, and close.
 ---
 
-Sandbox Kit is a lightweight SDK over provider native clients. Depend on `@sandbox-kit/sandbox` (or the Go `sandbox` module) plus a provider module. Swap the provider; keep the same client surface.
+Sandbox Kit is an SDK. You construct a client with a provider and config; the client calls that provider for create, lifecycle, filesystem, and process work. Application code stays on the shared client surface.
 
 ## Client
 
-Construct one client with a provider and config. Invalid config fails immediately. Credentials are not verified until the first provider request.
+Credentials are checked on the first provider call, not at construction. Details: [Configuration](/docs/configuration).
 
-| Language   | Construct                                           |
-| ---------- | --------------------------------------------------- |
-| TypeScript | `new Client({ provider, ... })`                     |
-| Go         | `sandbox.NewClient(provider, &sandbox.Config{...})` |
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
 
-Shared config fields: `auth`, `scope`, `endpoint`, `region`, `timeout`. See [Configuration](/docs/configuration).
+<ForProvider id="daytona">
+
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  region: process.env.DAYTONA_TARGET,
+  timeout: 120_000, // milliseconds
+});
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+import { modal } from "@sandbox-kit/modal";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
+    },
+  },
+  scope: {
+    appName: process.env.MODAL_APP_NAME!,
+    environment: "main",
+  },
+  region: process.env.MODAL_REGION,
+  timeout: 120_000, // milliseconds
+});
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+import (
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+	}},
+	Region:  sandbox.Value(os.Getenv("DAYTONA_TARGET")),
+	Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+	return err
+}
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+import (
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/modal"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{
+		TokenPair: &sandbox.TokenPairCredentials{
+			Id:     os.Getenv("MODAL_TOKEN_ID"),
+			Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		},
+	}},
+	Scope: &sandbox.Scope{
+		AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+		Environment: sandbox.Value("main"),
+	},
+	Region:  sandbox.Value(os.Getenv("MODAL_REGION")),
+	Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+	return err
+}
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
 
 ## Sandbox handle
 
-`create` and the provider's open method (for example Daytona `get`, Modal `attach`) return a handle. Use that handle for lifecycle, filesystem, and process calls.
+`create` and the provider's open-by-id method return a handle. Use that handle for lifecycle, filesystem, and process calls.
 
-| Language   | Handle API                                                                        |
-| ---------- | --------------------------------------------------------------------------------- |
-| TypeScript | `sandbox.id`, `sandbox.filesystem`, `sandbox.process`, lifecycle methods          |
-| Go         | `instance.ID()`, `instance.Filesystem()`, `instance.Process()`, lifecycle methods |
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+<ForProvider id="daytona">
+
+```ts
+const sandbox = await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+});
+console.log(sandbox.id);
+
+await sandbox.filesystem.writeFile("/tmp/note.txt", data);
+const result = await sandbox.process.run({ argv: ["echo", "hi"] });
+console.log(result.exitCode);
+console.log(new TextDecoder().decode(result.stdout));
+console.log(new TextDecoder().decode(result.stderr));
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+const sandbox = await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+});
+console.log(sandbox.id);
+
+await sandbox.filesystem.writeFile("/tmp/note.txt", data);
+const result = await sandbox.process.run({ argv: ["echo", "hi"] });
+console.log(result.exitCode);
+console.log(new TextDecoder().decode(result.stdout));
+console.log(new TextDecoder().decode(result.stderr));
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+})
+if err != nil {
+	return err
+}
+fmt.Println(instance.ID())
+
+err = instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", data, nil)
+result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv: []string{"echo", "hi"},
+})
+if err != nil {
+	return err
+}
+fmt.Println(result.GetExitCode())
+fmt.Println(string(result.GetStdout()))
+fmt.Println(string(result.GetStderr()))
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+})
+if err != nil {
+	return err
+}
+fmt.Println(instance.ID())
+
+err = instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", data, nil)
+result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv: []string{"echo", "hi"},
+})
+if err != nil {
+	return err
+}
+fmt.Println(result.GetExitCode())
+fmt.Println(string(result.GetStdout()))
+fmt.Println(string(result.GetStderr()))
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
 
 ## Providers
 
-Providers are pluggable. Each one is its own package that adapts a native SDK to the shared client. Depend only on the provider you need; add another module when you add a backend.
+Each provider is its own package. Pass it into the client. Auth, create defaults, and which lifecycle calls exist depend on the provider; the client methods stay the same.
 
-| Provider                 | Open existing sandbox     | Native SDK           |
-| ------------------------ | ------------------------- | -------------------- |
-| [Daytona](/docs/daytona) | `get` (provider-verified) | Daytona SDK v0.225.0 |
-| [Modal](/docs/modal)     | `attach` (id only)        | Modal SDK v0.11.1    |
+The client invokes the provider's native SDK—it does not sit in front of a separate Kit service.
 
-Apps construct `Client` / `NewClient` with the chosen provider. Provider modules stay outside the core SDK.
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+<ForProvider id="daytona">
+
+```ts
+import { daytona } from "@sandbox-kit/daytona";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+});
+```
+
+Setup: [Daytona](/docs/daytona).
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+import { modal } from "@sandbox-kit/modal";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: modal(),
+  auth: {
+    tokenPair: {
+      id: process.env.MODAL_TOKEN_ID!,
+      secret: process.env.MODAL_TOKEN_SECRET!,
+    },
+  },
+  scope: { appName: process.env.MODAL_APP_NAME!, environment: "main" },
+});
+```
+
+Setup: [Modal](/docs/modal).
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+import (
+	"github.com/sandbox-kit/kit/sdks/go/providers/daytona"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(daytona.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+	}},
+})
+```
+
+Setup: [Daytona](/docs/daytona).
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+import (
+	"github.com/sandbox-kit/kit/sdks/go/providers/modal"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{
+		TokenPair: &sandbox.TokenPairCredentials{
+			Id:     os.Getenv("MODAL_TOKEN_ID"),
+			Secret: os.Getenv("MODAL_TOKEN_SECRET"),
+		},
+	}},
+	Scope: &sandbox.Scope{
+		AppName:     sandbox.Value(os.Getenv("MODAL_APP_NAME")),
+		Environment: sandbox.Value("main"),
+	},
+})
+```
+
+Setup: [Modal](/docs/modal).
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
 
 ## Capabilities
 
-`supports` / `Supports` reports whether the provider implements an operation. An unsupported call fails in Kit before any provider request. Daytona can still reject a supported lifecycle call for a specific sandbox; that rejection returns as a provider error.
+Kit rejects unsupported calls before talking to the provider. A provider can still refuse a supported call for a particular sandbox; that comes back as a provider error.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { LifecycleCapability } from "@sandbox-kit/sandbox";
+
+if (!sandbox.supports(LifecycleCapability.Stop)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be stopped`);
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
+if !instance.Supports(sandbox.LifecycleCapabilityStop) {
+	return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
+}
+```
+
+  </Tab>
+</Tabs>
 
 ## Concurrency
 
-Calls on one handle run one at a time (lifecycle, filesystem, and process). A second handle for the same sandbox id does not serialize with the first. Abort or deadline rejects the TypeScript `await` (and ends the Go wait), but the handle stays busy until that provider call settles.
+Calls on one handle run one at a time. A second handle for the same sandbox id does not share that queue.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const ac = new AbortController();
+const pending = sandbox.process.run({
+  argv: ["sleep", "30"],
+  signal: ac.signal,
+});
+ac.abort(); // rejects the await; handle stays busy until the provider call settles
+await pending.catch(() => {});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+ctx, cancel := context.WithCancel(ctx)
+defer cancel()
+
+go func() {
+	time.Sleep(10 * time.Millisecond)
+	cancel() // ends the wait; handle stays busy until the provider call settles
+}()
+
+_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv: []string{"sleep", "30"},
+})
+```
+
+  </Tab>
+</Tabs>
 
 ## Close
 
-| Call                     | Effect                                   |
-| ------------------------ | ---------------------------------------- |
-| Client `close` / `Close` | Closes the local provider SDK connection |
-| Handle `close` / `Close` | Releases local handle resources          |
+Neither call stops, archives, or deletes the cloud sandbox. Use an explicit lifecycle method for that.
 
-Neither call stops, terminates, archives, or deletes the cloud sandbox. You can keep using the handle after handle `close` fails only if the provider still accepts calls; prefer an explicit lifecycle method to reclaim the sandbox.
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+await client.close(); // local provider connection
+await sandbox.close(); // local handle resources only
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+defer client.Close(context.Background()) // local provider connection
+_ = instance.Close(context.Background()) // local handle resources only
+```
+
+  </Tab>
+</Tabs>
 
 ## Errors
 
-Failed calls throw `SandboxError` in TypeScript and return `*sandbox.Error` in Go. Both expose `kind`, `field`, `operation`, and `message`. See [Errors](/docs/errors).
+Kinds, field paths, and handling: [Errors](/docs/errors).
 
-## Out of scope
-
-Streaming stdin/stdout, long-lived process sessions, PTY, Daytona `code_run`, GPU requests, resizing, and browsers are not part of this client.
+Streaming I/O, interactive sessions, PTY, GPU, resize, and browsers are outside this SDK.

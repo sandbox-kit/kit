@@ -1,74 +1,401 @@
 ---
 title: Examples
-description: One runnable project per operation. Clone, set .env, run.
+description: Clone a sample project, set .env, and run one operation.
 ---
 
-Each example is a small project under `examples/<language>/<provider>/<area>/`. It loads its own `.env` and demonstrates one call.
+Each sample is a small project that loads its own `.env` and demonstrates one call against a provider. Creation samples provision a real sandbox. Filesystem, process, and lifecycle samples need a sandbox id in `.env`. Error samples fail locally.
 
-| Area                                 | Runtime                       |
-| ------------------------------------ | ----------------------------- |
-| `configuration`                      | Provisions a real sandbox     |
-| `filesystem`, `process`, `lifecycle` | Uses `*_SANDBOX_ID` in `.env` |
-| `errors`                             | Fails locally; no cloud work  |
-
-Destructive ops (stop, terminate, archive, delete, remove) can destroy the sandbox or path you configure. Full catalog: [examples/README.md](https://github.com/sandbox-kit/kit/blob/main/examples/README.md).
-
-## Daytona
-
-| Operation     | TypeScript                                                                                                                     | Go                                                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| Create        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)       | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)       |
-| Run command   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-command)                | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-command)                |
-| Read file     | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file)               | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file)               |
-| From image    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-image)    | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-from-image)    |
-| From snapshot | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-from-snapshot) |
-| Policies      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
-| Get           | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/get-daytona-sandbox)              | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox)              |
-| Stop          | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/stop-daytona-sandbox)             | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/stop-daytona-sandbox)             |
-| Delete        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/delete-daytona-sandbox)           | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/delete-daytona-sandbox)           |
-| Errors        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors)               | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/errors/handle-daytona-errors)               |
-
-Process variants (shell, cwd, env, timeout, exit): [typescript/daytona/process](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process) · [go/daytona/process](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process).
-
-## Modal
-
-| Operation   | TypeScript                                                                                                                  | Go                                                                                                                  |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Create      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox)        | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox)        |
-| Run command | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-command)                 | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-command)                 |
-| Read file   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file)                | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file)                |
-| Resources   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
-| Attach      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox)            | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox)            |
-| Terminate   | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/terminate-modal-sandbox)         | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/terminate-modal-sandbox)         |
-| Errors      | [project](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors)                | [project](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/errors/handle-modal-errors)                |
-
-Process variants: [typescript/modal/process](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process) · [go/modal/process](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process).
+Destructive ops (stop, terminate, archive, delete, remove) can destroy the sandbox or path you configure.
 
 ## Run
 
-Requirements: Node.js 20/22/24.15+ (npm 11.19.0) or Go 1.26.0+. `<area>` is `filesystem`, `process`, `configuration`, `lifecycle`, or `errors`. Skip `cp` if `.env` exists.
+Skip `cp` if `.env` already exists.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
+Requires Node.js 20/22/24.15+ and npm 11.19.0.
+
+<ForProvider id="daytona">
+
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/typescript/<provider>/<area>/<project>
-cp .env.example .env
+cd kit/examples/typescript/daytona/configuration/create-daytona-sandbox
+cp .env.example .env   # set DAYTONA_API_KEY
 npm install && npm run build && npm start
 ```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/typescript/modal/configuration/create-modal-sandbox
+cp .env.example .env   # set MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, MODAL_APP_NAME
+npm install && npm run build && npm start
+```
+
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
 
+Requires Go 1.26.0+.
+
+<ForProvider id="daytona">
+
 ```sh
 git clone https://github.com/sandbox-kit/kit.git
-cd kit/examples/go/<provider>/<area>/<project>
-cp .env.example .env
+cd kit/examples/go/daytona/configuration/create-daytona-sandbox
+cp .env.example .env   # set DAYTONA_API_KEY
 go run .
 ```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/go/modal/configuration/create-modal-sandbox
+cp .env.example .env   # set MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, MODAL_APP_NAME
+go run .
+```
+
+</ForProvider>
 
   </Tab>
 </Tabs>
 
-Daytona create needs `DAYTONA_API_KEY`. Modal create needs `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, and `MODAL_APP_NAME`.
+<ForProvider id="daytona">
+
+## Catalog
+
+### Create
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox) |
+| Snapshot | [create-daytona-from-snapshot](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot) |
+| Image | [create-daytona-from-image](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-image) |
+| Runtime | [create-daytona-with-runtime](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-runtime) |
+| Ephemeral | [create-daytona-ephemeral](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-ephemeral) |
+| Linked | [create-daytona-linked](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-linked) |
+| Policies | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies) |
+| Network | [create-daytona-with-network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-network) |
+| Labels | [create-daytona-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-labels) |
+| Secrets | [create-daytona-with-secrets](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-secrets) |
+| KVM | [create-daytona-with-kvm](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-kvm) |
+| TTL | [create-daytona-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-ttl) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox) |
+| Snapshot | [create-daytona-from-snapshot](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-from-snapshot) |
+| Image | [create-daytona-from-image](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-from-image) |
+| Runtime | [create-daytona-with-runtime](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-runtime) |
+| Ephemeral | [create-daytona-ephemeral](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-ephemeral) |
+| Linked | [create-daytona-linked](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-linked) |
+| Policies | [create-daytona-with-policies](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-policies) |
+| Network | [create-daytona-with-network](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-network) |
+| Labels | [create-daytona-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-labels) |
+| Secrets | [create-daytona-with-secrets](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-secrets) |
+| KVM | [create-daytona-with-kvm](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-kvm) |
+| TTL | [create-daytona-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-with-ttl) |
+
+  </Tab>
+</Tabs>
+
+### Process
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-daytona-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-command) |
+| Shell command | [run-daytona-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-shell-command) |
+| Run with cwd | [run-daytona-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-cwd) |
+| Run with env | [run-daytona-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-env) |
+| Run with timeout | [run-daytona-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-with-timeout) |
+| Check exit | [run-daytona-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/process/run-daytona-check-exit) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-daytona-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-command) |
+| Shell command | [run-daytona-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-shell-command) |
+| Run with cwd | [run-daytona-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-cwd) |
+| Run with env | [run-daytona-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-env) |
+| Run with timeout | [run-daytona-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-with-timeout) |
+| Check exit | [run-daytona-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/process/run-daytona-check-exit) |
+
+  </Tab>
+</Tabs>
+
+### Filesystem
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/read-daytona-file) |
+| Write file | [write-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/write-daytona-file) |
+| Copy in | [copy-file-into-daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-into-daytona) |
+| Copy out | [copy-file-from-daytona](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/copy-file-from-daytona) |
+| Directory | [make-daytona-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/make-daytona-directory) |
+| List | [list-daytona-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/list-daytona-directory) |
+| Stat | [stat-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/stat-daytona-file) |
+| Remove | [remove-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/filesystem/remove-daytona-file) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/read-daytona-file) |
+| Write file | [write-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/write-daytona-file) |
+| Copy in | [copy-file-into-daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-into-daytona) |
+| Copy out | [copy-file-from-daytona](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/copy-file-from-daytona) |
+| Directory | [make-daytona-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/make-daytona-directory) |
+| List | [list-daytona-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/list-daytona-directory) |
+| Stat | [stat-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/stat-daytona-file) |
+| Remove | [remove-daytona-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/filesystem/remove-daytona-file) |
+
+  </Tab>
+</Tabs>
+
+### Lifecycle
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Get | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/get-daytona-sandbox) |
+| Refresh | [refresh-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/refresh-daytona-sandbox) |
+| Start | [start-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/start-daytona-sandbox) |
+| Start timeout | [start-daytona-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/start-daytona-with-timeout) |
+| Stop | [stop-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/stop-daytona-sandbox) |
+| Force stop | [force-stop-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/force-stop-daytona-sandbox) |
+| Pause | [pause-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/pause-daytona-sandbox) |
+| Archive | [archive-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/archive-daytona-sandbox) |
+| Delete | [delete-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/delete-daytona-sandbox) |
+| Delete request | [request-daytona-deletion](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/request-daytona-deletion) |
+| Close handle | [close-daytona-handle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/lifecycle/close-daytona-handle) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Get | [get-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/get-daytona-sandbox) |
+| Refresh | [refresh-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/refresh-daytona-sandbox) |
+| Start | [start-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/start-daytona-sandbox) |
+| Start timeout | [start-daytona-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/start-daytona-with-timeout) |
+| Stop | [stop-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/stop-daytona-sandbox) |
+| Force stop | [force-stop-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/force-stop-daytona-sandbox) |
+| Pause | [pause-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/pause-daytona-sandbox) |
+| Archive | [archive-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/archive-daytona-sandbox) |
+| Delete | [delete-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/delete-daytona-sandbox) |
+| Delete request | [request-daytona-deletion](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/request-daytona-deletion) |
+| Close handle | [close-daytona-handle](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/lifecycle/close-daytona-handle) |
+
+  </Tab>
+</Tabs>
+
+### Errors
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-daytona-errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/errors/handle-daytona-errors) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-daytona-errors](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/errors/handle-daytona-errors) |
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+## Catalog
+
+### Create
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-sandbox) |
+| Resources | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources) |
+| Runtime | [create-modal-with-runtime](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-runtime) |
+| GVisor | [create-modal-gvisor](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-gvisor) |
+| Linux VM | [create-modal-linux-vm](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-linux-vm) |
+| Placement | [create-modal-with-placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-placement) |
+| Labels | [create-modal-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-labels) |
+| Network | [create-modal-with-network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-network) |
+| Idle timeout | [create-modal-idle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-idle) |
+| Readiness | [create-modal-ready](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-ready) |
+| TCP readiness | [create-modal-tcp-ready](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-tcp-ready) |
+| Client timeout wait | [create-modal-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-client-timeout) |
+| Ports | [create-modal-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-ports) |
+| Allowlists | [create-modal-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-allowlists) |
+| Secrets | [create-modal-with-secrets](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-secrets) |
+| Verbose | [create-modal-verbose](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-verbose) |
+| Identity | [create-modal-with-identity](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-identity) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-sandbox) |
+| Resources | [create-modal-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-resources) |
+| Runtime | [create-modal-with-runtime](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-runtime) |
+| GVisor | [create-modal-gvisor](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-gvisor) |
+| Linux VM | [create-modal-linux-vm](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-linux-vm) |
+| Placement | [create-modal-with-placement](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-placement) |
+| Labels | [create-modal-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-labels) |
+| Network | [create-modal-with-network](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-network) |
+| Idle timeout | [create-modal-idle](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-idle) |
+| Readiness | [create-modal-ready](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-ready) |
+| TCP readiness | [create-modal-tcp-ready](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-tcp-ready) |
+| Client timeout wait | [create-modal-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-client-timeout) |
+| Ports | [create-modal-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-ports) |
+| Allowlists | [create-modal-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-allowlists) |
+| Secrets | [create-modal-with-secrets](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-secrets) |
+| Verbose | [create-modal-verbose](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-verbose) |
+| Identity | [create-modal-with-identity](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/configuration/create-modal-with-identity) |
+
+  </Tab>
+</Tabs>
+
+### Process
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-modal-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-command) |
+| Shell command | [run-modal-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-shell-command) |
+| Run with cwd | [run-modal-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-cwd) |
+| Run with env | [run-modal-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-env) |
+| Run with timeout | [run-modal-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-with-timeout) |
+| Check exit | [run-modal-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/process/run-modal-check-exit) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-modal-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-command) |
+| Shell command | [run-modal-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-shell-command) |
+| Run with cwd | [run-modal-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-cwd) |
+| Run with env | [run-modal-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-env) |
+| Run with timeout | [run-modal-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-with-timeout) |
+| Check exit | [run-modal-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/process/run-modal-check-exit) |
+
+  </Tab>
+</Tabs>
+
+### Filesystem
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/read-modal-file) |
+| Write file | [write-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/write-modal-file) |
+| Copy in | [copy-file-into-modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-into-modal) |
+| Copy out | [copy-file-from-modal](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/copy-file-from-modal) |
+| Directory | [make-modal-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/make-modal-directory) |
+| List | [list-modal-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/list-modal-directory) |
+| Stat | [stat-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/stat-modal-file) |
+| Remove | [remove-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/filesystem/remove-modal-file) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/read-modal-file) |
+| Write file | [write-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/write-modal-file) |
+| Copy in | [copy-file-into-modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-into-modal) |
+| Copy out | [copy-file-from-modal](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/copy-file-from-modal) |
+| Directory | [make-modal-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/make-modal-directory) |
+| List | [list-modal-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/list-modal-directory) |
+| Stat | [stat-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/stat-modal-file) |
+| Remove | [remove-modal-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/filesystem/remove-modal-file) |
+
+  </Tab>
+</Tabs>
+
+### Lifecycle
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Attach | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/attach-modal-sandbox) |
+| Terminate | [terminate-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/terminate-modal-sandbox) |
+| Terminate timeout | [terminate-modal-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/terminate-modal-with-timeout) |
+| Termination request | [request-modal-termination](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/request-modal-termination) |
+| Close handle | [close-modal-handle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/lifecycle/close-modal-handle) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Attach | [attach-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/attach-modal-sandbox) |
+| Terminate | [terminate-modal-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/terminate-modal-sandbox) |
+| Terminate timeout | [terminate-modal-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/terminate-modal-with-timeout) |
+| Termination request | [request-modal-termination](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/request-modal-termination) |
+| Close handle | [close-modal-handle](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/lifecycle/close-modal-handle) |
+
+  </Tab>
+</Tabs>
+
+### Errors
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-modal-errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/errors/handle-modal-errors) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-modal-errors](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/errors/handle-modal-errors) |
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
