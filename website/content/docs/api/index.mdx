@@ -1,0 +1,35 @@
+---
+title: Overview
+description: User-facing types and methods for the Sandbox Kit core SDK.
+---
+
+Public surface of the core sandbox package. Guides show how pieces fit together; this section documents signatures, parameters, and return values.
+
+Use the language tabs on each page. Unsupported calls return a typed error—see [Errors](/docs/api/errors) and the [Errors guide](/docs/errors).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Package: `@sandbox-kit/sandbox`. Durations and timeouts are **milliseconds**.
+
+  </Tab>
+  <Tab value="Go">
+
+Package: `github.com/sandbox-kit/kit/sdks/go/sandbox`. Durations use `sandbox.Duration`. Optional scalars use `sandbox.Value`.
+
+  </Tab>
+</Tabs>
+
+## Modules
+
+| Name                                      | Description                                                       |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| [Client](/docs/api/client)                | Construct a provider connection; create, get, or attach sandboxes |
+| [Sandbox](/docs/api/sandbox)              | Handle for one sandbox: lifecycle, info, filesystem, process      |
+| [Filesystem](/docs/api/filesystem)        | Read, write, copy, list, stat, and remove files                   |
+| [Process](/docs/api/process)              | Run a command and collect exit code and output                    |
+| [Client config](/docs/api/configuration)  | Client config, auth, and scope types                              |
+| [CreateOptions](/docs/api/create-options) | Create request body and nested option types                       |
+| [SandboxInfo](/docs/api/sandbox-info)     | Metadata returned by info and lifecycle calls                     |
+| [Errors](/docs/api/errors)                | Typed error shape and kinds                                       |
+| [Enums](/docs/api/enums)                  | Shared enums (`SandboxState`, `PolicyMode`, …)                    |

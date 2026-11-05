@@ -55,7 +55,9 @@ Daytona may still reject a supported op for a given sandbox. Snippets assume a c
 ```ts
 const sandbox = await client.get(process.env.DAYTONA_SANDBOX_ID!);
 const info = await sandbox.refresh();
-console.log(sandbox.id, info.state);
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
 ```
 
   </Tab>
@@ -71,6 +73,9 @@ if err != nil {
 if err := instance.Refresh(ctx); err != nil {
 	return err
 }
+// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
+//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(instance.Info())
 ```
 
   </Tab>
@@ -126,7 +131,9 @@ if (!sandbox.supports(LifecycleCapability.Stop)) {
 }
 
 const info = await sandbox.stop({ timeout: 60_000 });
-console.log(sandbox.id, info.state);
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
 ```
 
 `timeout` is milliseconds. Pass `force: true` for an immediate stop. Check `supports` the same way before `start`, `pause`, or `archive`.
@@ -155,6 +162,9 @@ if err := instance.Stop(ctx, &sandbox.StopOptions{
 }); err != nil {
 	return err
 }
+// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
+//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(instance.Info())
 ```
 
 `Start`, `Pause`, and `Archive` take the same kind of options.
@@ -226,7 +236,8 @@ if (!sandbox.supports(LifecycleCapability.Terminate)) {
 }
 
 const exit = await sandbox.terminate({ wait: true, timeout: 60_000 });
-console.log(sandbox.id, exit.exitCode);
+// exit: { exitCode? }
+console.log(exit);
 ```
 
 `wait: true` polls until the sandbox exits or the timeout fires. The timeout is how long the client waits—Modal does not receive it as its own terminate timeout.
@@ -257,7 +268,8 @@ exit, err := instance.Terminate(ctx, &sandbox.TerminateOptions{
 if err != nil {
 	return err
 }
-fmt.Println(exit.GetExitCode())
+// exit: ExitCode
+fmt.Println(exit)
 ```
 
   </Tab>
@@ -299,18 +311,17 @@ defer client.Close(context.Background())
 
 ```ts
 const info = sandbox.info();
-console.log(info.id);
-console.log(info.state); // portable lifecycle state
-console.log(info.providerState); // provider's native string when set
-console.log(info.terminal);
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
 ```
 
 <ForProvider id="daytona">
 
 ```ts
 const refreshed = await sandbox.refresh();
-console.log(refreshed.state);
-console.log(refreshed.providerState);
+// refreshed: same SandboxInfo shape as info()
+console.log(refreshed);
 ```
 
 </ForProvider>
@@ -320,10 +331,9 @@ console.log(refreshed.providerState);
 
 ```go
 info := instance.Info()
-fmt.Println(info.Id)
-fmt.Println(info.State)              // portable lifecycle state
-fmt.Println(info.GetProviderState()) // provider's native string when set
-fmt.Println(info.GetTerminal())
+// info: Id, Provider, Name, ProviderState, Region, Isolation,
+//       Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(info)
 ```
 
 <ForProvider id="daytona">
@@ -332,9 +342,8 @@ fmt.Println(info.GetTerminal())
 if err := instance.Refresh(ctx); err != nil {
 	return err
 }
-info = instance.Info()
-fmt.Println(info.State)
-fmt.Println(info.GetProviderState())
+// Info(): same SandboxInfo fields as above
+fmt.Println(instance.Info())
 ```
 
 </ForProvider>

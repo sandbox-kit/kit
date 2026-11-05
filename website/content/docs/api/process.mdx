@@ -1,0 +1,128 @@
+---
+title: Process
+description: Run a command in a sandbox and collect exit code and output.
+---
+
+A non-zero exit code is **not** an error. Set exactly one of argv or shell.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Access as `sandbox.process`. Set exactly one of `argv` or `shell`.
+
+  </Tab>
+  <Tab value="Go">
+
+Access as `instance.Process()`. Set exactly one of `Argv` or `Shell`.
+
+  </Tab>
+</Tabs>
+
+## Methods
+
+### Run a command
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+run(options: ExecOptions & OperationOptions): Promise<ExecResult>
+```
+
+Runs one command and waits for it to finish.
+
+**Parameters**
+
+| Name                        | Type                     | Description                                             |
+| --------------------------- | ------------------------ | ------------------------------------------------------- |
+| `options.argv?`             | `string[]`               | Program and arguments. Mutually exclusive with `shell`. |
+| `options.shell?`            | `string`                 | Shell command string. Mutually exclusive with `argv`.   |
+| `options.workingDirectory?` | `string`                 | Absolute working directory inside the sandbox           |
+| `options.environment?`      | `Record<string, string>` | Env vars for this command only                          |
+| `options.timeout?`          | `number`                 | Deadline in milliseconds; whole seconds required        |
+| `options.signal?`           | `AbortSignal`            | Abort the wait                                          |
+
+**Returns**
+
+[`Promise<ExecResult>`](#execresult)
+
+**Example**
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello"],
+  workingDirectory: "/tmp",
+  environment: { KIT_DEMO: "from-kit" },
+  timeout: 5_000,
+});
+// result: { exitCode, stdout, stderr }
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (p *Process) Run(ctx context.Context, options *ExecOptions) (*ExecResult, error)
+```
+
+Runs one command and waits for it to finish.
+
+**Parameters**
+
+| Name                       | Type                   | Description                                             |
+| -------------------------- | ---------------------- | ------------------------------------------------------- |
+| `ctx`                      | `context.Context`      | Cancellation and deadline                               |
+| `options.Argv`             | `[]string`             | Program and arguments. Mutually exclusive with `Shell`. |
+| `options.Shell`            | `*string`              | Shell command string                                    |
+| `options.WorkingDirectory` | `*string`              | Absolute working directory                              |
+| `options.Environment`      | `map[string]string`    | Env vars for this command only                          |
+| `options.Timeout`          | `*durationpb.Duration` | Via `sandbox.Duration`; whole seconds                   |
+
+**Returns**
+
+[`(*ExecResult, error)`](#execresult)
+
+**Example**
+
+```go
+result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv:             []string{"echo", "hello"},
+	WorkingDirectory: sandbox.Value("/tmp"),
+	Environment:      map[string]string{"KIT_DEMO": "from-kit"},
+	Timeout:          sandbox.Duration(5 * time.Second),
+})
+if err != nil {
+	return err
+}
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
+```
+
+  </Tab>
+</Tabs>
+
+## ExecResult
+
+Outcome of a finished command.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field      | Description                     |
+| ---------- | ------------------------------- |
+| `exitCode` | Process exit status             |
+| `stdout`   | Collected standard output bytes |
+| `stderr`   | Collected standard error bytes  |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field      | Description                     |
+| ---------- | ------------------------------- |
+| `ExitCode` | Process exit status             |
+| `Stdout`   | Collected standard output bytes |
+| `Stderr`   | Collected standard error bytes  |
+
+  </Tab>
+</Tabs>

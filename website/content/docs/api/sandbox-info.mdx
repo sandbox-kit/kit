@@ -1,0 +1,99 @@
+---
+title: SandboxInfo
+description: Metadata returned by info and lifecycle calls.
+---
+
+Returned by info and many lifecycle methods. Values are a **copy**; mutating them does not change the handle. Reported resources can differ from what you requested.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+From [`sandbox.info()`](/docs/api/sandbox#read-metadata).
+
+  </Tab>
+  <Tab value="Go">
+
+From [`instance.Info()`](/docs/api/sandbox#read-metadata).
+
+  </Tab>
+</Tabs>
+
+## Fields
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field              | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| `id`               | Sandbox identifier                                      |
+| `provider`         | Provider identifier                                     |
+| `name`             | Display name when reported                              |
+| `providerState`    | Provider's native state string                          |
+| `region`           | Region when reported                                    |
+| `isolation`        | Reported isolation config                               |
+| `resources`        | Reported size (`cpuCores`, `memoryMib`, …)              |
+| `labels`           | Labels when reported                                    |
+| `createdAt`        | Creation time when reported                             |
+| `providerMetadata` | Extra provider metadata object                          |
+| `state`            | Portable [`SandboxState`](/docs/api/enums#sandboxstate) |
+| `terminal`         | Whether the lifecycle is permanently complete           |
+
+**Example**
+
+```ts
+const info = sandbox.info();
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+| Field              | Description                                             |
+| ------------------ | ------------------------------------------------------- |
+| `Id`               | Sandbox identifier                                      |
+| `Provider`         | Provider identifier                                     |
+| `Name`             | Display name when reported                              |
+| `ProviderState`    | Provider's native state string                          |
+| `Region`           | Region when reported                                    |
+| `Isolation`        | Reported isolation config                               |
+| `Resources`        | Reported size (`CpuCores`, `MemoryMib`, …)              |
+| `Labels`           | Labels when reported                                    |
+| `CreatedAt`        | Creation time when reported                             |
+| `ProviderMetadata` | Extra provider metadata object                          |
+| `State`            | Portable [`SandboxState`](/docs/api/enums#sandboxstate) |
+| `Terminal`         | Whether the lifecycle is permanently complete           |
+
+**Example**
+
+```go
+info := instance.Info()
+// info: Id, Provider, Name, ProviderState, Region, Isolation,
+//       Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(info)
+```
+
+  </Tab>
+</Tabs>
+
+## ExitResult
+
+Returned by terminate.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field      | Description                                                                      |
+| ---------- | -------------------------------------------------------------------------------- |
+| `exitCode` | Process exit code when the call waited for completion. Absent when not reported. |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field      | Description                                                                      |
+| ---------- | -------------------------------------------------------------------------------- |
+| `ExitCode` | Process exit code when the call waited for completion. Absent when not reported. |
+
+  </Tab>
+</Tabs>

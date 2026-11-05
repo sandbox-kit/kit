@@ -133,9 +133,8 @@ console.log(sandbox.id);
 
 await sandbox.filesystem.writeFile("/tmp/note.txt", data);
 const result = await sandbox.process.run({ argv: ["echo", "hi"] });
-console.log(result.exitCode);
-console.log(new TextDecoder().decode(result.stdout));
-console.log(new TextDecoder().decode(result.stderr));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
 </ForProvider>
@@ -150,9 +149,8 @@ console.log(sandbox.id);
 
 await sandbox.filesystem.writeFile("/tmp/note.txt", data);
 const result = await sandbox.process.run({ argv: ["echo", "hi"] });
-console.log(result.exitCode);
-console.log(new TextDecoder().decode(result.stdout));
-console.log(new TextDecoder().decode(result.stderr));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
 </ForProvider>
@@ -180,9 +178,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(result.GetExitCode())
-fmt.Println(string(result.GetStdout()))
-fmt.Println(string(result.GetStderr()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
 </ForProvider>
@@ -207,9 +204,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(result.GetExitCode())
-fmt.Println(string(result.GetStdout()))
-fmt.Println(string(result.GetStderr()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
 </ForProvider>
@@ -407,5 +403,9 @@ _ = instance.Close(context.Background()) // local handle resources only
 ## Errors
 
 Kinds, field paths, and handling: [Errors](/docs/errors).
+
+## API surface
+
+Types, methods, parameters, and return values: [API reference](/docs/api) ([Client](/docs/api/client), [Sandbox](/docs/api/sandbox), [Filesystem](/docs/api/filesystem), [Process](/docs/api/process)).
 
 Streaming I/O, interactive sessions, PTY, GPU, resize, and browsers are outside this SDK.

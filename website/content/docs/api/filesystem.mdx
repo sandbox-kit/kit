@@ -1,0 +1,471 @@
+---
+title: Filesystem
+description: Read, write, copy, list, stat, and remove files in a sandbox.
+---
+
+Paths inside the sandbox must be absolute. Local paths for copy may be relative. Omitted timeouts use the client default.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Access as `sandbox.filesystem`.
+
+  </Tab>
+  <Tab value="Go">
+
+Access as `instance.Filesystem()`.
+
+  </Tab>
+</Tabs>
+
+## Methods
+
+### Read a file
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+readFile(path: string, options?: FileReadOptions & OperationOptions): Promise<Uint8Array>
+```
+
+Returns the bytes of the file at `path`.
+
+**Parameters**
+
+| Name       | Type                                         | Description           |
+| ---------- | -------------------------------------------- | --------------------- |
+| `path`     | `string`                                     | Absolute sandbox path |
+| `options?` | `{ timeout?: number; signal?: AbortSignal }` | Call deadline         |
+
+**Returns**
+
+`Promise<Uint8Array>` — file contents
+
+**Example**
+
+```ts
+const bytes = await sandbox.filesystem.readFile("/tmp/note.txt");
+console.log(new TextDecoder().decode(bytes));
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) ReadFile(ctx context.Context, path string, options *FileReadOptions) ([]byte, error)
+```
+
+Returns the bytes of the file at `path`.
+
+**Parameters**
+
+| Name      | Type               | Description               |
+| --------- | ------------------ | ------------------------- |
+| `ctx`     | `context.Context`  | Cancellation and deadline |
+| `path`    | `string`           | Absolute sandbox path     |
+| `options` | `*FileReadOptions` | Optional `Timeout`        |
+
+**Returns**
+
+`([]byte, error)`
+
+**Example**
+
+```go
+data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
+```
+
+  </Tab>
+</Tabs>
+
+### Write a file
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+writeFile(path: string, data: Uint8Array, options?: FileWriteOptions & OperationOptions): Promise<void>
+```
+
+Replaces the file at `path` and creates missing parent directories.
+
+**Parameters**
+
+| Name       | Type                    | Description           |
+| ---------- | ----------------------- | --------------------- |
+| `path`     | `string`                | Absolute sandbox path |
+| `data`     | `Uint8Array`            | Bytes to write        |
+| `options?` | `{ timeout?; signal? }` | Call deadline         |
+
+**Returns**
+
+`Promise<void>`
+
+**Example**
+
+```ts
+await sandbox.filesystem.writeFile(
+  "/tmp/note.txt",
+  new TextEncoder().encode("hello\n"),
+);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) WriteFile(ctx context.Context, path string, data []byte, options *FileWriteOptions) error
+```
+
+Replaces the file at `path` and creates missing parent directories.
+
+**Parameters**
+
+| Name      | Type                | Description           |
+| --------- | ------------------- | --------------------- |
+| `path`    | `string`            | Absolute sandbox path |
+| `data`    | `[]byte`            | Bytes to write        |
+| `options` | `*FileWriteOptions` | Optional `Timeout`    |
+
+**Returns**
+
+`error`
+
+**Example**
+
+```go
+err := instance.Filesystem().WriteFile(ctx, "/tmp/note.txt", []byte("hello\n"), nil)
+```
+
+  </Tab>
+</Tabs>
+
+### Copy from local
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+copyFromLocal(localPath: string, remotePath: string, options?: FileCopyOptions & OperationOptions): Promise<void>
+```
+
+Copies a file from the caller into the sandbox.
+
+**Parameters**
+
+| Name         | Type                    | Description                  |
+| ------------ | ----------------------- | ---------------------------- |
+| `localPath`  | `string`                | Local path (may be relative) |
+| `remotePath` | `string`                | Absolute sandbox path        |
+| `options?`   | `{ timeout?; signal? }` | Call deadline                |
+
+**Returns**
+
+`Promise<void>`
+
+**Example**
+
+```ts
+await sandbox.filesystem.copyFromLocal("./note.txt", "/tmp/note.txt");
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) CopyFromLocal(ctx context.Context, localPath, remotePath string, options *FileCopyOptions) error
+```
+
+Copies a file from the caller into the sandbox.
+
+**Parameters**
+
+| Name         | Type               | Description                  |
+| ------------ | ------------------ | ---------------------------- |
+| `localPath`  | `string`           | Local path (may be relative) |
+| `remotePath` | `string`           | Absolute sandbox path        |
+| `options`    | `*FileCopyOptions` | Optional `Timeout`           |
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Copy to local
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+copyToLocal(remotePath: string, localPath: string, options?: FileCopyOptions & OperationOptions): Promise<void>
+```
+
+Copies a sandbox file onto the caller's disk. Missing local parents are created. An existing local directory is rejected.
+
+**Parameters**
+
+| Name         | Type                    | Description            |
+| ------------ | ----------------------- | ---------------------- |
+| `remotePath` | `string`                | Absolute sandbox path  |
+| `localPath`  | `string`                | Local destination path |
+| `options?`   | `{ timeout?; signal? }` | Call deadline          |
+
+**Returns**
+
+`Promise<void>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) CopyToLocal(ctx context.Context, remotePath, localPath string, options *FileCopyOptions) error
+```
+
+Copies a sandbox file onto the caller's disk. Missing local parents are created.
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Make a directory
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+makeDirectory(path: string, options?: MakeDirectoryOptions & OperationOptions): Promise<void>
+```
+
+Creates the directory at `path`. An omitted `parents` flag is `true` (create missing parents).
+
+**Parameters**
+
+| Name       | Type                                       | Description               |
+| ---------- | ------------------------------------------ | ------------------------- |
+| `path`     | `string`                                   | Absolute sandbox path     |
+| `options?` | `{ parents?: boolean; timeout?; signal? }` | Parents flag and deadline |
+
+**Returns**
+
+`Promise<void>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) MakeDirectory(ctx context.Context, path string, options *MakeDirectoryOptions) error
+```
+
+Creates the directory at `path`. An omitted `Parents` flag is true.
+
+**Parameters**
+
+| Name      | Type                    | Description                         |
+| --------- | ----------------------- | ----------------------------------- |
+| `options` | `*MakeDirectoryOptions` | `Timeout`, optional `Parents *bool` |
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### List a directory
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+listDirectory(path: string, options?: ListDirectoryOptions & OperationOptions): Promise<FileInfo[]>
+```
+
+Lists entries in one directory.
+
+**Returns**
+
+`Promise<FileInfo[]>`
+
+**Example**
+
+```ts
+const entries = await sandbox.filesystem.listDirectory("/tmp");
+// entries[]: { name, path, type, size, mode?, permissions?, owner?, group?,
+//              modifiedAt?, symlinkTarget? }
+console.log(entries);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) ListDirectory(ctx context.Context, path string, options *ListDirectoryOptions) ([]*FileInfo, error)
+```
+
+Lists entries in one directory.
+
+**Returns**
+
+`([]*FileInfo, error)`
+
+**Example**
+
+```go
+entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp", nil)
+// each entry: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt, SymlinkTarget
+fmt.Println(entries)
+```
+
+  </Tab>
+</Tabs>
+
+### Stat a path
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+stat(path: string, options?: StatOptions & OperationOptions): Promise<FileInfo>
+```
+
+Returns metadata for one path. A symlink result describes the symlink.
+
+**Returns**
+
+`Promise<FileInfo>`
+
+**Example**
+
+```ts
+const info = await sandbox.filesystem.stat("/tmp/note.txt");
+// info: { name, path, type, size, mode?, permissions?, owner?, group?,
+//         modifiedAt?, symlinkTarget? }
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) Stat(ctx context.Context, path string, options *StatOptions) (*FileInfo, error)
+```
+
+Returns metadata for one path. A symlink result describes the symlink.
+
+**Returns**
+
+`(*FileInfo, error)`
+
+**Example**
+
+```go
+info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
+// info: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt, SymlinkTarget
+fmt.Println(info)
+```
+
+  </Tab>
+</Tabs>
+
+### Remove a path
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+remove(path: string, options?: RemoveOptions & OperationOptions): Promise<void>
+```
+
+Removes a file, or a directory when `recursive` is set. An omitted `recursive` flag removes a file or an empty directory.
+
+**Parameters**
+
+| Name       | Type                                         | Description                 |
+| ---------- | -------------------------------------------- | --------------------------- |
+| `path`     | `string`                                     | Absolute sandbox path       |
+| `options?` | `{ recursive?: boolean; timeout?; signal? }` | Recursive flag and deadline |
+
+**Returns**
+
+`Promise<void>`
+
+**Example**
+
+```ts
+await sandbox.filesystem.remove("/tmp/dir", { recursive: true });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (f *Filesystem) Remove(ctx context.Context, path string, options *RemoveOptions) error
+```
+
+Removes a file, or a directory when `Recursive` is set.
+
+**Parameters**
+
+| Name      | Type             | Description                           |
+| --------- | ---------------- | ------------------------------------- |
+| `options` | `*RemoveOptions` | `Timeout`, optional `Recursive *bool` |
+
+**Returns**
+
+`error`
+
+**Example**
+
+```go
+err := instance.Filesystem().Remove(ctx, "/tmp/dir", &sandbox.RemoveOptions{
+	Recursive: sandbox.Value(true),
+})
+```
+
+  </Tab>
+</Tabs>
+
+## FileInfo
+
+Metadata for one file, directory, or symlink.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field           | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| `name`          | Base name                                                           |
+| `path`          | Absolute path in the sandbox                                        |
+| `type`          | [`FileType`](/docs/api/enums#filetype): file, directory, or symlink |
+| `size`          | Size in bytes                                                       |
+| `mode`          | Unix mode string when reported (for example `0644`)                 |
+| `permissions`   | Symbolic permissions when reported                                  |
+| `owner`         | Ownership when reported                                             |
+| `group`         | Group when reported                                                 |
+| `modifiedAt`    | Last modification time when reported                                |
+| `symlinkTarget` | Target path when the entry is a symlink                             |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field           | Description                                                         |
+| --------------- | ------------------------------------------------------------------- |
+| `Name`          | Base name                                                           |
+| `Path`          | Absolute path in the sandbox                                        |
+| `Type`          | [`FileType`](/docs/api/enums#filetype): file, directory, or symlink |
+| `Size`          | Size in bytes                                                       |
+| `Mode`          | Unix mode string when reported (for example `0644`)                 |
+| `Permissions`   | Symbolic permissions when reported                                  |
+| `Owner`         | Ownership when reported                                             |
+| `Group`         | Group when reported                                                 |
+| `ModifiedAt`    | Last modification time when reported                                |
+| `SymlinkTarget` | Target path when the entry is a symlink                             |
+
+  </Tab>
+</Tabs>

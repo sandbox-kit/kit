@@ -467,15 +467,9 @@ Metadata from info is a **copy**. Mutating it does not change the sandbox. Repor
 
 ```ts
 const info = sandbox.info();
-console.log(info.id);
-console.log(info.provider);
-console.log(info.state); // portable lifecycle state
-console.log(info.providerState); // provider's native string when set
-console.log(info.name);
-console.log(info.region);
-console.log(info.resources?.cpuCores, info.resources?.memoryMib);
-console.log(info.labels);
-console.log(info.terminal);
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
 ```
 
   </Tab>
@@ -483,17 +477,9 @@ console.log(info.terminal);
 
 ```go
 info := instance.Info()
-fmt.Println(info.Id)
-fmt.Println(info.Provider)
-fmt.Println(info.State)              // portable lifecycle state
-fmt.Println(info.GetProviderState()) // provider's native string when set
-fmt.Println(info.GetName())
-fmt.Println(info.GetRegion())
-if info.Resources != nil {
-	fmt.Println(info.Resources.GetCpuCores(), info.Resources.GetMemoryMib())
-}
-fmt.Println(info.Labels)
-fmt.Println(info.GetTerminal())
+// info: Id, Provider, Name, ProviderState, Region, Isolation,
+//       Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(info)
 ```
 
   </Tab>

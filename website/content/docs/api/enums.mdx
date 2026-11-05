@@ -1,0 +1,169 @@
+---
+title: Enums
+description: Shared public enums for create, lifecycle, and info.
+---
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Exported as PascalCase const objects (for example `PolicyMode.After`, `SandboxState.Running`).
+
+  </Tab>
+  <Tab value="Go">
+
+Exported as prefixed constants (for example `sandbox.PolicyModeAfter`, `sandbox.SandboxStateRunning`).
+
+  </Tab>
+</Tabs>
+
+## SandboxState
+
+Portable lifecycle state on [`SandboxInfo`](/docs/api/sandbox-info).
+
+| Value         | Description                          |
+| ------------- | ------------------------------------ |
+| `Unknown`     | State is not known or not yet mapped |
+| `Queued`      | Waiting to be scheduled              |
+| `Starting`    | Booting or coming online             |
+| `Running`     | Available for work                   |
+| `Stopping`    | Stop in progress                     |
+| `Stopped`     | Stopped and can be started again     |
+| `Pausing`     | Pause in progress                    |
+| `Paused`      | Paused with retained state           |
+| `Archiving`   | Archive in progress                  |
+| `Archived`    | Archived to colder storage           |
+| `Terminating` | Permanent end in progress            |
+| `Terminated`  | Permanently ended                    |
+| `Deleting`    | Delete in progress                   |
+| `Deleted`     | Permanently removed                  |
+| `Error`       | Provider reported a failure state    |
+
+## LifecycleCapability
+
+Used with [Capabilities](/docs/api/sandbox#capabilities). File and process calls are not capabilities.
+
+| Value       | Description                            |
+| ----------- | -------------------------------------- |
+| `Unknown`   | Unspecified capability                 |
+| `Refresh`   | Reload metadata from the provider      |
+| `Start`     | Start a stopped sandbox                |
+| `Stop`      | Stop a running sandbox                 |
+| `Pause`     | Pause a sandbox                        |
+| `Terminate` | Permanently end the sandbox            |
+| `Archive`   | Move retained state to archive storage |
+| `Delete`    | Permanently delete the sandbox         |
+
+## PolicyMode
+
+Idle/stopped automatic actions under [`LifetimePolicy`](/docs/api/create-options#lifetimepolicy).
+
+| Value      | Description                                        |
+| ---------- | -------------------------------------------------- |
+| `Default`  | Omit the policy / leave it to the provider         |
+| `Disabled` | Turn the policy off                                |
+| `After`    | Run after the configured delay (`after` / `After`) |
+
+## WaitCondition
+
+How far provisioning wait-for waits before create returns.
+
+| Value       | Description                                                             |
+| ----------- | ----------------------------------------------------------------------- |
+| `Default`   | Provider default wait depth                                             |
+| `Submitted` | Return once the create request is accepted                              |
+| `Scheduled` | Return once the sandbox is scheduled                                    |
+| `Started`   | Return once the sandbox has started                                     |
+| `Ready`     | Return once readiness succeeds (probe + positive timeout when required) |
+
+## EgressMode
+
+Outbound network policy on create.
+
+| Value        | Description                                                    |
+| ------------ | -------------------------------------------------------------- |
+| `Default`    | Leave outbound policy to the provider                          |
+| `AllowAll`   | Allow outbound traffic                                         |
+| `BlockAll`   | Block outbound traffic (including private links when enforced) |
+| `Restricted` | Allow only listed CIDRs and/or domains                         |
+
+## PortTransport
+
+Transport for a published port.
+
+| Value      | Description                         |
+| ---------- | ----------------------------------- |
+| `Default`  | Leave the transport to the provider |
+| `Tls`      | TLS                                 |
+| `Http2Tls` | HTTP/2 over TLS                     |
+| `Plain`    | Unencrypted / plain transport       |
+
+## IsolationKind
+
+Sandbox isolation class.
+
+| Value              | Description                                         |
+| ------------------ | --------------------------------------------------- |
+| `Default`          | Leave the class to the provider                     |
+| `Container`        | Container isolation                                 |
+| `MicroVM`          | MicroVM isolation                                   |
+| `LinuxVm`          | Full Linux VM isolation                             |
+| `Worker`           | Worker-style isolation                              |
+| `ProviderSpecific` | Provider-defined class (see provider kind when set) |
+
+## SnapshotKind
+
+Classification for a snapshot source.
+
+| Value              | Description                     |
+| ------------------ | ------------------------------- |
+| `Default`          | Leave the class to the provider |
+| `Filesystem`       | Filesystem snapshot             |
+| `Memory`           | Memory snapshot                 |
+| `Image`            | Image snapshot                  |
+| `Machine`          | Machine snapshot                |
+| `Checkpoint`       | Checkpoint snapshot             |
+| `ProviderSpecific` | Provider-defined snapshot class |
+
+## SecretInjection
+
+How a create-time secret reference is exposed.
+
+| Value               | Description                       |
+| ------------------- | --------------------------------- |
+| `Default`           | Leave injection to the provider   |
+| `Environment`       | Inject as an environment variable |
+| `EgressPlaceholder` | Inject as an egress placeholder   |
+
+## FileType
+
+Filesystem entry kind on [`FileInfo`](/docs/api/filesystem#fileinfo).
+
+| Value         | Description           |
+| ------------- | --------------------- |
+| `Unspecified` | Type was not reported |
+| `File`        | Regular file          |
+| `Directory`   | Directory             |
+| `Symlink`     | Symbolic link         |
+
+## ErrorKind
+
+Error category on the typed error. Not retry advice. See also [Errors](/docs/api/errors).
+
+| Value                | Description                                            |
+| -------------------- | ------------------------------------------------------ |
+| `Unknown`            | Does not match a known category                        |
+| `InvalidArgument`    | The request shape is wrong                             |
+| `Unsupported`        | This provider does not implement the call or the field |
+| `Authentication`     | Credentials were rejected                              |
+| `PermissionDenied`   | The account cannot perform this operation              |
+| `NotFound`           | The sandbox or file path was not found                 |
+| `AlreadyExists`      | The named resource already exists                      |
+| `Conflict`           | Current state rejects this operation                   |
+| `RateLimited`        | Provider rate limit reached                            |
+| `ResourceExhausted`  | Provider quota or capacity reached                     |
+| `Timeout`            | The deadline fired                                     |
+| `Canceled`           | The caller canceled the operation                      |
+| `Unavailable`        | The provider could not be reached                      |
+| `InvalidResponse`    | The provider response cannot be used                   |
+| `Internal`           | Unclassified failure                                   |
+| `FailedPrecondition` | Client or sandbox is not in a usable state             |

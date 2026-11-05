@@ -1,0 +1,337 @@
+---
+title: Client
+description: Construct a provider connection; create, get, attach, and close.
+---
+
+Creates and opens sandbox handles for one provider. Closing the client closes the local connection; cloud sandboxes keep running.
+
+## Construction
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+new Client(config: ClientConfig)
+```
+
+Validates config and initializes the selected provider. Throws on invalid config.
+
+**Parameters**
+
+| Name     | Type                                      | Description                                                                      |
+| -------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| `config` | [`ClientConfig`](/docs/api/configuration) | Provider plus shared settings (`auth`, `scope`, `endpoint`, `region`, `timeout`) |
+
+**Returns**
+
+`Client`
+
+**Example**
+
+```ts
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider,
+  timeout: 120_000,
+});
+```
+
+`await using` calls `close` on dispose.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func NewClient(provider Provider, config *Config) (*Client, error)
+```
+
+Validates config and initializes the provider. Invalid config returns a nil client and an error.
+
+**Parameters**
+
+| Name       | Type                                 | Description                                                        |
+| ---------- | ------------------------------------ | ------------------------------------------------------------------ |
+| `provider` | `Provider`                           | Provider constructor from a provider package                       |
+| `config`   | [`*Config`](/docs/api/configuration) | Shared settings (`Auth`, `Scope`, `Endpoint`, `Region`, `Timeout`) |
+
+**Returns**
+
+`(*Client, error)`
+
+**Example**
+
+```go
+client, err := sandbox.NewClient(provider, &sandbox.Config{
+	Timeout: sandbox.Duration(2 * time.Minute),
+})
+if err != nil {
+	return err
+}
+defer client.Close(context.Background())
+```
+
+  </Tab>
+</Tabs>
+
+## Properties
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Name           | Type     | Description                         |
+| -------------- | -------- | ----------------------------------- |
+| `providerName` | `string` | Identifier of the selected provider |
+
+  </Tab>
+  <Tab value="Go">
+
+| Name           | Signature        | Description                         |
+| -------------- | ---------------- | ----------------------------------- |
+| `ProviderName` | `func () string` | Identifier of the selected provider |
+
+  </Tab>
+</Tabs>
+
+## Methods
+
+### create
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+create(request?: CreateOptions, options?: OperationOptions): Promise<Sandbox>
+```
+
+Creates one sandbox and returns its handle. An empty request uses provider defaults when allowed.
+
+**Parameters**
+
+| Name       | Type                                                      | Description                                         |
+| ---------- | --------------------------------------------------------- | --------------------------------------------------- |
+| `request?` | [`CreateOptions`](/docs/api/create-options)               | Create body. Omitted fields keep provider defaults. |
+| `options?` | [`OperationOptions`](/docs/api/sandbox#operation-options) | Call `timeout` (ms) and optional `signal`           |
+
+**Returns**
+
+`Promise<`[`Sandbox`](/docs/api/sandbox)`>` — handle for the new sandbox
+
+**Example**
+
+```ts
+const sandbox = await client.create(
+  { source: { image: { reference: "alpine:3.21" } } },
+  { timeout: 60_000 },
+);
+console.log(sandbox.id);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Create(ctx context.Context, request *CreateOptions) (*Sandbox, error)
+```
+
+Creates one sandbox and returns its handle. A nil request uses provider defaults when allowed.
+
+**Parameters**
+
+| Name      | Type                                         | Description                   |
+| --------- | -------------------------------------------- | ----------------------------- |
+| `ctx`     | `context.Context`                            | Cancellation and deadline     |
+| `request` | [`*CreateOptions`](/docs/api/create-options) | Create body; nil for defaults |
+
+**Returns**
+
+`(*Sandbox, error)` — handle for the new sandbox
+
+**Example**
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+})
+```
+
+  </Tab>
+</Tabs>
+
+### get
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+get(id: string, options?: OperationOptions): Promise<Sandbox>
+```
+
+Looks up a sandbox by id and returns a handle the provider has verified.
+
+**Parameters**
+
+| Name       | Type               | Description             |
+| ---------- | ------------------ | ----------------------- |
+| `id`       | `string`           | Sandbox identifier      |
+| `options?` | `OperationOptions` | Call timeout and signal |
+
+**Returns**
+
+`Promise<Sandbox>`
+
+**Example**
+
+```ts
+const sandbox = await client.get(knownId);
+const info = sandbox.info();
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
+```
+
+Looks up a sandbox by id and returns a verified handle.
+
+**Parameters**
+
+| Name  | Type              | Description               |
+| ----- | ----------------- | ------------------------- |
+| `ctx` | `context.Context` | Cancellation and deadline |
+| `id`  | `string`          | Sandbox identifier        |
+
+**Returns**
+
+`(*Sandbox, error)`
+
+**Example**
+
+```go
+instance, err := client.Get(ctx, knownID)
+// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
+//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(instance.Info())
+```
+
+  </Tab>
+</Tabs>
+
+### attach
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+attach(id: string, options?: OperationOptions): Promise<Sandbox>
+```
+
+Builds a handle for an existing sandbox id without a lookup round trip.
+
+**Parameters**
+
+| Name       | Type               | Description             |
+| ---------- | ------------------ | ----------------------- |
+| `id`       | `string`           | Sandbox identifier      |
+| `options?` | `OperationOptions` | Call timeout and signal |
+
+**Returns**
+
+`Promise<Sandbox>`
+
+**Example**
+
+```ts
+const sandbox = await client.attach(knownId);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error)
+```
+
+Builds a handle for an existing sandbox id without a lookup round trip.
+
+**Parameters**
+
+| Name  | Type              | Description               |
+| ----- | ----------------- | ------------------------- |
+| `ctx` | `context.Context` | Cancellation and deadline |
+| `id`  | `string`          | Sandbox identifier        |
+
+**Returns**
+
+`(*Sandbox, error)`
+
+**Example**
+
+```go
+instance, err := client.Attach(ctx, knownID)
+```
+
+  </Tab>
+</Tabs>
+
+### close
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+close(options?: OperationOptions): Promise<void>
+```
+
+Closes the local provider connection. Does not stop, archive, or delete cloud sandboxes.
+
+**Parameters**
+
+| Name       | Type               | Description             |
+| ---------- | ------------------ | ----------------------- |
+| `options?` | `OperationOptions` | Call timeout and signal |
+
+**Returns**
+
+`Promise<void>`
+
+**Example**
+
+```ts
+await client.close();
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Close(ctx context.Context) error
+```
+
+Closes the local provider connection. Does not stop, archive, or delete cloud sandboxes.
+
+**Parameters**
+
+| Name  | Type              | Description               |
+| ----- | ----------------- | ------------------------- |
+| `ctx` | `context.Context` | Cancellation and deadline |
+
+**Returns**
+
+`error`
+
+**Example**
+
+```go
+defer client.Close(context.Background())
+```
+
+  </Tab>
+</Tabs>

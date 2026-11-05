@@ -46,9 +46,8 @@ const result = await sandbox.process.run({
   timeout: 5_000, // milliseconds; whole seconds required
   signal: AbortSignal.timeout(5_000),
 });
-console.log(result.exitCode);
-console.log(new TextDecoder().decode(result.stdout));
-console.log(new TextDecoder().decode(result.stderr));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -64,9 +63,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(result.GetExitCode())
-fmt.Println(string(result.GetStdout()))
-fmt.Println(string(result.GetStderr()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>
@@ -92,9 +90,8 @@ Daytona returns stdout only; `stderr` is empty. stdout may include merged stream
 const result = await sandbox.process.run({
   argv: ["echo", "hello"], // sent as a POSIX-quoted shell string
 });
-console.log(result.exitCode);
-console.log(new TextDecoder().decode(result.stdout));
-console.log(result.stderr.byteLength); // 0 — Daytona returns stdout only
+// result: { exitCode, stdout, stderr } — stderr often empty on Daytona
+console.log(result);
 ```
 
   </Tab>
@@ -107,9 +104,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(result.GetExitCode())
-fmt.Println(string(result.GetStdout()))
-fmt.Println(len(result.GetStderr())) // 0 — Daytona returns stdout only
+// result: ExitCode, Stdout, Stderr — Stderr often empty on Daytona
+fmt.Println(result)
 ```
 
   </Tab>
@@ -135,11 +131,8 @@ Modal returns both `stdout` and `stderr`.
 const result = await sandbox.process.run({
   argv: ["echo", "hello"], // argument list as-is
 });
-console.log(
-  result.exitCode,
-  new TextDecoder().decode(result.stdout),
-  new TextDecoder().decode(result.stderr),
-);
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -149,7 +142,8 @@ console.log(
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Argv: []string{"echo", "hello"}, // argument list as-is
 })
-fmt.Println(result.GetExitCode(), string(result.GetStdout()), string(result.GetStderr()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>
@@ -215,7 +209,8 @@ const result = await sandbox.process.run({
   argv: ["echo", "hello from kit"],
   timeout: 5_000,
 });
-console.log(result.exitCode, new TextDecoder().decode(result.stdout));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -236,7 +231,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Printf("exit=%d stdout=%q\n", result.GetExitCode(), string(result.GetStdout()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>
@@ -253,8 +249,8 @@ Do not set `argv` on the same call.
 const result = await sandbox.process.run({
   shell: 'echo "hello from shell"',
 });
-console.log(result.exitCode);
-console.log(new TextDecoder().decode(result.stdout));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -273,8 +269,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(result.GetExitCode())
-fmt.Println(string(result.GetStdout()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>
@@ -293,7 +289,8 @@ const result = await sandbox.process.run({
   workingDirectory: "/tmp",
   environment: { KIT_DEMO: "from-kit" },
 });
-console.log(new TextDecoder().decode(result.stdout));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -314,7 +311,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 if err != nil {
 	return err
 }
-fmt.Println(string(result.GetStdout()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>

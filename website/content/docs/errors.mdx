@@ -33,9 +33,9 @@ try {
   new Client({ provider, timeout: -1 });
 } catch (error) {
   if (error instanceof SandboxError) {
-    console.error(error.kind);
-    console.error(error.field);
-    console.error(error.message);
+    // error: { kind, provider, operation, field, message, rule?,
+    //          statusCode?, providerCode?, providerSource?, cause? }
+    console.error(error);
   }
   throw error;
 }
@@ -59,9 +59,9 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 if err != nil {
 	var detail *sandbox.Error
 	if errors.As(err, &detail) {
-		fmt.Println(detail.Kind)
-		fmt.Println(detail.Field)
-		fmt.Println(detail.Message)
+		// detail: Kind, Provider, Operation, Field, Message, StatusCode,
+		//         ProviderCode, ProviderSource, Rule (+ Unwrap cause)
+		fmt.Println(detail)
 	}
 	return err
 }
@@ -218,7 +218,9 @@ try {
   // create may have succeeded before a later step failed — no id on the error
   if (knownId) {
     const sandbox = await client.get(knownId);
-    console.log(sandbox.info().state);
+    // info: { id, provider, name?, providerState?, region?, isolation?,
+    //         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+    console.log(sandbox.info());
   }
   throw error;
 }
@@ -234,7 +236,9 @@ if err != nil {
 	if knownID != "" {
 		existing, getErr := client.Get(ctx, knownID)
 		if getErr == nil {
-			fmt.Println(existing.Info().State)
+			// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
+			//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+			fmt.Println(existing.Info())
 		}
 	}
 	return err

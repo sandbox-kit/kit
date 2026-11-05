@@ -14,6 +14,8 @@
     "process",
     "errors",
     "---Examples---",
-    "examples"
+    "examples",
+    "---API reference---",
+    "...api"
   ]
 }

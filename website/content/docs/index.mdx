@@ -230,7 +230,8 @@ func main() {
 const result = await sandbox.process.run({
   argv: ["echo", "hello from kit"],
 });
-console.log(result.exitCode, new TextDecoder().decode(result.stdout));
+// result: { exitCode, stdout, stderr }
+console.log(result);
 ```
 
   </Tab>
@@ -251,7 +252,8 @@ result, err := instance.Process().Run(context.Background(), &sandbox.ExecOptions
 if err != nil {
 	log.Fatal(err)
 }
-fmt.Println(result.GetExitCode(), string(result.GetStdout()))
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
 ```
 
   </Tab>
@@ -298,10 +300,11 @@ Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 
 ## Next
 
-|                          |                                      |
-| ------------------------ | ------------------------------------ |
-| How the client works     | [Concepts](/docs/concepts)           |
-| Daytona setup            | [Daytona](/docs/daytona)             |
-| Modal setup              | [Modal](/docs/modal)                 |
-| Auth, region, timeouts   | [Configuration](/docs/configuration) |
-| Runnable sample projects | [Examples](/docs/examples)           |
+|                          |                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| How the client works     | [Concepts](/docs/concepts)                                                             |
+| Types and methods        | [API reference](/docs/api) · [Client](/docs/api/client) · [Sandbox](/docs/api/sandbox) |
+| Daytona setup            | [Daytona](/docs/daytona)                                                               |
+| Modal setup              | [Modal](/docs/modal)                                                                   |
+| Auth, region, timeouts   | [Configuration](/docs/configuration)                                                   |
+| Runnable sample projects | [Examples](/docs/examples)                                                             |

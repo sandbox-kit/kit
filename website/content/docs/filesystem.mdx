@@ -280,7 +280,9 @@ Returns entries in that one directory—no recursion. `size` is a byte count.
 
 ```ts
 const entries = await sandbox.filesystem.listDirectory("/tmp/kit-files");
-for (const entry of entries) console.log(entry.name, entry.size);
+// each entry: { name, path, type, size?, mode?, permissions?,
+//               owner?, group?, modifiedAt? }
+console.log(entries);
 ```
 
   </Tab>
@@ -293,9 +295,8 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 if err != nil {
 	return err
 }
-for _, entry := range entries {
-	fmt.Println(entry.GetName(), entry.GetSize())
-}
+// each entry: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt
+fmt.Println(entries)
 ```
 
   </Tab>
@@ -318,7 +319,9 @@ for _, entry := range entries {
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");
-console.log(info.type, info.size, info.mode);
+// info: { name, path, type, size?, mode?, permissions?,
+//         owner?, group?, modifiedAt? }
+console.log(info);
 ```
 
   </Tab>
@@ -331,7 +334,8 @@ info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 if err != nil {
 	return err
 }
-fmt.Println(info.GetType(), info.GetSize(), info.GetMode())
+// info: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt
+fmt.Println(info)
 ```
 
   </Tab>

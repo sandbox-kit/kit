@@ -1,0 +1,15 @@
+{
+  "title": "API",
+  "pages": [
+    "index",
+    "client",
+    "sandbox",
+    "filesystem",
+    "process",
+    "configuration",
+    "create-options",
+    "sandbox-info",
+    "errors",
+    "enums"
+  ]
+}
