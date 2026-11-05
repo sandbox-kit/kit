@@ -5,18 +5,10 @@ description: Read, write, copy, list, stat, and remove files in a sandbox.
 
 Paths inside the sandbox must be absolute. Local paths for copy may be relative. Omitted timeouts use the client default.
 
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
-
-Access as `sandbox.filesystem`.
-
-  </Tab>
-  <Tab value="Go">
-
-Access as `instance.Filesystem()`.
-
-  </Tab>
-</Tabs>
+<Note>
+  <ForLanguage id="typescript">Access as `sandbox.filesystem`.</ForLanguage>
+  <ForLanguage id="go">Access as `instance.Filesystem()`.</ForLanguage>
+</Note>
 
 ## Methods
 
@@ -255,6 +247,19 @@ Creates the directory at `path`. An omitted `parents` flag is `true` (create mis
 
 `Promise<void>`
 
+<ForProvider id="daytona">
+  Daytona rejects `parents: false` before the call (field `parents`) and errors
+  if the directory already exists. Transfer timeouts must be whole seconds;
+  omit/zero passes `0` so Daytona does not apply its 30-minute upload/download
+  default.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal accepts a directory that already exists. With `parents: false`, the
+  parent must already exist. Fractional-millisecond deadlines are allowed on
+  filesystem calls.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -273,6 +278,16 @@ Creates the directory at `path`. An omitted `Parents` flag is true.
 **Returns**
 
 `error`
+
+<ForProvider id="daytona">
+  Daytona rejects `Parents: false` before the call (field `parents`) and errors
+  if the directory already exists.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal accepts a directory that already exists. With `Parents: false`, the
+  parent must already exist.
+</ForProvider>
 
   </Tab>
 </Tabs>

@@ -3,7 +3,7 @@ title: Lifecycle
 description: get, attach, start, stop, pause, archive, delete, terminate, and close.
 ---
 
-Operate on a handle from `create`, or open one by id. Unsupported ops fail before the provider call.
+Operate on a handle from `create`, or reopen one with `get` / `attach`. Unsupported calls fail before the provider runs.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -304,7 +304,19 @@ defer client.Close(context.Background())
 
 ## Read the state
 
-`info.state` is the portable state; the provider's native string sits beside it. After a lifecycle call, refresh or re-fetch before assuming the sandbox is stopped or gone. A failed call can still mean the provider already changed state. See [Errors](/docs/errors).
+`info.state` is the portable lifecycle state. `providerState` is the raw string from
+the cloud when one is set. A failed call can still mean the cloud already changed
+state. See [Errors](/docs/errors).
+
+<ForProvider id="daytona">
+  After a lifecycle call, call `refresh` (or `get` again) before assuming the
+  sandbox is stopped or gone.
+</ForProvider>
+
+<ForProvider id="modal">
+  Use the info returned by the call, or `info()` on the handle. There is no
+  `refresh` or `get` on Modal.
+</ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

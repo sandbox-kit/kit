@@ -27,6 +27,19 @@ export const PROVIDER_SCOPED_HEADINGS: Record<
     delete: ["daytona"],
     terminate: ["modal"],
   },
+  client: {
+    get: ["daytona"],
+    attach: ["modal"],
+  },
+  sandbox: {
+    refresh: ["daytona"],
+    start: ["daytona"],
+    stop: ["daytona"],
+    pause: ["daytona"],
+    archive: ["daytona"],
+    delete: ["daytona"],
+    terminate: ["modal"],
+  },
 };
 
 export function filterTocForProvider<T extends { url: string }>(

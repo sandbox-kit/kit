@@ -10,7 +10,7 @@ Create returns a sandbox handle. Build the client first.
 </ForProvider>
 <ForProvider id="modal">Provider setup: [Modal](/docs/modal).</ForProvider>
 
-Omitted fields keep provider defaults. Unsupported fields fail in Kit before the provider call.
+Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -404,7 +404,7 @@ Samples: [Examples](/docs/examples).
 
 Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
 
-Disk size, a control-plane endpoint, and stop / pause / archive / delete policies are rejected.
+Disk size, an API endpoint override, and stop / pause / archive / delete policies are rejected.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

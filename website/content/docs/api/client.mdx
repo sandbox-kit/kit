@@ -1,9 +1,9 @@
 ---
 title: Client
-description: Construct a provider connection; create, get, attach, and close.
+description: Construct a client; create, get or attach, and close.
 ---
 
-Creates and opens sandbox handles for one provider. Closing the client closes the local connection; cloud sandboxes keep running.
+Creates sandboxes and reopens them by id (`get` or `attach`). Closing the client only drops the local connection—cloud sandboxes keep running.
 
 ## Construction
 
@@ -33,7 +33,7 @@ import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider,
-  timeout: 120_000,
+  timeout: 120_000, // default client deadline (ms)
 });
 ```
 
@@ -63,7 +63,7 @@ Validates config and initializes the provider. Invalid config returns a nil clie
 
 ```go
 client, err := sandbox.NewClient(provider, &sandbox.Config{
-	Timeout: sandbox.Duration(2 * time.Minute),
+	Timeout: sandbox.Duration(2 * time.Minute), // default client deadline
 })
 if err != nil {
 	return err
@@ -104,7 +104,7 @@ defer client.Close(context.Background())
 create(request?: CreateOptions, options?: OperationOptions): Promise<Sandbox>
 ```
 
-Creates one sandbox and returns its handle. An empty request uses provider defaults when allowed.
+Creates one sandbox and returns its handle. Omit the request (or pass `{}`) to use provider defaults.
 
 **Parameters**
 
@@ -119,13 +119,29 @@ Creates one sandbox and returns its handle. An empty request uses provider defau
 
 **Example**
 
+<ForProvider id="daytona">
+
 ```ts
 const sandbox = await client.create(
-  { source: { image: { reference: "alpine:3.21" } } },
-  { timeout: 60_000 },
+  { source: { image: { reference: "daytonaio/playground:latest" } } },
+  { timeout: 60_000 }, // deadline for this call (ms)
 );
 console.log(sandbox.id);
 ```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+const sandbox = await client.create(
+  { source: { image: { reference: "alpine:3.21" } } },
+  { timeout: 60_000 }, // deadline for this call (ms)
+);
+console.log(sandbox.id);
+```
+
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
@@ -134,7 +150,7 @@ console.log(sandbox.id);
 func (c *Client) Create(ctx context.Context, request *CreateOptions) (*Sandbox, error)
 ```
 
-Creates one sandbox and returns its handle. A nil request uses provider defaults when allowed.
+Creates one sandbox and returns its handle. A nil request uses provider defaults.
 
 **Parameters**
 
@@ -149,18 +165,44 @@ Creates one sandbox and returns its handle. A nil request uses provider defaults
 
 **Example**
 
+<ForProvider id="daytona">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second), // deadline for this call
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
 ```go
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
 		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
 	}},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second), // deadline for this call
+	},
 })
 ```
+
+</ForProvider>
 
   </Tab>
 </Tabs>
 
+<ForProvider id="daytona">
+
 ### get
+
+Looks up a sandbox by id and returns a handle the provider has verified.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -168,8 +210,6 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 ```ts
 get(id: string, options?: OperationOptions): Promise<Sandbox>
 ```
-
-Looks up a sandbox by id and returns a handle the provider has verified.
 
 **Parameters**
 
@@ -199,8 +239,6 @@ console.log(info);
 func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
 ```
 
-Looks up a sandbox by id and returns a verified handle.
-
 **Parameters**
 
 | Name  | Type              | Description               |
@@ -224,7 +262,13 @@ fmt.Println(instance.Info())
   </Tab>
 </Tabs>
 
+</ForProvider>
+
+<ForProvider id="modal">
+
 ### attach
+
+Builds a handle for an existing sandbox id without a lookup round trip. It does not ask the provider whether that sandbox exists.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -232,8 +276,6 @@ fmt.Println(instance.Info())
 ```ts
 attach(id: string, options?: OperationOptions): Promise<Sandbox>
 ```
-
-Builds a handle for an existing sandbox id without a lookup round trip.
 
 **Parameters**
 
@@ -259,8 +301,6 @@ const sandbox = await client.attach(knownId);
 func (c *Client) Attach(ctx context.Context, id string) (*Sandbox, error)
 ```
 
-Builds a handle for an existing sandbox id without a lookup round trip.
-
 **Parameters**
 
 | Name  | Type              | Description               |
@@ -280,6 +320,8 @@ instance, err := client.Attach(ctx, knownID)
 
   </Tab>
 </Tabs>
+
+</ForProvider>
 
 ### close
 

@@ -8,12 +8,14 @@ Run a command on an open handle. You need a sandbox from [create](/docs/create) 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-Call `sandbox.process.run`. The result includes `exitCode`, `stdout`, and `stderr`.
+Call `sandbox.process.run`. The result includes `exitCode`, `stdout`, and `stderr`
+(providers may leave `stderr` empty—see [How providers run it](#how-providers-run-it)).
 
   </Tab>
   <Tab value="Go">
 
-Call `Process().Run`. The result includes `exit_code`, `stdout`, and `stderr`.
+Call `Process().Run`. The result includes `exit_code`, `stdout`, and `stderr`
+(providers may leave `stderr` empty—see [How providers run it](#how-providers-run-it)).
 
   </Tab>
 </Tabs>
@@ -166,13 +168,13 @@ Omit or zero also means no separate provider command limit.
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-Abort rejects the `await`; the remote command may keep running. The handle stays busy until that provider call settles.
+Abort rejects the `await`; the remote command may keep running. The handle stays busy until the in-flight call finishes.
 
 ```ts
 const ac = new AbortController();
 const pending = sandbox.process.run({
   argv: ["sleep", "30"],
-  timeout: 0, // no Kit deadline; still abortable
+  timeout: 0, // no deadline; still abortable
   signal: ac.signal,
 });
 ac.abort();
@@ -182,7 +184,7 @@ await pending.catch(() => {});
   </Tab>
   <Tab value="Go">
 
-Cancel the context to end the wait. The handle stays busy until that provider call settles.
+Cancel the context to end the wait. The handle stays busy until the in-flight call finishes.
 
 ```go
 ctx, cancel := context.WithCancel(ctx)
@@ -190,7 +192,7 @@ defer cancel()
 
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Argv:    []string{"sleep", "30"},
-	Timeout: sandbox.Duration(0), // no Kit deadline; still cancelable via ctx
+	Timeout: sandbox.Duration(0), // no deadline; still cancelable via ctx
 })
 _ = result
 _ = err

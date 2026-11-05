@@ -1,0 +1,31 @@
+---
+description: Apply Tailwind IDE/linter class shorthand suggestions when writing or editing className strings
+alwaysApply: true
+---
+
+# Tailwind: use IDE shorthand suggestions
+
+When Tailwind CSS IntelliSense or the linter says a class **can be written as**
+a shorter form, apply that suggestion. Do not leave the verbose form.
+
+## Do this
+
+- Prefer the suggested class over the longer arbitrary variant.
+- Apply the rewrite while editing, not as a follow-up unless you only spotted it
+  in review.
+- If several classes in the same string have suggestions, fix all of them.
+
+## Examples
+
+| Verbose                 | Prefer          |
+| ----------------------- | --------------- |
+| `[&_:first-child]:mt-0` | `**:first:mt-0` |
+| `[&_:last-child]:mb-0`  | `**:last:mb-0`  |
+
+Same rule for any other `can be written as …` Tailwind diagnostic the IDE shows.
+
+## Scope
+
+- Applies to `className`, `class`, `@apply`, and `cn(...)` / similar helpers.
+- Do not invent shorthands the tooling did not suggest.
+- Unrelated arbitrary variants with no IDE suggestion may stay as-is.

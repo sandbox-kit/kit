@@ -22,7 +22,7 @@ await using client = new Client({
   provider: daytona(),
   auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
   region: process.env.DAYTONA_TARGET,
-  timeout: 120_000, // milliseconds
+  timeout: 120_000, // default client deadline (ms)
 });
 ```
 
@@ -47,7 +47,7 @@ await using client = new Client({
     environment: "main",
   },
   region: process.env.MODAL_REGION,
-  timeout: 120_000, // milliseconds
+  timeout: 120_000, // default client deadline (ms)
 });
 ```
 
@@ -118,7 +118,7 @@ if err != nil {
 
 ## Sandbox handle
 
-`create` and the provider's open-by-id method return a handle. Use that handle for lifecycle, filesystem, and process calls.
+`create` returns a handle. To reopen an existing sandbox, use `get` or `attach`—see [Lifecycle](/docs/lifecycle). Use the handle for lifecycle, filesystem, and process calls.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -217,7 +217,7 @@ fmt.Println(result)
 
 Each provider is its own package. Pass it into the client. Auth, create defaults, and which lifecycle calls exist depend on the provider; the client methods stay the same.
 
-The client invokes the provider's native SDK—it does not sit in front of a separate Kit service.
+The client talks to Daytona or Modal directly. There is no separate Kit cloud in the middle.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -313,7 +313,7 @@ Setup: [Modal](/docs/modal).
 
 ## Capabilities
 
-Kit rejects unsupported calls before talking to the provider. A provider can still refuse a supported call for a particular sandbox; that comes back as a provider error.
+Unsupported calls fail before anything reaches the cloud. The cloud can still refuse a supported call for a particular sandbox; that comes back as a provider error.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -353,7 +353,7 @@ const pending = sandbox.process.run({
   argv: ["sleep", "30"],
   signal: ac.signal,
 });
-ac.abort(); // rejects the await; handle stays busy until the provider call settles
+ac.abort(); // rejects the await; handle stays busy until the in-flight call finishes
 await pending.catch(() => {});
 ```
 
@@ -366,7 +366,7 @@ defer cancel()
 
 go func() {
 	time.Sleep(10 * time.Millisecond)
-	cancel() // ends the wait; handle stays busy until the provider call settles
+	cancel() // ends the wait; handle stays busy until the in-flight call finishes
 }()
 
 _, err := instance.Process().Run(ctx, &sandbox.ExecOptions{

@@ -49,7 +49,7 @@ err = instance.Filesystem().CopyFromLocal(ctx, "note.txt", "/tmp/note.txt", nil)
 
 ## Timeouts
 
-Omit timeout → client deadline. Explicit `0` → no extra Kit deadline.
+Omit timeout → client deadline. Explicit `0` → no deadline from the client.
 
 <ForProvider id="daytona">
 
@@ -304,7 +304,7 @@ fmt.Println(entries)
 
 ## Read metadata
 
-`stat` returns one path. `mode` is an octal string when supplied (`0644`). `permissions`, `owner`, `group`, and `modifiedAt` appear when the provider sends them.
+`stat` returns one path. `mode` is an octal string when supplied (`0644`). `permissions`, `owner`, `group`, and `modifiedAt` appear when the cloud returns them.
 
 <ForProvider id="daytona">
   A symlink path is reported as a file or a directory.

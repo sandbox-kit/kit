@@ -13,7 +13,7 @@ import { Client } from "@sandbox-kit/sandbox";
 
 await using client = new Client({
   provider,
-  timeout: 120_000, // milliseconds
+  timeout: 120_000, // default client deadline (ms)
 });
 ```
 
@@ -28,7 +28,7 @@ import (
 )
 
 client, err := sandbox.NewClient(provider, &sandbox.Config{
-	Timeout: sandbox.Duration(2 * time.Minute),
+	Timeout: sandbox.Duration(2 * time.Minute), // default client deadline
 })
 if err != nil {
 	return err
@@ -43,9 +43,9 @@ if err != nil {
 | `provider` | Provider constructor                                                                        |
 | `auth`     | One of `apiKey`, `tokenPair`, `bearerToken`, `oauthRefresh`. Omit to use provider env creds |
 | `scope`    | App, environment, or organization                                                           |
-| `endpoint` | Provider control-plane URL when that provider allows it                                     |
+| `endpoint` | API base URL override                                                                       |
 | `region`   | Target / default placement                                                                  |
-| `timeout`  | Default deadline                                                                            |
+| `timeout`  | Default deadline for calls that omit their own                                              |
 
 <ForProvider id="daytona">
   Provider setup: [Daytona](/docs/daytona).
@@ -291,7 +291,7 @@ client, err := sandbox.NewClient(modal.New(), config)
 
 `timeout` on the client is the default deadline. Create and lifecycle calls can override it.
 
-Explicit zero adds no Kit deadline of its own. A context deadline or abort signal that fires earlier still wins.
+Explicit zero means no deadline from the client. A context deadline or abort signal that fires earlier still wins.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -301,12 +301,12 @@ Explicit zero adds no Kit deadline of its own. A context deadline or abort signa
 ```ts
 await using client = new Client({
   provider: daytona(),
-  timeout: 120_000, // default deadline for calls that omit timeout
+  timeout: 120_000, // default for calls that omit timeout
 });
 
 const sandbox = await client.create(
   { source: { image: { reference: "daytonaio/playground:latest" } } },
-  { timeout: 60_000 }, // override for this call; 0 = no Kit deadline
+  { timeout: 60_000 }, // override for this call; 0 = no deadline
 );
 ```
 
@@ -317,12 +317,12 @@ const sandbox = await client.create(
 ```ts
 await using client = new Client({
   provider: modal(),
-  timeout: 120_000, // default deadline for calls that omit timeout
+  timeout: 120_000, // default for calls that omit timeout
 });
 
 const sandbox = await client.create(
   { source: { image: { reference: "alpine:3.21" } } },
-  { timeout: 60_000 }, // override for this call; 0 = no Kit deadline
+  { timeout: 60_000 }, // override for this call; 0 = no deadline
 );
 ```
 
@@ -346,7 +346,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
 	}},
 	Provisioning: &sandbox.ProvisioningOptions{
-		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no Kit deadline
+		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no deadline
 	},
 })
 ```
@@ -368,7 +368,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
 	}},
 	Provisioning: &sandbox.ProvisioningOptions{
-		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no Kit deadline
+		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no deadline
 	},
 })
 ```

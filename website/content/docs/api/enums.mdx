@@ -3,40 +3,27 @@ title: Enums
 description: Shared public enums for create, lifecycle, and info.
 ---
 
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
-
-Exported as PascalCase const objects (for example `PolicyMode.After`, `SandboxState.Running`).
-
-  </Tab>
-  <Tab value="Go">
-
-Exported as prefixed constants (for example `sandbox.PolicyModeAfter`, `sandbox.SandboxStateRunning`).
-
-  </Tab>
-</Tabs>
-
 ## SandboxState
 
 Portable lifecycle state on [`SandboxInfo`](/docs/api/sandbox-info).
 
-| Value         | Description                          |
-| ------------- | ------------------------------------ |
-| `Unknown`     | State is not known or not yet mapped |
-| `Queued`      | Waiting to be scheduled              |
-| `Starting`    | Booting or coming online             |
-| `Running`     | Available for work                   |
-| `Stopping`    | Stop in progress                     |
-| `Stopped`     | Stopped and can be started again     |
-| `Pausing`     | Pause in progress                    |
-| `Paused`      | Paused with retained state           |
-| `Archiving`   | Archive in progress                  |
-| `Archived`    | Archived to colder storage           |
-| `Terminating` | Permanent end in progress            |
-| `Terminated`  | Permanently ended                    |
-| `Deleting`    | Delete in progress                   |
-| `Deleted`     | Permanently removed                  |
-| `Error`       | Provider reported a failure state    |
+| Value         | Description                       |
+| ------------- | --------------------------------- |
+| `Unknown`     | State is not known                |
+| `Queued`      | Waiting to be scheduled           |
+| `Starting`    | Booting or coming online          |
+| `Running`     | Available for work                |
+| `Stopping`    | Stop in progress                  |
+| `Stopped`     | Stopped and can be started again  |
+| `Pausing`     | Pause in progress                 |
+| `Paused`      | Paused with retained state        |
+| `Archiving`   | Archive in progress               |
+| `Archived`    | Archived to colder storage        |
+| `Terminating` | Permanent end in progress         |
+| `Terminated`  | Permanently ended                 |
+| `Deleting`    | Delete in progress                |
+| `Deleted`     | Permanently removed               |
+| `Error`       | Provider reported a failure state |
 
 ## LifecycleCapability
 
@@ -57,11 +44,11 @@ Used with [Capabilities](/docs/api/sandbox#capabilities). File and process calls
 
 Idle/stopped automatic actions under [`LifetimePolicy`](/docs/api/create-options#lifetimepolicy).
 
-| Value      | Description                                        |
-| ---------- | -------------------------------------------------- |
-| `Default`  | Omit the policy / leave it to the provider         |
-| `Disabled` | Turn the policy off                                |
-| `After`    | Run after the configured delay (`after` / `After`) |
+| Value      | Description                                |
+| ---------- | ------------------------------------------ |
+| `Default`  | Omit the policy / leave it to the provider |
+| `Disabled` | Turn the policy off                        |
+| `After`    | Run after the configured delay             |
 
 ## WaitCondition
 

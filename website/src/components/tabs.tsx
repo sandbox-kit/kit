@@ -16,6 +16,11 @@ import {
   TabsTrigger as RootTabsTrigger,
 } from "fumadocs-ui/components/ui/tabs";
 import { cn } from "@/lib/cn";
+import { DOC_LANGUAGE_STORAGE_KEY } from "@/lib/languages";
+import {
+  resolveDocLanguageId,
+  useDocLanguageOptional,
+} from "@/components/language-context";
 
 type TabsContextValue = {
   items?: string[];
@@ -49,10 +54,16 @@ export function Tabs({
   label,
   defaultIndex = 0,
   defaultValue = items ? escapeValue(items[defaultIndex]!) : undefined,
+  groupId,
+  persist,
   children,
   ...props
 }: TabsProps) {
   const collection = useMemo(() => [] as string[], []);
+  const languageCtx = useDocLanguageOptional();
+  const isLanguageGroup = groupId === DOC_LANGUAGE_STORAGE_KEY;
+  const languageValue =
+    isLanguageGroup && languageCtx ? languageCtx.language : undefined;
 
   return (
     <RootTabs
@@ -61,7 +72,18 @@ export function Tabs({
         "my-4 flex flex-col overflow-hidden rounded-xl border bg-fd-secondary",
         className,
       )}
-      defaultValue={defaultValue}
+      groupId={groupId}
+      persist={persist}
+      defaultValue={languageValue ? undefined : defaultValue}
+      value={languageValue}
+      onValueChange={
+        isLanguageGroup && languageCtx
+          ? (value) => {
+              const id = resolveDocLanguageId(value);
+              if (id) languageCtx.setLanguage(id);
+            }
+          : undefined
+      }
       {...props}
     >
       {items && (

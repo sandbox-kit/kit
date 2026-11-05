@@ -7,6 +7,7 @@ import {
 import * as React from "react";
 import appCss from "@/styles/app.css?url";
 import { RootProvider } from "fumadocs-ui/provider/tanstack";
+import { LanguageProvider } from "@/components/language-context";
 import { ProviderProvider } from "@/components/provider-context";
 import { assetUrl } from "@/lib/shared";
 import { siteDescription } from "@/lib/seo";
@@ -42,7 +43,9 @@ function RootComponent() {
           search={{ options: { type: "static" } }}
         >
           <ProviderProvider>
-            <Outlet />
+            <LanguageProvider>
+              <Outlet />
+            </LanguageProvider>
           </ProviderProvider>
         </RootProvider>
         <Scripts />

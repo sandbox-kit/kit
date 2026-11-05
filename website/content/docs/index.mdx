@@ -85,7 +85,7 @@ import { Client } from "@sandbox-kit/sandbox";
 await using client = new Client({
   provider: daytona(),
   auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
-  timeout: 120_000,
+  timeout: 120_000, // default client deadline (ms)
 });
 
 const sandbox = await client.create();
@@ -112,7 +112,7 @@ await using client = new Client({
     appName: process.env.MODAL_APP_NAME!,
     environment: process.env.MODAL_ENVIRONMENT ?? "main",
   },
-  timeout: 120_000,
+  timeout: 120_000, // default client deadline (ms)
 });
 
 const sandbox = await client.create({
@@ -294,8 +294,8 @@ Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 
 <Callout title="Close does not stop the sandbox">
   `client.close()` and handle `close` only release local resources. The cloud
-  sandbox keeps running until you stop, terminate, archive, delete, or a
-  lifetime policy ends it. See [Concepts](/docs/concepts).
+  sandbox keeps running until an explicit lifecycle call or a lifetime policy
+  ends it. See [Concepts](/docs/concepts) and [Lifecycle](/docs/lifecycle).
 </Callout>
 
 ## Next

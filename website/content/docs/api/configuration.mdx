@@ -22,14 +22,14 @@ type Config = {
 };
 ```
 
-| Field       | Type                 | Description                                                         |
-| ----------- | -------------------- | ------------------------------------------------------------------- |
-| `provider`  | `Provider`           | Provider constructor from a provider package                        |
-| `auth?`     | [`AuthInput`](#auth) | Credential set. Omit to use native env/profile resolution.          |
-| `endpoint?` | `string`             | Control-plane URL override when allowed. Remote URLs must be HTTPS. |
-| `region?`   | `string`             | Default region or target preference                                 |
-| `scope?`    | [`Scope`](#scope)    | App, environment, organization, or project                          |
-| `timeout?`  | `number`             | Default deadline (ms) for calls that omit their own timeout         |
+| Field       | Type                 | Description                                                            |
+| ----------- | -------------------- | ---------------------------------------------------------------------- |
+| `provider`  | `Provider`           | Provider constructor from a provider package                           |
+| `auth?`     | [`AuthInput`](#auth) | Credential set. Omit to use env/profile credentials from the provider. |
+| `endpoint?` | `string`             | API base URL override. Remote URLs must be HTTPS.                      |
+| `region?`   | `string`             | Default region or target preference                                    |
+| `scope?`    | [`Scope`](#scope)    | App, environment, organization, or project                             |
+| `timeout?`  | `number`             | Default deadline (ms) for calls that omit their own timeout            |
 
 **Example**
 
@@ -38,9 +38,14 @@ await using client = new Client({
   provider,
   auth: { apiKey: { key: process.env.API_KEY! } },
   region: "us",
-  timeout: 120_000,
+  timeout: 120_000, // default client deadline (ms)
 });
 ```
+
+<ForProvider id="daytona">
+  This sets the client deadline only. If a create/start/stop/pause/delete call
+  omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
@@ -57,13 +62,13 @@ type Config struct {
 
 Pass `config` to `NewClient(provider, config)`.
 
-| Field      | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-| `Auth`     | Credential set. Nil lets the native SDK resolve env/profile. |
-| `Endpoint` | Control-plane URL override when allowed                      |
-| `Region`   | Default region or target preference                          |
-| `Scope`    | App, environment, organization, or project                   |
-| `Timeout`  | Default deadline via `sandbox.Duration`                      |
+| Field      | Description                                                         |
+| ---------- | ------------------------------------------------------------------- |
+| `Auth`     | Credential set. Nil uses env/profile credentials from the provider. |
+| `Endpoint` | API base URL override                                               |
+| `Region`   | Default region or target preference                                 |
+| `Scope`    | App, environment, organization, or project                          |
+| `Timeout`  | Default client deadline via `sandbox.Duration`                      |
 
 **Example**
 
@@ -73,9 +78,14 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("API_KEY")},
 	}},
 	Region:  sandbox.Value("us"),
-	Timeout: sandbox.Duration(2 * time.Minute),
+	Timeout: sandbox.Duration(2 * time.Minute), // default client deadline
 })
 ```
+
+<ForProvider id="daytona">
+  This sets the client deadline only. If a create/start/stop/pause/delete call
+  omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
 
   </Tab>
 </Tabs>
@@ -137,22 +147,22 @@ type AuthInput =
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Field            | Description                                      |
-| ---------------- | ------------------------------------------------ |
-| `appName`        | Application name when the provider scopes by app |
-| `environment`    | Environment name (often `main`) when used        |
-| `organizationId` | Organization when the provider scopes by org     |
-| `projectId`      | Project when the provider scopes by project      |
+| Field            | Description                     |
+| ---------------- | ------------------------------- |
+| `appName`        | Application name                |
+| `environment`    | Environment name (often `main`) |
+| `organizationId` | Organization id                 |
+| `projectId`      | Project id                      |
 
   </Tab>
   <Tab value="Go">
 
-| Field            | Description                                      |
-| ---------------- | ------------------------------------------------ |
-| `AppName`        | Application name when the provider scopes by app |
-| `Environment`    | Environment name (often `main`) when used        |
-| `OrganizationId` | Organization when the provider scopes by org     |
-| `ProjectId`      | Project when the provider scopes by project      |
+| Field            | Description                     |
+| ---------------- | ------------------------------- |
+| `AppName`        | Application name                |
+| `Environment`    | Environment name (often `main`) |
+| `OrganizationId` | Organization id                 |
+| `ProjectId`      | Project id                      |
 
   </Tab>
 </Tabs>

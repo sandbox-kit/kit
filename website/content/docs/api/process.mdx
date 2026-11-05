@@ -5,18 +5,14 @@ description: Run a command in a sandbox and collect exit code and output.
 
 A non-zero exit code is **not** an error. Set exactly one of argv or shell.
 
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
-
-Access as `sandbox.process`. Set exactly one of `argv` or `shell`.
-
-  </Tab>
-  <Tab value="Go">
-
-Access as `instance.Process()`. Set exactly one of `Argv` or `Shell`.
-
-  </Tab>
-</Tabs>
+<Note>
+  <ForLanguage id="typescript">
+    Access as `sandbox.process`. Set exactly one of `argv` or `shell`.
+  </ForLanguage>
+  <ForLanguage id="go">
+    Access as `instance.Process()`. Set exactly one of `Argv` or `Shell`.
+  </ForLanguage>
+</Note>
 
 ## Methods
 
@@ -39,7 +35,7 @@ Runs one command and waits for it to finish.
 | `options.shell?`            | `string`                 | Shell command string. Mutually exclusive with `argv`.   |
 | `options.workingDirectory?` | `string`                 | Absolute working directory inside the sandbox           |
 | `options.environment?`      | `Record<string, string>` | Env vars for this command only                          |
-| `options.timeout?`          | `number`                 | Deadline in milliseconds; whole seconds required        |
+| `options.timeout?`          | `number`                 | Kit + command deadline (ms); whole seconds required     |
 | `options.signal?`           | `AbortSignal`            | Abort the wait                                          |
 
 **Returns**
@@ -115,6 +111,18 @@ Outcome of a finished command.
 | `stdout`   | Collected standard output bytes |
 | `stderr`   | Collected standard error bytes  |
 
+<ForProvider id="daytona">
+  Daytona returns stdout only; `stderr` is empty (stdout may include merged
+  streams). `argv` is sent as a POSIX-quoted shell string. Omit/zero timeout
+  sends `0` so Daytona does not apply its 10s command default.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal returns both `stdout` and `stderr`. `argv` is passed as-is; `shell` runs
+  via `bash -c`. Omit/zero timeout omits Modal's `timeoutMs` (Modal rejects an
+  explicit 0).
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -123,6 +131,18 @@ Outcome of a finished command.
 | `ExitCode` | Process exit status             |
 | `Stdout`   | Collected standard output bytes |
 | `Stderr`   | Collected standard error bytes  |
+
+<ForProvider id="daytona">
+  Daytona returns Stdout only; Stderr is empty (Stdout may include merged
+  streams). Argv is sent as a POSIX-quoted shell string. Omit/zero Timeout sends
+  0 so Daytona does not apply its 10s command default.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal returns both Stdout and Stderr. Argv is passed as-is; Shell runs via
+  `bash -c`. Omit/zero Timeout omits Modal's timeoutMs (Modal rejects an
+  explicit 0).
+</ForProvider>
 
   </Tab>
 </Tabs>

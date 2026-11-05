@@ -3,7 +3,7 @@ title: Sandbox
 description: Handle for one sandbox — lifecycle, info, filesystem, and process.
 ---
 
-Handle returned by create, get, or attach on [`Client`](/docs/api/client). Lifecycle methods update stored metadata when the call returns info. Closing the handle only releases local resources.
+Handle from [`Client.create`](/docs/api/client#create), [`get`](/docs/api/client#get), or [`attach`](/docs/api/client#attach). Lifecycle methods that return info also update the handle. `close` only drops local resources—the cloud sandbox keeps running. Call `supports` before a lifecycle method that might be unavailable.
 
 ## Properties
 
@@ -105,11 +105,25 @@ Capability list, or `boolean` for `supports`
 
 **Example**
 
+<ForProvider id="daytona">
+
 ```ts
 if (!sandbox.supports(LifecycleCapability.Stop)) {
   throw new Error(`cannot stop ${sandbox.id}`);
 }
 ```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+if (!sandbox.supports(LifecycleCapability.Terminate)) {
+  throw new Error(`cannot terminate ${sandbox.id}`);
+}
+```
+
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
@@ -133,14 +147,30 @@ Capability slice, or `bool` for `Supports`
 
 **Example**
 
+<ForProvider id="daytona">
+
 ```go
 if !instance.Supports(sandbox.LifecycleCapabilityStop) {
 	return fmt.Errorf("cannot stop %s", instance.ID())
 }
 ```
 
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
+	return fmt.Errorf("cannot terminate %s", instance.ID())
+}
+```
+
+</ForProvider>
+
   </Tab>
 </Tabs>
+
+<ForProvider id="daytona">
 
 ### Refresh
 
@@ -253,7 +283,7 @@ Stops a sandbox. Set `force: true` for an immediate stop.
 **Example**
 
 ```ts
-await sandbox.stop({ force: true, timeout: 60_000 });
+await sandbox.stop({ force: true, timeout: 60_000 }); // call deadline (ms)
 ```
 
   </Tab>
@@ -281,7 +311,7 @@ Stops a sandbox. Set `Force` with `Value(true)` for an immediate stop.
 ```go
 err := instance.Stop(ctx, &sandbox.StopOptions{
 	Force:   sandbox.Value(true),
-	Timeout: sandbox.Duration(time.Minute),
+	Timeout: sandbox.Duration(time.Minute), // call deadline
 })
 ```
 
@@ -315,68 +345,6 @@ Pauses a sandbox and stores the updated metadata.
 **Returns**
 
 `error`
-
-  </Tab>
-</Tabs>
-
-### Terminate
-
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
-
-```ts
-terminate(options?: TerminateCallOptions): Promise<ExitResult>
-```
-
-Ends the sandbox. With `wait: true`, the result may include `exitCode`.
-
-**Parameters**
-
-| Name       | Type                   | Description                                       |
-| ---------- | ---------------------- | ------------------------------------------------- |
-| `options?` | `TerminateCallOptions` | `OperationOptions` plus optional `wait?: boolean` |
-
-**Returns**
-
-`Promise<ExitResult>` — `{ exitCode?: number }`
-
-**Example**
-
-```ts
-const result = await sandbox.terminate({ wait: true });
-// result: { exitCode? }
-console.log(result);
-```
-
-  </Tab>
-  <Tab value="Go">
-
-```go
-func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error)
-```
-
-Ends the sandbox. With `Wait`, the result may include an exit code.
-
-**Parameters**
-
-| Name      | Type                | Description                |
-| --------- | ------------------- | -------------------------- |
-| `ctx`     | `context.Context`   | Cancellation and deadline  |
-| `options` | `*TerminateOptions` | `Timeout`, optional `Wait` |
-
-**Returns**
-
-`(*ExitResult, error)` — `ExitCode *int32` when reported
-
-**Example**
-
-```go
-result, err := instance.Terminate(ctx, &sandbox.TerminateOptions{
-	Wait: sandbox.Value(true),
-})
-// result: ExitCode
-fmt.Println(result)
-```
 
   </Tab>
 </Tabs>
@@ -456,6 +424,79 @@ Deletes the cloud sandbox. Set `Wait` to wait until deletion finishes.
   </Tab>
 </Tabs>
 
+If you omit the timeout (or pass `0`), Daytona still uses its own **60s** default for create, start, stop, pause, and delete. Pass a positive whole-second timeout to override. Fractional seconds are rejected.
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+### Terminate
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+terminate(options?: TerminateCallOptions): Promise<ExitResult>
+```
+
+Ends the sandbox. With `wait: true`, the result may include `exitCode`.
+
+**Parameters**
+
+| Name       | Type                   | Description                                       |
+| ---------- | ---------------------- | ------------------------------------------------- |
+| `options?` | `TerminateCallOptions` | `OperationOptions` plus optional `wait?: boolean` |
+
+**Returns**
+
+`Promise<ExitResult>` — `{ exitCode?: number }`
+
+**Example**
+
+```ts
+const result = await sandbox.terminate({ wait: true, timeout: 60_000 });
+// result: { exitCode? } — timeout is how long this call may wait
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error)
+```
+
+Ends the sandbox. With `Wait`, the result may include an exit code.
+
+**Parameters**
+
+| Name      | Type                | Description                |
+| --------- | ------------------- | -------------------------- |
+| `ctx`     | `context.Context`   | Cancellation and deadline  |
+| `options` | `*TerminateOptions` | `Timeout`, optional `Wait` |
+
+**Returns**
+
+`(*ExitResult, error)` — `ExitCode *int32` when reported
+
+**Example**
+
+```go
+result, err := instance.Terminate(ctx, &sandbox.TerminateOptions{
+	Wait:    sandbox.Value(true),
+	Timeout: sandbox.Duration(time.Minute), // how long this call may wait
+})
+// result: ExitCode
+fmt.Println(result)
+```
+
+  </Tab>
+</Tabs>
+
+`timeout` / `Timeout` caps how long this call waits. It is not sent to Modal as a separate terminate setting.
+
+</ForProvider>
+
 ### Close
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
@@ -505,23 +546,23 @@ type TerminateCallOptions = OperationOptions & { wait?: boolean };
 type DeleteCallOptions = OperationOptions & { wait?: boolean };
 ```
 
-| Field     | Description                                                                         |
-| --------- | ----------------------------------------------------------------------------------- |
-| `signal`  | Abort the wait. The handle stays busy until the provider call settles.              |
-| `timeout` | Deadline for this call. Omitted → client default. `0` → no Kit deadline of its own. |
-| `force`   | On stop: request an immediate stop.                                                 |
-| `wait`    | On terminate/delete: wait until the operation finishes.                             |
+| Field     | Description                                                                  |
+| --------- | ---------------------------------------------------------------------------- |
+| `signal`  | Abort the wait. The handle stays busy until the in-flight call finishes.     |
+| `timeout` | Deadline for this call (ms). Omitted → client default. `0` → no deadline.    |
+| `force`   | On stop: request an immediate stop.                                          |
+| `wait`    | On terminate/delete: wait until the operation finishes.                      |
 
   </Tab>
   <Tab value="Go">
 
 Lifecycle option messages carry `Timeout *durationpb.Duration` (via `sandbox.Duration`). `StopOptions` adds `Force *bool`. `TerminateOptions` and `DeleteOptions` add `Wait *bool`.
 
-| Field     | Description                                                                      |
-| --------- | -------------------------------------------------------------------------------- |
-| `Timeout` | Call deadline. Nil → client default. Explicit zero → no Kit deadline of its own. |
-| `Force`   | On stop: `Value(true)` requests an immediate stop.                               |
-| `Wait`    | On terminate/delete: wait until finished.                                        |
+| Field     | Description                                                                |
+| --------- | -------------------------------------------------------------------------- |
+| `Timeout` | Deadline for this call. Nil → client default. Explicit zero → no deadline. |
+| `Force`   | On stop: `Value(true)` requests an immediate stop.                         |
+| `Wait`    | On terminate/delete: wait until finished.                                  |
 
   </Tab>
 </Tabs>

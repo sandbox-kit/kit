@@ -5,18 +5,14 @@ description: Metadata returned by info and lifecycle calls.
 
 Returned by info and many lifecycle methods. Values are a **copy**; mutating them does not change the handle. Reported resources can differ from what you requested.
 
-<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
-  <Tab value="TypeScript">
-
-From [`sandbox.info()`](/docs/api/sandbox#read-metadata).
-
-  </Tab>
-  <Tab value="Go">
-
-From [`instance.Info()`](/docs/api/sandbox#read-metadata).
-
-  </Tab>
-</Tabs>
+<Note>
+  <ForLanguage id="typescript">
+    From [`sandbox.info()`](/docs/api/sandbox#read-metadata).
+  </ForLanguage>
+  <ForLanguage id="go">
+    From [`instance.Info()`](/docs/api/sandbox#read-metadata).
+  </ForLanguage>
+</Note>
 
 ## Fields
 
@@ -28,7 +24,7 @@ From [`instance.Info()`](/docs/api/sandbox#read-metadata).
 | `id`               | Sandbox identifier                                      |
 | `provider`         | Provider identifier                                     |
 | `name`             | Display name when reported                              |
-| `providerState`    | Provider's native state string                          |
+| `providerState`    | Raw state string from the cloud                         |
 | `region`           | Region when reported                                    |
 | `isolation`        | Reported isolation config                               |
 | `resources`        | Reported size (`cpuCores`, `memoryMib`, …)              |
@@ -55,7 +51,7 @@ console.log(info);
 | `Id`               | Sandbox identifier                                      |
 | `Provider`         | Provider identifier                                     |
 | `Name`             | Display name when reported                              |
-| `ProviderState`    | Provider's native state string                          |
+| `ProviderState`    | Raw state string from the cloud                         |
 | `Region`           | Region when reported                                    |
 | `Isolation`        | Reported isolation config                               |
 | `Resources`        | Reported size (`CpuCores`, `MemoryMib`, …)              |
