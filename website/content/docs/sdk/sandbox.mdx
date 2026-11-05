@@ -1,0 +1,568 @@
+---
+title: Sandbox
+description: Handle for one sandbox — lifecycle, info, filesystem, and process.
+---
+
+Handle from [`Client.create`](/docs/sdk/client#create), [`get`](/docs/sdk/client#get), or [`attach`](/docs/sdk/client#attach). Lifecycle methods that return info also update the handle. `close` only drops local resources—the cloud sandbox keeps running. Call `supports` before a lifecycle method that might be unavailable.
+
+## Properties
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Name           | Type                                 | Description                      |
+| -------------- | ------------------------------------ | -------------------------------- |
+| `id`           | `string`                             | Sandbox identifier               |
+| `providerName` | `string`                             | Provider that owns this sandbox  |
+| `filesystem`   | [`Filesystem`](/docs/sdk/filesystem) | File operations for this sandbox |
+| `process`      | [`Process`](/docs/sdk/process)       | Command runner for this sandbox  |
+
+  </Tab>
+  <Tab value="Go">
+
+| Name           | Signature             | Description                      |
+| -------------- | --------------------- | -------------------------------- |
+| `ID`           | `func () string`      | Sandbox identifier               |
+| `ProviderName` | `func () string`      | Provider that owns this sandbox  |
+| `Filesystem`   | `func () *Filesystem` | File operations for this sandbox |
+| `Process`      | `func () *Process`    | Command runner for this sandbox  |
+
+  </Tab>
+</Tabs>
+
+## Methods
+
+### Read metadata
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+info(): SandboxInfo
+```
+
+Returns a **copy** of current metadata. Mutating it does not change the handle.
+
+**Returns**
+
+[`SandboxInfo`](/docs/sdk/sandbox-info)
+
+**Example**
+
+```ts
+const info = sandbox.info();
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Info() *SandboxInfo
+```
+
+Returns a **copy** of current metadata. Mutating it does not change the handle.
+
+**Returns**
+
+[`*SandboxInfo`](/docs/sdk/sandbox-info)
+
+**Example**
+
+```go
+info := instance.Info()
+// info: Id, Provider, Name, ProviderState, Region, Isolation,
+//       Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(info)
+```
+
+  </Tab>
+</Tabs>
+
+### Capabilities
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+capabilities(): readonly LifecycleCapability[]
+supports(capability: LifecycleCapability): boolean
+```
+
+Lists lifecycle operations this handle can attempt, or checks one. File and process calls are not capabilities—use `filesystem` and `process`.
+
+**Parameters**
+
+| Name         | Type                                                         | Description                                 |
+| ------------ | ------------------------------------------------------------ | ------------------------------------------- |
+| `capability` | [`LifecycleCapability`](/docs/sdk/enums#lifecyclecapability) | Capability to test (`Stop`, `Terminate`, …) |
+
+**Returns**
+
+Capability list, or `boolean` for `supports`
+
+**Example**
+
+<ForProvider id="daytona">
+
+```ts
+if (!sandbox.supports(LifecycleCapability.Stop)) {
+  throw new Error(`cannot stop ${sandbox.id}`);
+}
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+if (!sandbox.supports(LifecycleCapability.Terminate)) {
+  throw new Error(`cannot terminate ${sandbox.id}`);
+}
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Capabilities() []LifecycleCapability
+func (s *Sandbox) Supports(capability LifecycleCapability) bool
+```
+
+Lists lifecycle operations this handle can attempt, or checks one.
+
+**Parameters**
+
+| Name         | Type                                                         | Description        |
+| ------------ | ------------------------------------------------------------ | ------------------ |
+| `capability` | [`LifecycleCapability`](/docs/sdk/enums#lifecyclecapability) | Capability to test |
+
+**Returns**
+
+Capability slice, or `bool` for `Supports`
+
+**Example**
+
+<ForProvider id="daytona">
+
+```go
+if !instance.Supports(sandbox.LifecycleCapabilityStop) {
+	return fmt.Errorf("cannot stop %s", instance.ID())
+}
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
+	return fmt.Errorf("cannot terminate %s", instance.ID())
+}
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+<ForProvider id="daytona">
+
+### Refresh
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+refresh(options?: OperationOptions): Promise<SandboxInfo>
+```
+
+Reloads metadata from the provider into this handle.
+
+**Parameters**
+
+| Name       | Type                                     | Description             |
+| ---------- | ---------------------------------------- | ----------------------- |
+| `options?` | [`OperationOptions`](#operation-options) | Call timeout and signal |
+
+**Returns**
+
+`Promise<SandboxInfo>` — updated metadata (also stored on the handle)
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Refresh(ctx context.Context) error
+```
+
+Reloads metadata from the provider into this handle. Read it with `Info()` afterward.
+
+**Parameters**
+
+| Name  | Type              | Description               |
+| ----- | ----------------- | ------------------------- |
+| `ctx` | `context.Context` | Cancellation and deadline |
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Start
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+start(options?: OperationOptions): Promise<SandboxInfo>
+```
+
+Starts a stopped sandbox and stores the updated metadata.
+
+**Parameters**
+
+| Name       | Type               | Description             |
+| ---------- | ------------------ | ----------------------- |
+| `options?` | `OperationOptions` | Call timeout and signal |
+
+**Returns**
+
+`Promise<SandboxInfo>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Start(ctx context.Context, options *StartOptions) error
+```
+
+Starts a stopped sandbox and stores the updated metadata.
+
+**Parameters**
+
+| Name      | Type              | Description                               |
+| --------- | ----------------- | ----------------------------------------- |
+| `ctx`     | `context.Context` | Cancellation and deadline                 |
+| `options` | `*StartOptions`   | Optional `Timeout` via `sandbox.Duration` |
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Stop
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+stop(options?: StopCallOptions): Promise<SandboxInfo>
+```
+
+Stops a sandbox. Set `force: true` for an immediate stop.
+
+**Parameters**
+
+| Name       | Type              | Description                                        |
+| ---------- | ----------------- | -------------------------------------------------- |
+| `options?` | `StopCallOptions` | `OperationOptions` plus optional `force?: boolean` |
+
+**Returns**
+
+`Promise<SandboxInfo>`
+
+**Example**
+
+```ts
+await sandbox.stop({ force: true, timeout: 60_000 }); // call deadline (ms)
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Stop(ctx context.Context, options *StopOptions) error
+```
+
+Stops a sandbox. Set `Force` with `Value(true)` for an immediate stop.
+
+**Parameters**
+
+| Name      | Type              | Description                 |
+| --------- | ----------------- | --------------------------- |
+| `ctx`     | `context.Context` | Cancellation and deadline   |
+| `options` | `*StopOptions`    | `Timeout`, optional `Force` |
+
+**Returns**
+
+`error`
+
+**Example**
+
+```go
+err := instance.Stop(ctx, &sandbox.StopOptions{
+	Force:   sandbox.Value(true),
+	Timeout: sandbox.Duration(time.Minute), // call deadline
+})
+```
+
+  </Tab>
+</Tabs>
+
+### Pause
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+pause(options?: OperationOptions): Promise<SandboxInfo>
+```
+
+Pauses a sandbox and stores the updated metadata.
+
+**Returns**
+
+`Promise<SandboxInfo>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Pause(ctx context.Context, options *PauseOptions) error
+```
+
+Pauses a sandbox and stores the updated metadata.
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Archive
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+archive(options?: OperationOptions): Promise<SandboxInfo>
+```
+
+Archives retained sandbox state and stores the updated metadata.
+
+**Returns**
+
+`Promise<SandboxInfo>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error
+```
+
+Archives retained sandbox state and stores the updated metadata.
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+### Delete
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+delete(options?: DeleteCallOptions): Promise<SandboxInfo>
+```
+
+Deletes the cloud sandbox. Set `wait: true` to wait until deletion finishes. Unlike `close`, this removes the sandbox.
+
+**Parameters**
+
+| Name       | Type                | Description                                       |
+| ---------- | ------------------- | ------------------------------------------------- |
+| `options?` | `DeleteCallOptions` | `OperationOptions` plus optional `wait?: boolean` |
+
+**Returns**
+
+`Promise<SandboxInfo>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error
+```
+
+Deletes the cloud sandbox. Set `Wait` to wait until deletion finishes.
+
+**Parameters**
+
+| Name      | Type              | Description                |
+| --------- | ----------------- | -------------------------- |
+| `ctx`     | `context.Context` | Cancellation and deadline  |
+| `options` | `*DeleteOptions`  | `Timeout`, optional `Wait` |
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+If you omit the timeout (or pass `0`), Daytona still uses its own **60s** default for create, start, stop, pause, and delete. Pass a positive whole-second timeout to override. Fractional seconds are rejected.
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+### Terminate
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+terminate(options?: TerminateCallOptions): Promise<ExitResult>
+```
+
+Ends the sandbox. With `wait: true`, the result may include `exitCode`.
+
+**Parameters**
+
+| Name       | Type                   | Description                                       |
+| ---------- | ---------------------- | ------------------------------------------------- |
+| `options?` | `TerminateCallOptions` | `OperationOptions` plus optional `wait?: boolean` |
+
+**Returns**
+
+`Promise<ExitResult>` — `{ exitCode?: number }`
+
+**Example**
+
+```ts
+const result = await sandbox.terminate({ wait: true, timeout: 60_000 });
+// result: { exitCode? } — timeout is how long this call may wait
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Terminate(ctx context.Context, options *TerminateOptions) (*ExitResult, error)
+```
+
+Ends the sandbox. With `Wait`, the result may include an exit code.
+
+**Parameters**
+
+| Name      | Type                | Description                |
+| --------- | ------------------- | -------------------------- |
+| `ctx`     | `context.Context`   | Cancellation and deadline  |
+| `options` | `*TerminateOptions` | `Timeout`, optional `Wait` |
+
+**Returns**
+
+`(*ExitResult, error)` — `ExitCode *int32` when reported
+
+**Example**
+
+```go
+result, err := instance.Terminate(ctx, &sandbox.TerminateOptions{
+	Wait:    sandbox.Value(true),
+	Timeout: sandbox.Duration(time.Minute), // how long this call may wait
+})
+// result: ExitCode
+fmt.Println(result)
+```
+
+  </Tab>
+</Tabs>
+
+`timeout` / `Timeout` caps how long this call waits. It is not sent to Modal as a separate terminate setting.
+
+</ForProvider>
+
+### Close
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+close(options?: OperationOptions): Promise<void>
+```
+
+Releases local handle resources. The cloud sandbox is unchanged; you can keep using the handle afterward for provider calls until the sandbox is gone.
+
+**Returns**
+
+`Promise<void>`
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Close(ctx context.Context) error
+```
+
+Releases local handle resources. The cloud sandbox is unchanged.
+
+**Returns**
+
+`error`
+
+  </Tab>
+</Tabs>
+
+## Operation options
+
+Shared call options for TypeScript lifecycle and filesystem/process calls.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+interface OperationOptions {
+  signal?: AbortSignal;
+  timeout?: number; // milliseconds
+}
+
+type StopCallOptions = OperationOptions & { force?: boolean };
+type TerminateCallOptions = OperationOptions & { wait?: boolean };
+type DeleteCallOptions = OperationOptions & { wait?: boolean };
+```
+
+| Field     | Description                                                                  |
+| --------- | ---------------------------------------------------------------------------- |
+| `signal`  | Abort the wait. The handle stays busy until the in-flight call finishes.     |
+| `timeout` | Deadline for this call (ms). Omitted → client default. `0` → no deadline.    |
+| `force`   | On stop: request an immediate stop.                                          |
+| `wait`    | On terminate/delete: wait until the operation finishes.                      |
+
+  </Tab>
+  <Tab value="Go">
+
+Lifecycle option messages carry `Timeout *durationpb.Duration` (via `sandbox.Duration`). `StopOptions` adds `Force *bool`. `TerminateOptions` and `DeleteOptions` add `Wait *bool`.
+
+| Field     | Description                                                                |
+| --------- | -------------------------------------------------------------------------- |
+| `Timeout` | Deadline for this call. Nil → client default. Explicit zero → no deadline. |
+| `Force`   | On stop: `Value(true)` requests an immediate stop.                         |
+| `Wait`    | On terminate/delete: wait until finished.                                  |
+
+  </Tab>
+</Tabs>

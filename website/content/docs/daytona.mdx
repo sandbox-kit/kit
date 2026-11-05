@@ -1,9 +1,9 @@
 ---
 title: Daytona
-description: Install, authenticate, and create a Daytona sandbox with the shared client.
+description: Install, authenticate, and create a Daytona sandbox.
 ---
 
-Provider package for Daytona sandboxes. Default create uses Daytona's default snapshot. Native SDK: Daytona v0.225.0.
+Use Daytona when you want default snapshots, verified `get`, and start / stop / pause / archive.
 
 ## Install
 
@@ -27,7 +27,7 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 
 ## Create
 
-Set `DAYTONA_API_KEY`.
+Set `DAYTONA_API_KEY`. Omit create options to use Daytona's default snapshot.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -46,7 +46,7 @@ const sandbox = await client.create();
 console.log(sandbox.id);
 ```
 
-`timeout` is milliseconds. Prefer `await using`; otherwise `await client.close()` in `finally`.
+`timeout` is milliseconds. Prefer `await using`; otherwise call `await client.close()` when finished.
 
   </Tab>
   <Tab value="Go">
@@ -84,40 +84,118 @@ func main() {
 }
 ```
 
-Nil create options → default snapshot. Optional strings use `sandbox.Value`.
+Optional strings use `sandbox.Value`.
 
   </Tab>
 </Tabs>
 
-Omit `auth` to let the Daytona SDK resolve credentials from its environment. Closing the client does not delete the sandbox.
+Omit `auth` to let the Daytona SDK pick credentials from its environment. Closing the client does not delete the sandbox.
 
 ## Configuration
 
-| Setting      | TypeScript               | Go                     |
-| ------------ | ------------------------ | ---------------------- |
-| API URL      | `endpoint`               | `Config.Endpoint`      |
-| Target       | `region`                 | `Config.Region`        |
-| Organization | `scope.organizationId`   | `Scope.OrganizationId` |
-| Bearer token | `auth.bearerToken.token` | `BearerToken`          |
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
 
-Default API URL: `https://app.daytona.io/api`. Remote URLs require HTTPS. HTTP is allowed for localhost/loopback. Bearer tokens require an organization id. Full rules: [Configuration](/docs/configuration).
+| Setting      | Field                    |
+| ------------ | ------------------------ |
+| Endpoint     | `endpoint`               |
+| Target       | `region`                 |
+| Organization | `scope.organizationId`   |
+| Bearer token | `auth.bearerToken.token` |
 
-## Operations
+```ts
+await using client = new Client({
+  provider: daytona(),
+  auth: { apiKey: { key: process.env.DAYTONA_API_KEY! } },
+  endpoint: "https://app.daytona.io/api", // default; HTTPS required remotely
+  region: process.env.DAYTONA_TARGET, // optional target
+  scope: { organizationId: process.env.DAYTONA_ORG_ID },
+  timeout: 120_000,
+});
+```
 
-| Area      | Support                                                           |
-| --------- | ----------------------------------------------------------------- |
-| Create    | Default snapshot, named snapshot, or image (+ resources)          |
-| Open      | `get` (verified). `attach` unsupported                            |
-| Lifecycle | `refresh`, `start`, `stop`, `pause`, `archive`, `delete`, `close` |
-| Files     | Full filesystem API — [Filesystem](/docs/filesystem)              |
-| Process   | `run` — [Run a command](/docs/process)                            |
+Bearer token auth:
 
-CPU: whole cores. Memory/disk: whole GiB as MiB. Resource overrides require an image source.
+```ts
+await using client = new Client({
+  provider: daytona(),
+  auth: { bearerToken: { token: process.env.DAYTONA_JWT! } },
+  scope: { organizationId: process.env.DAYTONA_ORG_ID! },
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+| Setting      | Field                  |
+| ------------ | ---------------------- |
+| Endpoint     | `Config.Endpoint`      |
+| Target       | `Config.Region`        |
+| Organization | `Scope.OrganizationId` |
+| Bearer token | `BearerToken`          |
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("DAYTONA_API_KEY")},
+	}},
+	Endpoint: sandbox.Value("https://app.daytona.io/api"), // default; HTTPS remotely
+	Region:   sandbox.Value(os.Getenv("DAYTONA_TARGET")),
+	Scope: &sandbox.Scope{
+		OrganizationId: sandbox.Value(os.Getenv("DAYTONA_ORG_ID")),
+	},
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+client, err := sandbox.NewClient(daytona.New(), config)
+```
+
+Bearer token auth:
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.BearerToken{
+		BearerToken: &sandbox.BearerTokenCredentials{Token: os.Getenv("DAYTONA_JWT")},
+	}},
+	Scope: &sandbox.Scope{
+		OrganizationId: sandbox.Value(os.Getenv("DAYTONA_ORG_ID")),
+	},
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+client, err := sandbox.NewClient(daytona.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+Default endpoint: `https://app.daytona.io/api`. Remote URLs need HTTPS; HTTP is allowed for localhost. Bearer tokens need an organization id. Full rules: [Configuration](/docs/configuration).
+
+## What works
+
+| Area      | Notes                                                       |
+| --------- | ----------------------------------------------------------- |
+| Create    | Default snapshot, named snapshot, or image (with resources) |
+| Open      | `get` — verified. `attach` is unsupported                   |
+| Lifecycle | `refresh`, `start`, `stop`, `pause`, `archive`, `delete`    |
+| Files     | Filesystem methods — [Filesystem](/docs/filesystem)         |
+| Process   | `run` — [Run a command](/docs/process)                      |
+
+CPU is whole cores. Memory and disk are whole GiB expressed as MiB. Resource overrides require an image source.
 
 ## Related
 
-| Topic                 | Link                                                                                                                                                                                                                                                  |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image, size, policies | [Create](/docs/create#daytona)                                                                                                                                                                                                                        |
-| get / stop / delete   | [Lifecycle](/docs/lifecycle)                                                                                                                                                                                                                          |
-| Example project       | [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox) |
+- Image, size, and policies — [Create](/docs/create)
+- get / stop / delete — [Lifecycle](/docs/lifecycle)
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Example: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-sandbox)
+
+  </Tab>
+  <Tab value="Go">
+
+Example: [create-daytona-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/daytona/configuration/create-daytona-sandbox)
+
+  </Tab>
+</Tabs>

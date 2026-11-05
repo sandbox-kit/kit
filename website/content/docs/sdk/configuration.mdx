@@ -1,0 +1,189 @@
+---
+title: Client config
+description: ClientConfig, Config, auth credentials, and Scope.
+---
+
+Passed at client construction. Credentials are checked on the first provider call, not at construction.
+
+## Config
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+type ClientConfig = Config & { provider: Provider };
+
+type Config = {
+  auth?: AuthInput;
+  endpoint?: string;
+  region?: string;
+  scope?: Scope;
+  timeout?: number; // milliseconds
+};
+```
+
+| Field       | Type                 | Description                                                            |
+| ----------- | -------------------- | ---------------------------------------------------------------------- |
+| `provider`  | `Provider`           | Provider constructor from a provider package                           |
+| `auth?`     | [`AuthInput`](#auth) | Credential set. Omit to use env/profile credentials from the provider. |
+| `endpoint?` | `string`             | Provider endpoint URL override. Remote URLs must be HTTPS.             |
+| `region?`   | `string`             | Default region or target preference                                    |
+| `scope?`    | [`Scope`](#scope)    | App, environment, organization, or project                             |
+| `timeout?`  | `number`             | Default deadline (ms) for calls that omit their own timeout            |
+
+**Example**
+
+```ts
+await using client = new Client({
+  provider,
+  auth: { apiKey: { key: process.env.API_KEY! } },
+  region: "us",
+  timeout: 120_000, // default client deadline (ms)
+});
+```
+
+<ForProvider id="daytona">
+  This sets the client deadline only. If a create/start/stop/pause/delete call
+  omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+type Config struct {
+	Auth     *AuthConfig
+	Endpoint *string
+	Region   *string
+	Scope    *Scope
+	Timeout  *durationpb.Duration
+}
+```
+
+Pass `config` to `NewClient(provider, config)`.
+
+| Field      | Description                                                         |
+| ---------- | ------------------------------------------------------------------- |
+| `Auth`     | Credential set. Nil uses env/profile credentials from the provider. |
+| `Endpoint` | Provider endpoint URL override                                      |
+| `Region`   | Default region or target preference                                 |
+| `Scope`    | App, environment, organization, or project                          |
+| `Timeout`  | Default client deadline via `sandbox.Duration`                      |
+
+**Example**
+
+```go
+client, err := sandbox.NewClient(provider, &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("API_KEY")},
+	}},
+	Region:  sandbox.Value("us"),
+	Timeout: sandbox.Duration(2 * time.Minute), // default client deadline
+})
+```
+
+<ForProvider id="daytona">
+  This sets the client deadline only. If a create/start/stop/pause/delete call
+  omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+## Auth
+
+Exactly one credential alternative when auth is set.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+type AuthInput =
+  | { apiKey: { key: string } }
+  | { tokenPair: { id: string; secret: string } }
+  | { bearerToken: { token: string } }
+  | {
+      oauthRefresh: {
+        refreshToken: string;
+        clientId: string;
+        clientSecret?: string; // exactly one of clientSecret | jwtKey
+        jwtKey?: string;
+      };
+    };
+```
+
+| Variant        | Description                                         |
+| -------------- | --------------------------------------------------- |
+| `apiKey`       | Single key string                                   |
+| `tokenPair`    | Id and secret pair                                  |
+| `bearerToken`  | Bearer or JWT token                                 |
+| `oauthRefresh` | Refresh token plus client id and one secret/JWT key |
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+// AuthConfig.Credentials is one of:
+//   *APIKey{ ApiKey: &APIKeyCredentials{ Key } }
+//   *TokenPair{ TokenPair: &TokenPairCredentials{ Id, Secret } }
+//   *BearerToken{ BearerToken: &BearerTokenCredentials{ Token } }
+//   *OAuthRefresh{ OauthRefresh: &OAuthCredentials{ ... } }
+```
+
+`OAuthCredentials` requires `RefreshToken`, `ClientId`, and exactly one of `ClientSecret` or `JwtKey`.
+
+| Variant        | Description                                         |
+| -------------- | --------------------------------------------------- |
+| `APIKey`       | Single key string                                   |
+| `TokenPair`    | Id and secret pair                                  |
+| `BearerToken`  | Bearer or JWT token                                 |
+| `OAuthRefresh` | Refresh token plus client id and one secret/JWT key |
+
+  </Tab>
+</Tabs>
+
+## Scope
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field            | Description                     |
+| ---------------- | ------------------------------- |
+| `appName`        | Application name                |
+| `environment`    | Environment name (often `main`) |
+| `organizationId` | Organization id                 |
+| `projectId`      | Project id                      |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field            | Description                     |
+| ---------------- | ------------------------------- |
+| `AppName`        | Application name                |
+| `Environment`    | Environment name (often `main`) |
+| `OrganizationId` | Organization id                 |
+| `ProjectId`      | Project id                      |
+
+  </Tab>
+</Tabs>
+
+## Helpers
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Helper                   | Description                        |
+| ------------------------ | ---------------------------------- |
+| `validateConfig(config)` | Throws if client config is invalid |
+
+  </Tab>
+  <Tab value="Go">
+
+| Helper                   | Description                                          |
+| ------------------------ | ---------------------------------------------------- |
+| `ValidateConfig(config)` | Returns an error if invalid                          |
+| `Duration(d)`            | Build a timeout field from `time.Duration`           |
+| `Value(v)`               | Pointer helper for optional scalars (including zero) |
+
+  </Tab>
+</Tabs>

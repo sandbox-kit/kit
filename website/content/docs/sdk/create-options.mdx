@@ -1,0 +1,488 @@
+---
+title: CreateOptions
+description: Create request body and nested option types.
+---
+
+Request body for [`Client.create`](/docs/sdk/client#create). Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
+
+## CreateOptions
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+type CreateOptions = {
+  name?: string;
+  source?: SandboxSourceInput;
+  runtime?: RuntimeConfig;
+  isolation?: IsolationConfig;
+  resources?: Resources;
+  placement?: Placement;
+  environment?: Record<string, string>;
+  labels?: Record<string, string>;
+  network?: NetworkConfigInput;
+  security?: SecurityConfig;
+  lifetime?: LifetimePolicyInput;
+  provisioning?: ProvisioningOptionsInput;
+  readiness?: ReadinessProbeInput;
+  observability?: ObservabilityConfig;
+};
+```
+
+Durations on this type are **milliseconds**. Allowlists under `network` are plain `string[]`.
+
+| Field           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `name`          | Display name. Explicit empty string asks for unnamed.   |
+| `source`        | Image, snapshot, warm pool, or provider default         |
+| `runtime`       | Language hint, user, working directory, entrypoint, PTY |
+| `isolation`     | Isolation class                                         |
+| `resources`     | CPU, memory MiB, disk MiB                               |
+| `placement`     | Cloud, preferred regions, or target                     |
+| `environment`   | Process environment for the sandbox                     |
+| `labels`        | Caller labels/tags                                      |
+| `network`       | Egress, allowlists, ports, links                        |
+| `security`      | Public access, workload identity, secrets               |
+| `lifetime`      | Max lifetime and idle/stopped actions                   |
+| `provisioning`  | Create deadline, queue timeout, wait condition          |
+| `readiness`     | Probe when waiting until ready                          |
+| `observability` | Verbose logging / telemetry                             |
+
+**Example**
+
+<ForProvider id="daytona">
+
+```ts
+const sandbox = await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  resources: { cpuCores: 1, memoryMib: 512n },
+});
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+const sandbox = await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+  resources: { cpuCores: 1, memoryMib: 512n },
+  runtime: { workingDirectory: "/tmp", entrypoint: ["sleep", "infinity"] },
+});
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+type CreateOptions struct {
+	Name          *string
+	Source        *SandboxSource
+	Runtime       *RuntimeConfig
+	Isolation     *IsolationConfig
+	Resources     *Resources
+	Placement     *Placement
+	Environment   map[string]string
+	Labels        map[string]string
+	Network       *NetworkConfig
+	Security      *SecurityConfig
+	Lifetime       *LifetimePolicy
+	Provisioning  *ProvisioningOptions
+	Readiness     *ReadinessProbe
+	Observability *ObservabilityConfig
+}
+```
+
+Durations use `sandbox.Duration`. Optional numbers use `sandbox.Value`.
+
+| Field           | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `Name`          | Display name. Explicit empty string asks for unnamed.   |
+| `Source`        | Image, snapshot, warm pool, or provider default         |
+| `Runtime`       | Language hint, user, working directory, entrypoint, PTY |
+| `Isolation`     | Isolation class                                         |
+| `Resources`     | CPU, memory MiB, disk MiB                               |
+| `Placement`     | Cloud, preferred regions, or target                     |
+| `Environment`   | Process environment for the sandbox                     |
+| `Labels`        | Caller labels/tags                                      |
+| `Network`       | Egress, allowlists, ports, links                        |
+| `Security`      | Public access, workload identity, secrets               |
+| `Lifetime`      | Max lifetime and idle/stopped actions                   |
+| `Provisioning`  | Create deadline, queue timeout, wait condition          |
+| `Readiness`     | Probe when waiting until ready                          |
+| `Observability` | Verbose logging / telemetry                             |
+
+**Example**
+
+<ForProvider id="daytona">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(1.0),
+		MemoryMib: sandbox.Value(uint64(512)),
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(1.0),
+		MemoryMib: sandbox.Value(uint64(512)),
+	},
+})
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+## Source
+
+Set exactly one variant. Unsupported variants fail before the provider call.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Variant           | Description                           |
+| ----------------- | ------------------------------------- |
+| `image`           | Container image `reference`           |
+| `snapshot`        | Snapshot `reference`, optional `kind` |
+| `warmPool`        | Warm pool `reference`                 |
+| `providerDefault` | Use the account default source        |
+
+  </Tab>
+  <Tab value="Go">
+
+| Variant           | Description                           |
+| ----------------- | ------------------------------------- |
+| `Image`           | Container image `Reference`           |
+| `Snapshot`        | Snapshot `Reference`, optional `Kind` |
+| `WarmPool`        | Warm pool `Reference`                 |
+| `ProviderDefault` | Use the account default source        |
+
+  </Tab>
+</Tabs>
+
+<ForProvider id="daytona">
+  Daytona accepts `image`, `snapshot`, and `providerDefault` when the account
+  allows them. Memory and disk requests must be whole GiB expressed as MiB; CPU
+  must be whole cores. Per-request `placement` is rejected—set client `region`
+  instead.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal requires an `image` source (`providerDefault` is rejected). `diskMib`
+  and placement `target` are unsupported. Lifetime supports `maximumLifetime`
+  and `idleTerminate` only.
+</ForProvider>
+
+## RuntimeConfig
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field              | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `language`         | Language or toolbox hint (not an install promise) |
+| `version`          | Version hint                                      |
+| `user`             | OS user                                           |
+| `workingDirectory` | Working directory                                 |
+| `entrypoint`       | Entrypoint argv                                   |
+| `pty`              | Request a PTY when supported                      |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field              | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `Language`         | Language or toolbox hint (not an install promise) |
+| `Version`          | Version hint                                      |
+| `User`             | OS user                                           |
+| `WorkingDirectory` | Working directory                                 |
+| `Entrypoint`       | Entrypoint argv                                   |
+| `Pty`              | Request a PTY when supported                      |
+
+  </Tab>
+</Tabs>
+
+## Resources
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field            | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `cpuCores`       | Requested CPU cores                            |
+| `cpuLimitCores`  | Optional CPU ceiling (≥ request when positive) |
+| `memoryMib`      | Requested memory in MiB                        |
+| `memoryLimitMib` | Optional memory ceiling                        |
+| `diskMib`        | Requested disk in MiB                          |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field            | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `CpuCores`       | Requested CPU cores                            |
+| `CpuLimitCores`  | Optional CPU ceiling (≥ request when positive) |
+| `MemoryMib`      | Requested memory in MiB                        |
+| `MemoryLimitMib` | Optional memory ceiling                        |
+| `DiskMib`        | Requested disk in MiB                          |
+
+  </Tab>
+</Tabs>
+
+## Placement
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field     | Description                |
+| --------- | -------------------------- |
+| `cloud`   | Cloud name preference      |
+| `regions` | Preferred regions in order |
+| `target`  | Provider target string     |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field     | Description                |
+| --------- | -------------------------- |
+| `Cloud`   | Cloud name preference      |
+| `Regions` | Preferred regions in order |
+| `Target`  | Provider target string     |
+
+  </Tab>
+</Tabs>
+
+## LifetimePolicy
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field             | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `maximumLifetime` | Cap on how long the sandbox may exist                  |
+| `ephemeral`       | Prefer deletion when the sandbox stops, when supported |
+| `idleTerminate`   | End after idle                                         |
+| `idleStop`        | Stop after idle                                        |
+| `idlePause`       | Pause after idle                                       |
+| `stoppedArchive`  | Archive after stop                                     |
+| `stoppedDelete`   | Delete after stop                                      |
+
+<ForProvider id="daytona">
+  Daytona maps lifetime delays as **whole minutes**. Supported policies include
+  ephemeral, idle stop/pause, and stopped archive/delete (`stoppedArchive` max
+  43200 minutes). `idleTerminate` is not used.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal supports `maximumLifetime` (whole seconds, 1…86400) and `idleTerminate`
+  only. Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+| Field             | Description                                            |
+| ----------------- | ------------------------------------------------------ |
+| `MaximumLifetime` | Cap on how long the sandbox may exist                  |
+| `Ephemeral`       | Prefer deletion when the sandbox stops, when supported |
+| `IdleTerminate`   | End after idle                                         |
+| `IdleStop`        | Stop after idle                                        |
+| `IdlePause`       | Pause after idle                                       |
+| `StoppedArchive`  | Archive after stop                                     |
+| `StoppedDelete`   | Delete after stop                                      |
+
+<ForProvider id="daytona">
+  Daytona maps lifetime delays as **whole minutes**. Supported policies include
+  ephemeral, idle stop/pause, and stopped archive/delete (`StoppedArchive` max
+  43200 minutes). `IdleTerminate` is not used.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal supports `MaximumLifetime` (whole seconds, 1…86400) and `IdleTerminate`
+  only. Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+### AutomaticAction
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field   | Description                                                                   |
+| ------- | ----------------------------------------------------------------------------- |
+| `mode`  | [`PolicyMode`](/docs/sdk/enums#policymode): `Default`, `Disabled`, or `After` |
+| `after` | Delay when mode is `After`. Zero means immediate, not disabled.               |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field   | Description                                                                   |
+| ------- | ----------------------------------------------------------------------------- |
+| `Mode`  | [`PolicyMode`](/docs/sdk/enums#policymode): `Default`, `Disabled`, or `After` |
+| `After` | Delay when mode is `After`. Zero means immediate, not disabled.               |
+
+  </Tab>
+</Tabs>
+
+## ProvisioningOptions
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field          | Description                                                       |
+| -------------- | ----------------------------------------------------------------- |
+| `timeout`      | Deadline for the create call                                      |
+| `queueTimeout` | How long creation may sit in a queue                              |
+| `waitFor`      | [`WaitCondition`](/docs/sdk/enums#waitcondition) before returning |
+
+<ForProvider id="daytona">
+  `timeout` must be whole seconds. Omit or `0` still leaves Daytona's **60s**
+  create default. `queueTimeout` is whole minutes and must be greater than 0
+  when set.
+</ForProvider>
+
+<ForProvider id="modal">
+  `timeout` is how long this create/ready wait may run. A ready wait needs a
+  positive timeout. `queueTimeout` is unsupported.
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+| Field          | Description                                                       |
+| -------------- | ----------------------------------------------------------------- |
+| `Timeout`      | Deadline for the create call                                      |
+| `QueueTimeout` | How long creation may sit in a queue                              |
+| `WaitFor`      | [`WaitCondition`](/docs/sdk/enums#waitcondition) before returning |
+
+<ForProvider id="daytona">
+  `Timeout` must be whole seconds. Omit or zero still leaves Daytona's **60s**
+  create default. `QueueTimeout` is whole minutes and must be greater than 0
+  when set.
+</ForProvider>
+
+<ForProvider id="modal">
+  `Timeout` is how long this create/ready wait may run. A ready wait needs a
+  positive timeout. `QueueTimeout` is unsupported.
+</ForProvider>
+
+  </Tab>
+</Tabs>
+
+## ReadinessProbe
+
+Set either a TCP port or a command.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Variant        | Description                    |
+| -------------- | ------------------------------ |
+| `tcpPort`      | Port `1`–`65535`               |
+| `command.argv` | Command argv that must succeed |
+
+  </Tab>
+  <Tab value="Go">
+
+| Variant               | Description                    |
+| --------------------- | ------------------------------ |
+| `TcpPort`             | Port `1`–`65535`               |
+| `Command` with `Argv` | Command argv that must succeed |
+
+  </Tab>
+</Tabs>
+
+## NetworkConfig
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field              | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `egress`           | [`EgressMode`](/docs/sdk/enums#egressmode)                  |
+| `outboundCidrs`    | Outbound CIDR allowlist. Present empty list means deny-all. |
+| `outboundDomains`  | Outbound domain allowlist                                   |
+| `inboundCidrs`     | Inbound CIDR allowlist                                      |
+| `privateNetwork`   | Request a private network when supported                    |
+| `linkedSandbox`    | Link to another known sandbox id                            |
+| `proxyReference`   | Provider-managed proxy name                                 |
+| `outboundProxyUrl` | Outbound proxy URL                                          |
+| `customDomain`     | Custom domain when supported                                |
+| `ports`            | Published ports (`port`, optional `transport`)              |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field              | Description                                                 |
+| ------------------ | ----------------------------------------------------------- |
+| `Egress`           | [`EgressMode`](/docs/sdk/enums#egressmode)                  |
+| `OutboundCidrs`    | Outbound CIDR allowlist. Present empty list means deny-all. |
+| `OutboundDomains`  | Outbound domain allowlist                                   |
+| `InboundCidrs`     | Inbound CIDR allowlist                                      |
+| `PrivateNetwork`   | Request a private network when supported                    |
+| `LinkedSandbox`    | Link to another known sandbox id                            |
+| `ProxyReference`   | Provider-managed proxy name                                 |
+| `OutboundProxyUrl` | Outbound proxy URL                                          |
+| `CustomDomain`     | Custom domain when supported                                |
+| `Ports`            | Published ports (`Port`, optional `Transport`)              |
+
+  </Tab>
+</Tabs>
+
+## SecurityConfig
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Field              | Description                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| `publicAccess`     | Request public access when true                                           |
+| `workloadIdentity` | Request a workload identity when supported                                |
+| `secrets`          | Provider-managed secret references (`reference`, injection, env var name) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Field              | Description                                                               |
+| ------------------ | ------------------------------------------------------------------------- |
+| `PublicAccess`     | Request public access when true                                           |
+| `WorkloadIdentity` | Request a workload identity when supported                                |
+| `Secrets`          | Provider-managed secret references (`Reference`, injection, env var name) |
+
+  </Tab>
+</Tabs>
+
+## Helpers
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+`validateCreateOptions(request)` — throws if the create body is invalid.
+
+  </Tab>
+  <Tab value="Go">
+
+`ValidateCreateOptions(request)` — returns an error if invalid.
+
+  </Tab>
+</Tabs>

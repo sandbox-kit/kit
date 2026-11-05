@@ -1,20 +1,95 @@
 ---
 title: Create a sandbox
-description: Image or snapshot, resources, lifetime, and placement options for create.
+description: Image or snapshot, resources, lifetime, and placement for create.
 ---
 
-`client.create` / `Client.Create` returns a sandbox handle. Build the client first ([Daytona](/docs/daytona), [Modal](/docs/modal), or [Configuration](/docs/configuration)).
+Create returns a sandbox handle. Build the client first.
 
-Omitted fields keep provider defaults. Unsupported fields fail in Kit before the provider call ([Errors](/docs/errors)).
+<ForProvider id="daytona">
+  Provider setup: [Daytona](/docs/daytona).
+</ForProvider>
+<ForProvider id="modal">Provider setup: [Modal](/docs/modal).</ForProvider>
 
-| Language   | Durations                                                        | Optionals          |
-| ---------- | ---------------------------------------------------------------- | ------------------ |
-| TypeScript | milliseconds; missing property = omitted                         | nested objects     |
-| Go         | `sandbox.Duration`; numbers via `sandbox.Value` (including zero) | pointers / `Value` |
+Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+<ForProvider id="daytona">
+
+```ts
+const sandbox = await client.create(
+  {
+    source: { image: { reference: "daytonaio/playground:latest" } },
+    resources: { cpuCores: 1, memoryMib: 512n },
+  },
+  { timeout: 60_000 }, // milliseconds
+);
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```ts
+const sandbox = await client.create(
+  {
+    source: { image: { reference: "alpine:3.21" } },
+    resources: { cpuCores: 1, memoryMib: 512n },
+  },
+  { timeout: 60_000 }, // milliseconds
+);
+```
+
+</ForProvider>
+
+  </Tab>
+  <Tab value="Go">
+
+<ForProvider id="daytona">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(1.0),
+		MemoryMib: sandbox.Value(uint64(512)),
+	},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second),
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="modal">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(1.0),
+		MemoryMib: sandbox.Value(uint64(512)),
+	},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second),
+	},
+})
+```
+
+</ForProvider>
+
+  </Tab>
+</Tabs>
 
 ## Units
 
-Switch Daytona or Modal above for units and create samples. Account quotas, image names, regions, and capacity are checked by the provider.
+Account quotas, image names, regions, and capacity are enforced by the provider.
 
 <ForProvider id="daytona">
 
@@ -29,6 +104,60 @@ Switch Daytona or Modal above for units and create samples. Account quotas, imag
 
 A size override requires an image. A snapshot create keeps the snapshot's size.
 
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
+await client.create({
+  source: { image: { reference: "daytonaio/playground:latest" } },
+  resources: {
+    cpuCores: 2, // whole cores
+    memoryMib: 4096n, // 4 GiB as MiB
+    diskMib: 8192n, // 8 GiB as MiB
+  },
+  lifetime: {
+    idlePause: { mode: PolicyMode.Disabled },
+    stoppedDelete: { mode: PolicyMode.After, after: 10 * 60_000 },
+  },
+  runtime: {
+    workingDirectory: "/home/daytona",
+    entrypoint: ["sleep", "infinity"],
+  },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "daytonaio/playground:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(2.0),          // whole cores
+		MemoryMib: sandbox.Value(uint64(4096)), // 4 GiB as MiB
+		DiskMib:   sandbox.Value(uint64(8192)), // 8 GiB as MiB
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
+		StoppedDelete: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(10 * time.Minute),
+		},
+	},
+	Runtime: &sandbox.RuntimeConfig{
+		WorkingDirectory: sandbox.Value("/home/daytona"),
+		Entrypoint:       []string{"sleep", "infinity"},
+	},
+})
+```
+
+  </Tab>
+</Tabs>
+
 </ForProvider>
 
 <ForProvider id="modal">
@@ -42,7 +171,64 @@ A size override requires an image. A snapshot create keeps the snapshot's size.
 | Lifetime  | Maximum lifetime and idle termination                       |
 | Placement | `placement` on this request. Client `region` is the default |
 
-Pass a registry image. The app name belongs on the client, not on this request. Leave a resource out to keep Modal's default.
+Pass a registry image. Put the app name on the client, not on this request. Leave a resource out to keep Modal's default.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
+await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+  resources: {
+    cpuCores: 0.5, // fractional, min 0.125
+    memoryMib: 512n, // min 128 when set
+  },
+  placement: { cloud: "aws", regions: ["us-east-1"] },
+  lifetime: {
+    maximumLifetime: 5 * 60_000, // milliseconds
+    idleTerminate: { mode: PolicyMode.After, after: 60_000 },
+  },
+  runtime: {
+    workingDirectory: "/tmp",
+    entrypoint: ["sleep", "infinity"],
+  },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Resources: &sandbox.Resources{
+		CpuCores:  sandbox.Value(0.5),          // fractional, min 0.125
+		MemoryMib: sandbox.Value(uint64(512)), // min 128 when set
+	},
+	Placement: &sandbox.Placement{
+		Cloud:   sandbox.Value("aws"),
+		Regions: []string{"us-east-1"},
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		MaximumLifetime: sandbox.Duration(5 * time.Minute),
+		IdleTerminate: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(time.Minute),
+		},
+	},
+	Runtime: &sandbox.RuntimeConfig{
+		WorkingDirectory: sandbox.Value("/tmp"),
+		Entrypoint:       []string{"sleep", "infinity"},
+	},
+})
+```
+
+  </Tab>
+</Tabs>
 
 </ForProvider>
 
@@ -54,12 +240,22 @@ Pass a registry image. The app name belongs on the client, not on this request. 
 <ForProvider id="daytona">
 
 ```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
 const sandbox = await client.create({
   source: { image: { reference: "daytonaio/playground:latest" } },
   resources: {
-    cpuCores: 2,
-    memoryMib: 4096n,
+    cpuCores: 2, // whole cores
+    memoryMib: 4096n, // 4 GiB as MiB
     diskMib: 8192n,
+  },
+  lifetime: {
+    idlePause: { mode: PolicyMode.Disabled },
+    stoppedDelete: { mode: PolicyMode.After, after: 10 * 60_000 },
+  },
+  runtime: {
+    workingDirectory: "/home/daytona",
+    entrypoint: ["sleep", "infinity"],
   },
 });
 ```
@@ -79,9 +275,10 @@ const sandbox = await client.create({
     entrypoint: ["sleep", "infinity"],
   },
   lifetime: {
-    maximumLifetime: 5 * 60_000,
+    maximumLifetime: 5 * 60_000, // milliseconds
     idleTerminate: { mode: PolicyMode.After, after: 60_000 },
   },
+  placement: { cloud: "aws", regions: ["us-east-1"] },
 });
 ```
 
@@ -95,7 +292,11 @@ const sandbox = await client.create({
 <ForProvider id="daytona">
 
 ```go
-import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+import (
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
 
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
@@ -105,6 +306,17 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 		CpuCores:  sandbox.Value(2.0),
 		MemoryMib: sandbox.Value(uint64(4096)),
 		DiskMib:   sandbox.Value(uint64(8192)),
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		IdlePause: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeDisabled},
+		StoppedDelete: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(10 * time.Minute),
+		},
+	},
+	Runtime: &sandbox.RuntimeConfig{
+		WorkingDirectory: sandbox.Value("/home/daytona"),
+		Entrypoint:       []string{"sleep", "infinity"},
 	},
 })
 ```
@@ -139,6 +351,10 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 			After: sandbox.Duration(time.Minute),
 		},
 	},
+	Placement: &sandbox.Placement{
+		Cloud:   sandbox.Value("aws"),
+		Regions: []string{"us-east-1"},
+	},
 })
 ```
 
@@ -149,11 +365,38 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 <ForProvider id="daytona">
 
-Name a snapshot by its reference, for example `daytona-small`. In TypeScript that is `source: { snapshot: { reference } }`. Set the toolbox language and user on `runtime`.
+Name a snapshot by reference (for example `daytona-small`). Set toolbox language and user on `runtime`.
 
-A linked sandbox must be ephemeral. The client rejects the request otherwise.
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
 
-Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from `@sandbox-kit/sandbox` (`sandbox.PolicyModeAfter` and `sandbox.PolicyModeDisabled` in Go). A positive stop delay and a positive pause delay cannot be combined. Projects for [snapshots](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-from-snapshot), [policies](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-policies), [labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-labels), and [network](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/daytona/configuration/create-daytona-with-network) are in the repository. Go projects sit beside them under `examples/go/daytona/`.
+```ts
+const sandbox = await client.create({
+  source: {
+    snapshot: { reference: "daytona-small" },
+  },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Snapshot{
+		Snapshot: &sandbox.SnapshotSource{Reference: "daytona-small"},
+	}},
+})
+```
+
+  </Tab>
+</Tabs>
+
+A linked sandbox must be ephemeral; Kit rejects the request otherwise.
+
+Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` (`After` / `Disabled`). You cannot combine a positive stop delay with a positive pause delay.
+
+See [Examples](/docs/examples).
 
 </ForProvider>
 
@@ -161,14 +404,85 @@ Idle stop, idle pause, stopped archive, and stopped delete use `PolicyMode` from
 
 Set cloud and region on `placement`. A ready wait needs a probe and a positive timeout.
 
-Modal rejects a disk size, an API endpoint, and Daytona stop or archive policies. Projects for [resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-resources), [idle timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-idle), [placement](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-with-placement), and [readiness](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/modal/configuration/create-modal-ready) are in the repository. Go projects sit beside them under `examples/go/modal/`.
+Disk size, an endpoint override, and stop / pause / archive / delete policies are rejected.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { WaitCondition } from "@sandbox-kit/sandbox";
+
+await client.create({
+  source: { image: { reference: "alpine:3.21" } },
+  placement: {
+    cloud: "aws",
+    regions: ["us-east-1"],
+  },
+  runtime: { entrypoint: ["sleep", "300"] },
+  readiness: { command: { argv: ["true"] } },
+  provisioning: { timeout: 120_000, waitFor: WaitCondition.Ready },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Placement: &sandbox.Placement{
+		Cloud:   sandbox.Value("aws"),
+		Regions: []string{"us-east-1"},
+	},
+	Runtime: &sandbox.RuntimeConfig{
+		Entrypoint: []string{"sleep", "300"},
+	},
+	Readiness: &sandbox.ReadinessProbe{
+		Check: &sandbox.Command{
+			Command: &sandbox.CommandProbe{Argv: []string{"true"}},
+		},
+	},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(2 * time.Minute),
+		WaitFor: sandbox.WaitConditionReady,
+	},
+})
+```
+
+  </Tab>
+</Tabs>
+
+See [Examples](/docs/examples).
 
 </ForProvider>
 
 ## Result
 
-`info()` / `Info()` returns a **copy** of metadata. Mutating it does not change the sandbox. Reported CPU/memory can differ from requested values.
+Metadata from info is a **copy**. Mutating it does not change the sandbox. Reported CPU and memory can differ from what you requested.
 
-After create: [Filesystem](/docs/filesystem), [Run a command](/docs/process), [Lifecycle](/docs/lifecycle).
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
 
-Not in this surface: streaming sessions, PTY, GPU, resize, extra storage, browsers.
+```ts
+const info = sandbox.info();
+// info: { id, provider, name?, providerState?, region?, isolation?,
+//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+info := instance.Info()
+// info: Id, Provider, Name, ProviderState, Region, Isolation,
+//       Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(info)
+```
+
+  </Tab>
+</Tabs>
+
+After create: [Filesystem](/docs/filesystem) · [Run a command](/docs/process) · [Lifecycle](/docs/lifecycle).

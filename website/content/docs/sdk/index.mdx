@@ -1,0 +1,33 @@
+---
+title: Overview
+description: User-facing types and methods for the Sandbox Kit core SDK.
+---
+
+Public surface of the core sandbox package. Guides show how pieces fit together; this section documents signatures, parameters, and return values.
+
+Use the language tabs on each page. Unsupported calls return a typed error—see [Errors](/docs/sdk/errors) and the [Errors guide](/docs/errors).
+
+<Note>
+  <ForLanguage id="typescript">
+    Package: `@sandbox-kit/sandbox`. Durations and timeouts are
+    **milliseconds**.
+  </ForLanguage>
+  <ForLanguage id="go">
+    Package: `github.com/sandbox-kit/kit/sdks/go/sandbox`. Durations use
+    `sandbox.Duration`. Optional scalars use `sandbox.Value`.
+  </ForLanguage>
+</Note>
+
+## Modules
+
+| Name                                      | Description                                                  |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| [Client](/docs/sdk/client)                | Construct a provider connection; create and open sandboxes   |
+| [Sandbox](/docs/sdk/sandbox)              | Handle for one sandbox: lifecycle, info, filesystem, process |
+| [Filesystem](/docs/sdk/filesystem)        | Read, write, copy, list, stat, and remove files              |
+| [Process](/docs/sdk/process)              | Run a command and collect exit code and output               |
+| [Client config](/docs/sdk/configuration)  | Client config, auth, and scope types                         |
+| [CreateOptions](/docs/sdk/create-options) | Create request body and nested option types                  |
+| [SandboxInfo](/docs/sdk/sandbox-info)     | Metadata returned by info and lifecycle calls                |
+| [Errors](/docs/sdk/errors)                | Typed error shape and kinds                                  |
+| [Enums](/docs/sdk/enums)                  | Shared enums (`SandboxState`, `PolicyMode`, …)               |
