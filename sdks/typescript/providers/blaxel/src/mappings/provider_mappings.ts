@@ -134,7 +134,8 @@ function mapSandboxState(status: string): SandboxState | undefined {
       return SandboxState.Error;
     case "TERMINATED":
     case "DELETED":
-      return SandboxState.Terminated;
+    case "DEACTIVATED":
+      return SandboxState.Deleted;
     default:
       return undefined;
   }

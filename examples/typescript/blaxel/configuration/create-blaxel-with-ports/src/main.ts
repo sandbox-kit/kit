@@ -16,8 +16,8 @@ const sandbox = await client.create({
   source: { image: { reference: "blaxel/base-image:latest" } },
   network: {
     ports: [
-      { port: 443, transport: PortTransport.Tls },
-      { port: 8080, transport: PortTransport.Plain },
+      { port: 3000, transport: PortTransport.Tls },
+      { port: 3001, transport: PortTransport.Plain },
     ],
   },
 });

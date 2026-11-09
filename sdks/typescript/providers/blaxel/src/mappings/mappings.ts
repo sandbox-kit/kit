@@ -18,6 +18,7 @@ import {
   ConfigFieldRegion,
   CreateFieldIsolation,
   CreateFieldLifetime,
+  CreateFieldLifetimeIdleTerminate,
   CreateFieldLifetimeIdleTerminateAfter,
   CreateFieldLifetimeIdleTerminateMode,
   CreateFieldLifetimeMaximumLifetime,
@@ -234,7 +235,10 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
   if (v.idleTerminate) {
     const mode = v.idleTerminate.mode ?? PolicyMode.Default;
     if (mode === PolicyMode.Disabled) {
-      // Explicit disable: omit idle policy.
+      unsupported(
+        CreateFieldLifetimeIdleTerminate,
+        "disabling idle terminate is not representable",
+      );
     } else if (mode === PolicyMode.After) {
       if (v.idleTerminate.after === undefined)
         invalid(CreateFieldLifetimeIdleTerminateAfter, "duration is required");

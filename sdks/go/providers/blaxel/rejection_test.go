@@ -92,6 +92,35 @@ func TestRejectedCreateSettings(t *testing.T) {
 			kind:  sandbox.ErrorKindInvalidArgument,
 			field: sandbox.CreateFieldLifetimeMaximumLifetime,
 		},
+		{
+			name: "maximum lifetime below floor",
+			request: namedImage(&sandbox.CreateOptions{
+				Lifetime: &sandbox.LifetimePolicy{MaximumLifetime: sandbox.Duration(4 * time.Minute)},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldLifetimeMaximumLifetime,
+		},
+		{
+			name: "idle terminate below floor",
+			request: namedImage(&sandbox.CreateOptions{
+				Lifetime: &sandbox.LifetimePolicy{
+					IdleTerminate: &sandbox.AutomaticAction{
+						Mode:  sandbox.PolicyModeAfter,
+						After: sandbox.Duration(30 * time.Second),
+					},
+				},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldLifetimeIdleTerminate,
+		},
+		{
+			name: "memory below floor",
+			request: namedImage(&sandbox.CreateOptions{
+				Resources: &sandbox.Resources{MemoryMib: sandbox.Value(uint64(255))},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldResourcesMemoryMib,
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, err := planCreate(tc.request, "us-pdx-1")

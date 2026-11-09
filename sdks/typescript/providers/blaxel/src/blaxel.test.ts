@@ -6,10 +6,12 @@ import {
   ErrorKind,
   PolicyMode,
   PortTransport,
+  SandboxState,
   WaitCondition,
   ConfigFieldAuthApiKeyKey,
   ConfigFieldEndpoint,
   CreateFieldEnvironment,
+  CreateFieldLifetimeIdleTerminate,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldName,
   CreateFieldResourcesMemoryMib,
@@ -181,6 +183,24 @@ describe("Blaxel mappings", () => {
     );
   });
 
+  it("rejects disabling idle terminate", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          lifetime: { idleTerminate: { mode: PolicyMode.Disabled } },
+        },
+        { scope: { workspace: "ws" } },
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldLifetimeIdleTerminate,
+      }),
+    );
+  });
+
   it("classifies native ResponseError status codes", () => {
     const native = new ResponseError(
       new Response(null, { status: 404, statusText: "Not Found" }),
@@ -333,8 +353,14 @@ describe("Blaxel provider orchestration", () => {
       scope: { workspace: "ws" },
     });
     if (backend.delete === undefined) throw new Error("delete is missing");
-    await backend.delete("doomed", {}, {});
+    const info = await backend.delete("doomed", {}, {});
     expect(deleted).toEqual(["doomed"]);
+    expect(info).toMatchObject({
+      id: "doomed",
+      state: SandboxState.Deleted,
+      terminal: true,
+      providerState: "TERMINATED",
+    });
   });
 
   it("does not create a sandbox after the signal aborts during mapping", async () => {

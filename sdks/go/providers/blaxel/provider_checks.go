@@ -32,6 +32,9 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		if resources.CpuLimitCores != nil {
 			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesCpuLimitCores, "Blaxel resource limits are not mapped")
 		}
+		if resources.MemoryMib != nil && *resources.MemoryMib < 256 {
+			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldResourcesMemoryMib, "resources.memory_mib is outside supported values")
+		}
 		if resources.MemoryLimitMib != nil {
 			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesMemoryLimitMib, "Blaxel resource limits are not mapped")
 		}

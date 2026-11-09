@@ -102,9 +102,13 @@ func mapAllocatedResources(source *blaxel.Sandbox) (*sandbox.Resources, error) {
 }
 
 // formatBlaxelDuration formats a whole-second duration as a Blaxel TTL string.
-func formatBlaxelDuration(value time.Duration) (string, error) {
+// minimum is the Blaxel floor for that policy (max-age TTL: 5m, idle TTL: 1m).
+func formatBlaxelDuration(value, minimum time.Duration) (string, error) {
 	if value <= 0 || value%time.Second != 0 {
 		return "", fmt.Errorf("duration must be a positive whole number of seconds")
+	}
+	if value < minimum {
+		return "", fmt.Errorf("duration must be at least %s", minimum)
 	}
 	seconds := int64(value / time.Second)
 	switch {

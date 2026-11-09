@@ -42,7 +42,7 @@ if err != nil {
 | ---------- | ------------------------------------------------------------------------------------------- |
 | `provider` | Provider constructor                                                                        |
 | `auth`     | One of `apiKey`, `tokenPair`, `bearerToken`, `oauthRefresh`. Omit to use provider env creds |
-| `scope`    | App, environment, or organization                                                           |
+| `scope`    | App, environment, organization, or workspace                                                |
 | `endpoint` | Provider endpoint URL override                                                              |
 | `region`   | Target / default placement                                                                  |
 | `timeout`  | Default deadline for calls that omit their own                                              |
@@ -51,6 +51,7 @@ if err != nil {
   Provider setup: [Daytona](/docs/daytona).
 </ForProvider>
 <ForProvider id="modal">Provider setup: [Modal](/docs/modal).</ForProvider>
+<ForProvider id="blaxel">Provider setup: [Blaxel](/docs/blaxel).</ForProvider>
 
 ## Client
 
