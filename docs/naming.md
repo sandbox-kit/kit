@@ -39,6 +39,7 @@ SDK client remain private. Construction uses
 sdks/go/sandbox/            Public SDK module
 sdks/go/providers/modal/    Optional Modal module
 sdks/go/providers/daytona/  Optional Daytona module
+sdks/go/providers/blaxel/   Optional Blaxel module
 sdks/go/internal/contracts/ Generated Go wire types; only packages under sdks/go can import them
 sdks/go/internal/sdk/       Shared SDK error type and provider helpers
 proto/kit/sandbox/v1/       Shared contracts

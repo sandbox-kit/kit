@@ -78,6 +78,7 @@ use (
 	./examples/go/modal/process/run-modal-with-timeout
 	./sdks/go/internal/contracts
 	./sdks/go/internal/sdk
+	./sdks/go/providers/blaxel
 	./sdks/go/providers/daytona
 	./sdks/go/providers/modal
 	./sdks/go/sandbox
