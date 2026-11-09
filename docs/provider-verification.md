@@ -1,6 +1,6 @@
 # Provider reference verification
 
-Go and TypeScript bindings target Modal v0.11.1 and Daytona v0.225.0
+Go and TypeScript bindings target Modal v0.11.1, Daytona v0.225.0, and Blaxel (`@blaxel/core` / `github.com/blaxel-ai/sdk-go`)
 (`modal@0.11.1`, `@daytona/sdk@0.225.0`). Latest documentation helps discover
 APIs; pinned SDK source and compilation determine the signatures and
 serialization used by this checkout.

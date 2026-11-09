@@ -58,7 +58,7 @@ sdks/typescript/sandbox/     Public TypeScript SDK (@sandbox-kit/sandbox)
   src/contracts/             Public type aliases over protobuf messages
   src/metadata/              Metadata map helpers
   src/internal/              Package-private duration/oneof/strip helpers
-sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-kit/modal)
+sdks/typescript/providers/   Optional providers (@sandbox-kit/daytona, @sandbox-kit/modal, @sandbox-kit/blaxel)
   src/mappings/              Create/info field mappings
   src/checks/                Provider create checks
   src/config/                Native SDK client configuration

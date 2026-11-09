@@ -1,6 +1,6 @@
 # Filesystem
 
-File calls live on the sandbox handle, next to lifecycle. Daytona and Modal
+File calls live on the sandbox handle, next to lifecycle. Daytona, Modal, and Blaxel
 implement the same methods. Open the handle with `Create`, Daytona `Get`, or
 Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 

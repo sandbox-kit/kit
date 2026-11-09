@@ -6,8 +6,8 @@ from lifecycle operations on an existing sandbox.
 
 ## Supported creation settings
 
-Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
-(`modal@0.11.1`, `@daytona/sdk@0.225.0`).
+Go and TypeScript integrations target Modal v0.11.1, Daytona v0.225.0, and
+Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core` / `sdk-go`).
 
 | Setting                | Modal                                                                                  | Daytona                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -22,6 +22,12 @@ Go and TypeScript integrations target Modal v0.11.1 and Daytona v0.225.0
 | Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
 | Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
+
+
+Blaxel create requires a nonblank name and an image source. It maps memory MiB,
+labels, environment, ports, outbound domains, maximum lifetime, and idle
+terminate. CPU/disk overrides, placement, runtime, isolation, security, and
+most egress modes are rejected. Region comes from the client config.
 
 Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
 pools and explicit snapshot kinds are unavailable. A field the provider does

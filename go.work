@@ -1,8 +1,33 @@
 go 1.26.0
 
 use (
-	./examples/go/daytona/lifecycle/archive-daytona-sandbox
-	./examples/go/daytona/lifecycle/close-daytona-handle
+	./examples/go/blaxel/configuration/create-blaxel-client-timeout
+	./examples/go/blaxel/configuration/create-blaxel-idle
+	./examples/go/blaxel/configuration/create-blaxel-sandbox
+	./examples/go/blaxel/configuration/create-blaxel-with-allowlists
+	./examples/go/blaxel/configuration/create-blaxel-with-labels
+	./examples/go/blaxel/configuration/create-blaxel-with-ports
+	./examples/go/blaxel/configuration/create-blaxel-with-resources
+	./examples/go/blaxel/configuration/create-blaxel-with-ttl
+	./examples/go/blaxel/errors/handle-blaxel-errors
+	./examples/go/blaxel/filesystem/copy-file-from-blaxel
+	./examples/go/blaxel/filesystem/copy-file-into-blaxel
+	./examples/go/blaxel/filesystem/list-blaxel-directory
+	./examples/go/blaxel/filesystem/make-blaxel-directory
+	./examples/go/blaxel/filesystem/read-blaxel-file
+	./examples/go/blaxel/filesystem/remove-blaxel-file
+	./examples/go/blaxel/filesystem/stat-blaxel-file
+	./examples/go/blaxel/filesystem/write-blaxel-file
+	./examples/go/blaxel/lifecycle/close-blaxel-handle
+	./examples/go/blaxel/lifecycle/delete-blaxel-sandbox
+	./examples/go/blaxel/lifecycle/get-blaxel-sandbox
+	./examples/go/blaxel/lifecycle/refresh-blaxel-sandbox
+	./examples/go/blaxel/process/run-blaxel-check-exit
+	./examples/go/blaxel/process/run-blaxel-command
+	./examples/go/blaxel/process/run-blaxel-shell-command
+	./examples/go/blaxel/process/run-blaxel-with-cwd
+	./examples/go/blaxel/process/run-blaxel-with-env
+	./examples/go/blaxel/process/run-blaxel-with-timeout
 	./examples/go/daytona/configuration/create-daytona-ephemeral
 	./examples/go/daytona/configuration/create-daytona-from-image
 	./examples/go/daytona/configuration/create-daytona-from-snapshot
@@ -15,18 +40,32 @@ use (
 	./examples/go/daytona/configuration/create-daytona-with-runtime
 	./examples/go/daytona/configuration/create-daytona-with-secrets
 	./examples/go/daytona/configuration/create-daytona-with-ttl
+	./examples/go/daytona/errors/handle-daytona-errors
+	./examples/go/daytona/filesystem/copy-file-from-daytona
+	./examples/go/daytona/filesystem/copy-file-into-daytona
+	./examples/go/daytona/filesystem/list-daytona-directory
+	./examples/go/daytona/filesystem/make-daytona-directory
+	./examples/go/daytona/filesystem/read-daytona-file
+	./examples/go/daytona/filesystem/remove-daytona-file
+	./examples/go/daytona/filesystem/stat-daytona-file
+	./examples/go/daytona/filesystem/write-daytona-file
+	./examples/go/daytona/lifecycle/archive-daytona-sandbox
+	./examples/go/daytona/lifecycle/close-daytona-handle
 	./examples/go/daytona/lifecycle/delete-daytona-sandbox
 	./examples/go/daytona/lifecycle/force-stop-daytona-sandbox
 	./examples/go/daytona/lifecycle/get-daytona-sandbox
-	./examples/go/daytona/errors/handle-daytona-errors
 	./examples/go/daytona/lifecycle/pause-daytona-sandbox
 	./examples/go/daytona/lifecycle/refresh-daytona-sandbox
 	./examples/go/daytona/lifecycle/request-daytona-deletion
 	./examples/go/daytona/lifecycle/start-daytona-sandbox
 	./examples/go/daytona/lifecycle/start-daytona-with-timeout
 	./examples/go/daytona/lifecycle/stop-daytona-sandbox
-	./examples/go/modal/lifecycle/attach-modal-sandbox
-	./examples/go/modal/lifecycle/close-modal-handle
+	./examples/go/daytona/process/run-daytona-check-exit
+	./examples/go/daytona/process/run-daytona-command
+	./examples/go/daytona/process/run-daytona-shell-command
+	./examples/go/daytona/process/run-daytona-with-cwd
+	./examples/go/daytona/process/run-daytona-with-env
+	./examples/go/daytona/process/run-daytona-with-timeout
 	./examples/go/modal/configuration/create-modal-client-timeout
 	./examples/go/modal/configuration/create-modal-gvisor
 	./examples/go/modal/configuration/create-modal-idle
@@ -45,23 +84,6 @@ use (
 	./examples/go/modal/configuration/create-modal-with-runtime
 	./examples/go/modal/configuration/create-modal-with-secrets
 	./examples/go/modal/errors/handle-modal-errors
-	./examples/go/modal/lifecycle/request-modal-termination
-	./examples/go/modal/lifecycle/terminate-modal-sandbox
-	./examples/go/modal/lifecycle/terminate-modal-with-timeout
-	./examples/go/daytona/filesystem/copy-file-from-daytona
-	./examples/go/daytona/filesystem/copy-file-into-daytona
-	./examples/go/daytona/filesystem/list-daytona-directory
-	./examples/go/daytona/filesystem/make-daytona-directory
-	./examples/go/daytona/filesystem/read-daytona-file
-	./examples/go/daytona/filesystem/remove-daytona-file
-	./examples/go/daytona/filesystem/stat-daytona-file
-	./examples/go/daytona/filesystem/write-daytona-file
-	./examples/go/daytona/process/run-daytona-check-exit
-	./examples/go/daytona/process/run-daytona-command
-	./examples/go/daytona/process/run-daytona-shell-command
-	./examples/go/daytona/process/run-daytona-with-cwd
-	./examples/go/daytona/process/run-daytona-with-env
-	./examples/go/daytona/process/run-daytona-with-timeout
 	./examples/go/modal/filesystem/copy-file-from-modal
 	./examples/go/modal/filesystem/copy-file-into-modal
 	./examples/go/modal/filesystem/list-modal-directory
@@ -70,6 +92,11 @@ use (
 	./examples/go/modal/filesystem/remove-modal-file
 	./examples/go/modal/filesystem/stat-modal-file
 	./examples/go/modal/filesystem/write-modal-file
+	./examples/go/modal/lifecycle/attach-modal-sandbox
+	./examples/go/modal/lifecycle/close-modal-handle
+	./examples/go/modal/lifecycle/request-modal-termination
+	./examples/go/modal/lifecycle/terminate-modal-sandbox
+	./examples/go/modal/lifecycle/terminate-modal-with-timeout
 	./examples/go/modal/process/run-modal-check-exit
 	./examples/go/modal/process/run-modal-command
 	./examples/go/modal/process/run-modal-shell-command

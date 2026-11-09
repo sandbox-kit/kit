@@ -27,7 +27,7 @@ treat zero as no operation timeout. A timeout that is not a whole number of
 seconds is rejected before the native call. A terminate timeout is how long
 Kit waits. Modal does not take that duration as its own terminate timeout.
 With wait, Modal polls until the sandbox exits or the deadline fires.
-`Client.Close` / `client.close()` closes your connection to Daytona or Modal
+`Client.Close` / `client.close()` closes your connection to Daytona, Modal, or Blaxel
 and returns that result. It does not stop or delete the sandbox. A later call
 uses that connection and returns the provider's result.
 `Sandbox.Close` / `sandbox.close()` does not change the sandbox. You can keep
@@ -45,7 +45,7 @@ const sandbox = await client.create(request);
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Disposing a client closes your connection to Daytona or Modal. Disposing a
+Disposing a client closes your connection to Daytona, Modal, or Blaxel. Disposing a
 handle does not stop, terminate, or delete the sandbox. You can keep using the
 handle.
 

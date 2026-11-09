@@ -4,7 +4,7 @@ Independent Go and TypeScript projects. Each selects one provider, loads its own
 `.env`, and demonstrates one operation. Projects for a provider sit in
 `filesystem`, `process`, `configuration`, `lifecycle`, or `errors`. Every
 project README explains what the example does for that provider, with edge
-cases drawn from Daytona and Modal behavior.
+cases drawn from Daytona, Modal, and Blaxel behavior.
 
 ## Run one
 
@@ -24,13 +24,17 @@ Modal needs a token pair and an existing app:
 [Go](go/modal/configuration/create-modal-sandbox/README.md) ·
 [TypeScript](typescript/modal/configuration/create-modal-sandbox/README.md).
 
+Blaxel needs an API key and workspace:
+[Go](go/blaxel/configuration/create-blaxel-sandbox/README.md) ·
+[TypeScript](typescript/blaxel/configuration/create-blaxel-sandbox/README.md).
+
 Creation examples provision real resources. Filesystem, process, and lifecycle
 examples use the sandbox ID in `.env`. A filesystem example runs one file
 operation (read, write, copy, mkdir, list, stat, or remove) on the path you
 set. A process example runs one command. Stop,
 terminate, archive, and delete can destroy the sandbox.
 Error-handling examples fail locally. `Client.Close` closes your connection to
-Daytona or Modal. `Sandbox.Close` does not change the sandbox, and you can keep
+Daytona, Modal, or Blaxel. `Sandbox.Close` does not change the sandbox, and you can keep
 using the handle.
 
 Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
@@ -114,6 +118,33 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Modal termination request | [go](go/modal/lifecycle/request-modal-termination/README.md)          | [typescript](typescript/modal/lifecycle/request-modal-termination/README.md)          |
 | Modal close handle        | [go](go/modal/lifecycle/close-modal-handle/README.md)                 | [typescript](typescript/modal/lifecycle/close-modal-handle/README.md)                 |
 | Modal errors              | [go](go/modal/errors/handle-modal-errors/README.md)                   | [typescript](typescript/modal/errors/handle-modal-errors/README.md)                   |
+| Blaxel named image create | [go](go/blaxel/configuration/create-blaxel-sandbox/README.md)         | [typescript](typescript/blaxel/configuration/create-blaxel-sandbox/README.md)         |
+| Blaxel memory MiB         | [go](go/blaxel/configuration/create-blaxel-with-resources/README.md)  | [typescript](typescript/blaxel/configuration/create-blaxel-with-resources/README.md)  |
+| Blaxel labels and environment | [go](go/blaxel/configuration/create-blaxel-with-labels/README.md)     | [typescript](typescript/blaxel/configuration/create-blaxel-with-labels/README.md)     |
+| Blaxel maximum lifetime TTL | [go](go/blaxel/configuration/create-blaxel-with-ttl/README.md)        | [typescript](typescript/blaxel/configuration/create-blaxel-with-ttl/README.md)        |
+| Blaxel idle delete policy | [go](go/blaxel/configuration/create-blaxel-idle/README.md)            | [typescript](typescript/blaxel/configuration/create-blaxel-idle/README.md)            |
+| Blaxel client timeout     | [go](go/blaxel/configuration/create-blaxel-client-timeout/README.md)  | [typescript](typescript/blaxel/configuration/create-blaxel-client-timeout/README.md)  |
+| Blaxel published ports    | [go](go/blaxel/configuration/create-blaxel-with-ports/README.md)      | [typescript](typescript/blaxel/configuration/create-blaxel-with-ports/README.md)      |
+| Blaxel outbound domains   | [go](go/blaxel/configuration/create-blaxel-with-allowlists/README.md) | [typescript](typescript/blaxel/configuration/create-blaxel-with-allowlists/README.md) |
+| Blaxel run one command    | [go](go/blaxel/process/run-blaxel-command/README.md)                  | [typescript](typescript/blaxel/process/run-blaxel-command/README.md)                  |
+| Blaxel run one shell string | [go](go/blaxel/process/run-blaxel-shell-command/README.md)            | [typescript](typescript/blaxel/process/run-blaxel-shell-command/README.md)            |
+| Blaxel run with working directory | [go](go/blaxel/process/run-blaxel-with-cwd/README.md)                 | [typescript](typescript/blaxel/process/run-blaxel-with-cwd/README.md)                 |
+| Blaxel run with environment variables | [go](go/blaxel/process/run-blaxel-with-env/README.md)                 | [typescript](typescript/blaxel/process/run-blaxel-with-env/README.md)                 |
+| Blaxel run with a whole-second timeout | [go](go/blaxel/process/run-blaxel-with-timeout/README.md)             | [typescript](typescript/blaxel/process/run-blaxel-with-timeout/README.md)             |
+| Blaxel non-zero exit in the result | [go](go/blaxel/process/run-blaxel-check-exit/README.md)               | [typescript](typescript/blaxel/process/run-blaxel-check-exit/README.md)               |
+| Blaxel read one file      | [go](go/blaxel/filesystem/read-blaxel-file/README.md)                 | [typescript](typescript/blaxel/filesystem/read-blaxel-file/README.md)                 |
+| Blaxel write one file     | [go](go/blaxel/filesystem/write-blaxel-file/README.md)                | [typescript](typescript/blaxel/filesystem/write-blaxel-file/README.md)                |
+| Blaxel copy a local file in | [go](go/blaxel/filesystem/copy-file-into-blaxel/README.md)            | [typescript](typescript/blaxel/filesystem/copy-file-into-blaxel/README.md)            |
+| Blaxel copy a sandbox file out | [go](go/blaxel/filesystem/copy-file-from-blaxel/README.md)            | [typescript](typescript/blaxel/filesystem/copy-file-from-blaxel/README.md)            |
+| Blaxel create a directory | [go](go/blaxel/filesystem/make-blaxel-directory/README.md)            | [typescript](typescript/blaxel/filesystem/make-blaxel-directory/README.md)            |
+| Blaxel list one directory | [go](go/blaxel/filesystem/list-blaxel-directory/README.md)            | [typescript](typescript/blaxel/filesystem/list-blaxel-directory/README.md)            |
+| Blaxel stat one path      | [go](go/blaxel/filesystem/stat-blaxel-file/README.md)                 | [typescript](typescript/blaxel/filesystem/stat-blaxel-file/README.md)                 |
+| Blaxel remove one path    | [go](go/blaxel/filesystem/remove-blaxel-file/README.md)               | [typescript](typescript/blaxel/filesystem/remove-blaxel-file/README.md)               |
+| Blaxel remote retrieval and metadata | [go](go/blaxel/lifecycle/get-blaxel-sandbox/README.md)                | [typescript](typescript/blaxel/lifecycle/get-blaxel-sandbox/README.md)                |
+| Blaxel metadata refresh   | [go](go/blaxel/lifecycle/refresh-blaxel-sandbox/README.md)            | [typescript](typescript/blaxel/lifecycle/refresh-blaxel-sandbox/README.md)            |
+| Blaxel waited deletion    | [go](go/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             | [typescript](typescript/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             |
+| Blaxel close the handle; sandbox keeps running | [go](go/blaxel/lifecycle/close-blaxel-handle/README.md)               | [typescript](typescript/blaxel/lifecycle/close-blaxel-handle/README.md)               |
+| Blaxel typed validation errors | [go](go/blaxel/errors/handle-blaxel-errors/README.md)                 | [typescript](typescript/blaxel/errors/handle-blaxel-errors/README.md)                 |
 
 ## Verify locally
 

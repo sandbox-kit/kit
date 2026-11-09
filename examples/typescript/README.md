@@ -22,7 +22,7 @@ npm start
 
 Creation examples provision real cloud resources. Filesystem, process, and lifecycle
 examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
-the client closes your connection to Daytona or Modal. Modal setup:
+the client closes your connection to Daytona, Modal, or Blaxel. Modal setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
 
 ## Catalog
@@ -121,3 +121,35 @@ GOWORK=off go run ./cmd/sandbox-kit test typescript
 ```
 
 Builds and tests the SDK packages first, then every example with a `package.json`.
+
+### Blaxel
+
+| Project | Demonstrates |
+| -------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md)                              | named image create                      |
+| [create-blaxel-with-resources](blaxel/configuration/create-blaxel-with-resources/README.md)                | memory MiB                              |
+| [create-blaxel-with-labels](blaxel/configuration/create-blaxel-with-labels/README.md)                      | labels and environment                  |
+| [create-blaxel-with-ttl](blaxel/configuration/create-blaxel-with-ttl/README.md)                            | maximum lifetime TTL                    |
+| [create-blaxel-idle](blaxel/configuration/create-blaxel-idle/README.md)                                    | idle delete policy                      |
+| [create-blaxel-client-timeout](blaxel/configuration/create-blaxel-client-timeout/README.md)                | client timeout                          |
+| [create-blaxel-with-ports](blaxel/configuration/create-blaxel-with-ports/README.md)                        | published ports                         |
+| [create-blaxel-with-allowlists](blaxel/configuration/create-blaxel-with-allowlists/README.md)              | outbound domains                        |
+| [run-blaxel-command](blaxel/process/run-blaxel-command/README.md)                                          | run one command                         |
+| [run-blaxel-shell-command](blaxel/process/run-blaxel-shell-command/README.md)                              | run one shell string                    |
+| [run-blaxel-with-cwd](blaxel/process/run-blaxel-with-cwd/README.md)                                        | run with working directory              |
+| [run-blaxel-with-env](blaxel/process/run-blaxel-with-env/README.md)                                        | run with environment variables          |
+| [run-blaxel-with-timeout](blaxel/process/run-blaxel-with-timeout/README.md)                                | run with a whole-second timeout         |
+| [run-blaxel-check-exit](blaxel/process/run-blaxel-check-exit/README.md)                                    | non-zero exit in the result             |
+| [read-blaxel-file](blaxel/filesystem/read-blaxel-file/README.md)                                           | read one file                           |
+| [write-blaxel-file](blaxel/filesystem/write-blaxel-file/README.md)                                         | write one file                          |
+| [copy-file-into-blaxel](blaxel/filesystem/copy-file-into-blaxel/README.md)                                 | copy a local file in                    |
+| [copy-file-from-blaxel](blaxel/filesystem/copy-file-from-blaxel/README.md)                                 | copy a sandbox file out                 |
+| [make-blaxel-directory](blaxel/filesystem/make-blaxel-directory/README.md)                                 | create a directory                      |
+| [list-blaxel-directory](blaxel/filesystem/list-blaxel-directory/README.md)                                 | list one directory                      |
+| [stat-blaxel-file](blaxel/filesystem/stat-blaxel-file/README.md)                                           | stat one path                           |
+| [remove-blaxel-file](blaxel/filesystem/remove-blaxel-file/README.md)                                       | remove one path                         |
+| [get-blaxel-sandbox](blaxel/lifecycle/get-blaxel-sandbox/README.md)                                        | remote retrieval and metadata           |
+| [refresh-blaxel-sandbox](blaxel/lifecycle/refresh-blaxel-sandbox/README.md)                                | metadata refresh                        |
+| [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | waited deletion                         |
+| [close-blaxel-handle](blaxel/lifecycle/close-blaxel-handle/README.md)                                      | close the handle; sandbox keeps running |
+| [handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md)                                       | typed validation errors                 |

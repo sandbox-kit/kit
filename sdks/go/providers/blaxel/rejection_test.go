@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
@@ -60,9 +61,17 @@ func TestRejectedCreateSettings(t *testing.T) {
 			field: sandbox.CreateFieldSecurity,
 		},
 		{
-			name: "network",
+			name: "private network",
 			request: namedImage(&sandbox.CreateOptions{
 				Network: &sandbox.NetworkConfig{PrivateNetwork: sandbox.Value(true)},
+			}),
+			kind:  sandbox.ErrorKindUnsupported,
+			field: sandbox.CreateFieldNetwork,
+		},
+		{
+			name: "egress mode",
+			request: namedImage(&sandbox.CreateOptions{
+				Network: &sandbox.NetworkConfig{Egress: sandbox.EgressModeRestricted},
 			}),
 			kind:  sandbox.ErrorKindUnsupported,
 			field: sandbox.CreateFieldNetwork,
@@ -170,4 +179,29 @@ func imaged(request *sandbox.CreateOptions) *sandbox.CreateOptions {
 func namedImage(request *sandbox.CreateOptions) *sandbox.CreateOptions {
 	request.Name = sandbox.Value("sandbox")
 	return imaged(request)
+}
+
+func TestMappedNetworkPortsAndDomains(t *testing.T) {
+	plan, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Network: &sandbox.NetworkConfig{
+			OutboundDomains: &sandbox.StringAllowlist{Entries: []string{"example.com"}},
+			Ports: []*sandbox.PortBinding{
+				{Port: 443, Transport: sandbox.PortTransportTLS},
+				{Port: 8080, Transport: sandbox.PortTransportPlain},
+			},
+		},
+	}), "us-pdx-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := plan.params.Sandbox.Spec.Network.AllowedDomains; len(got) != 1 || got[0] != "example.com" {
+		t.Fatalf("AllowedDomains = %#v", got)
+	}
+	ports := plan.params.Sandbox.Spec.Runtime.Ports
+	if len(ports) != 2 || ports[0].Target != 443 || ports[0].Protocol != blaxel.PortProtocolTls {
+		t.Fatalf("Ports = %#v", ports)
+	}
+	if ports[1].Target != 8080 || ports[1].Protocol != blaxel.PortProtocolTcp {
+		t.Fatalf("Ports[1] = %#v", ports[1])
+	}
 }

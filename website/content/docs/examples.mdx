@@ -38,6 +38,17 @@ npm install && npm run build && npm start
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/typescript/blaxel/configuration/create-blaxel-sandbox
+cp .env.example .env   # set BL_API_KEY, BL_WORKSPACE
+npm install && npm run build && npm start
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -60,6 +71,17 @@ go run .
 git clone https://github.com/sandbox-kit/kit.git
 cd kit/examples/go/modal/configuration/create-modal-sandbox
 cp .env.example .env   # set MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, MODAL_APP_NAME
+go run .
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/go/blaxel/configuration/create-blaxel-sandbox
+cp .env.example .env   # set BL_API_KEY, BL_WORKSPACE
 go run .
 ```
 
@@ -397,5 +419,48 @@ go run .
 
   </Tab>
 </Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+## Catalog
+
+### Create
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example         | Project |
+| --------------- | ------- |
+| Creation        | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
+| Resources       | [create-blaxel-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-resources) |
+| Labels          | [create-blaxel-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-labels) |
+| TTL             | [create-blaxel-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-ttl) |
+| Idle delete     | [create-blaxel-idle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-idle) |
+| Client timeout  | [create-blaxel-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-client-timeout) |
+| Ports           | [create-blaxel-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-ports) |
+| Outbound domains| [create-blaxel-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-allowlists) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example         | Project |
+| --------------- | ------- |
+| Creation        | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-sandbox) |
+| Resources       | [create-blaxel-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-resources) |
+| Labels          | [create-blaxel-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-labels) |
+| TTL             | [create-blaxel-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-ttl) |
+| Idle delete     | [create-blaxel-idle](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-idle) |
+| Client timeout  | [create-blaxel-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-client-timeout) |
+| Ports           | [create-blaxel-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-ports) |
+| Outbound domains| [create-blaxel-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-allowlists) |
+
+  </Tab>
+</Tabs>
+
+### Process / Filesystem / Lifecycle / Errors
+
+Indexes: [TypeScript](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel) · [Go](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel). Full catalogs live in [examples/README.md](https://github.com/sandbox-kit/kit/blob/main/examples/README.md).
 
 </ForProvider>

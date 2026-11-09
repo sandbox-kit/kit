@@ -1,0 +1,121 @@
+---
+title: Blaxel
+description: Install, authenticate, and create a Blaxel sandbox.
+---
+
+Use Blaxel when you want named image creates, get/refresh by name, filesystem, blocking process runs, and delete.
+
+## Install
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
+```
+
+  </Tab>
+</Tabs>
+
+## Create
+
+Set `BL_API_KEY` and `BL_WORKSPACE`. Create requires a name and an image. Set `region` on the client (default examples use `us-pdx-1`).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { blaxel } from "@sandbox-kit/blaxel";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+});
+console.log(sandbox.id);
+```
+
+`timeout` is milliseconds. Prefer `await using`; otherwise call `await client.close()` when finished.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+		}},
+		Scope: &sandbox.Scope{
+			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+		},
+		Region:  sandbox.Value("us-pdx-1"),
+		Timeout: sandbox.Duration(2 * time.Minute),
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Name: sandbox.Value("kit-example"),
+		Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+			Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+		}},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(instance.ID())
+}
+```
+
+  </Tab>
+</Tabs>
+
+## What Blaxel supports
+
+| Area       | Notes                                                                 |
+| ---------- | --------------------------------------------------------------------- |
+| Create     | Name + image; memory, labels, env, ports, outbound domains, TTL/idle |
+| Open       | `get` / `refresh` by sandbox name                                     |
+| Lifecycle  | `delete`, `close` — no start/stop/pause/archive/terminate/attach      |
+| Filesystem | Shared eight methods; absolute sandbox paths                          |
+| Process    | Blocking `run` with argv or shell                                     |
+
+Closing the client closes your connection to Blaxel. Closing a handle leaves the sandbox as it is.
+
+## Next
+
+- [Configuration](/docs/configuration)
+- [Create](/docs/create)
+- [Lifecycle](/docs/lifecycle)
+- [Examples](/docs/examples)

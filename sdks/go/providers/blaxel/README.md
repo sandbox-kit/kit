@@ -61,7 +61,8 @@ rejected. `Scope` fields other than `Workspace` are rejected.
 ## Operations
 
 Create from a registry image with an explicit name. You can set labels,
-environment variables, memory, maximum lifetime, and idle terminate.
+environment variables, memory, ports, outbound domains, maximum lifetime, and
+idle terminate.
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and

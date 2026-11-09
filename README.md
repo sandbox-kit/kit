@@ -2,8 +2,7 @@
 
 A multi-provider SDK for creating and managing cloud sandboxes. Choose a
 provider, install the core SDK and its provider package, then create and manage
-sandboxes through a consistent client interface. Daytona and Modal are
-supported.
+sandboxes through a consistent client interface. Daytona, Modal, and Blaxel are supported.
 
 ## npm
 
@@ -15,6 +14,7 @@ download npm has recorded for that package.
 | [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fsandbox)](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fsandbox?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/sandbox) |
 | [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona) |
 | [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)     |
+| [`@sandbox-kit/blaxel`](https://www.npmjs.com/package/@sandbox-kit/blaxel)   | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fblaxel)](https://www.npmjs.com/package/@sandbox-kit/blaxel)   | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fblaxel?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/blaxel)   |
 
 Install `@sandbox-kit/sandbox` and one provider.
 
@@ -27,6 +27,7 @@ Requires Node.js 20, 22, or 24.15+. Install the core SDK and one provider:
 ```sh
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
+# or: npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
 Set `DAYTONA_API_KEY`, then create a sandbox:
@@ -64,6 +65,7 @@ Requires Go 1.26.0 or later. Install the core SDK and one provider:
 go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
 go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 # or: go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
+# or: go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ```
 
 Set `DAYTONA_API_KEY`, then create a sandbox:
@@ -118,7 +120,7 @@ func main() {
 | Language   | Core SDK                                     | Providers                                      |
 | ---------- | -------------------------------------------- | ---------------------------------------------- |
 | TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`   |
-| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`, `.../providers/blaxel` |
 
 Install only the provider you use. The core SDK exposes the shared client
 interface; the provider package connects it to the provider's native SDK.
@@ -284,10 +286,10 @@ These pages are the behavior reference for the same API:
 | [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                     |
 | [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove  |
 | [Process](docs/process.md)                                                                                     | Run a command and wait for exit code + output |
-| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                             |
+| [Providers](docs/providers.md)                                                                                 | Daytona, Modal, and Blaxel                    |
 | [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes             |
-| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                     |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                             |
+| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) / [Blaxel](sdks/typescript/providers/blaxel/README.md) | TypeScript provider notes |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md) / [Blaxel](sdks/go/providers/blaxel/README.md) | Go provider notes |
 
 ## License
 

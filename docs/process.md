@@ -1,7 +1,7 @@
 # Process
 
 Run a command inside an open sandbox and wait for it to finish. Use the same
-options on Daytona and Modal.
+options on Daytona, Modal, and Blaxel.
 
 | You want to                           | Go    | TypeScript |
 | ------------------------------------- | ----- | ---------- |
@@ -79,7 +79,7 @@ Cancel behavior:
 - **Go** — cancel or deadline on the context ends the wait and returns an
   error. The handle stays busy until that provider call returns.
 - **TypeScript** — abort rejects the `await`. The remote command may keep
-  running; Daytona and Modal exec do not take an `AbortSignal`. The handle
+  running; Daytona, Modal, and Blaxel exec do not take an `AbortSignal`. The handle
   still stays busy until that provider call settles, so the next call on the
   same handle does not overlap it.
 

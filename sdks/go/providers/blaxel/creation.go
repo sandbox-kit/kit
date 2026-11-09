@@ -194,7 +194,58 @@ func (c *creation) network() error {
 	if c.request.Network == nil {
 		return nil
 	}
-	return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "Blaxel network fields are not mapped")
+	config := cloneMessage(c.request.Network)
+	if config.Egress != sandbox.EgressModeDefault ||
+		config.OutboundCidrs != nil ||
+		config.InboundCidrs != nil ||
+		config.PrivateNetwork != nil ||
+		config.LinkedSandbox != nil ||
+		config.ProxyReference != nil ||
+		config.OutboundProxyUrl != nil ||
+		config.CustomDomain != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "requested network settings are unsupported by Blaxel")
+	}
+	if config.OutboundDomains != nil {
+		c.params.Sandbox.Spec.Network.AllowedDomains = append([]string(nil), config.OutboundDomains.Entries...)
+		config.OutboundDomains = nil
+	}
+	if len(config.Ports) > 0 {
+		ports := make([]blaxel.PortParam, 0, len(config.Ports))
+		for _, binding := range config.Ports {
+			if binding == nil {
+				continue
+			}
+			protocol, err := blaxelPortProtocol(binding.Transport)
+			if err != nil {
+				return err
+			}
+			ports = append(ports, blaxel.PortParam{
+				Target:   int64(binding.Port),
+				Protocol: protocol,
+			})
+		}
+		c.params.Sandbox.Spec.Runtime.Ports = ports
+		config.Ports = nil
+	}
+	config.Egress = 0
+	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldNetwork, config); err != nil {
+		return err
+	}
+	c.rest.Network = nil
+	return nil
+}
+
+func blaxelPortProtocol(transport sandbox.PortTransport) (blaxel.PortProtocol, error) {
+	switch transport {
+	case sandbox.PortTransportDefault, sandbox.PortTransportPlain:
+		return blaxel.PortProtocolTcp, nil
+	case sandbox.PortTransportTLS:
+		return blaxel.PortProtocolTls, nil
+	case sandbox.PortTransportHTTP2TLS:
+		return blaxel.PortProtocolHTTP, nil
+	default:
+		return "", providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsTransport, "requested port transport is unsupported")
+	}
 }
 
 func (c *creation) provisioning() error {

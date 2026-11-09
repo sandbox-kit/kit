@@ -22,7 +22,7 @@ await using client = new Client({
 ```
 
 Call `client.Close(ctx)` in Go, or `await client.close()` or `await using` in
-TypeScript. That closes your connection to Daytona or Modal. The sandboxes keep
+TypeScript. That closes your connection to Daytona, Modal, or Blaxel. The sandboxes keep
 running. You can keep using a handle. The next call returns the provider's
 result. Closing one handle does not close the client.
 
@@ -30,9 +30,9 @@ result. Closing one handle does not close the client.
 
 | Go / TypeScript         | Purpose                                                             |
 | ----------------------- | ------------------------------------------------------------------- |
-| Provider / `provider`   | `daytona.New()` / `daytona()`, or `modal.New()` / `modal()`         |
+| Provider / `provider`   | `daytona.New()` / `daytona()`, `modal.New()` / `modal()`, or `blaxel.New()` / `blaxel()` |
 | `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials |
-| `Scope` / `scope`       | App, environment, organization, or project                          |
+| `Scope` / `scope`       | App, environment, organization, project, or workspace               |
 | `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                   |
 | `Region` / `region`     | Provider target or default placement                                |
 | `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds  |
@@ -46,20 +46,21 @@ does not change the handle.
 
 ## Provider support
 
-The bindings use Modal v0.11.1 and Daytona v0.225.0.
+The bindings use Modal v0.11.1, Daytona v0.225.0, and Blaxel SDK Go/TS current pins.
 
-| Setting          | Modal                                                      | Daytona                           |
-| ---------------- | ---------------------------------------------------------- | --------------------------------- |
-| API key          | Unsupported                                                | `APIKey`                          |
-| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       |
-| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required |
-| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       |
-| Endpoint         | Unsupported                                                | API URL                           |
-| Region           | Default sandbox region preference                          | Target                            |
-| App name         | Required for app lookup                                    | Unsupported                       |
-| Environment      | Client, app, and secret lookup environment                 | Unsupported                       |
-| Organization ID  | Unsupported                                                | Organization                      |
-| Project ID       | Unsupported                                                | Unsupported                       |
+| Setting          | Modal                                                      | Daytona                           | Blaxel                            |
+| ---------------- | ---------------------------------------------------------- | --------------------------------- | --------------------------------- |
+| API key          | Unsupported                                                | `APIKey`                          | `APIKey`                          |
+| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       | Unsupported                       |
+| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required | Unsupported                       |
+| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       | Unsupported                       |
+| Endpoint         | Unsupported                                                | API URL                           | Unsupported                       |
+| Region           | Default sandbox region preference                          | Target                            | Required for create               |
+| App name         | Required for app lookup                                    | Unsupported                       | Unsupported                       |
+| Environment      | Client, app, and secret lookup environment                 | Unsupported                       | Unsupported                       |
+| Organization ID  | Unsupported                                                | Organization                      | Unsupported                       |
+| Project ID       | Unsupported                                                | Unsupported                       | Unsupported                       |
+| Workspace        | Unsupported                                                | Unsupported                       | Required Blaxel workspace name    |
 
 A setting the provider does not support fails before the provider client is
 created. Omit `auth` when the provider should use credentials it already finds
