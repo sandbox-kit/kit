@@ -147,4 +147,10 @@ message Scope {
     message: "must not be blank"
     expression: "this.trim() != ''"
   }];
+  // The Blaxel workspace name.
+  optional string workspace = 5 [(buf.validate.field).cel = {
+    id: "nonblank"
+    message: "must not be blank"
+    expression: "this.trim() != ''"
+  }];
 }

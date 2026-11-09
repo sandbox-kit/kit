@@ -457,7 +457,9 @@ type Scope struct {
 	// The Daytona organization. Bearer auth requires it when the SDK cannot resolve one.
 	OrganizationId *string `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3,oneof" json:"organization_id,omitempty"`
 	// Reserved for providers that scope work to a project. Current providers reject it when supplied.
-	ProjectId     *string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3,oneof" json:"project_id,omitempty"`
+	ProjectId *string `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3,oneof" json:"project_id,omitempty"`
+	// The Blaxel workspace name.
+	Workspace     *string `protobuf:"bytes,5,opt,name=workspace,proto3,oneof" json:"workspace,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -520,6 +522,13 @@ func (x *Scope) GetProjectId() string {
 	return ""
 }
 
+func (x *Scope) GetWorkspace() string {
+	if x != nil && x.Workspace != nil {
+		return *x.Workspace
+	}
+	return ""
+}
+
 var File_kit_sandbox_v1_client_proto protoreflect.FileDescriptor
 
 const file_kit_sandbox_v1_client_proto_rawDesc = "" +
@@ -567,7 +576,7 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\vexactly_one\x12.requires exactly one of client_secret, jwt_key\x1a,has(this.client_secret) != has(this.jwt_key)B\x10\n" +
 	"\x0e_client_secretB\n" +
 	"\n" +
-	"\b_jwt_key\"\xc0\x03\n" +
+	"\b_jwt_key\"\xa9\x04\n" +
 	"\x05Scope\x12V\n" +
 	"\bapp_name\x18\x01 \x01(\tB6\xbaH3\xba\x010\n" +
 	"\bnonblank\x12\x11must not be blank\x1a\x11this.trim() != ''H\x00R\aappName\x88\x01\x01\x12]\n" +
@@ -577,11 +586,15 @@ const file_kit_sandbox_v1_client_proto_rawDesc = "" +
 	"\bnonblank\x12\x11must not be blank\x1a\x11this.trim() != ''H\x02R\x0eorganizationId\x88\x01\x01\x12Z\n" +
 	"\n" +
 	"project_id\x18\x04 \x01(\tB6\xbaH3\xba\x010\n" +
-	"\bnonblank\x12\x11must not be blank\x1a\x11this.trim() != ''H\x03R\tprojectId\x88\x01\x01B\v\n" +
+	"\bnonblank\x12\x11must not be blank\x1a\x11this.trim() != ''H\x03R\tprojectId\x88\x01\x01\x12Y\n" +
+	"\tworkspace\x18\x05 \x01(\tB6\xbaH3\xba\x010\n" +
+	"\bnonblank\x12\x11must not be blank\x1a\x11this.trim() != ''H\x04R\tworkspace\x88\x01\x01B\v\n" +
 	"\t_app_nameB\x0e\n" +
 	"\f_environmentB\x12\n" +
 	"\x10_organization_idB\r\n" +
-	"\v_project_idBPZNgithub.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
+	"\v_project_idB\f\n" +
+	"\n" +
+	"_workspaceBPZNgithub.com/sandbox-kit/kit/sdks/go/internal/contracts/kit/sandbox/v1;sandboxv1b\x06proto3"
 
 var (
 	file_kit_sandbox_v1_client_proto_rawDescOnce sync.Once

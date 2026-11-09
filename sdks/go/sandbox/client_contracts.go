@@ -47,6 +47,7 @@ type (
 	// Scope selects the account boundary for the client.
 	// Modal requires AppName. Environment is often "main".
 	// Daytona accepts OrganizationId.
+	// Workspace is the Blaxel workspace name.
 	Scope = sandboxv1.Scope
 )
 

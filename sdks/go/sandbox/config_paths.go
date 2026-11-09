@@ -68,6 +68,9 @@ const ConfigFieldScopeOrganizationId = "scope.organization_id"
 // ConfigFieldScopeProjectId is the canonical path "scope.project_id".
 const ConfigFieldScopeProjectId = "scope.project_id"
 
+// ConfigFieldScopeWorkspace is the canonical path "scope.workspace".
+const ConfigFieldScopeWorkspace = "scope.workspace"
+
 // ConfigFieldTimeout is the canonical path "timeout".
 const ConfigFieldTimeout = "timeout"
 

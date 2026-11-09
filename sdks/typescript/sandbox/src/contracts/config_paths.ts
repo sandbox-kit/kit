@@ -65,6 +65,9 @@ export const ConfigFieldScopeOrganizationId = "scope.organization_id" as const;
 /** Canonical path "scope.project_id". */
 export const ConfigFieldScopeProjectId = "scope.project_id" as const;
 
+/** Canonical path "scope.workspace". */
+export const ConfigFieldScopeWorkspace = "scope.workspace" as const;
+
 /** Canonical path "timeout". */
 export const ConfigFieldTimeout = "timeout" as const;
 
