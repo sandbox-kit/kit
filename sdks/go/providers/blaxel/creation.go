@@ -215,6 +215,9 @@ func (c *creation) network() error {
 			if binding == nil {
 				continue
 			}
+			if binding.Port == 80 || binding.Port == 443 || binding.Port == 8080 {
+				return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsPort, "ports 80, 443, and 8080 are reserved by Blaxel")
+			}
 			protocol, err := blaxelPortProtocol(binding.Transport)
 			if err != nil {
 				return err

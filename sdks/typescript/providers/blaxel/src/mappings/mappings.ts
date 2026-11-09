@@ -52,8 +52,6 @@ import { providerError } from "#errors.js";
 export interface BlaxelCreatePlan {
   readonly params: SandboxCreateConfiguration;
   readonly options?: SandboxCreateOptions;
-  readonly waitUntilReady: boolean;
-  readonly readyTimeoutMs?: number;
 }
 
 export function mapClientConfig(config: Config): NativeClientConfig {
@@ -91,15 +89,11 @@ export function mapCreateRequest(
   mapLifetime(request, params);
   mapReadiness(request);
   mapObservability(request);
-  const wait = mapProvisioning(request);
+  const options = mapProvisioning(request);
 
   return {
     params,
-    ...(wait.options === undefined ? {} : { options: wait.options }),
-    waitUntilReady: wait.waitUntilReady,
-    ...(wait.readyTimeoutMs === undefined
-      ? {}
-      : { readyTimeoutMs: wait.readyTimeoutMs }),
+    ...(options === undefined ? {} : { options }),
   };
 }
 
@@ -174,6 +168,11 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
       const port = x.port;
       if (port === undefined)
         invalid(CreateFieldNetworkPortsPort, "port is required");
+      if (port === 80 || port === 443 || port === 8080)
+        invalid(
+          CreateFieldNetworkPortsPort,
+          "ports 80, 443, and 8080 are reserved by Blaxel",
+        );
       ports.push({
         target: port,
         protocol: blaxelPortProtocol(
@@ -269,13 +268,12 @@ function mapObservability(r: CreateOptions): void {
     );
 }
 
-function mapProvisioning(r: CreateOptions): {
-  waitUntilReady: boolean;
-  readyTimeoutMs?: number;
-  options?: SandboxCreateOptions;
-} {
+// mapProvisioning maps create timeout only. WaitCondition.Ready is rejected:
+// @blaxel/core sandbox.wait() is a deprecated no-op, and Ready previously
+// conflated that with Blaxel's destructive creation deadline (1–50s).
+function mapProvisioning(r: CreateOptions): SandboxCreateOptions | undefined {
   const v = r.provisioning;
-  if (!v) return { waitUntilReady: false };
+  if (!v) return undefined;
   if (v.queueTimeout !== undefined)
     unsupported(
       CreateFieldProvisioningQueueTimeout,
@@ -299,22 +297,7 @@ function mapProvisioning(r: CreateOptions): {
 
   const waitFor = v.waitFor ?? WaitCondition.Default;
   if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled)
-    return {
-      waitUntilReady: false,
-      ...(options === undefined ? {} : { options }),
-    };
-  if (waitFor === WaitCondition.Ready) {
-    if (v.timeout === undefined || v.timeout <= 0)
-      invalid(
-        CreateFieldProvisioningTimeout,
-        "ready wait requires a positive timeout",
-      );
-    return {
-      waitUntilReady: true,
-      readyTimeoutMs: v.timeout,
-      ...(options === undefined ? {} : { options }),
-    };
-  }
+    return options;
   unsupported(
     CreateFieldProvisioningWaitFor,
     "requested wait condition is unsupported",

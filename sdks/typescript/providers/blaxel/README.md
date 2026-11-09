@@ -55,8 +55,10 @@ than `workspace` are rejected.
 **Create** requires a nonblank `name` and an image source. Optional memory
 (MiB; Blaxel CPU follows memory), labels, environment variables, ports, outbound
 domains, max-age TTL (at least 5m), idle-delete policy (at least 1m; explicit
-disable is rejected), and a create timeout (1–50 whole seconds). Creation
-calls native `SandboxInstance.create`, not `createIfNotExists`.
+disable is rejected), and a create timeout (1–50 whole seconds).
+`provisioning.waitFor` Ready is unsupported (`sandbox.wait` is a deprecated
+no-op in `@blaxel/core`). Creation calls native `SandboxInstance.create`, not
+`createIfNotExists`. Ports 80, 443, and 8080 are rejected (Blaxel-reserved).
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,
@@ -78,9 +80,12 @@ command limit. Command timeouts must be whole seconds (`2000` is two seconds;
 `1500` is rejected). Aborting the signal rejects the `await`; the remote
 command may keep running.
 
-When you set memory, Blaxel requires at least 256 MiB. Omitted memory keeps
-the Blaxel default. CPU, CPU limit, memory limit, and disk overrides are
-rejected.
+Omitted memory keeps the Blaxel default. CPU, CPU limit, memory limit, and
+disk overrides are rejected.
+
+`@blaxel/core` applies credentials through process-global `settings`. Two Kit
+Blaxel clients in one process overwrite each other; construct one client per
+process or reconfigure before each use.
 
 ## License
 

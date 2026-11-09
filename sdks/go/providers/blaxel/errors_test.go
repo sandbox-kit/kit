@@ -35,3 +35,20 @@ func TestMapProviderErrorPreservesContext(t *testing.T) {
 		t.Fatalf("error = %v detail = %#v", err, detail)
 	}
 }
+
+func TestMapProviderErrorSandboxAlreadyExists(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusConflict,
+		ErrorCode:  "SANDBOX_ALREADY_EXISTS",
+		Request:    &http.Request{Method: http.MethodPost, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusConflict},
+	}, "create")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindAlreadyExists {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}

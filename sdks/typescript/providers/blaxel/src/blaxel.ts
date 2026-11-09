@@ -83,10 +83,6 @@ interface NativeSandboxHandle {
       stderr?: string;
     }>;
   };
-  wait(options?: {
-    maxWait?: number;
-    interval?: number;
-  }): Promise<NativeSandboxHandle>;
   delete(): Promise<unknown>;
 }
 
@@ -155,14 +151,6 @@ class BlaxelBackend extends BackendBase implements Backend {
       const plan = mapCreateRequest(request, this.config);
       throwIfAborted(options.signal);
       const sandbox = await this.native.create(plan.params, plan.options);
-      if (plan.waitUntilReady) {
-        throwIfAborted(options.signal);
-        await sandbox.wait({
-          ...(plan.readyTimeoutMs === undefined
-            ? {}
-            : { maxWait: plan.readyTimeoutMs }),
-        });
-      }
       return { sandbox: mapSandboxInfo(sandbox, request) };
     } catch (error) {
       throw mapBlaxelError(error, "create");

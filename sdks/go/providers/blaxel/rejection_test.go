@@ -114,12 +114,16 @@ func TestRejectedCreateSettings(t *testing.T) {
 			field: sandbox.CreateFieldLifetimeIdleTerminate,
 		},
 		{
-			name: "memory below floor",
+			name: "reserved port",
 			request: namedImage(&sandbox.CreateOptions{
-				Resources: &sandbox.Resources{MemoryMib: sandbox.Value(uint64(255))},
+				Network: &sandbox.NetworkConfig{
+					Ports: []*sandbox.PortBinding{
+						{Port: 443, Transport: sandbox.PortTransportTLS},
+					},
+				},
 			}),
 			kind:  sandbox.ErrorKindInvalidArgument,
-			field: sandbox.CreateFieldResourcesMemoryMib,
+			field: sandbox.CreateFieldNetworkPortsPort,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -215,8 +219,8 @@ func TestMappedNetworkPortsAndDomains(t *testing.T) {
 		Network: &sandbox.NetworkConfig{
 			OutboundDomains: &sandbox.StringAllowlist{Entries: []string{"example.com"}},
 			Ports: []*sandbox.PortBinding{
-				{Port: 443, Transport: sandbox.PortTransportTLS},
-				{Port: 8080, Transport: sandbox.PortTransportPlain},
+				{Port: 3000, Transport: sandbox.PortTransportTLS},
+				{Port: 3001, Transport: sandbox.PortTransportPlain},
 			},
 		},
 	}), "us-pdx-1")
@@ -227,10 +231,10 @@ func TestMappedNetworkPortsAndDomains(t *testing.T) {
 		t.Fatalf("AllowedDomains = %#v", got)
 	}
 	ports := plan.params.Sandbox.Spec.Runtime.Ports
-	if len(ports) != 2 || ports[0].Target != 443 || ports[0].Protocol != blaxel.PortProtocolTls {
+	if len(ports) != 2 || ports[0].Target != 3000 || ports[0].Protocol != blaxel.PortProtocolTls {
 		t.Fatalf("Ports = %#v", ports)
 	}
-	if ports[1].Target != 8080 || ports[1].Protocol != blaxel.PortProtocolTcp {
+	if ports[1].Target != 3001 || ports[1].Protocol != blaxel.PortProtocolTcp {
 		t.Fatalf("Ports[1] = %#v", ports[1])
 	}
 }
