@@ -10,6 +10,7 @@ Maps `network.ports` to Blaxel runtime ports. Default/plain → TCP, TLS → TLS
 
 - Other network settings (egress mode, CIDRs, private network, proxies) are rejected.
 - Port numbers must be in range.
+- Blaxel reserves ports 80, 443, and 8080; this example uses 3000 and 3001.
 
 ## Run
 

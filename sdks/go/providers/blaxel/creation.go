@@ -93,7 +93,7 @@ func (c *creation) lifetime() error {
 	}
 	config := cloneMessage(c.request.Lifetime)
 	if config.MaximumLifetime != nil {
-		formatted, err := formatBlaxelDuration(config.MaximumLifetime.AsDuration())
+		formatted, err := formatBlaxelDuration(config.MaximumLifetime.AsDuration(), 5*time.Minute)
 		if err != nil {
 			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeMaximumLifetime, err.Error())
 		}
@@ -136,7 +136,7 @@ func mapIdleTerminate(action *sandbox.AutomaticAction) (*blaxel.ExpirationPolicy
 		if action.After == nil {
 			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminate, "duration is required")
 		}
-		formatted, err := formatBlaxelDuration(action.After.AsDuration())
+		formatted, err := formatBlaxelDuration(action.After.AsDuration(), time.Minute)
 		if err != nil {
 			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminate, err.Error())
 		}

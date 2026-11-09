@@ -44,8 +44,8 @@ func main() {
 		Source: &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"}}},
 		Network: &sandbox.NetworkConfig{
 			Ports: []*sandbox.PortBinding{
-				{Port: 443, Transport: sandbox.PortTransportTLS},
-				{Port: 8080, Transport: sandbox.PortTransportPlain},
+				{Port: 3000, Transport: sandbox.PortTransportTLS},
+				{Port: 3001, Transport: sandbox.PortTransportPlain},
 			},
 		},
 	})

@@ -54,9 +54,9 @@ than `workspace` are rejected.
 
 **Create** requires a nonblank `name` and an image source. Optional memory
 (MiB; Blaxel CPU follows memory), labels, environment variables, ports, outbound
-domains, max-age TTL, idle-delete policy, and a create timeout (1–50 whole
-seconds). Creation calls native `SandboxInstance.create`, not
-`createIfNotExists`.
+domains, max-age TTL (at least 5m), idle-delete policy (at least 1m; explicit
+disable is rejected), and a create timeout (1–50 whole seconds). Creation
+calls native `SandboxInstance.create`, not `createIfNotExists`.
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,

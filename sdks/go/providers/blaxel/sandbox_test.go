@@ -87,26 +87,29 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 
 func TestFormatBlaxelDuration(t *testing.T) {
 	for _, tc := range []struct {
-		in   time.Duration
-		want string
-		ok   bool
+		in      time.Duration
+		minimum time.Duration
+		want    string
+		ok      bool
 	}{
-		{30 * time.Second, "30s", true},
-		{5 * time.Minute, "5m", true},
-		{2 * time.Hour, "2h", true},
-		{48 * time.Hour, "2d", true},
-		{1500 * time.Millisecond, "", false},
-		{0, "", false},
+		{30 * time.Second, time.Second, "30s", true},
+		{5 * time.Minute, 5 * time.Minute, "5m", true},
+		{2 * time.Hour, 5 * time.Minute, "2h", true},
+		{48 * time.Hour, 5 * time.Minute, "2d", true},
+		{30 * time.Second, time.Minute, "", false},
+		{4 * time.Minute, 5 * time.Minute, "", false},
+		{1500 * time.Millisecond, time.Second, "", false},
+		{0, time.Second, "", false},
 	} {
-		got, err := formatBlaxelDuration(tc.in)
+		got, err := formatBlaxelDuration(tc.in, tc.minimum)
 		if tc.ok {
 			if err != nil || got != tc.want {
-				t.Fatalf("%v: got %q err %v", tc.in, got, err)
+				t.Fatalf("%v (min %v): got %q err %v", tc.in, tc.minimum, got, err)
 			}
 			continue
 		}
 		if err == nil {
-			t.Fatalf("%v: expected error", tc.in)
+			t.Fatalf("%v (min %v): expected error", tc.in, tc.minimum)
 		}
 	}
 }

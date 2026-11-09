@@ -8,6 +8,7 @@ checks:
   - { path: placement, unsupported: true }
   - { path: resources.cpu_cores, unsupported: true }
   - { path: resources.cpu_limit_cores, unsupported: true }
+  - { path: resources.memory_mib, minimum: 256 }
   - { path: resources.memory_limit_mib, unsupported: true }
   - { path: resources.disk_mib, unsupported: true }
 client:

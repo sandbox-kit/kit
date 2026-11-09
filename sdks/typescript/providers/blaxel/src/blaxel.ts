@@ -15,6 +15,7 @@ import {
   ExecFieldTimeout,
   FileFieldParents,
   FileType,
+  SandboxState,
   type FileInfo,
   type OperationOptions,
   type Provider,
@@ -190,7 +191,12 @@ class BlaxelBackend extends BackendBase implements Backend {
       throwIfAborted(options.signal);
       const info = mapSandboxInfo(sandbox);
       await sandbox.delete();
-      return info;
+      return {
+        ...info,
+        state: SandboxState.Deleted,
+        terminal: true,
+        providerState: "TERMINATED",
+      };
     } catch (error) {
       throw mapBlaxelError(error, "delete");
     }
