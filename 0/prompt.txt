@@ -1,0 +1,19 @@
+review throughlyLet me know if we can merge this to main. Review all possible cases for Black Cell and confirm that everything is correct and looks good:
+- validations
+- provider validations
+- docs
+- user‑facing docs
+- SDK READMEs
+- comments shown in npm, SDKs, and Go docAll the mappings, concurrency, timeouts, and request‑response error mappings, backed by a strong reason, if you have any suggestions.
+
+---
+
+explian with examples what u think and needs to be changed so I can tell if u should or not.
+
+---
+
+change it.
+
+---
+
+are u sure ?
