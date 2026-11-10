@@ -142,12 +142,7 @@ groups:
         typescript:
           import: "@blaxel/core"
           name: SandboxCreateConfiguration
-          fields:
-            {
-              name: name,
-              environment: envs,
-              labels: labels,
-            }
+          fields: { name: name, environment: envs, labels: labels }
     fields:
       - { from: name, to: name }
       - { from: environment, to: environment }
