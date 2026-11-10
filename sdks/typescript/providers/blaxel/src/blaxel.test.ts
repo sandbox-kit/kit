@@ -278,6 +278,28 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("classifies POLICY_VIOLATION as invalid argument", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 403, statusText: "Forbidden" }),
+      {
+        error: {
+          code: "POLICY_VIOLATION",
+          message: "policy",
+          status: 403,
+        },
+      },
+      new Error("policy"),
+    );
+    expect(mapBlaxelError(native, "create")).toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      provider: "blaxel",
+      operation: "create",
+      statusCode: 403,
+      providerCode: "POLICY_VIOLATION",
+      cause: native,
+    });
+  });
+
   it("classifies edge gateway 504 as timeout", () => {
     const native = new ResponseError(
       new Response(null, { status: 504, statusText: "Gateway Timeout" }),
