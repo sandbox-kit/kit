@@ -4,7 +4,7 @@ Look up an existing Blaxel sandbox by name and print metadata.
 
 ## What this means
 
-`Get` retrieves the sandbox by name (the Blaxel id). Use the name printed by a create example as `BL_SANDBOX_ID`.
+`Get` retrieves the sandbox by name (the Blaxel id). Use the name printed by a create example as `BL_SANDBOX_NAME`.
 
 ## Edge cases
 
@@ -31,7 +31,7 @@ Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Skip copying if
 BL_API_KEY=
 BL_WORKSPACE=
 # Sandbox name (Blaxel id is the name).
-BL_SANDBOX_ID=
+BL_SANDBOX_NAME=
 # Optional region override (default us-pdx-1).
 BL_REGION=
 ```

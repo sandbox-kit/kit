@@ -11,7 +11,7 @@ await using client = new Client({
   timeout: 120_000,
 });
 
-const sandbox = await client.get(process.env.BL_SANDBOX_ID!);
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 const remote = process.env.BL_REMOTE_PATH!;
 const recursive = process.env.BL_RECURSIVE === "true";
 await sandbox.filesystem.remove(remote, recursive ? { recursive: true } : {});

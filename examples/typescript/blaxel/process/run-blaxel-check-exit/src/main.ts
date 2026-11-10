@@ -11,7 +11,7 @@ await using client = new Client({
   timeout: 120000,
 });
 
-const sandbox = await client.get(process.env.BL_SANDBOX_ID!);
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 const result = await sandbox.process.run({ shell: "exit 7" });
 if (result.exitCode !== 7) {
   throw new Error(`want exit 7, got ${result.exitCode}`);

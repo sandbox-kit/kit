@@ -11,7 +11,7 @@ await using client = new Client({
   timeout: 120000,
 });
 
-const sandbox = await client.get(process.env.BL_SANDBOX_ID!);
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 const remote = process.env.BL_REMOTE_PATH!;
 await sandbox.filesystem.makeDirectory(remote);
 console.log(`created ${remote}`);

@@ -39,7 +39,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer client.Close(context.Background())
-	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -24,7 +24,7 @@ await using client = new Client({
   timeout: 120_000,
 });
 
-const sandbox = await client.get(process.env.BL_SANDBOX_ID!);
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 assertCapability(sandbox, LifecycleCapability.Refresh);
 const info = await sandbox.refresh();
 console.log(`Blaxel metadata refreshed: ${sandbox.id} (${info.state})`);

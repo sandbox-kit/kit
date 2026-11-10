@@ -11,7 +11,7 @@ await using client = new Client({
   timeout: 120000,
 });
 
-const sandbox = await client.get(process.env.BL_SANDBOX_ID!);
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 const result = await sandbox.process.run({
   argv: ["echo", "hello with timeout"],
   timeout: 5_000,

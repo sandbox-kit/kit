@@ -30,7 +30,7 @@ Requires Node.js 20/22/24.15+, npm 11.19.0, and this checkout. Skip copying if
 BL_API_KEY=
 BL_WORKSPACE=
 # Sandbox name (Blaxel id is the name).
-BL_SANDBOX_ID=
+BL_SANDBOX_NAME=
 # Optional region override (default us-pdx-1).
 BL_REGION=
 # Working directory inside the sandbox.

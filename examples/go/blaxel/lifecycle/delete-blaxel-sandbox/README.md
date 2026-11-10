@@ -29,7 +29,7 @@ Local check: `GOWORK=off go test ./...`.
 BL_API_KEY=
 BL_WORKSPACE=
 # Sandbox name (Blaxel id is the name).
-BL_SANDBOX_ID=
+BL_SANDBOX_NAME=
 # Optional region override (default us-pdx-1).
 BL_REGION=
 ```
