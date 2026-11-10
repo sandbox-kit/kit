@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   Client,
+  EgressMode,
   ErrorKind,
   FileType,
   PolicyMode,
@@ -22,9 +23,14 @@ import {
   FileFieldLocalPath,
   FileFieldPath,
 } from "@sandbox-kit/sandbox";
-import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
+import {
+  mapClientConfig,
+  mapCreateRequest,
+  mapSandboxInfo,
+} from "#mappings/mappings.js";
 import { BlaxelProvider } from "./blaxel.js";
 import {
+  mapAllocatedResources,
   mapResources,
   mapSandboxIdentity,
 } from "#mappings/provider_mappings.js";
@@ -324,6 +330,64 @@ describe("Blaxel mappings", () => {
       operation: "run",
       statusCode: 504,
       cause: waited,
+    });
+  });
+
+  it("reads provider codes from error.cause", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 403, statusText: "Forbidden" }),
+      {
+        error: {
+          code: "POLICY_VIOLATION",
+          message: "policy",
+          status: 403,
+        },
+      },
+      new Error("policy"),
+    );
+    const wrapped = new Error("wrapped", { cause: native });
+    expect(mapBlaxelError(wrapped, "create")).toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      providerCode: "POLICY_VIOLATION",
+      statusCode: 403,
+      cause: wrapped,
+    });
+  });
+
+  it("accepts default egress with outbound domains", () => {
+    const plan = mapCreateRequest(
+      {
+        name: "example",
+        source: { image: { reference: "blaxel/base-image:latest" } },
+        network: {
+          egress: EgressMode.Default,
+          outboundDomains: ["example.com"],
+        },
+      },
+      provider,
+    );
+    expect(plan.params.network).toEqual({
+      allowedDomains: ["example.com"],
+    });
+  });
+
+  it("maps allocated memory onto SandboxInfo resources", () => {
+    expect(
+      mapAllocatedResources({
+        metadata: { name: "demo" },
+        spec: { runtime: { memory: 2048 } },
+      }),
+    ).toEqual({ memoryMib: 2048n });
+    expect(
+      mapSandboxInfo({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "RUNNING",
+        spec: { region: "us-pdx-1", runtime: { memory: 4096 } },
+      }),
+    ).toMatchObject({
+      id: "demo",
+      resources: { memoryMib: 4096n },
     });
   });
 
@@ -811,6 +875,33 @@ describe("Blaxel provider orchestration", () => {
     expect(result.exitCode).toBe(9);
     expect(result.stdout).toEqual(new TextEncoder().encode("partial"));
     expect(result.stderr).toEqual(new TextEncoder().encode("stopped"));
+  });
+
+  it("polls when a completion-hold start still returns running", async () => {
+    const waits: string[] = [];
+    const backend = runBackend({
+      async exec(request) {
+        expect(request.waitForCompletion).toBe(true);
+        expect(request.timeout).toBe(5);
+        return { status: "running", pid: "held", stdout: "", stderr: "" };
+      },
+      async wait(identifier) {
+        waits.push(identifier);
+        return {
+          status: "completed",
+          exitCode: 0,
+          stdout: "late",
+          stderr: "",
+        };
+      },
+    });
+    const result = await backend.run!(
+      "sandbox-1",
+      { argv: ["echo", "hi"], timeout: 5_000 },
+      {},
+    );
+    expect(waits).toEqual(["held"]);
+    expect(result.stdout).toEqual(new TextEncoder().encode("late"));
   });
 
   it("rejects a running process with no identifier", async () => {

@@ -146,6 +146,41 @@ func TestRunCommandPollsWhenTheCompletionHoldIsUnsafe(t *testing.T) {
 	}
 }
 
+func TestRunCommandPollsWhenCompletionHoldStillReturnsRunning(t *testing.T) {
+	var gets atomic.Int32
+	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodGet && r.URL.Path == "/sandboxes/sbx":
+			writeJSON(t, w, map[string]any{"metadata": map[string]string{"name": "sbx"}, "spec": map[string]any{}})
+		case r.Method == http.MethodPost && r.URL.Path == "/process":
+			body := readJSON(t, r)
+			if body["waitForCompletion"] != true || body["timeout"] != float64(5) {
+				t.Fatalf("post = %#v", body)
+			}
+			writeProcess(t, w, "running", 0, "", "")
+		case r.Method == http.MethodGet && r.URL.Path == "/process/123":
+			gets.Add(1)
+			writeProcess(t, w, "completed", 0, "late", "")
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			http.NotFound(w, r)
+		}
+	})
+	result, err := backend.RunCommand(context.Background(), "sbx", &sandbox.ExecOptions{
+		Argv:    []string{"echo", "hi"},
+		Timeout: sandbox.Duration(5 * time.Second),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.GetExitCode() != 0 || string(result.GetStdout()) != "late" {
+		t.Fatalf("result = %#v", result)
+	}
+	if gets.Load() < 1 {
+		t.Fatalf("gets = %d", gets.Load())
+	}
+}
+
 func TestRunCommandReturnsAFinishedStartWithoutPolling(t *testing.T) {
 	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {

@@ -29,26 +29,17 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
     );
   if (source.scope !== undefined) {
     Object.assign(target, mapClientScope(source.scope, "initialize"));
-    if (source.scope.appName !== undefined)
-      unsupported(
-        ConfigFieldScopeAppName,
-        "unsupported client configuration field",
-      );
-    if (source.scope.environment !== undefined)
-      unsupported(
-        ConfigFieldScopeEnvironment,
-        "unsupported client configuration field",
-      );
-    if (source.scope.organizationId !== undefined)
-      unsupported(
+    for (const [set, field] of [
+      [source.scope.appName !== undefined, ConfigFieldScopeAppName],
+      [source.scope.environment !== undefined, ConfigFieldScopeEnvironment],
+      [
+        source.scope.organizationId !== undefined,
         ConfigFieldScopeOrganizationId,
-        "unsupported client configuration field",
-      );
-    if (source.scope.projectId !== undefined)
-      unsupported(
-        ConfigFieldScopeProjectId,
-        "unsupported client configuration field",
-      );
+      ],
+      [source.scope.projectId !== undefined, ConfigFieldScopeProjectId],
+    ] as const) {
+      if (set) unsupported(field, "unsupported client configuration field");
+    }
   }
   if (source.auth?.apiKey !== undefined) {
     Object.assign(

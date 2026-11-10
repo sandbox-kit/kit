@@ -21,6 +21,12 @@ type creation struct {
 	region  string
 }
 
+var reservedBlaxelPorts = map[uint32]struct{}{
+	80:   {},
+	443:  {},
+	8080: {},
+}
+
 // planCreate checks the request and builds SDK arguments without contacting Blaxel.
 func planCreate(request *sandbox.CreateOptions, region string) (createPlan, error) {
 	if request == nil {
@@ -75,7 +81,7 @@ func (c *creation) resources() error {
 	if err != nil {
 		return err
 	}
-	if remaining.CpuCores != nil || remaining.CpuLimitCores != nil || remaining.MemoryLimitMib != nil || remaining.DiskMib != nil {
+	if hasUnmappedResourceFields(remaining) {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResources, "one or more Blaxel resource fields are not mapped")
 	}
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldResources, remaining); err != nil {
@@ -114,7 +120,7 @@ func (c *creation) lifetime() error {
 		}
 	}
 	config.IdleTerminate = nil
-	if config.Ephemeral != nil || config.IdleStop != nil || config.IdlePause != nil || config.StoppedArchive != nil || config.StoppedDelete != nil {
+	if hasUnsupportedLifetimeFields(config) {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetime, "one or more Blaxel lifetime fields are not mapped")
 	}
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldLifetime, config); err != nil {
@@ -159,7 +165,7 @@ func (c *creation) runtime() error {
 	if config.WorkingDirectory != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldRuntimeWorkingDirectory, "Blaxel create-time working directory is not mapped")
 	}
-	if config.Entrypoint != nil || config.Pty != nil || config.User != nil || config.Language != nil || config.Version != nil {
+	if hasUnsupportedRuntimeFields(config) {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldRuntime, "runtime user, language, version, entrypoint, and PTY are not mapped by Blaxel")
 	}
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldRuntime, config); err != nil {
@@ -174,7 +180,7 @@ func (c *creation) isolation() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Isolation)
-	if config.Kind != sandbox.IsolationKindDefault || config.ProviderKind != nil || config.NestedVirtualization != nil {
+	if hasUnsupportedIsolation(config) {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldIsolation, "Blaxel isolation class is not mapped")
 	}
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldIsolation, config); err != nil {
@@ -185,10 +191,7 @@ func (c *creation) isolation() error {
 }
 
 func (c *creation) security() error {
-	if c.request.Security == nil {
-		return nil
-	}
-	return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldSecurity, "Blaxel security fields are not mapped")
+	return rejectIfSet(c.request.Security != nil, sandbox.CreateFieldSecurity, "Blaxel security fields are not mapped")
 }
 
 func (c *creation) network() error {
@@ -196,14 +199,7 @@ func (c *creation) network() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Network)
-	if config.Egress != sandbox.EgressModeDefault ||
-		config.OutboundCidrs != nil ||
-		config.InboundCidrs != nil ||
-		config.PrivateNetwork != nil ||
-		config.LinkedSandbox != nil ||
-		config.ProxyReference != nil ||
-		config.OutboundProxyUrl != nil ||
-		config.CustomDomain != nil {
+	if hasUnsupportedNetwork(config) {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetwork, "requested network settings are unsupported by Blaxel")
 	}
 	if config.OutboundDomains != nil {
@@ -211,22 +207,9 @@ func (c *creation) network() error {
 		config.OutboundDomains = nil
 	}
 	if len(config.Ports) > 0 {
-		ports := make([]blaxel.PortParam, 0, len(config.Ports))
-		for _, binding := range config.Ports {
-			if binding == nil {
-				continue
-			}
-			if binding.Port == 80 || binding.Port == 443 || binding.Port == 8080 {
-				return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsPort, "ports 80, 443, and 8080 are reserved by Blaxel")
-			}
-			protocol, err := blaxelPortProtocol(binding.Transport)
-			if err != nil {
-				return err
-			}
-			ports = append(ports, blaxel.PortParam{
-				Target:   int64(binding.Port),
-				Protocol: protocol,
-			})
+		ports, err := mapPorts(config.Ports)
+		if err != nil {
+			return err
 		}
 		c.params.Sandbox.Spec.Runtime.Ports = ports
 		config.Ports = nil
@@ -239,18 +222,36 @@ func (c *creation) network() error {
 	return nil
 }
 
+func mapPorts(bindings []*sandbox.PortBinding) ([]blaxel.PortParam, error) {
+	ports := make([]blaxel.PortParam, 0, len(bindings))
+	for _, binding := range bindings {
+		if binding == nil {
+			continue
+		}
+		if isReservedPort(binding.Port) {
+			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsPort, "ports 80, 443, and 8080 are reserved by Blaxel")
+		}
+		protocol, err := blaxelPortProtocol(binding.Transport)
+		if err != nil {
+			return nil, err
+		}
+		ports = append(ports, blaxel.PortParam{
+			Target:   int64(binding.Port),
+			Protocol: protocol,
+		})
+	}
+	return ports, nil
+}
+
 func blaxelPortProtocol(transport sandbox.PortTransport) (blaxel.PortProtocol, error) {
 	switch transport {
 	case sandbox.PortTransportDefault:
-		// Kit Default leaves the protocol to the provider. Blaxel defaults to HTTP
-		// when protocol is omitted (omitzero on PortParam).
 		return "", nil
 	case sandbox.PortTransportPlain:
 		return blaxel.PortProtocolTcp, nil
 	case sandbox.PortTransportTLS:
 		return blaxel.PortProtocolTls, nil
 	default:
-		// Blaxel has no HTTP/2 port protocol (Kit Http2Tls included).
 		return "", providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsTransport, "requested port transport is unsupported")
 	}
 }
@@ -260,8 +261,7 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	// Client.Create already applies this as the context deadline. The Go Blaxel
-	// SDK's NewInstance has no separate creation-timeout argument.
+	// Client.Create already applies Timeout as the context deadline.
 	config.Timeout = nil
 	if config.QueueTimeout != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningQueueTimeout, "Blaxel queue timeout is unsupported")
@@ -281,15 +281,49 @@ func (c *creation) provisioning() error {
 }
 
 func (c *creation) readiness() error {
-	if c.request.Readiness == nil {
-		return nil
-	}
-	return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldReadiness, "Blaxel readiness probes are not mapped")
+	return rejectIfSet(c.request.Readiness != nil, sandbox.CreateFieldReadiness, "Blaxel readiness probes are not mapped")
 }
 
 func (c *creation) observability() error {
-	if c.request.Observability == nil {
+	return rejectIfSet(c.request.Observability != nil, sandbox.CreateFieldObservability, "Blaxel observability fields are not mapped")
+}
+
+func rejectIfSet(set bool, field, message string) error {
+	if !set {
 		return nil
 	}
-	return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldObservability, "Blaxel observability fields are not mapped")
+	return providerCheckError(sandbox.ErrorKindUnsupported, field, message)
+}
+
+func isReservedPort(port uint32) bool {
+	_, ok := reservedBlaxelPorts[port]
+	return ok
+}
+
+func hasUnmappedResourceFields(r *sandbox.Resources) bool {
+	return r.CpuCores != nil || r.CpuLimitCores != nil || r.MemoryLimitMib != nil || r.DiskMib != nil
+}
+
+func hasUnsupportedLifetimeFields(c *sandbox.LifetimePolicy) bool {
+	return c.Ephemeral != nil || c.IdleStop != nil || c.IdlePause != nil ||
+		c.StoppedArchive != nil || c.StoppedDelete != nil
+}
+
+func hasUnsupportedRuntimeFields(c *sandbox.RuntimeConfig) bool {
+	return c.Entrypoint != nil || c.Pty != nil || c.User != nil || c.Language != nil || c.Version != nil
+}
+
+func hasUnsupportedIsolation(c *sandbox.IsolationConfig) bool {
+	return c.Kind != sandbox.IsolationKindDefault || c.ProviderKind != nil || c.NestedVirtualization != nil
+}
+
+func hasUnsupportedNetwork(c *sandbox.NetworkConfig) bool {
+	return c.Egress != sandbox.EgressModeDefault ||
+		c.OutboundCidrs != nil ||
+		c.InboundCidrs != nil ||
+		c.PrivateNetwork != nil ||
+		c.LinkedSandbox != nil ||
+		c.ProxyReference != nil ||
+		c.OutboundProxyUrl != nil ||
+		c.CustomDomain != nil
 }

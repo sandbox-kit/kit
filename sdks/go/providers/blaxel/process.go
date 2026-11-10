@@ -11,18 +11,13 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-// blaxelCompletionHold is the longest positive Kit timeout that stays on
-// Blaxel's waitForCompletion request. Blaxel's public docs limit that hold
-// to 60 seconds; the edge in front of the sandbox can close a longer one.
-const blaxelCompletionHold = 60 * time.Second
-
-// blaxelWaitUnlimited is Process.Wait's maxWait sentinel for no added
-// deadline. The SDK treats 0 as one minute and only -1 as unlimited.
-const blaxelWaitUnlimited = time.Duration(-1)
-
-// processPollInterval is the gap between process status reads. It matches
-// the Blaxel SDK default.
-const processPollInterval = time.Second
+const (
+	// Docs limit waitForCompletion to 60s; longer holds can be closed by the edge.
+	blaxelCompletionHold = 60 * time.Second
+	// Process.Wait treats 0 as 1m; only -1 is unlimited.
+	blaxelWaitUnlimited = time.Duration(-1)
+	processPollInterval = time.Second // Blaxel SDK default poll gap
+)
 
 var _ sandbox.SandboxProcess = (*backend)(nil)
 
@@ -31,17 +26,34 @@ func (b *backend) RunCommand(ctx context.Context, id string, request *sandbox.Ex
 	if err != nil {
 		return nil, err
 	}
-	command, err := blaxelCommand(request)
-	if err != nil {
-		return nil, err
-	}
 	timeout, err := commandTimeout("run", request.GetTimeout())
 	if err != nil {
 		return nil, err
 	}
+	body, err := processRequest(request, timeout)
+	if err != nil {
+		return nil, err
+	}
+	started, err := instance.Process.New(ctx, body)
+	if err != nil {
+		return nil, mapProviderError(err, "run")
+	}
+	return finishProcess(ctx, finishProcessArgs{
+		Instance: instance,
+		Started:  started,
+		Timeout:  timeout,
+	})
+}
+
+// processRequest builds Process.New. Timeout 0 disables Blaxel auto-kill;
+// WaitForCompletion is only set for 1–60s.
+func processRequest(request *sandbox.ExecOptions, timeout time.Duration) (blaxel.ProcessRequestParam, error) {
+	command, err := blaxelCommand(request)
+	if err != nil {
+		return blaxel.ProcessRequestParam{}, err
+	}
 	body := blaxel.ProcessRequestParam{
-		Command: command,
-		// Explicit zero disables Blaxel's default process kill window.
+		Command:           command,
 		Timeout:           blaxel.Int(int64(timeout / time.Second)),
 		WaitForCompletion: blaxel.Bool(completionHold(timeout)),
 	}
@@ -51,40 +63,36 @@ func (b *backend) RunCommand(ctx context.Context, id string, request *sandbox.Ex
 	if request.Environment != nil {
 		body.Env = request.Environment
 	}
-	started, err := instance.Process.New(ctx, body)
-	if err != nil {
-		return nil, mapProviderError(err, "run")
+	return body, nil
+}
+
+type finishProcessArgs struct {
+	Instance *blaxel.SandboxInstance
+	Started  *blaxel.ProcessResponse
+	Timeout  time.Duration
+}
+
+// finishProcess returns a terminal start as-is; otherwise polls with Wait
+// (also when waitForCompletion left the process running). Wait retries 504.
+func finishProcess(ctx context.Context, args finishProcessArgs) (*sandbox.ExecResult, error) {
+	if args.Started == nil || processFinished(args.Started) {
+		return execResult(args.Started)
 	}
-	if started == nil || completionHold(timeout) || processFinished(started) {
-		return execResult(started)
-	}
-	identifier := processIdentifier(started)
+	identifier := processIdentifier(args.Started)
 	if identifier == "" {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "run",
-			Message:   "sandbox-kit blaxel: SDK returned no process identifier",
-		}, nil)
+		return nil, invalidResponse("run", "", "SDK returned no process identifier")
 	}
-	// Wait polls until a terminal status or until ctx ends. A gateway 504 on
-	// one read is retried inside Wait; the deadline surfaces as Timeout.
-	finished, err := instance.Process.Wait(ctx, identifier, waitBudget(timeout), processPollInterval)
+	finished, err := args.Instance.Process.Wait(ctx, identifier, waitBudget(args.Timeout), processPollInterval)
 	if err != nil {
 		return nil, mapProviderError(err, "run")
 	}
 	return execResult(finished)
 }
 
-// completionHold reports whether this timeout can stay on Blaxel's
-// waitForCompletion request. Omit, zero, and anything above 60 seconds
-// start the process and poll instead.
 func completionHold(timeout time.Duration) bool {
 	return timeout > 0 && timeout <= blaxelCompletionHold
 }
 
-// waitBudget is the Process.Wait maxWait for a Kit timeout. Omit and zero
-// add no deadline beyond ctx.
 func waitBudget(timeout time.Duration) time.Duration {
 	if timeout <= 0 {
 		return blaxelWaitUnlimited
@@ -92,19 +100,19 @@ func waitBudget(timeout time.Duration) time.Duration {
 	return timeout
 }
 
+var terminalProcessStatus = map[blaxel.ProcessResponseStatus]struct{}{
+	blaxel.ProcessResponseStatusCompleted: {},
+	blaxel.ProcessResponseStatusFailed:    {},
+	blaxel.ProcessResponseStatusKilled:    {},
+	blaxel.ProcessResponseStatusStopped:   {},
+}
+
 func processFinished(response *blaxel.ProcessResponse) bool {
 	if response == nil {
 		return false
 	}
-	switch response.Status {
-	case blaxel.ProcessResponseStatusCompleted,
-		blaxel.ProcessResponseStatusFailed,
-		blaxel.ProcessResponseStatusKilled,
-		blaxel.ProcessResponseStatusStopped:
-		return true
-	default:
-		return false
-	}
+	_, ok := terminalProcessStatus[response.Status]
+	return ok
 }
 
 func processIdentifier(response *blaxel.ProcessResponse) string {
@@ -119,12 +127,7 @@ func processIdentifier(response *blaxel.ProcessResponse) string {
 
 func execResult(response *blaxel.ProcessResponse) (*sandbox.ExecResult, error) {
 	if response == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "run",
-			Message:   "sandbox-kit blaxel: SDK returned no exec result",
-		}, nil)
+		return nil, invalidResponse("run", "", "SDK returned no exec result")
 	}
 	return &sandbox.ExecResult{
 		ExitCode: int32(response.ExitCode),
@@ -134,17 +137,12 @@ func execResult(response *blaxel.ProcessResponse) (*sandbox.ExecResult, error) {
 }
 
 func (b *backend) processSandbox(ctx context.Context, id, operation string) (*blaxel.SandboxInstance, error) {
-	instance, err := b.client.Sandboxes.GetInstance(ctx, id)
+	instance, err := b.getInstance(ctx, id, operation)
 	if err != nil {
-		return nil, mapProviderError(err, operation)
+		return nil, err
 	}
 	if instance == nil || instance.Process == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: operation,
-			Message:   "sandbox-kit blaxel: SDK returned no process API",
-		}, nil)
+		return nil, invalidResponse(operation, "", "SDK returned no process API")
 	}
 	return instance, nil
 }
@@ -154,6 +152,7 @@ func blaxelCommand(request *sandbox.ExecOptions) (string, error) {
 		return *request.Shell, nil
 	}
 	if len(request.Argv) == 0 {
+		// Shared kit wording (no provider infix) — keep identical across providers.
 		return "", sandbox.NewError(&sandbox.ErrorInfo{
 			Kind:      sandbox.ErrorKindInvalidArgument,
 			Provider:  "blaxel",
@@ -165,18 +164,15 @@ func blaxelCommand(request *sandbox.ExecOptions) (string, error) {
 	return posixShellJoin(request.Argv), nil
 }
 
-// commandTimeout maps Kit ExecOptions.timeout to Blaxel's whole-second timeout.
-// Nil and explicit zero become 0 so Blaxel adds no process auto-kill.
 func commandTimeout(operation string, value *durationpb.Duration) (time.Duration, error) {
 	timeout, ok := sdk.WholeSecondDuration(value)
 	if !ok {
-		return 0, sandbox.NewError(&sandbox.ErrorInfo{
+		return 0, kitError(kitFault{
 			Kind:      sandbox.ErrorKindInvalidArgument,
-			Provider:  "blaxel",
 			Operation: operation,
 			Field:     sandbox.ExecFieldTimeout,
-			Message:   "sandbox-kit blaxel: timeout must be a whole number of seconds",
-		}, nil)
+			Message:   "timeout must be a whole number of seconds",
+		})
 	}
 	return timeout, nil
 }

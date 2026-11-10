@@ -12,20 +12,15 @@ var _ sandbox.SandboxDeleter = (*backend)(nil)
 // DeleteSandbox permanently deletes a Blaxel sandbox by name.
 // Start, stop, pause, archive, and terminate are not implemented.
 func (b *backend) DeleteSandbox(ctx context.Context, id string, _ *sandbox.DeleteOptions) (*sandbox.SandboxInfo, error) {
-	instance, err := b.client.Sandboxes.GetInstance(ctx, id)
+	instance, err := b.getInstance(ctx, id, "delete")
 	if err != nil {
-		return nil, mapProviderError(err, "delete")
+		return nil, err
 	}
-	if instance == nil || instance.Sandbox == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "delete",
-			Field:     sandbox.InfoFieldId,
-			Message:   "sandbox-kit blaxel: SDK returned no sandbox",
-		}, nil)
+	native, err := requireSandbox(instance, "delete")
+	if err != nil {
+		return nil, err
 	}
-	info, err := sandboxInfo(instance.Sandbox)
+	info, err := sandboxInfo(native)
 	if err != nil {
 		return nil, err
 	}

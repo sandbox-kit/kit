@@ -25,16 +25,11 @@ func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 	if err != nil {
 		return nil, err
 	}
-	if instance == nil || instance.Sandbox == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "create",
-			Field:     sandbox.InfoFieldId,
-			Message:   "sandbox-kit blaxel: SDK returned no sandbox",
-		}, nil)
+	native, err := requireSandbox(instance, "create")
+	if err != nil {
+		return nil, err
 	}
-	info, err := sandboxInfo(instance.Sandbox)
+	info, err := sandboxInfo(native)
 	if err != nil {
 		return nil, err
 	}
@@ -43,24 +38,15 @@ func (b *backend) create(ctx context.Context, request *sandbox.CreateOptions) (*
 
 // RefreshSandbox retrieves current metadata for an existing Blaxel sandbox by name.
 func (b *backend) RefreshSandbox(ctx context.Context, id string) (*sandbox.SandboxInfo, error) {
-	instance, err := b.client.Sandboxes.GetInstance(ctx, id)
-	if err != nil {
-		return nil, mapProviderError(err, "refresh")
-	}
-	if instance == nil || instance.Sandbox == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "refresh",
-			Field:     sandbox.InfoFieldId,
-			Message:   "sandbox-kit blaxel: SDK returned no sandbox",
-		}, nil)
-	}
-	info, err := sandboxInfo(instance.Sandbox)
+	instance, err := b.getInstance(ctx, id, "refresh")
 	if err != nil {
 		return nil, err
 	}
-	return info, nil
+	native, err := requireSandbox(instance, "refresh")
+	if err != nil {
+		return nil, err
+	}
+	return sandboxInfo(native)
 }
 
 var _ sandbox.SandboxRefresher = (*backend)(nil)

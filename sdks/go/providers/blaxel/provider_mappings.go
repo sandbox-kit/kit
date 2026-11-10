@@ -51,13 +51,11 @@ func mapResources(source *sandbox.Resources) (blaxel.SandboxRuntimeParam, *sandb
 	if source.MemoryMib != nil {
 		value := source.GetMemoryMib()
 		if value == 0 || value > math.MaxInt64 {
-			return target, remaining, sandbox.NewError(&sandbox.ErrorInfo{
-				Kind:      sandbox.ErrorKindInvalidArgument,
-				Provider:  "blaxel",
-				Operation: "create",
-				Field:     sandbox.CreateFieldResourcesMemoryMib,
-				Message:   "sandbox-kit blaxel: memory_mib cannot be represented",
-			}, nil)
+			return target, remaining, providerCheckError(
+				sandbox.ErrorKindInvalidArgument,
+				sandbox.CreateFieldResourcesMemoryMib,
+				"memory_mib cannot be represented",
+			)
 		}
 		target.Memory = blaxel.Int(int64(value))
 	}

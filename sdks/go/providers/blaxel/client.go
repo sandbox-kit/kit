@@ -36,35 +36,31 @@ func (s *clientSettings) applyEndpoint() error {
 	if s.source.Endpoint == nil {
 		return nil
 	}
-	return sandbox.NewError(&sandbox.ErrorInfo{
-		Kind:      sandbox.ErrorKindUnsupported,
-		Provider:  "blaxel",
-		Operation: "initialize",
-		Field:     sandbox.ConfigFieldEndpoint,
-		Message:   "sandbox-kit blaxel: Endpoint cannot be configured through this SDK's public client constructor",
-	}, nil)
+	return unsupportedClientField(sandbox.ConfigFieldEndpoint, "Endpoint cannot be configured through this SDK's public client constructor")
 }
 
 func (s *clientSettings) applyScope() error {
 	if s.source.Scope == nil {
 		return nil
 	}
-	if s.source.Scope.AppName != nil {
-		return unsupportedClientField(sandbox.ConfigFieldScopeAppName, "unsupported client configuration field")
+	scope := s.source.Scope
+	for _, check := range []struct {
+		set   bool
+		field string
+	}{
+		{scope.AppName != nil, sandbox.ConfigFieldScopeAppName},
+		{scope.Environment != nil, sandbox.ConfigFieldScopeEnvironment},
+		{scope.OrganizationId != nil, sandbox.ConfigFieldScopeOrganizationId},
+		{scope.ProjectId != nil, sandbox.ConfigFieldScopeProjectId},
+	} {
+		if check.set {
+			return unsupportedClientField(check.field, "unsupported client configuration field")
+		}
 	}
-	if s.source.Scope.Environment != nil {
-		return unsupportedClientField(sandbox.ConfigFieldScopeEnvironment, "unsupported client configuration field")
-	}
-	if s.source.Scope.OrganizationId != nil {
-		return unsupportedClientField(sandbox.ConfigFieldScopeOrganizationId, "unsupported client configuration field")
-	}
-	if s.source.Scope.ProjectId != nil {
-		return unsupportedClientField(sandbox.ConfigFieldScopeProjectId, "unsupported client configuration field")
-	}
-	if s.source.Scope.Workspace == nil {
+	if scope.Workspace == nil {
 		return nil
 	}
-	workspace := s.source.Scope.GetWorkspace()
+	workspace := scope.GetWorkspace()
 	if workspace == "" {
 		return invalidClientField(sandbox.ConfigFieldScopeWorkspace, "workspace requires a non-blank value")
 	}
@@ -87,33 +83,25 @@ func (s *clientSettings) applyAuth() error {
 		}
 		s.opts = append(s.opts, option.WithAPIKey(credentials.ApiKey.Key))
 	default:
-		return sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindUnsupported,
-			Provider:  "blaxel",
-			Operation: "initialize",
-			Field:     sandbox.ConfigFieldAuth,
-			Message:   "sandbox-kit blaxel: unsupported authentication mode",
-		}, nil)
+		return unsupportedClientField(sandbox.ConfigFieldAuth, "unsupported authentication mode")
 	}
 	return nil
 }
 
 func invalidClientField(field, message string) error {
-	return sandbox.NewError(&sandbox.ErrorInfo{
+	return kitError(kitFault{
 		Kind:      sandbox.ErrorKindInvalidArgument,
-		Provider:  "blaxel",
 		Operation: "initialize",
 		Field:     field,
-		Message:   "sandbox-kit blaxel: " + message,
-	}, nil)
+		Message:   message,
+	})
 }
 
 func unsupportedClientField(field, message string) error {
-	return sandbox.NewError(&sandbox.ErrorInfo{
+	return kitError(kitFault{
 		Kind:      sandbox.ErrorKindUnsupported,
-		Provider:  "blaxel",
 		Operation: "initialize",
 		Field:     field,
-		Message:   "sandbox-kit blaxel: " + message,
-	}, nil)
+		Message:   message,
+	})
 }

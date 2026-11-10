@@ -1,23 +1,7 @@
-import { basename, dirname } from "node:path";
-import {
-  SandboxInstance,
-  settings,
-  type Config as NativeClientConfig,
-  type Directory,
-  type File as BlaxelFile,
-  type SandboxCreateConfiguration,
-  type SandboxCreateOptions,
-} from "@blaxel/core";
-
-type BlaxelSubdirectory = Directory["subdirectories"][number];
 import {
   ErrorKind,
-  ExecFieldTimeout,
   FileFieldParents,
-  FileFieldPath,
-  FileType,
   SandboxState,
-  sandboxError,
   type FileInfo,
   type OperationOptions,
   type Provider,
@@ -44,96 +28,34 @@ import {
   mapCreateRequest,
   mapSandboxInfo,
 } from "#mappings/mappings.js";
-import {
-  ensureLocalParent,
-  mapBlaxelError,
-  providerError,
-  readLocalFile,
-  requireLocalDestination,
-} from "#errors.js";
+import { mapBlaxelError, providerError } from "#errors.js";
 import { BackendBase, ProviderBase } from "./provider.js";
 import {
   captureProviderState,
   type ProviderState,
 } from "#config/provider_config.js";
-
-interface BlaxelProcessResult {
-  readonly pid?: string;
-  readonly name?: string;
-  readonly status?: string;
-  readonly exitCode?: number;
-  readonly stdout?: string;
-  readonly stderr?: string;
-}
-
-interface NativeSandboxHandle {
-  readonly metadata?: {
-    readonly name?: string;
-    readonly labels?: Readonly<Record<string, string>>;
-  };
-  readonly status?: unknown;
-  readonly state?: unknown;
-  readonly spec?: { readonly region?: string };
-  readonly fs: {
-    readBinary(path: string): Promise<Blob>;
-    writeBinary(path: string, content: Uint8Array): Promise<unknown>;
-    mkdir(path: string, permissions?: string): Promise<unknown>;
-    ls(path: string): Promise<Directory>;
-    rm(path: string, recursive?: boolean): Promise<unknown>;
-    download(src: string, destinationPath: string): Promise<void>;
-  };
-  readonly process: {
-    exec(request: {
-      command: string;
-      waitForCompletion?: boolean;
-      timeout?: number;
-      workingDir?: string;
-      env?: Record<string, string>;
-    }): Promise<BlaxelProcessResult>;
-    wait(
-      identifier: string,
-      options?: {
-        maxWait?: number;
-        interval?: number;
-        signal?: AbortSignal;
-      },
-    ): Promise<BlaxelProcessResult>;
-  };
-  delete(): Promise<unknown>;
-}
-
-interface NativeBlaxel {
-  configure(config: NativeClientConfig): void;
-  create(
-    params: SandboxCreateConfiguration,
-    options?: SandboxCreateOptions,
-  ): Promise<NativeSandboxHandle>;
-  get(name: string): Promise<NativeSandboxHandle>;
-  delete(name: string): Promise<unknown>;
-}
-
-type NativeFactory = (config: NativeClientConfig) => NativeBlaxel;
+import { blaxelStat, directoryInfo, fileInfo } from "./filesystem.js";
+import {
+  ensureLocalParent,
+  readLocalFile,
+  requireLocalDestination,
+} from "./local.js";
+import {
+  defaultNativeFactory,
+  type NativeBlaxel,
+  type NativeFactory,
+  type NativeSandboxHandle,
+} from "./native.js";
+import {
+  execTimeoutSeconds,
+  finishProcess,
+  processRequest,
+} from "./process.js";
 
 /** @internal Exported for adapter boundary tests, but not from the package root. */
 export class BlaxelProvider extends ProviderBase {
   constructor(
-    private readonly nativeFactory: NativeFactory = (config) => {
-      settings.setConfig(config);
-      return {
-        configure(next: NativeClientConfig): void {
-          settings.setConfig(next);
-        },
-        create(params, options) {
-          return SandboxInstance.create(params, options);
-        },
-        get(name) {
-          return SandboxInstance.get(name);
-        },
-        delete(name) {
-          return SandboxInstance.delete(name);
-        },
-      };
-    },
+    private readonly nativeFactory: NativeFactory = defaultNativeFactory,
   ) {
     super();
   }
@@ -148,6 +70,13 @@ export class BlaxelProvider extends ProviderBase {
       throw mapBlaxelError(error, "initialize");
     }
   }
+}
+
+interface WithSandboxArgs<T> {
+  operation: string;
+  id: string;
+  options: OperationOptions;
+  body: (sandbox: NativeSandboxHandle) => Promise<T>;
 }
 
 class BlaxelBackend extends BackendBase implements Backend {
@@ -174,14 +103,12 @@ class BlaxelBackend extends BackendBase implements Backend {
   }
 
   async refresh(id: string, options: OperationOptions): Promise<SandboxInfo> {
-    try {
-      throwIfAborted(options.signal);
-      const sandbox = await this.native.get(id);
-      throwIfAborted(options.signal);
-      return mapSandboxInfo(sandbox);
-    } catch (error) {
-      throw mapBlaxelError(error, "refresh");
-    }
+    return this.#withSandbox({
+      operation: "refresh",
+      id,
+      options,
+      body: async (sandbox) => mapSandboxInfo(sandbox),
+    });
   }
 
   async delete(
@@ -189,21 +116,21 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: DeleteOptions,
     options: OperationOptions,
   ): Promise<SandboxInfo> {
-    try {
-      throwIfAborted(options.signal);
-      const sandbox = await this.native.get(id);
-      throwIfAborted(options.signal);
-      const info = mapSandboxInfo(sandbox);
-      await sandbox.delete();
-      return {
-        ...info,
-        state: SandboxState.Deleted,
-        terminal: true,
-        providerState: "TERMINATED",
-      };
-    } catch (error) {
-      throw mapBlaxelError(error, "delete");
-    }
+    return this.#withSandbox({
+      operation: "delete",
+      id,
+      options,
+      body: async (sandbox) => {
+        const info = mapSandboxInfo(sandbox);
+        await sandbox.delete();
+        return {
+          ...info,
+          state: SandboxState.Deleted,
+          terminal: true,
+          providerState: "TERMINATED",
+        };
+      },
+    });
   }
 
   async readFile(
@@ -212,9 +139,14 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: FileReadOptions,
     options: OperationOptions,
   ): Promise<Uint8Array> {
-    return this.#withSandbox("read_file", id, options, async (sandbox) => {
-      const blob = await sandbox.fs.readBinary(path);
-      return new Uint8Array(await blob.arrayBuffer());
+    return this.#withSandbox({
+      operation: "read_file",
+      id,
+      options,
+      body: async (sandbox) => {
+        const blob = await sandbox.fs.readBinary(path);
+        return new Uint8Array(await blob.arrayBuffer());
+      },
     });
   }
 
@@ -225,8 +157,13 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: FileWriteOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#withSandbox("write_file", id, options, async (sandbox) => {
-      await sandbox.fs.writeBinary(path, data);
+    await this.#withSandbox({
+      operation: "write_file",
+      id,
+      options,
+      body: async (sandbox) => {
+        await sandbox.fs.writeBinary(path, data);
+      },
     });
   }
 
@@ -238,8 +175,13 @@ class BlaxelBackend extends BackendBase implements Backend {
     options: OperationOptions,
   ): Promise<void> {
     const data = await readLocalFile(localPath, "copy_from_local");
-    await this.#withSandbox("copy_from_local", id, options, async (sandbox) => {
-      await sandbox.fs.writeBinary(remotePath, data);
+    await this.#withSandbox({
+      operation: "copy_from_local",
+      id,
+      options,
+      body: async (sandbox) => {
+        await sandbox.fs.writeBinary(remotePath, data);
+      },
     });
   }
 
@@ -252,8 +194,13 @@ class BlaxelBackend extends BackendBase implements Backend {
   ): Promise<void> {
     await requireLocalDestination(localPath, "copy_to_local");
     await ensureLocalParent(localPath, "copy_to_local");
-    await this.#withSandbox("copy_to_local", id, options, async (sandbox) => {
-      await sandbox.fs.download(remotePath, localPath);
+    await this.#withSandbox({
+      operation: "copy_to_local",
+      id,
+      options,
+      body: async (sandbox) => {
+        await sandbox.fs.download(remotePath, localPath);
+      },
     });
   }
 
@@ -271,8 +218,13 @@ class BlaxelBackend extends BackendBase implements Backend {
         message: "parents false is not available",
       });
     }
-    await this.#withSandbox("make_directory", id, options, async (sandbox) => {
-      await sandbox.fs.mkdir(path);
+    await this.#withSandbox({
+      operation: "make_directory",
+      id,
+      options,
+      body: async (sandbox) => {
+        await sandbox.fs.mkdir(path);
+      },
     });
   }
 
@@ -282,12 +234,17 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: ListDirectoryOptions,
     options: OperationOptions,
   ): Promise<FileInfo[]> {
-    return this.#withSandbox("list_directory", id, options, async (sandbox) => {
-      const listing = await sandbox.fs.ls(path);
-      return [
-        ...listing.subdirectories.map((entry) => directoryInfo(entry)),
-        ...listing.files.map((entry) => fileInfo(entry)),
-      ];
+    return this.#withSandbox({
+      operation: "list_directory",
+      id,
+      options,
+      body: async (sandbox) => {
+        const listing = await sandbox.fs.ls(path);
+        return [
+          ...listing.subdirectories.map((entry) => directoryInfo(entry)),
+          ...listing.files.map((entry) => fileInfo(entry)),
+        ];
+      },
     });
   }
 
@@ -297,33 +254,11 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: StatOptions,
     options: OperationOptions,
   ): Promise<FileInfo> {
-    return this.#withSandbox("stat", id, options, async (sandbox) => {
-      // Blaxel's public FS API has no Stat. GET-by-path is what Go uses; here
-      // ls wraps the same GET and rejects non-directories with a fixed error.
-      try {
-        const listing = await sandbox.fs.ls(path);
-        return {
-          name: listing.name || basename(path) || "/",
-          path: listing.path || path,
-          type: FileType.Directory,
-          size: 0n,
-        };
-      } catch (error) {
-        if (!isBlaxelFilePath(error)) throw error;
-      }
-      // Path is a file: metadata is on the parent directory listing.
-      const parent = dirname(path);
-      const name = basename(path);
-      const listing = await sandbox.fs.ls(parent === "." ? "/" : parent);
-      const file = listing.files.find((entry) => entry.name === name);
-      if (file) return fileInfo(file);
-      throw sandboxError({
-        kind: ErrorKind.NotFound,
-        provider: "blaxel",
-        operation: "stat",
-        field: FileFieldPath,
-        message: `sandbox-kit blaxel: path not found: ${path}`,
-      });
+    return this.#withSandbox({
+      operation: "stat",
+      id,
+      options,
+      body: async (sandbox) => blaxelStat(sandbox.fs, path),
     });
   }
 
@@ -333,8 +268,13 @@ class BlaxelBackend extends BackendBase implements Backend {
     request: RemoveOptions,
     options: OperationOptions,
   ): Promise<void> {
-    await this.#withSandbox("remove", id, options, async (sandbox) => {
-      await sandbox.fs.rm(path, request.recursive === true);
+    await this.#withSandbox({
+      operation: "remove",
+      id,
+      options,
+      body: async (sandbox) => {
+        await sandbox.fs.rm(path, request.recursive === true);
+      },
     });
   }
 
@@ -343,60 +283,33 @@ class BlaxelBackend extends BackendBase implements Backend {
     request: ExecOptions,
     options: OperationOptions,
   ): Promise<ExecResult> {
-    return this.#withSandbox("run", id, options, async (sandbox) => {
-      const timeout = execTimeoutSeconds(request.timeout);
-      const started = await sandbox.process.exec({
-        command: blaxelCommand(request),
-        // A positive timeout of at most 60 seconds can stay on Blaxel's
-        // completion request. Omit, zero, and longer timeouts start the
-        // process and poll so the edge hold does not fail the call.
-        waitForCompletion: holdsCompletion(timeout),
-        // Blaxel: omit/0 means no auto-kill. Kit omit/0 map to 0.
-        timeout: timeout ?? 0,
-        ...(request.workingDirectory === undefined
-          ? {}
-          : { workingDir: request.workingDirectory }),
-        ...(request.environment === undefined
-          ? {}
-          : { env: { ...request.environment } }),
-      });
-      if (holdsCompletion(timeout) || processFinished(started.status)) {
-        return execResult(started);
-      }
-      const identifier = started.pid || started.name;
-      if (!identifier) {
-        throw sandboxError({
-          kind: ErrorKind.InvalidResponse,
-          provider: "blaxel",
-          operation: "run",
-          field: "",
-          message: "sandbox-kit blaxel: SDK returned no process identifier",
+    return this.#withSandbox({
+      operation: "run",
+      id,
+      options,
+      body: async (sandbox) => {
+        const timeout = execTimeoutSeconds(request.timeout);
+        const started = await sandbox.process.exec(
+          processRequest(request, timeout),
+        );
+        return finishProcess({
+          process: sandbox.process,
+          started,
+          timeout,
+          signal: options.signal,
         });
-      }
-      // wait polls until a terminal status or until the signal / maxWait ends.
-      // A gateway 504 on one read is retried inside wait; the deadline is a timeout.
-      const finished = await sandbox.process.wait(identifier, {
-        maxWait: timeout === undefined ? -1 : timeout * 1_000,
-        interval: 1_000,
-        ...(options.signal === undefined ? {} : { signal: options.signal }),
-      });
-      return execResult(finished);
+      },
     });
   }
 
-  async #withSandbox<T>(
-    operation: string,
-    id: string,
-    options: OperationOptions,
-    body: (sandbox: NativeSandboxHandle) => Promise<T>,
-  ): Promise<T> {
+  async #withSandbox<T>(args: WithSandboxArgs<T>): Promise<T> {
     try {
-      throwIfAborted(options.signal);
-      const sandbox = await this.native.get(id);
-      throwIfAborted(options.signal);
-      return await body(sandbox);
+      throwIfAborted(args.options.signal);
+      const sandbox = await this.native.get(args.id);
+      throwIfAborted(args.options.signal);
+      return await args.body(sandbox);
     } catch (error) {
-      throw mapBlaxelError(error, operation);
+      throw mapBlaxelError(error, args.operation);
     }
   }
 
@@ -407,103 +320,8 @@ class BlaxelBackend extends BackendBase implements Backend {
   }
 }
 
-function fileInfo(info: BlaxelFile): FileInfo {
-  const modified = Date.parse(info.lastModified);
-  return {
-    name: info.name,
-    path: info.path,
-    type: FileType.File,
-    size: BigInt(Math.trunc(info.size)),
-    ...(info.permissions ? { permissions: info.permissions } : {}),
-    ...(info.owner ? { owner: info.owner } : {}),
-    ...(info.group ? { group: info.group } : {}),
-    ...(Number.isNaN(modified) ? {} : { modifiedAt: new Date(modified) }),
-  };
-}
-
-function directoryInfo(info: BlaxelSubdirectory): FileInfo {
-  return {
-    name: info.name,
-    path: info.path,
-    type: FileType.Directory,
-    size: 0n,
-  };
-}
-
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
-}
-
-/** Blaxel `fs.ls` throws this when GET returns a file instead of a directory. */
-function isBlaxelFilePath(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  try {
-    const body = JSON.parse(error.message) as { error?: unknown };
-    return body.error === "Directory not found";
-  } catch {
-    return false;
-  }
-}
-
-/** Blaxel's documented limit for a single waitForCompletion request. */
-const blaxelCompletionHoldSeconds = 60;
-
-function holdsCompletion(timeoutSeconds: number | undefined): boolean {
-  return (
-    timeoutSeconds !== undefined &&
-    timeoutSeconds > 0 &&
-    timeoutSeconds <= blaxelCompletionHoldSeconds
-  );
-}
-
-const terminalProcessStatus = new Set([
-  "completed",
-  "failed",
-  "killed",
-  "stopped",
-]);
-
-function processFinished(status: string | undefined): boolean {
-  return status !== undefined && terminalProcessStatus.has(status);
-}
-
-function execResult(result: BlaxelProcessResult): ExecResult {
-  return {
-    exitCode: result.exitCode ?? 0,
-    stdout: new TextEncoder().encode(result.stdout ?? ""),
-    stderr: new TextEncoder().encode(result.stderr ?? ""),
-  };
-}
-
-function blaxelCommand(request: ExecOptions): string {
-  if (request.shell !== undefined) return request.shell;
-  return posixShellJoin(request.argv ?? []);
-}
-
-function posixShellJoin(argv: readonly string[]): string {
-  return argv.map(posixQuote).join(" ");
-}
-
-function posixQuote(value: string): string {
-  if (value === "") return "''";
-  return "'" + value.replaceAll("'", `'"'"'`) + "'";
-}
-
-/**
- * Maps Kit ExecOptions.timeout (ms) to Blaxel's process timeout (seconds).
- * Omitted and explicit zero become undefined so the caller sends 0 (no limit).
- */
-function execTimeoutSeconds(timeout: number | undefined): number | undefined {
-  if (timeout === undefined || timeout === 0) return undefined;
-  if (!Number.isFinite(timeout) || timeout < 0 || timeout % 1_000 !== 0) {
-    providerError({
-      kind: ErrorKind.InvalidArgument,
-      operation: "run",
-      field: ExecFieldTimeout,
-      message: "timeout must be a whole number of seconds",
-    });
-  }
-  return timeout / 1_000;
 }
 
 /**

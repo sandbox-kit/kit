@@ -41,12 +41,7 @@ func (s *observedSandbox) state() {
 	case blaxel.StatusUploading, blaxel.StatusBuilding, blaxel.StatusDeploying, blaxel.StatusBuilt:
 		s.info.State = sandbox.SandboxStateQueued
 	case blaxel.StatusDeployed:
-		switch s.native.State {
-		case blaxel.SandboxStateStandby:
-			s.info.State = sandbox.SandboxStatePaused
-		default:
-			s.info.State = sandbox.SandboxStateRunning
-		}
+		s.info.State = runtimeState(s.native.State, sandbox.SandboxStateRunning)
 	case blaxel.StatusDeleting, blaxel.StatusDeactivating:
 		s.info.State = sandbox.SandboxStateDeleting
 	case blaxel.StatusTerminated, blaxel.StatusDeactivated:
@@ -61,12 +56,27 @@ func (s *observedSandbox) state() {
 	case blaxel.StatusFailed:
 		s.info.State = sandbox.SandboxStateError
 	default:
-		switch s.native.State {
-		case blaxel.SandboxStateRunning:
-			s.info.State = sandbox.SandboxStateRunning
-		case blaxel.SandboxStateStandby:
-			s.info.State = sandbox.SandboxStatePaused
+		if mapped, ok := runtimeOnlyState(s.native.State); ok {
+			s.info.State = mapped
 		}
+	}
+}
+
+func runtimeState(runtime blaxel.SandboxState, fallback sandbox.SandboxState) sandbox.SandboxState {
+	if runtime == blaxel.SandboxStateStandby {
+		return sandbox.SandboxStatePaused
+	}
+	return fallback
+}
+
+func runtimeOnlyState(runtime blaxel.SandboxState) (sandbox.SandboxState, bool) {
+	switch runtime {
+	case blaxel.SandboxStateRunning:
+		return sandbox.SandboxStateRunning, true
+	case blaxel.SandboxStateStandby:
+		return sandbox.SandboxStatePaused, true
+	default:
+		return 0, false
 	}
 }
 

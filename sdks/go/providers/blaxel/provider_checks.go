@@ -14,10 +14,7 @@ var providerSandboxNamePattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`
 const providerSandboxNameMaxLen = 49
 
 // validateProviderCreate rejects creation settings this provider cannot honor.
-// It runs before the native create call.
-//
-// Rules are inventoried in specs/providers/blaxel.yaml checks and kept in sync
-// here by hand (not emitted).
+// Inventoried in specs/providers/blaxel.yaml checks; kept in sync by hand.
 func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request == nil {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name is required")
@@ -38,19 +35,8 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request.Placement != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldPlacement, "per-request Blaxel placement is unsupported; use Config.region")
 	}
-	if resources := request.Resources; resources != nil {
-		if resources.CpuCores != nil {
-			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesCpuCores, "Blaxel derives CPU from memory; cpu_cores is not mapped")
-		}
-		if resources.CpuLimitCores != nil {
-			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesCpuLimitCores, "Blaxel resource limits are not mapped")
-		}
-		if resources.MemoryLimitMib != nil {
-			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesMemoryLimitMib, "Blaxel resource limits are not mapped")
-		}
-		if resources.DiskMib != nil {
-			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesDiskMib, "Blaxel disk size is not mapped as MiB")
-		}
+	if err := rejectUnsupportedResources(request.Resources); err != nil {
+		return err
 	}
 	for name := range request.Environment {
 		if !providerEnvNamePattern.MatchString(name) {
@@ -60,12 +46,32 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 	return nil
 }
 
+func rejectUnsupportedResources(resources *sandbox.Resources) error {
+	if resources == nil {
+		return nil
+	}
+	for _, check := range []struct {
+		set   bool
+		field string
+		msg   string
+	}{
+		{resources.CpuCores != nil, sandbox.CreateFieldResourcesCpuCores, "Blaxel derives CPU from memory; cpu_cores is not mapped"},
+		{resources.CpuLimitCores != nil, sandbox.CreateFieldResourcesCpuLimitCores, "Blaxel resource limits are not mapped"},
+		{resources.MemoryLimitMib != nil, sandbox.CreateFieldResourcesMemoryLimitMib, "Blaxel resource limits are not mapped"},
+		{resources.DiskMib != nil, sandbox.CreateFieldResourcesDiskMib, "Blaxel disk size is not mapped as MiB"},
+	} {
+		if check.set {
+			return providerCheckError(sandbox.ErrorKindUnsupported, check.field, check.msg)
+		}
+	}
+	return nil
+}
+
 func providerCheckError(kind sandbox.ErrorKind, field, message string) error {
-	return sandbox.NewError(&sandbox.ErrorInfo{
+	return kitError(kitFault{
 		Kind:      kind,
-		Provider:  "blaxel",
 		Operation: "create",
 		Field:     field,
-		Message:   "sandbox-kit blaxel: " + message,
-	}, nil)
+		Message:   message,
+	})
 }

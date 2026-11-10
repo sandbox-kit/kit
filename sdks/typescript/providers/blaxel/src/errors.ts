@@ -3,9 +3,6 @@
 // then Blaxel helpers / ResponseError status, then unknown.
 // Cause stays on SandboxError.cause.
 
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
-
 import {
   CredentialsError,
   getBlaxelErrorCode,
@@ -19,7 +16,6 @@ import {
 } from "@blaxel/core";
 import {
   ErrorKind,
-  FileFieldLocalPath,
   SandboxError,
   sandboxError,
   type ErrorInfo,
@@ -42,6 +38,74 @@ export interface ProviderErrorInput {
   message: string;
 }
 
+const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
+  AUTHENTICATION_REQUIRED: ErrorKind.Authentication,
+  AUTHENTICATION_FAILED: ErrorKind.Authentication,
+  TOKEN_REVOKED: ErrorKind.Authentication,
+  FORBIDDEN: ErrorKind.PermissionDenied,
+  UNAUTHORIZED: ErrorKind.PermissionDenied,
+  UNAUTHORIZED_WORKSPACE: ErrorKind.PermissionDenied,
+  ROUTE_NOT_FOUND: ErrorKind.NotFound,
+  WORKLOAD_NOT_FOUND: ErrorKind.NotFound,
+  WORKSPACE_NOT_FOUND: ErrorKind.NotFound,
+  IMAGE_NOT_FOUND: ErrorKind.NotFound,
+  VOLUME_NOT_FOUND: ErrorKind.NotFound,
+  ACCOUNT_NOT_FOUND: ErrorKind.NotFound,
+  SANDBOX_DELETED: ErrorKind.NotFound,
+  VOLUME_DELETED: ErrorKind.NotFound,
+  SANDBOX_ALREADY_EXISTS: ErrorKind.AlreadyExists,
+  VOLUME_ALREADY_ATTACHED: ErrorKind.AlreadyExists,
+  BAD_REQUEST: ErrorKind.InvalidArgument,
+  POLICY_VIOLATION: ErrorKind.InvalidArgument,
+  INVALID_INPUT: ErrorKind.InvalidArgument,
+  INVALID_IMAGE: ErrorKind.InvalidArgument,
+  INVALID_PORTS: ErrorKind.InvalidArgument,
+  INVALID_REGION: ErrorKind.InvalidArgument,
+  INVALID_VOLUME: ErrorKind.InvalidArgument,
+  INVALID_VOLUME_COUNT: ErrorKind.InvalidArgument,
+  INVALID_VOLUME_REGION: ErrorKind.InvalidArgument,
+  VALIDATION_FAILED: ErrorKind.InvalidArgument,
+  VALIDATION_ERROR: ErrorKind.InvalidArgument,
+  WORKSPACE_REQUIRED: ErrorKind.InvalidArgument,
+  CREATION_TIMEOUT: ErrorKind.Timeout,
+  UPSTREAM_CONNECT_TIMEOUT: ErrorKind.Timeout,
+  UPSTREAM_TIMEOUT: ErrorKind.Timeout,
+  QUOTA_EXCEEDED: ErrorKind.ResourceExhausted,
+  USAGE_LIMIT_EXCEEDED: ErrorKind.ResourceExhausted,
+  RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
+  WORKSPACE_RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
+  SANDBOX_DELETION_IN_PROGRESS: ErrorKind.Conflict,
+  WORKLOAD_UNAVAILABLE: ErrorKind.Unavailable,
+  ROUTING_UNAVAILABLE: ErrorKind.Unavailable,
+  SERVICE_UNAVAILABLE: ErrorKind.Unavailable,
+  AUTHENTICATION_UNAVAILABLE: ErrorKind.Unavailable,
+  UPSTREAM_CONNECT_FAILED: ErrorKind.Unavailable,
+  UPSTREAM_ERROR: ErrorKind.Unavailable,
+  GATEWAY_INTERNAL_ERROR: ErrorKind.Unavailable,
+  WORKLOAD_FAILED: ErrorKind.Internal,
+  INTERNAL_ERROR: ErrorKind.Internal,
+  HANDLER_ERROR: ErrorKind.Internal,
+  DATABASE_ERROR: ErrorKind.Internal,
+};
+
+const STATUS_KINDS: Record<number, ErrorInfo["kind"]> = {
+  400: ErrorKind.InvalidArgument,
+  422: ErrorKind.InvalidArgument,
+  401: ErrorKind.Authentication,
+  402: ErrorKind.ResourceExhausted,
+  403: ErrorKind.PermissionDenied,
+  404: ErrorKind.NotFound,
+  410: ErrorKind.NotFound,
+  408: ErrorKind.Timeout,
+  409: ErrorKind.Conflict,
+  412: ErrorKind.FailedPrecondition,
+  429: ErrorKind.RateLimited,
+  500: ErrorKind.Internal,
+  502: ErrorKind.Unavailable,
+  503: ErrorKind.Unavailable,
+  504: ErrorKind.Timeout,
+};
+
 export function mapBlaxelError(
   error: unknown,
   operation: string,
@@ -53,49 +117,12 @@ export function mapBlaxelError(
     return create({ kind: ErrorKind.Timeout, error, operation });
 
   const cause = causeOf(error);
-  let kind: ErrorInfo["kind"] = ErrorKind.Unknown;
-  const statusCode =
-    getBlaxelErrorStatus(error) ?? getBlaxelErrorStatus(cause);
-  const providerCode = stringifyCode(getBlaxelErrorCode(error));
-
-  if (error instanceof CredentialsError) kind = ErrorKind.Authentication;
-  if (
-    kind === ErrorKind.Unknown &&
-    (error instanceof SandboxCreationTimeoutError ||
-      isCreationTimeoutError(error))
-  )
-    kind = ErrorKind.Timeout;
-  // process.wait reports its deadline as a plain Error. A 504 on one poll is
-  // retried inside wait and may be that error's cause. A bare edge 504
-  // (completion hold or origin read) is a timeout too, matching Go.
-  if (
-    kind === ErrorKind.Unknown &&
-    (isProcessWaitTimeout(error) ||
-      isGatewayTimeout(error) ||
-      isGatewayTimeout(cause))
-  )
-    kind = ErrorKind.Timeout;
-  if (
-    kind === ErrorKind.Unknown &&
-    (error instanceof SandboxGatewayError || isGatewayError(error))
-  )
-    kind = ErrorKind.Unavailable;
-
-  if (kind === ErrorKind.Unknown && providerCode !== undefined)
-    kind = kindFromCode(providerCode);
-
-  if (kind === ErrorKind.Unknown && statusCode !== undefined)
-    kind = kindFromStatus(statusCode);
-
-  if (
-    kind === ErrorKind.Unknown &&
-    error instanceof ResponseError &&
-    error.status !== undefined
-  )
-    kind = kindFromStatus(error.status);
-
+  const statusCode = getBlaxelErrorStatus(error) ?? getBlaxelErrorStatus(cause);
+  const providerCode = stringifyCode(
+    getBlaxelErrorCode(error) ?? getBlaxelErrorCode(cause),
+  );
   return create({
-    kind,
+    kind: classifyKind({ error, cause, providerCode, statusCode }),
     error,
     operation,
     ...(statusCode === undefined ? {} : { statusCode }),
@@ -103,103 +130,40 @@ export function mapBlaxelError(
   });
 }
 
-function kindFromCode(code: string): ErrorInfo["kind"] {
-  switch (code) {
-    case "AUTHENTICATION_REQUIRED":
-    case "AUTHENTICATION_FAILED":
-    case "TOKEN_REVOKED":
-      return ErrorKind.Authentication;
-    case "FORBIDDEN":
-    case "UNAUTHORIZED":
-    case "UNAUTHORIZED_WORKSPACE":
-      return ErrorKind.PermissionDenied;
-    case "ROUTE_NOT_FOUND":
-    case "WORKLOAD_NOT_FOUND":
-    case "WORKSPACE_NOT_FOUND":
-    case "IMAGE_NOT_FOUND":
-    case "VOLUME_NOT_FOUND":
-    case "ACCOUNT_NOT_FOUND":
-    case "SANDBOX_DELETED":
-    case "VOLUME_DELETED":
-      return ErrorKind.NotFound;
-    case "SANDBOX_ALREADY_EXISTS":
-    case "VOLUME_ALREADY_ATTACHED":
-      return ErrorKind.AlreadyExists;
-    case "BAD_REQUEST":
-    case "POLICY_VIOLATION": // reserved gateway code; matches Go ErrPolicyViolation
-    case "INVALID_INPUT":
-    case "INVALID_IMAGE":
-    case "INVALID_PORTS":
-    case "INVALID_REGION":
-    case "INVALID_VOLUME":
-    case "INVALID_VOLUME_COUNT":
-    case "INVALID_VOLUME_REGION":
-    case "VALIDATION_FAILED":
-    case "VALIDATION_ERROR":
-    case "WORKSPACE_REQUIRED":
-      return ErrorKind.InvalidArgument;
-    case "CREATION_TIMEOUT":
-    case "UPSTREAM_CONNECT_TIMEOUT":
-    case "UPSTREAM_TIMEOUT":
-      return ErrorKind.Timeout;
-    case "QUOTA_EXCEEDED":
-    case "USAGE_LIMIT_EXCEEDED":
-      return ErrorKind.ResourceExhausted;
-    case "RATE_LIMIT_EXCEEDED":
-    case "WORKSPACE_RATE_LIMIT_EXCEEDED":
-      return ErrorKind.RateLimited;
-    case "SANDBOX_DELETION_IN_PROGRESS":
-      return ErrorKind.Conflict;
-    case "WORKLOAD_UNAVAILABLE":
-    case "ROUTING_UNAVAILABLE":
-    case "SERVICE_UNAVAILABLE":
-    case "AUTHENTICATION_UNAVAILABLE":
-    case "UPSTREAM_CONNECT_FAILED":
-    case "UPSTREAM_ERROR":
-    case "GATEWAY_INTERNAL_ERROR":
-      return ErrorKind.Unavailable;
-    case "WORKLOAD_FAILED":
-    case "INTERNAL_ERROR":
-    case "HANDLER_ERROR":
-    case "DATABASE_ERROR":
-      return ErrorKind.Internal;
-    default:
-      return ErrorKind.Unknown;
-  }
+interface ClassifyArgs {
+  error: unknown;
+  cause: unknown;
+  providerCode: string | undefined;
+  statusCode: number | undefined;
 }
 
-function kindFromStatus(status: number): ErrorInfo["kind"] {
-  switch (status) {
-    case 400:
-    case 422:
-      return ErrorKind.InvalidArgument;
-    case 401:
-      return ErrorKind.Authentication;
-    case 402:
-      return ErrorKind.ResourceExhausted;
-    case 403:
-      return ErrorKind.PermissionDenied;
-    case 404:
-    case 410:
-      return ErrorKind.NotFound;
-    case 408:
-      return ErrorKind.Timeout;
-    case 409:
-      return ErrorKind.Conflict;
-    case 412:
-      return ErrorKind.FailedPrecondition;
-    case 429:
-      return ErrorKind.RateLimited;
-    case 500:
-      return ErrorKind.Internal;
-    case 502:
-    case 503:
-      return ErrorKind.Unavailable;
-    case 504:
-      return ErrorKind.Timeout;
-    default:
-      return ErrorKind.Unknown;
-  }
+function classifyKind(args: ClassifyArgs): ErrorInfo["kind"] {
+  const { error, cause, providerCode, statusCode } = args;
+  if (error instanceof CredentialsError) return ErrorKind.Authentication;
+  if (
+    error instanceof SandboxCreationTimeoutError ||
+    isCreationTimeoutError(error)
+  )
+    return ErrorKind.Timeout;
+  // process.wait deadline is a plain Error; a 504 on one poll may be its cause.
+  // A bare edge 504 is a timeout too, matching Go.
+  if (
+    isProcessWaitTimeout(error) ||
+    isGatewayTimeout(error) ||
+    isGatewayTimeout(cause)
+  )
+    return ErrorKind.Timeout;
+  if (error instanceof SandboxGatewayError || isGatewayError(error))
+    return ErrorKind.Unavailable;
+
+  // Unknown codes fall through so status can still classify the failure.
+  if (providerCode !== undefined && CODE_KINDS[providerCode] !== undefined)
+    return CODE_KINDS[providerCode]!;
+  if (statusCode !== undefined && STATUS_KINDS[statusCode] !== undefined)
+    return STATUS_KINDS[statusCode]!;
+  if (error instanceof ResponseError && error.status !== undefined)
+    return STATUS_KINDS[error.status] ?? ErrorKind.Unknown;
+  return ErrorKind.Unknown;
 }
 
 function isProcessWaitTimeout(error: unknown): boolean {
@@ -237,127 +201,6 @@ function create(input: MappedErrorInput): SandboxError {
     error,
   );
 }
-
-/** Rejects a missing local file or a directory before Blaxel reads it. */
-export async function requireLocalFile(
-  localPath: string,
-  operation: string,
-): Promise<void> {
-  let info;
-  try {
-    info = await stat(localPath);
-  } catch (error) {
-    if (nodeCode(error)) throw localFileError(error, operation);
-    throw error;
-  }
-  if (info.isDirectory()) localDirectory(operation);
-}
-
-/** Rejects a local destination that is already a directory. */
-export async function requireLocalDestination(
-  localPath: string,
-  operation: string,
-): Promise<void> {
-  try {
-    const info = await stat(localPath);
-    if (info.isDirectory()) localDirectory(operation);
-  } catch (error) {
-    if (nodeCode(error) === "ENOENT") return;
-    if (nodeCode(error)) throw localFileError(error, operation);
-    throw error;
-  }
-}
-
-/** Creates the parent directory for a local destination path. */
-export async function ensureLocalParent(
-  localPath: string,
-  operation: string,
-): Promise<void> {
-  try {
-    await mkdir(dirname(localPath), { recursive: true });
-  } catch (error) {
-    throw localFileError(error, operation);
-  }
-}
-
-/** Reads a local file for upload into the sandbox. */
-export async function readLocalFile(
-  localPath: string,
-  operation: string,
-): Promise<Uint8Array> {
-  await requireLocalFile(localPath, operation);
-  try {
-    return await readFile(localPath);
-  } catch (error) {
-    throw localFileError(error, operation);
-  }
-}
-
-/** Writes downloaded sandbox bytes to a local path. */
-export async function writeLocalFile(
-  localPath: string,
-  data: Uint8Array,
-  operation: string,
-): Promise<void> {
-  await requireLocalDestination(localPath, operation);
-  await ensureLocalParent(localPath, operation);
-  try {
-    await writeFile(localPath, data);
-  } catch (error) {
-    throw localFileError(error, operation);
-  }
-}
-
-/** Classifies a local filesystem failure. Other errors stay with provider mapping. */
-export function translateLocalCopyError(
-  error: unknown,
-  operation: string,
-): unknown {
-  if (error instanceof SandboxError) return error;
-  const code = nodeCode(error);
-  if (!code || !localCodes.has(code)) return error;
-  return localFileError(error, operation);
-}
-
-function localDirectory(operation: string): never {
-  providerError({
-    kind: ErrorKind.InvalidArgument,
-    operation,
-    field: FileFieldLocalPath,
-    message: "local path is a directory",
-  });
-}
-
-function localFileError(error: unknown, operation: string): SandboxError {
-  return sandboxError(
-    {
-      kind:
-        nodeCode(error) === "ENOENT"
-          ? ErrorKind.NotFound
-          : ErrorKind.InvalidArgument,
-      provider: "blaxel",
-      operation,
-      field: FileFieldLocalPath,
-      message: error instanceof Error ? error.message : "local path failed",
-    },
-    error,
-  );
-}
-
-function nodeCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || !error || !("code" in error))
-    return undefined;
-  return typeof error.code === "string" ? error.code : undefined;
-}
-
-const localCodes = new Set([
-  "ENOENT",
-  "EISDIR",
-  "ENOTDIR",
-  "EACCES",
-  "EPERM",
-  "ENOSPC",
-]);
 
 /** Local throw helper for mappings, checks, and config. */
 export function providerError(input: ProviderErrorInput): never {

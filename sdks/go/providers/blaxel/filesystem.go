@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"path/filepath"
 	"time"
 
 	blaxel "github.com/blaxel-ai/sdk-go"
@@ -16,29 +15,20 @@ import (
 var _ sandbox.SandboxFiles = (*backend)(nil)
 
 func (b *backend) ReadFile(ctx context.Context, id, path string, _ *sandbox.FileReadOptions) ([]byte, error) {
-	instance, err := b.fileSandbox(ctx, id, "read_file")
-	if err != nil {
-		return nil, err
-	}
-	data, err := instance.FS.ReadBinary(ctx, path)
-	if err != nil {
-		return nil, mapProviderError(err, "read_file")
-	}
-	return data, nil
+	return withFS(b, ctx, fsCall{ID: id, Operation: "read_file"}, func(fs *blaxel.SandboxInstanceFSService) ([]byte, error) {
+		return fs.ReadBinary(ctx, path)
+	})
 }
 
 func (b *backend) WriteFile(ctx context.Context, id, path string, data []byte, _ *sandbox.FileWriteOptions) error {
-	instance, err := b.fileSandbox(ctx, id, "write_file")
-	if err != nil {
-		return err
-	}
 	if data == nil {
 		data = []byte{}
 	}
-	if _, err := instance.FS.WriteBinary(ctx, path, data, ""); err != nil {
-		return mapProviderError(err, "write_file")
-	}
-	return nil
+	_, err := withFS(b, ctx, fsCall{ID: id, Operation: "write_file"}, func(fs *blaxel.SandboxInstanceFSService) (struct{}, error) {
+		_, err := fs.WriteBinary(ctx, path, data, "")
+		return struct{}{}, err
+	})
+	return err
 }
 
 func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath string, _ *sandbox.FileCopyOptions) error {
@@ -49,14 +39,11 @@ func (b *backend) CopyFromLocal(ctx context.Context, id, localPath, remotePath s
 	if err != nil {
 		return localPathError(err, "copy_from_local")
 	}
-	instance, err := b.fileSandbox(ctx, id, "copy_from_local")
-	if err != nil {
-		return err
-	}
-	if _, err := instance.FS.WriteBinary(ctx, remotePath, data, ""); err != nil {
-		return mapProviderError(err, "copy_from_local")
-	}
-	return nil
+	_, err = withFS(b, ctx, fsCall{ID: id, Operation: "copy_from_local"}, func(fs *blaxel.SandboxInstanceFSService) (struct{}, error) {
+		_, err := fs.WriteBinary(ctx, remotePath, data, "")
+		return struct{}{}, err
+	})
+	return err
 }
 
 func (b *backend) CopyToLocal(ctx context.Context, id, remotePath, localPath string, _ *sandbox.FileCopyOptions) error {
@@ -80,41 +67,36 @@ func (b *backend) MakeDirectory(ctx context.Context, id, path string, options *s
 	if err := rejectParents(options); err != nil {
 		return err
 	}
-	instance, err := b.fileSandbox(ctx, id, "make_directory")
-	if err != nil {
-		return err
-	}
-	if _, err := instance.FS.Mkdir(ctx, path, ""); err != nil {
-		return mapProviderError(err, "make_directory")
-	}
-	return nil
+	_, err := withFS(b, ctx, fsCall{ID: id, Operation: "make_directory"}, func(fs *blaxel.SandboxInstanceFSService) (struct{}, error) {
+		_, err := fs.Mkdir(ctx, path, "")
+		return struct{}{}, err
+	})
+	return err
 }
 
 func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox.ListDirectoryOptions) ([]*sandbox.FileInfo, error) {
-	instance, err := b.fileSandbox(ctx, id, "list_directory")
-	if err != nil {
-		return nil, err
-	}
-	listing, err := instance.FS.LS(ctx, path)
-	if err != nil {
-		return nil, mapProviderError(err, "list_directory")
-	}
-	result := make([]*sandbox.FileInfo, 0, len(listing.Files)+len(listing.Subdirectories))
-	for _, entry := range listing.Files {
-		info, err := blaxelFileInfo(entry, sandbox.FileTypeFile, "list_directory")
+	return withFS(b, ctx, fsCall{ID: id, Operation: "list_directory"}, func(fs *blaxel.SandboxInstanceFSService) ([]*sandbox.FileInfo, error) {
+		listing, err := fs.LS(ctx, path)
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, info)
-	}
-	for _, entry := range listing.Subdirectories {
-		result = append(result, &sandbox.FileInfo{
-			Name: entry.Name,
-			Path: entry.Path,
-			Type: sandbox.FileTypeDirectory,
-		})
-	}
-	return result, nil
+		result := make([]*sandbox.FileInfo, 0, len(listing.Files)+len(listing.Subdirectories))
+		for _, entry := range listing.Files {
+			info, err := blaxelFileInfo(entry, sandbox.FileTypeFile, "list_directory")
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, info)
+		}
+		for _, entry := range listing.Subdirectories {
+			result = append(result, &sandbox.FileInfo{
+				Name: entry.Name,
+				Path: entry.Path,
+				Type: sandbox.FileTypeDirectory,
+			})
+		}
+		return result, nil
+	})
 }
 
 func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOptions) (*sandbox.FileInfo, error) {
@@ -122,22 +104,15 @@ func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOpti
 	if err != nil {
 		return nil, err
 	}
-	// SandboxInstanceFSService has no public Get/Stat; metadata is on the lower
-	// SandboxFilesystemService. Rebuild with the instance base URL so Stat uses
-	// the same sandbox endpoint as instance.FS without private-field access.
+	// No public Stat on SandboxInstanceFSService; rebuild the lower FS client
+	// against the instance URL so metadata uses the same sandbox endpoint.
 	fs := b.filesystemService(instance)
 	res, err := fs.Get(ctx, path, blaxel.SandboxFilesystemGetParams{})
 	if err != nil {
 		return nil, mapProviderError(err, "stat")
 	}
 	if res == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: "stat",
-			Field:     sandbox.FileFieldPath,
-			Message:   "sandbox-kit blaxel: SDK returned no file metadata",
-		}, nil)
+		return nil, invalidResponse("stat", sandbox.FileFieldPath, "SDK returned no file metadata")
 	}
 	if res.JSON.Files.Valid() || res.JSON.Subdirectories.Valid() {
 		dir := res.AsDirectory()
@@ -160,29 +135,49 @@ func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOpti
 }
 
 func (b *backend) Remove(ctx context.Context, id, path string, options *sandbox.RemoveOptions) error {
-	instance, err := b.fileSandbox(ctx, id, "remove")
-	if err != nil {
-		return err
-	}
 	recursive := options != nil && options.GetRecursive()
-	if _, err := instance.FS.RM(ctx, path, recursive); err != nil {
-		return mapProviderError(err, "remove")
+	_, err := withFS(b, ctx, fsCall{ID: id, Operation: "remove"}, func(fs *blaxel.SandboxInstanceFSService) (struct{}, error) {
+		_, err := fs.RM(ctx, path, recursive)
+		return struct{}{}, err
+	})
+	return err
+}
+
+type fsCall struct {
+	ID        string
+	Operation string
+}
+
+func withFS[T any](
+	b *backend,
+	ctx context.Context,
+	call fsCall,
+	fn func(*blaxel.SandboxInstanceFSService) (T, error),
+) (T, error) {
+	var zero T
+	instance, err := b.fileSandbox(ctx, call.ID, call.Operation)
+	if err != nil {
+		return zero, err
 	}
-	return nil
+	result, err := fn(instance.FS)
+	if err != nil {
+		// Preserve SandboxErrors raised inside the callback (e.g. list mapping).
+		var local *sandbox.Error
+		if errors.As(err, &local) {
+			return zero, err
+		}
+		return zero, mapProviderError(err, call.Operation)
+	}
+	return result, nil
 }
 
 func (b *backend) fileSandbox(ctx context.Context, id, operation string) (*blaxel.SandboxInstance, error) {
-	instance, err := b.client.Sandboxes.GetInstance(ctx, id)
+	instance, err := b.getInstance(ctx, id, operation)
 	if err != nil {
-		return nil, mapProviderError(err, operation)
+		return nil, err
 	}
 	if instance == nil || instance.FS == nil {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: operation,
-			Message:   "sandbox-kit blaxel: SDK returned no filesystem",
-		}, nil)
+		return nil, invalidResponse(operation, "", "SDK returned no filesystem")
 	}
 	return instance, nil
 }
@@ -199,92 +194,17 @@ func rejectParents(options *sandbox.MakeDirectoryOptions) error {
 	if options == nil || options.Parents == nil || *options.Parents {
 		return nil
 	}
-	return sandbox.NewError(&sandbox.ErrorInfo{
+	return kitError(kitFault{
 		Kind:      sandbox.ErrorKindUnsupported,
-		Provider:  "blaxel",
 		Operation: "make_directory",
 		Field:     sandbox.FileFieldParents,
-		Message:   "sandbox-kit blaxel: parents false is not available",
-	}, nil)
-}
-
-func localSourceFile(path, operation string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return localPathError(err, operation)
-	}
-	if info.IsDir() {
-		return localDirectoryError(operation)
-	}
-	return nil
-}
-
-func localDestination(path, operation string) error {
-	info, err := os.Stat(path)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil
-	}
-	if err != nil {
-		return localPathError(err, operation)
-	}
-	if info.IsDir() {
-		return localDirectoryError(operation)
-	}
-	return nil
-}
-
-func ensureLocalParent(path, operation string) error {
-	parent := filepath.Dir(path)
-	if parent == "." || parent == string(filepath.Separator) {
-		return nil
-	}
-	if err := os.MkdirAll(parent, 0o755); err != nil {
-		return localPathError(err, operation)
-	}
-	return nil
-}
-
-func localDirectoryError(operation string) error {
-	return sandbox.NewError(&sandbox.ErrorInfo{
-		Kind:      sandbox.ErrorKindInvalidArgument,
-		Provider:  "blaxel",
-		Operation: operation,
-		Field:     sandbox.FileFieldLocalPath,
-		Message:   "sandbox-kit blaxel: local path is a directory",
-	}, nil)
-}
-
-func localPathError(err error, operation string) error {
-	kind := sandbox.ErrorKindInvalidArgument
-	if errors.Is(err, os.ErrNotExist) {
-		kind = sandbox.ErrorKindNotFound
-	}
-	return sandbox.NewError(&sandbox.ErrorInfo{
-		Kind:      kind,
-		Provider:  "blaxel",
-		Operation: operation,
-		Field:     sandbox.FileFieldLocalPath,
-		Message:   err.Error(),
-	}, err)
-}
-
-func mapCallerPathError(err error, operation, localPath string) error {
-	var pathError *os.PathError
-	if errors.As(err, &pathError) && filepath.Clean(pathError.Path) == filepath.Clean(localPath) {
-		return localPathError(pathError, operation)
-	}
-	return mapProviderError(err, operation)
+		Message:   "parents false is not available",
+	})
 }
 
 func blaxelFileInfo(entry blaxel.FilesystemRead, kind sandbox.FileType, operation string) (*sandbox.FileInfo, error) {
 	if entry.Path == "" && entry.Name == "" {
-		return nil, sandbox.NewError(&sandbox.ErrorInfo{
-			Kind:      sandbox.ErrorKindInvalidResponse,
-			Provider:  "blaxel",
-			Operation: operation,
-			Field:     sandbox.FileFieldPath,
-			Message:   "sandbox-kit blaxel: SDK returned no file metadata",
-		}, nil)
+		return nil, invalidResponse(operation, sandbox.FileFieldPath, "SDK returned no file metadata")
 	}
 	result := &sandbox.FileInfo{
 		Name: entry.Name,

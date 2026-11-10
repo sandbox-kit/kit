@@ -7,6 +7,7 @@ import type {
   SandboxLifecycle,
 } from "@blaxel/core";
 import {
+  EgressMode,
   ErrorKind,
   IsolationKind,
   PolicyMode,
@@ -37,6 +38,7 @@ import {
   CreateFieldSourceImageReference,
 } from "@sandbox-kit/sandbox";
 import {
+  mapAllocatedResources,
   mapCommonCreateFields as generatedMapCommonCreateFields,
   mapResources as generatedMapResources,
   mapSandboxIdentity as generatedMapSandboxIdentity,
@@ -94,13 +96,7 @@ function mapRuntime(r: CreateOptions): void {
       CreateFieldRuntimeWorkingDirectory,
       "Blaxel create-time working directory is not mapped",
     );
-  if (
-    v.entrypoint !== undefined ||
-    v.pty !== undefined ||
-    v.user !== undefined ||
-    v.language !== undefined ||
-    v.version !== undefined
-  )
+  if (hasUnsupportedRuntimeFields(v))
     unsupported(
       CreateFieldRuntime,
       "runtime user, language, version, entrypoint, and PTY are not mapped by Blaxel",
@@ -110,11 +106,7 @@ function mapRuntime(r: CreateOptions): void {
 function mapIsolation(r: CreateOptions): void {
   const v = r.isolation;
   if (!v) return;
-  if (
-    (v.kind !== undefined && v.kind !== IsolationKind.Default) ||
-    v.providerKind !== undefined ||
-    v.nestedVirtualization !== undefined
-  )
+  if (hasUnsupportedIsolation(v))
     unsupported(CreateFieldIsolation, "Blaxel isolation class is not mapped");
 }
 
@@ -127,20 +119,7 @@ function mapResources(r: CreateOptions, p: SandboxCreateConfiguration): void {
 function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
   const v = r.network;
   if (!v) return;
-  if (
-    v.egress !== undefined ||
-    v.outboundCidrs !== undefined ||
-    v.inboundCidrs !== undefined ||
-    v.privateNetwork !== undefined ||
-    v.linkedSandbox !== undefined ||
-    v.proxyReference !== undefined ||
-    v.outboundProxyUrl !== undefined ||
-    v.customDomain !== undefined
-  )
-    unsupported(
-      CreateFieldNetwork,
-      "requested network settings are unsupported by Blaxel",
-    );
+  rejectUnsupportedNetwork(v);
 
   if (v.outboundDomains !== undefined) {
     p.network = {
@@ -149,23 +128,41 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
     };
   }
 
-  if (v.ports) {
-    const ports: Port[] = [];
-    for (const x of v.ports) {
-      const port = x.port;
-      if (port === undefined)
-        invalid(CreateFieldNetworkPortsPort, "port is required");
-      if (port === 80 || port === 443 || port === 8080)
-        invalid(
-          CreateFieldNetworkPortsPort,
-          "ports 80, 443, and 8080 are reserved by Blaxel",
-        );
-      const protocol = blaxelPortProtocol(x.transport ?? PortTransport.Default);
-      ports.push(
-        protocol === undefined ? { target: port } : { target: port, protocol },
+  if (v.ports) p.ports = mapPorts(v.ports);
+}
+
+const reservedBlaxelPorts = new Set([80, 443, 8080]);
+
+function mapPorts(
+  bindings: NonNullable<NonNullable<CreateOptions["network"]>["ports"]>,
+): Port[] {
+  const ports: Port[] = [];
+  for (const x of bindings) {
+    const port = x.port;
+    if (port === undefined)
+      invalid(CreateFieldNetworkPortsPort, "port is required");
+    if (reservedBlaxelPorts.has(port))
+      invalid(
+        CreateFieldNetworkPortsPort,
+        "ports 80, 443, and 8080 are reserved by Blaxel",
       );
-    }
-    p.ports = ports;
+    const protocol = blaxelPortProtocol(x.transport ?? PortTransport.Default);
+    ports.push(
+      protocol === undefined ? { target: port } : { target: port, protocol },
+    );
+  }
+  return ports;
+}
+
+/** Default egress is a no-op (matches Go). Everything else here is unsupported. */
+function rejectUnsupportedNetwork(
+  network: NonNullable<CreateOptions["network"]>,
+): void {
+  if (hasUnsupportedNetwork(network)) {
+    unsupported(
+      CreateFieldNetwork,
+      "requested network settings are unsupported by Blaxel",
+    );
   }
 }
 
@@ -185,68 +182,77 @@ function blaxelPortProtocol(
 }
 
 function mapSecurity(r: CreateOptions): void {
-  if (r.security !== undefined)
-    unsupported(CreateFieldSecurity, "Blaxel security settings are not mapped");
+  rejectIfSet(
+    r.security !== undefined,
+    CreateFieldSecurity,
+    "Blaxel security settings are not mapped",
+  );
 }
 
 function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
   const v = r.lifetime;
   if (!v) return;
-  if (
-    v.ephemeral !== undefined ||
-    v.idleStop !== undefined ||
-    v.idlePause !== undefined ||
-    v.stoppedArchive !== undefined ||
-    v.stoppedDelete !== undefined
-  )
+  if (hasUnsupportedLifetimeFields(v))
     unsupported(
       CreateFieldLifetime,
       "requested lifecycle policy is unsupported by Blaxel",
     );
 
   if (v.maximumLifetime !== undefined) {
-    p.ttl = durationString(
-      v.maximumLifetime,
-      CreateFieldLifetimeMaximumLifetime,
-      5 * 60_000,
-    );
+    p.ttl = durationString({
+      ms: v.maximumLifetime,
+      field: CreateFieldLifetimeMaximumLifetime,
+      minimumMs: 5 * 60_000,
+    });
   }
 
   if (v.idleTerminate) {
-    const mode = v.idleTerminate.mode ?? PolicyMode.Default;
-    if (mode === PolicyMode.Disabled) {
-      unsupported(
-        CreateFieldLifetimeIdleTerminate,
-        "disabling idle terminate is not representable",
-      );
-    } else if (mode === PolicyMode.After) {
-      if (v.idleTerminate.after === undefined)
-        invalid(CreateFieldLifetimeIdleTerminateAfter, "duration is required");
-      const value = durationString(
-        v.idleTerminate.after,
-        CreateFieldLifetimeIdleTerminateAfter,
-        60_000,
-      );
-      const lifecycle: SandboxLifecycle = {
-        expirationPolicies: [{ type: "ttl-idle", action: "delete", value }],
-      };
-      p.lifecycle = lifecycle;
-    } else if (mode !== PolicyMode.Default)
-      invalid(CreateFieldLifetimeIdleTerminateMode, "unknown policy mode");
+    const lifecycle = mapIdleTerminate(v.idleTerminate);
+    if (lifecycle !== undefined) p.lifecycle = lifecycle;
   }
 }
 
+function mapIdleTerminate(
+  action: NonNullable<NonNullable<CreateOptions["lifetime"]>["idleTerminate"]>,
+): SandboxLifecycle | undefined {
+  const mode = action.mode ?? PolicyMode.Default;
+  if (mode === PolicyMode.Disabled) {
+    unsupported(
+      CreateFieldLifetimeIdleTerminate,
+      "disabling idle terminate is not representable",
+    );
+  }
+  if (mode === PolicyMode.After) {
+    if (action.after === undefined)
+      invalid(CreateFieldLifetimeIdleTerminateAfter, "duration is required");
+    const value = durationString({
+      ms: action.after,
+      field: CreateFieldLifetimeIdleTerminateAfter,
+      minimumMs: 60_000,
+    });
+    return {
+      expirationPolicies: [{ type: "ttl-idle", action: "delete", value }],
+    };
+  }
+  if (mode !== PolicyMode.Default)
+    invalid(CreateFieldLifetimeIdleTerminateMode, "unknown policy mode");
+  return undefined;
+}
+
 function mapReadiness(r: CreateOptions): void {
-  if (r.readiness !== undefined)
-    unsupported(CreateFieldReadiness, "Blaxel readiness probes are not mapped");
+  rejectIfSet(
+    r.readiness !== undefined,
+    CreateFieldReadiness,
+    "Blaxel readiness probes are not mapped",
+  );
 }
 
 function mapObservability(r: CreateOptions): void {
-  if (r.observability !== undefined)
-    unsupported(
-      CreateFieldObservability,
-      "Blaxel observability settings are not mapped",
-    );
+  rejectIfSet(
+    r.observability !== undefined,
+    CreateFieldObservability,
+    "Blaxel observability settings are not mapped",
+  );
 }
 
 // Kit Client.create applies provisioning.timeout as the abort deadline.
@@ -289,6 +295,8 @@ export function mapSandboxInfo(
   if (mapped.region !== undefined) mutable(result).region = mapped.region;
   if (mapped.providerState !== undefined)
     mutable(result).providerState = mapped.providerState;
+  const resources = mapAllocatedResources(value);
+  if (resources !== undefined) mutable(result).resources = resources;
   return result;
 }
 
@@ -303,8 +311,15 @@ function nonblank(v: string, f: string): string {
   return v;
 }
 
+interface DurationStringArgs {
+  ms: number;
+  field: string;
+  minimumMs: number;
+}
+
 /** Converts Kit millisecond durations into Blaxel duration strings (s/m/h/d). */
-function durationString(ms: number, field: string, minimumMs: number): string {
+function durationString(args: DurationStringArgs): string {
+  const { ms, field, minimumMs } = args;
   if (!Number.isFinite(ms) || ms <= 0 || ms % 1_000 !== 0)
     invalid(field, "must be a whole number of seconds");
   if (ms < minimumMs) invalid(field, "is below the Blaxel minimum duration");
@@ -313,6 +328,68 @@ function durationString(ms: number, field: string, minimumMs: number): string {
   if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
   if (seconds % 60 === 0) return `${seconds / 60}m`;
   return `${seconds}s`;
+}
+
+function rejectIfSet(set: boolean, field: string, message: string): void {
+  if (set) unsupported(field, message);
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
+function hasUnsupportedRuntimeFields(
+  runtime: NonNullable<CreateOptions["runtime"]>,
+): boolean {
+  return [
+    runtime.entrypoint,
+    runtime.pty,
+    runtime.user,
+    runtime.language,
+    runtime.version,
+  ].some(isDefined);
+}
+
+function hasUnsupportedIsolation(
+  isolation: NonNullable<CreateOptions["isolation"]>,
+): boolean {
+  return (
+    (isolation.kind !== undefined &&
+      isolation.kind !== IsolationKind.Default) ||
+    isolation.providerKind !== undefined ||
+    isolation.nestedVirtualization !== undefined
+  );
+}
+
+function hasUnsupportedLifetimeFields(
+  lifetime: NonNullable<CreateOptions["lifetime"]>,
+): boolean {
+  return [
+    lifetime.ephemeral,
+    lifetime.idleStop,
+    lifetime.idlePause,
+    lifetime.stoppedArchive,
+    lifetime.stoppedDelete,
+  ].some(isDefined);
+}
+
+function hasUnsupportedNetwork(
+  network: NonNullable<CreateOptions["network"]>,
+): boolean {
+  const nonDefaultEgress =
+    network.egress !== undefined && network.egress !== EgressMode.Default;
+  return (
+    nonDefaultEgress ||
+    [
+      network.outboundCidrs,
+      network.inboundCidrs,
+      network.privateNetwork,
+      network.linkedSandbox,
+      network.proxyReference,
+      network.outboundProxyUrl,
+      network.customDomain,
+    ].some(isDefined)
+  );
 }
 
 function invalid(field: string, message: string): never {

@@ -17,7 +17,7 @@ import type {
   Config as NativeClientConfig,
   SandboxCreateConfiguration,
 } from "@blaxel/core";
-import { providerError, type ProviderErrorInput } from "#errors.js";
+import { providerError } from "#errors.js";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
@@ -31,7 +31,10 @@ export interface BlaxelSandboxIdentity {
   readonly status?: unknown;
   /** Runtime state (RUNNING / STANDBY). */
   readonly state?: unknown;
-  readonly spec?: { readonly region?: string };
+  readonly spec?: {
+    readonly region?: string;
+    readonly runtime?: { readonly memory?: number };
+  };
 }
 
 export function mapSandboxIdentity(
@@ -97,7 +100,7 @@ export function mapResources(
   if (source.memoryMib !== undefined) {
     const value = source.memoryMib;
     if (value === 0n || value > BigInt(Number.MAX_SAFE_INTEGER))
-      mappingError({
+      providerError({
         kind: ErrorKind.InvalidArgument,
         field: CreateFieldResourcesMemoryMib,
         message: "memory_mib cannot be represented",
@@ -116,6 +119,17 @@ export function mapAPIKeyCredentials(
   if (source === undefined) return target;
   target.apiKey = source.key;
   return target;
+}
+
+/** Maps native Blaxel memory (MB) onto Kit `resources.memoryMib` 1:1. */
+export function mapAllocatedResources(
+  source: BlaxelSandboxIdentity | undefined,
+): Resources | undefined {
+  const memory = source?.spec?.runtime?.memory;
+  if (memory === undefined || !Number.isFinite(memory) || memory <= 0) {
+    return undefined;
+  }
+  return { memoryMib: BigInt(Math.trunc(memory)) };
 }
 
 function runtimeState(source: BlaxelSandboxIdentity): string | undefined {
@@ -172,8 +186,4 @@ function mapSandboxState(
           return undefined;
       }
   }
-}
-
-function mappingError(input: ProviderErrorInput): never {
-  providerError(input);
 }
