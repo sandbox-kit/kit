@@ -1,0 +1,65 @@
+now we want to integrate blaxel can u have a look for both typescript and golang sdk
+
+check if u need anything from me. and decision u need from me
+
+---
+
+cool go ahead with what u recommend. 
+
++ we need to ship this in cloud agents of cursor
+
+---
+
+Build
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+stop
+
+---
+
+can u help me how to add cloud agents cursor in repo ?
+
+---
+
+I have done can u start working by creating branch in cloud + previous local-workftree u should delete ig.
+
+---
+
+cool this is on going ? right I can off the ide and internet and still work ?
+
+---
+
+when it finishes it will make PR ?
+
+---
+
+I think it finished ?
+
+---
+
+once its done can u start other. I am closing my laptop so u might need to setup schedule by starting the sandbox or cloud rn ?
+
+---
+
+once its done can u start others. I am closing my laptop so u might need to setup schedule by starting the sandbox or cloud rn ?
+
+---
+
+can I off my laptop ?
+
+---
+
+cool can u look pr and all the cloud agents chat session. and latest merged pr in this branch. 
+
+lemme know whats all implemented. and what are the bugs currently and what are the stuff which needs improvement u can go and verify along with reference sdk u have.
+
+---
+
+go ahead implement it here not in cloud agent.s
