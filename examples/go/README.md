@@ -13,8 +13,9 @@ cp .env.example .env
 go run .
 ```
 
-Skip copying if `.env` already exists. Programs load `.env` with `godotenv`;
-shell variables win. The SDK does not load files. Modal app setup:
+Skip copying if `.env` already exists. Programs load only that project’s
+`.env` with `godotenv` (it does not override existing shell env). There is no
+provider-level `.env`. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
 Blaxel setup: [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 

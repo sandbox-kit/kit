@@ -20,6 +20,8 @@ npm run build
 npm start
 ```
 
+`npm start` loads only that project’s `.env` via `--env-file-if-exists` (it
+does not override existing shell env). There is no provider-level `.env`.
 Creation examples provision real cloud resources. Filesystem, process, and lifecycle
 examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
 the client closes your connection to Daytona, Modal, or Blaxel. Modal setup:
