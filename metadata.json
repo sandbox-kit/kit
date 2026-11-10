@@ -1,0 +1,47 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M72VM0WBGMGGMHV8XVMWYNVN",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 9,
+  "files_touched": [
+    "docs/process.md",
+    "examples/go/blaxel/configuration/create-blaxel-with-ports/README.md",
+    "examples/go/blaxel/process/run-blaxel-with-timeout/README.md",
+    "examples/typescript/blaxel/configuration/create-blaxel-with-ports/README.md",
+    "examples/typescript/blaxel/process/run-blaxel-with-timeout/README.md",
+    "sdks/go/providers/blaxel/README.md",
+    "sdks/go/providers/blaxel/creation.go",
+    "sdks/go/providers/blaxel/process.go",
+    "sdks/go/providers/blaxel/process_test.go",
+    "sdks/go/providers/blaxel/rejection_test.go",
+    "sdks/go/sandbox/sandbox_data_contracts.go",
+    "sdks/typescript/providers/blaxel/README.md",
+    "sdks/typescript/providers/blaxel/src/blaxel.test.ts",
+    "sdks/typescript/providers/blaxel/src/blaxel.ts",
+    "sdks/typescript/providers/blaxel/src/errors.ts",
+    "sdks/typescript/providers/blaxel/src/mappings/mappings.ts",
+    "website/content/docs/blaxel.mdx",
+    "website/content/docs/create.mdx",
+    "website/content/docs/process.mdx",
+    "website/content/docs/sdk/create-options.mdx",
+    "website/content/docs/sdk/enums.mdx",
+    "website/content/docs/sdk/process.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 113138,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1635200,
+    "output_tokens": 14449,
+    "api_call_count": 1
+  }
+}
