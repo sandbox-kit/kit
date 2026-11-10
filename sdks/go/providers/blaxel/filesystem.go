@@ -122,6 +122,9 @@ func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOpti
 	if err != nil {
 		return nil, err
 	}
+	// SandboxInstanceFSService has no public Get/Stat; metadata is on the lower
+	// SandboxFilesystemService. Rebuild with the instance base URL so Stat uses
+	// the same sandbox endpoint as instance.FS without private-field access.
 	fs := b.filesystemService(instance)
 	res, err := fs.Get(ctx, path, blaxel.SandboxFilesystemGetParams{})
 	if err != nil {

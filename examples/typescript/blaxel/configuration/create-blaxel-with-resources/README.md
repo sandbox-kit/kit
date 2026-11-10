@@ -4,12 +4,11 @@ Create one Blaxel sandbox with an explicit memory size in MiB. Blaxel derives CP
 
 ## What this means
 
-Only `resources.memoryMib` is mapped. CPU cores, limits, and disk MiB overrides are rejected. Blaxel requires at least 256 MiB when memory is set.
+Only `resources.memoryMib` is mapped. CPU cores, limits, and disk MiB overrides are rejected. Omitted memory keeps the Blaxel default.
 
 ## Edge cases
 
-- Omitted memory keeps the Blaxel default.
-- Fractional or sub-256 MiB values fail validation.
+- Memory values that Blaxel rejects are returned as provider errors.
 
 ## Run
 

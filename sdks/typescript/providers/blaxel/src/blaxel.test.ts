@@ -14,7 +14,8 @@ import {
   CreateFieldLifetimeIdleTerminate,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldName,
-  CreateFieldResourcesMemoryMib,
+  CreateFieldNetworkPortsPort,
+  CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
 } from "@sandbox-kit/sandbox";
 import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
@@ -116,7 +117,6 @@ describe("Blaxel mappings", () => {
         },
         provisioning: {
           timeout: 30_000,
-          waitFor: WaitCondition.Ready,
         },
         labels: { purpose: "test" },
         environment: { NODE_ENV: "test" },
@@ -124,8 +124,6 @@ describe("Blaxel mappings", () => {
       { scope: { workspace: "ws" }, region: "us-pdx-1" },
     );
     expect(plan).toMatchObject({
-      waitUntilReady: true,
-      readyTimeoutMs: 30_000,
       options: { timeout: 30 },
       params: {
         name: "example",
@@ -146,8 +144,8 @@ describe("Blaxel mappings", () => {
     });
   });
 
-  it("rejects memory below the Blaxel floor", () => {
-    expect(() =>
+  it("maps memory without a Kit-side floor", () => {
+    expect(
       mapCreateRequest(
         {
           name: "example",
@@ -155,14 +153,48 @@ describe("Blaxel mappings", () => {
           resources: { memoryMib: 128n },
         },
         { scope: { workspace: "ws" } },
+      ).params.memory,
+    ).toBe(128);
+    expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4096 });
+  });
+
+  it("rejects WaitCondition.Ready", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          provisioning: {
+            timeout: 30_000,
+            waitFor: WaitCondition.Ready,
+          },
+        },
+        { scope: { workspace: "ws" } },
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldProvisioningWaitFor,
+      }),
+    );
+  });
+
+  it("rejects Blaxel-reserved ports", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          network: { ports: [{ port: 443, transport: PortTransport.Tls }] },
+        },
+        { scope: { workspace: "ws" } },
       ),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
-        field: CreateFieldResourcesMemoryMib,
+        field: CreateFieldNetworkPortsPort,
       }),
     );
-    expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4096 });
   });
 
   it("rejects lifetime durations that are not whole seconds", () => {

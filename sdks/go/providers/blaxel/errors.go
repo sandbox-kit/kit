@@ -52,6 +52,9 @@ func mapProviderError(err error, operation string) error {
 				kind = sandbox.ErrorKindResourceExhausted
 			case sdkblaxel.ErrBadRequest, sdkblaxel.ErrPolicyViolation:
 				kind = sandbox.ErrorKindInvalidArgument
+			case "SANDBOX_ALREADY_EXISTS", "VOLUME_ALREADY_ATTACHED":
+				// Control-plane codes (not in gateway apierror constants).
+				kind = sandbox.ErrorKindAlreadyExists
 			}
 		}
 		if kind == sandbox.ErrorKindUnknown {
