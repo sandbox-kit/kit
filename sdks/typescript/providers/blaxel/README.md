@@ -99,8 +99,8 @@ overwrites the first.
 
 ## Examples
 
-| Example       | Project                                                                                                                                              |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Example       | Project                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Creation      | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
 | Run a command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-command)             |
 | Process       | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process)                                  |

@@ -104,8 +104,8 @@ fields; Blaxel volumes are outside create.
 
 ## Examples
 
-| Operation                | Program                                                                                                                                      |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Operation                | Program                                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | Create                   | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-sandbox) |
 | Run a command            | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-command)             |
 | Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process)                                  |
