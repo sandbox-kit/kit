@@ -7,3 +7,7 @@ expliain with example + if thre is anythin we must fix lemme know
 ---
 
 whatever u recommend to fix do it rn.
+
+---
+
+okay also verify if there are any other things whcih is weird and u want to let me know after pushthing this changes to branch
