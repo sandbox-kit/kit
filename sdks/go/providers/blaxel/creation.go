@@ -47,6 +47,7 @@ func planCreate(request *sandbox.CreateOptions, region string) (createPlan, erro
 		planned.security,
 		planned.network,
 		planned.provisioning,
+		planned.readiness,
 		planned.observability,
 	} {
 		if err := apply(); err != nil {
@@ -256,27 +257,31 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	if config.Timeout != nil {
-		timeout := config.Timeout.AsDuration()
-		if timeout < 0 || timeout%time.Second != 0 {
-			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldProvisioningTimeout, "timeout must be a whole number of seconds")
-		}
-		// Blaxel create does not accept a create-wait timeout on NewInstance.
-		if timeout > 0 {
-			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningTimeout, "Blaxel create timeout is not mapped")
-		}
-	}
+	// Client.Create already applies this as the context deadline. Blaxel has no
+	// separate native create-wait timeout on NewInstance.
 	config.Timeout = nil
-	if config.QueueTimeout != nil || config.WaitFor != sandbox.WaitConditionDefault {
-		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioning, "Blaxel provisioning wait settings are not mapped")
+	if config.QueueTimeout != nil {
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningQueueTimeout, "Blaxel queue timeout is unsupported")
 	}
 	config.QueueTimeout = nil
+	switch config.WaitFor {
+	case sandbox.WaitConditionDefault, sandbox.WaitConditionScheduled:
+	default:
+		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningWaitFor, "requested wait condition is unsupported")
+	}
 	config.WaitFor = 0
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldProvisioning, config); err != nil {
 		return err
 	}
 	c.rest.Provisioning = nil
 	return nil
+}
+
+func (c *creation) readiness() error {
+	if c.request.Readiness == nil {
+		return nil
+	}
+	return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldReadiness, "Blaxel readiness probes are not mapped")
 }
 
 func (c *creation) observability() error {

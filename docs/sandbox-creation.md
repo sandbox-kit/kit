@@ -26,10 +26,11 @@ Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
 
 
 Blaxel create requires a nonblank name, an image source, and a client
-`region`. It maps memory MiB, labels, environment, ports, outbound domains,
-maximum lifetime, and idle terminate. CPU/disk overrides, placement, runtime,
-isolation, security, provisioning create timeout, and most egress modes are
-rejected.
+`region`. It maps `memory_mib` (passed through as Blaxel megabytes with no
+conversion), labels, environment, ports, outbound domains, maximum lifetime,
+and idle terminate. CPU/disk overrides, placement, non-default isolation,
+runtime overrides, security, readiness, queue timeout, Ready wait, and most
+egress modes are rejected. Kit client/create timeout is the create deadline.
 
 Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
 pools and explicit snapshot kinds are unavailable. A field the provider does

@@ -16,7 +16,6 @@ import {
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldName,
   CreateFieldNetworkPortsPort,
-  CreateFieldProvisioningTimeout,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
 } from "@sandbox-kit/sandbox";
@@ -178,7 +177,7 @@ describe("Blaxel mappings", () => {
     expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4096 });
   });
 
-  it("rejects create timeout", () => {
+  it("accepts kit create timeout as the client deadline", () => {
     expect(() =>
       mapCreateRequest(
         {
@@ -188,12 +187,7 @@ describe("Blaxel mappings", () => {
         },
         provider,
       ),
-    ).toThrowError(
-      expect.objectContaining({
-        kind: ErrorKind.Unsupported,
-        field: CreateFieldProvisioningTimeout,
-      }),
-    );
+    ).not.toThrow();
   });
 
   it("rejects WaitCondition.Ready", () => {
@@ -351,7 +345,8 @@ describe("Blaxel provider orchestration", () => {
     let configured: unknown;
     const nativeSandbox = {
       metadata: { name: "example" },
-      status: "RUNNING",
+      status: "DEPLOYED",
+      state: "RUNNING",
       spec: { region: "us-pdx-1" },
       fs: {} as never,
       process: {} as never,
@@ -411,7 +406,8 @@ describe("Blaxel provider orchestration", () => {
         lookedUp = name;
         return {
           metadata: { name },
-          status: "RUNNING",
+          status: "DEPLOYED",
+          state: "RUNNING",
           fs: {} as never,
           process: {} as never,
           async wait() {

@@ -96,7 +96,7 @@ export function mapResources(
   if (source === undefined) return target;
   if (source.memoryMib !== undefined) {
     const value = source.memoryMib;
-    if (value > BigInt(Number.MAX_SAFE_INTEGER))
+    if (value === 0n || value > BigInt(Number.MAX_SAFE_INTEGER))
       mappingError({
         kind: ErrorKind.InvalidArgument,
         field: CreateFieldResourcesMemoryMib,

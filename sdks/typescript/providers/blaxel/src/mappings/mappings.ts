@@ -8,6 +8,7 @@ import type {
 } from "@blaxel/core";
 import {
   ErrorKind,
+  IsolationKind,
   PolicyMode,
   PortTransport,
   SandboxState,
@@ -27,15 +28,12 @@ import {
   CreateFieldNetworkPortsPort,
   CreateFieldNetworkPortsTransport,
   CreateFieldObservability,
-  CreateFieldPlacement,
   CreateFieldProvisioningQueueTimeout,
-  CreateFieldProvisioningTimeout,
   CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
-  CreateFieldResources,
   CreateFieldRuntime,
+  CreateFieldRuntimeWorkingDirectory,
   CreateFieldSecurity,
-  CreateFieldSource,
   CreateFieldSourceImageReference,
 } from "@sandbox-kit/sandbox";
 import {
@@ -63,19 +61,15 @@ export function mapCreateRequest(
   config: ProviderState,
 ): BlaxelCreatePlan {
   validateProviderCreate(request);
-  if (request.name === undefined)
-    invalid(CreateFieldName, "Blaxel requires an explicit sandbox name");
-  if (request.source?.image === undefined)
-    unsupported(CreateFieldSource, "Blaxel requires an explicit image source");
   if (config.region === undefined || config.region.trim() === "")
     invalid(ConfigFieldRegion, "Config.region is required");
 
   const params: SandboxCreateConfiguration = generatedMapCommonCreateFields(
     request,
   );
-  params.name = nonblank(request.name, CreateFieldName);
+  params.name = nonblank(request.name!, CreateFieldName);
   params.image = nonblank(
-    request.source.image.reference,
+    request.source!.image!.reference,
     CreateFieldSourceImageReference,
   );
   params.region = nonblank(config.region, ConfigFieldRegion);
@@ -83,7 +77,6 @@ export function mapCreateRequest(
   mapRuntime(request);
   mapIsolation(request);
   mapResources(request, params);
-  mapPlacement(request);
   mapNetwork(request, params);
   mapSecurity(request);
   mapLifetime(request, params);
@@ -95,16 +88,35 @@ export function mapCreateRequest(
 }
 
 function mapRuntime(r: CreateOptions): void {
-  if (r.runtime !== undefined)
+  const v = r.runtime;
+  if (!v) return;
+  if (v.workingDirectory !== undefined)
+    unsupported(
+      CreateFieldRuntimeWorkingDirectory,
+      "Blaxel create-time working directory is not mapped",
+    );
+  if (
+    v.entrypoint !== undefined ||
+    v.pty !== undefined ||
+    v.user !== undefined ||
+    v.language !== undefined ||
+    v.version !== undefined
+  )
     unsupported(
       CreateFieldRuntime,
-      "runtime settings must come from the Blaxel image",
+      "runtime user, language, version, entrypoint, and PTY are not mapped by Blaxel",
     );
 }
 
 function mapIsolation(r: CreateOptions): void {
-  if (r.isolation !== undefined)
-    unsupported(CreateFieldIsolation, "Blaxel isolation is not configurable");
+  const v = r.isolation;
+  if (!v) return;
+  if (
+    (v.kind !== undefined && v.kind !== IsolationKind.Default) ||
+    v.providerKind !== undefined ||
+    v.nestedVirtualization !== undefined
+  )
+    unsupported(CreateFieldIsolation, "Blaxel isolation class is not mapped");
 }
 
 function mapResources(
@@ -113,25 +125,7 @@ function mapResources(
 ): void {
   const v = r.resources;
   if (!v) return;
-  if (
-    v.cpuCores !== undefined ||
-    v.cpuLimitCores !== undefined ||
-    v.memoryLimitMib !== undefined ||
-    v.diskMib !== undefined
-  )
-    unsupported(
-      CreateFieldResources,
-      "Blaxel only maps resources.memory_mib; CPU follows memory",
-    );
   Object.assign(p, generatedMapResources(v));
-}
-
-function mapPlacement(r: CreateOptions): void {
-  if (r.placement !== undefined)
-    unsupported(
-      CreateFieldPlacement,
-      "set client region instead of create placement",
-    );
 }
 
 function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
@@ -190,6 +184,7 @@ function blaxelPortProtocol(
   )
     return "TCP";
   if (transport === PortTransport.Tls) return "TLS";
+  // Blaxel exposes HTTP (not H2). Kit HTTP/2+TLS maps to that HTTP protocol.
   if (transport === PortTransport.Http2Tls) return "HTTP";
   invalid(
     CreateFieldNetworkPortsTransport,
@@ -265,9 +260,8 @@ function mapObservability(r: CreateOptions): void {
     );
 }
 
-// mapProvisioning rejects create timeout until both languages share a native
-// mapping. WaitCondition.Ready is rejected: @blaxel/core sandbox.wait() is a
-// deprecated no-op.
+// Kit Client.create applies provisioning.timeout as the abort deadline.
+// Blaxel has no separate native create-wait timeout beyond that.
 function mapProvisioning(r: CreateOptions): void {
   const v = r.provisioning;
   if (!v) return;
@@ -276,19 +270,6 @@ function mapProvisioning(r: CreateOptions): void {
       CreateFieldProvisioningQueueTimeout,
       "Blaxel queue timeout is unsupported",
     );
-
-  if (v.timeout !== undefined) {
-    const seconds = wholeSeconds(
-      v.timeout,
-      "create",
-      CreateFieldProvisioningTimeout,
-    );
-    if (seconds !== undefined && seconds > 0)
-      unsupported(
-        CreateFieldProvisioningTimeout,
-        "Blaxel create timeout is not mapped",
-      );
-  }
 
   const waitFor = v.waitFor ?? WaitCondition.Default;
   if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled)
@@ -308,7 +289,7 @@ export function mapSandboxInfo(
   const result: SandboxInfo = {
     id,
     provider: "blaxel",
-    state: mapped.state ?? SandboxState.Running,
+    state: mapped.state ?? SandboxState.Unknown,
     labels: mapped.labels ?? {},
   };
   if (mapped.name !== undefined) mutable(result).name = mapped.name;
@@ -343,22 +324,6 @@ function durationString(ms: number, field: string, minimumMs: number): string {
   if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;
   if (seconds % 60 === 0) return `${seconds / 60}m`;
   return `${seconds}s`;
-}
-
-function wholeSeconds(
-  value: number | undefined,
-  operation: string,
-  field: string,
-): number | undefined {
-  if (value === undefined) return undefined;
-  if (!Number.isFinite(value) || value < 0 || value % 1_000 !== 0)
-    providerError({
-      kind: ErrorKind.InvalidArgument,
-      operation,
-      field,
-      message: "timeout must be a whole number of seconds",
-    });
-  return value / 1_000;
 }
 
 function invalid(field: string, message: string): never {

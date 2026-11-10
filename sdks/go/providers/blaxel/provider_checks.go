@@ -1,8 +1,12 @@
 package blaxel
 
 import (
+	"regexp"
+
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
+
+var providerEnvNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // validateProviderCreate rejects creation settings this provider cannot honor.
 // It runs before the native create call.
@@ -37,6 +41,11 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		}
 		if resources.DiskMib != nil {
 			return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResourcesDiskMib, "Blaxel disk size is not mapped as MiB")
+		}
+	}
+	for name := range request.Environment {
+		if !providerEnvNamePattern.MatchString(name) {
+			return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldEnvironment, "environment is outside supported values")
 		}
 	}
 	return nil

@@ -54,6 +54,7 @@ sandbox. Call `Delete`, or set a lifetime policy.
 | API key   | `Auth` with `APIKey`                   |
 | Workspace | `Scope.Workspace`                      |
 | Region    | `Config.Region` (required for create)  |
+| Timeout   | `Config.Timeout` (create/op deadline)  |
 
 `Config.Endpoint` is not supported. Token pair, OAuth, and bearer auth are
 rejected. `Scope` fields other than `Workspace` are rejected.
@@ -63,8 +64,9 @@ rejected. `Scope` fields other than `Workspace` are rejected.
 Create from a registry image with an explicit name. You can set labels,
 environment variables, memory, ports, outbound domains, maximum lifetime, and
 idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
-Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Create provisioning
-timeout is not mapped.
+Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Kit
+`Config.Timeout` / create call timeout is the create deadline; Blaxel has no
+separate native create-wait timeout. `WaitConditionReady` is rejected.
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and
@@ -85,8 +87,9 @@ exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
 stderr. Omit or zero `Timeout` for no Blaxel command limit. Command timeouts
 must be whole seconds. Cancel the context to stop waiting.
 
-Memory is allocated in MiB. Blaxel derives CPU from memory, so `cpu_cores` and
-disk MiB overrides are rejected.
+`resources.memory_mib` is passed through as Blaxel's memory integer (SDK unit:
+megabytes) with no conversion. Blaxel derives CPU from that value, so
+`cpu_cores` and disk overrides are rejected.
 
 ## License
 

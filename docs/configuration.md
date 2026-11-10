@@ -87,7 +87,8 @@ deadline or abort signal that arrives earlier still applies.
 Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
-operation timeout.
+operation timeout. Blaxel uses the Kit deadline only; it has no separate
+native create-wait timeout.
 
 ## Credentials
 

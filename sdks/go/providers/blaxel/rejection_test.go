@@ -204,16 +204,43 @@ func TestMissingRegionRejected(t *testing.T) {
 	}
 }
 
-func TestCreateTimeoutRejected(t *testing.T) {
-	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+func TestCreateTimeoutAcceptedAsKitDeadline(t *testing.T) {
+	// Shared Client.Create injects Config.Timeout into provisioning.timeout and
+	// applies it as the context deadline. Blaxel must not reject that field.
+	if _, err := planCreate(namedImage(&sandbox.CreateOptions{
 		Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(30 * time.Second)},
+	}), "us-pdx-1"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestReadinessRejected(t *testing.T) {
+	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Readiness: &sandbox.ReadinessProbe{Check: &sandbox.TCPPort{TcpPort: 8080}},
 	}), "us-pdx-1")
 	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != sandbox.CreateFieldProvisioningTimeout {
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != sandbox.CreateFieldReadiness {
 		t.Fatalf("error = %v detail = %#v", err, detail)
 	}
-	if detail.Message != "sandbox-kit blaxel: Blaxel create timeout is not mapped" {
-		t.Fatalf("message = %q", detail.Message)
+}
+
+func TestWaitForReadyRejected(t *testing.T) {
+	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Provisioning: &sandbox.ProvisioningOptions{WaitFor: sandbox.WaitConditionReady},
+	}), "us-pdx-1")
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != sandbox.CreateFieldProvisioningWaitFor {
+		t.Fatalf("error = %v detail = %#v", err, detail)
+	}
+}
+
+func TestInvalidEnvironmentNameRejected(t *testing.T) {
+	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Environment: map[string]string{"NOT VALID": "value"},
+	}), "us-pdx-1")
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.CreateFieldEnvironment {
+		t.Fatalf("error = %v detail = %#v", err, detail)
 	}
 }
 

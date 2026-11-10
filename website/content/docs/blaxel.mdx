@@ -111,6 +111,10 @@ func main() {
 | Filesystem | Shared eight methods; absolute sandbox paths                          |
 | Process    | Blocking `run` with argv or shell                                     |
 
+`resources.memoryMib` / `memory_mib` is sent as Blaxel's memory integer
+(megabytes) with no unit conversion. Client `timeout` is the create/operation
+deadline; Ready wait and readiness probes are unsupported.
+
 Closing the client closes your connection to Blaxel. Closing a handle leaves the sandbox as it is.
 
 ## Next

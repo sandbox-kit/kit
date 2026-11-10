@@ -11,14 +11,16 @@ import {
   CreateFieldObservability,
   CreateFieldPlacement,
   CreateFieldProvisioningQueueTimeout,
-  CreateFieldProvisioningTimeout,
+  CreateFieldProvisioningWaitFor,
   CreateFieldReadiness,
-  CreateFieldResources,
+  CreateFieldResourcesCpuCores,
+  CreateFieldResourcesDiskMib,
   CreateFieldRuntime,
   CreateFieldSecurity,
-  CreateFieldSource,
+  CreateFieldSourceImage,
   ErrorKind,
   IsolationKind,
+  WaitCondition,
   type Config,
   type CreateOptions,
 } from "@sandbox-kit/sandbox";
@@ -39,13 +41,13 @@ describe("rejected Blaxel create settings", () => {
       name: "cpu resources",
       request: { resources: { cpuCores: 1 } },
       kind: ErrorKind.Unsupported,
-      field: CreateFieldResources,
+      field: CreateFieldResourcesCpuCores,
     },
     {
       name: "disk",
       request: { resources: { diskMib: 1024n } },
       kind: ErrorKind.Unsupported,
-      field: CreateFieldResources,
+      field: CreateFieldResourcesDiskMib,
     },
     {
       name: "placement",
@@ -60,10 +62,10 @@ describe("rejected Blaxel create settings", () => {
       field: CreateFieldProvisioningQueueTimeout,
     },
     {
-      name: "create timeout",
-      request: { provisioning: { timeout: 30_000 } },
+      name: "wait for ready",
+      request: { provisioning: { waitFor: WaitCondition.Ready } },
       kind: ErrorKind.Unsupported,
-      field: CreateFieldProvisioningTimeout,
+      field: CreateFieldProvisioningWaitFor,
     },
     {
       name: "readiness",
@@ -98,13 +100,13 @@ describe("rejected Blaxel create settings", () => {
       field: CreateFieldLifetime,
     },
     {
-      name: "runtime",
+      name: "runtime language",
       request: { runtime: { language: "python" } },
       kind: ErrorKind.Unsupported,
       field: CreateFieldRuntime,
     },
     {
-      name: "isolation",
+      name: "isolation container",
       request: { isolation: { kind: IsolationKind.Container } },
       kind: ErrorKind.Unsupported,
       field: CreateFieldIsolation,
@@ -128,8 +130,8 @@ describe("rejected Blaxel create settings", () => {
   it("missing image", () => {
     expect(() => mapCreateRequest({ name: "box" }, provider)).toThrowError(
       expect.objectContaining({
-        kind: ErrorKind.Unsupported,
-        field: CreateFieldSource,
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldSourceImage,
       }),
     );
   });
@@ -143,6 +145,24 @@ describe("rejected Blaxel create settings", () => {
         field: ConfigFieldRegion,
       }),
     );
+  });
+
+  it("accepts kit create timeout as deadline", () => {
+    expect(() =>
+      mapCreateRequest(
+        namedImage({ provisioning: { timeout: 30_000 } }),
+        provider,
+      ),
+    ).not.toThrow();
+  });
+
+  it("accepts default isolation", () => {
+    expect(() =>
+      mapCreateRequest(
+        namedImage({ isolation: { kind: IsolationKind.Default } }),
+        provider,
+      ),
+    ).not.toThrow();
   });
 
   for (const item of cases) {

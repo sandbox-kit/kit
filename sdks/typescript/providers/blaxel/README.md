@@ -53,12 +53,14 @@ than `workspace` are rejected.
 ## What you can do
 
 **Create** requires a nonblank `name`, an image source, and client `region`.
-Optional memory (MiB; Blaxel CPU follows memory), labels, environment
-variables, ports, outbound domains, max-age TTL (at least 5m), and idle-delete
-policy (at least 1m; explicit disable is rejected).
-`provisioning.timeout` and `provisioning.waitFor` Ready are unsupported.
-Creation calls native `SandboxInstance.create`, not `createIfNotExists`.
-Ports 80, 443, and 8080 are rejected (Blaxel-reserved).
+Optional memory (`memoryMib` number is sent as Blaxel megabytes with no
+conversion; Blaxel CPU follows memory), labels, environment variables, ports,
+outbound domains, max-age TTL (at least 5m), and idle-delete policy (at least
+1m; explicit disable is rejected). Client / create `timeout` is the Kit
+deadline; Blaxel has no separate native create-wait timeout.
+`provisioning.waitFor` Ready is unsupported. Creation calls native
+`SandboxInstance.create`, not `createIfNotExists`. Ports 80, 443, and 8080 are
+rejected (Blaxel-reserved).
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,

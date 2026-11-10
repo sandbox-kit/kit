@@ -40,43 +40,55 @@ func mapProviderError(err error, operation string) error {
 		}
 		if kind == sandbox.ErrorKindUnknown {
 			switch native.ErrorCode {
-			case sdkblaxel.ErrAuthenticationRequired, sdkblaxel.ErrAuthenticationFailed:
+			case sdkblaxel.ErrAuthenticationRequired, sdkblaxel.ErrAuthenticationFailed, "TOKEN_REVOKED":
 				kind = sandbox.ErrorKindAuthentication
-			case sdkblaxel.ErrForbidden:
+			case sdkblaxel.ErrForbidden, "UNAUTHORIZED", "UNAUTHORIZED_WORKSPACE":
 				kind = sandbox.ErrorKindPermissionDenied
-			case sdkblaxel.ErrRouteNotFound, sdkblaxel.ErrWorkloadNotFound, sdkblaxel.ErrWorkspaceNotFound:
+			case sdkblaxel.ErrRouteNotFound, sdkblaxel.ErrWorkloadNotFound, sdkblaxel.ErrWorkspaceNotFound,
+				"IMAGE_NOT_FOUND", "VOLUME_NOT_FOUND", "ACCOUNT_NOT_FOUND", "SANDBOX_DELETED", "VOLUME_DELETED":
 				kind = sandbox.ErrorKindNotFound
-			case sdkblaxel.ErrWorkloadUnavailable:
-				kind = sandbox.ErrorKindUnavailable
-			case sdkblaxel.ErrUsageLimitExceeded:
-				kind = sandbox.ErrorKindResourceExhausted
-			case sdkblaxel.ErrBadRequest, sdkblaxel.ErrPolicyViolation:
-				kind = sandbox.ErrorKindInvalidArgument
 			case "SANDBOX_ALREADY_EXISTS", "VOLUME_ALREADY_ATTACHED":
-				// Control-plane codes (not in gateway apierror constants).
+				// Control-plane codes (not all are gateway apierror constants).
 				kind = sandbox.ErrorKindAlreadyExists
+			case sdkblaxel.ErrBadRequest, sdkblaxel.ErrPolicyViolation,
+				"INVALID_INPUT", "INVALID_IMAGE", "INVALID_PORTS", "INVALID_REGION",
+				"INVALID_VOLUME", "INVALID_VOLUME_COUNT", "INVALID_VOLUME_REGION",
+				"VALIDATION_FAILED", "VALIDATION_ERROR", "WORKSPACE_REQUIRED":
+				kind = sandbox.ErrorKindInvalidArgument
+			case "CREATION_TIMEOUT", "UPSTREAM_CONNECT_TIMEOUT", "UPSTREAM_TIMEOUT":
+				kind = sandbox.ErrorKindTimeout
+			case sdkblaxel.ErrUsageLimitExceeded, "QUOTA_EXCEEDED":
+				kind = sandbox.ErrorKindResourceExhausted
+			case "RATE_LIMIT_EXCEEDED", "WORKSPACE_RATE_LIMIT_EXCEEDED":
+				kind = sandbox.ErrorKindRateLimited
+			case "SANDBOX_DELETION_IN_PROGRESS":
+				kind = sandbox.ErrorKindConflict
+			case sdkblaxel.ErrWorkloadUnavailable, "ROUTING_UNAVAILABLE", "SERVICE_UNAVAILABLE",
+				"AUTHENTICATION_UNAVAILABLE", "UPSTREAM_CONNECT_FAILED", "UPSTREAM_ERROR",
+				"GATEWAY_INTERNAL_ERROR":
+				kind = sandbox.ErrorKindUnavailable
+			case "WORKLOAD_FAILED", "INTERNAL_ERROR", "HANDLER_ERROR", "DATABASE_ERROR":
+				kind = sandbox.ErrorKindInternal
 			}
 		}
 		if kind == sandbox.ErrorKindUnknown {
 			switch native.StatusCode {
-			case 400:
+			case 400, 422:
 				kind = sandbox.ErrorKindInvalidArgument
 			case 401:
 				kind = sandbox.ErrorKindAuthentication
+			case 402:
+				kind = sandbox.ErrorKindResourceExhausted
 			case 403:
 				kind = sandbox.ErrorKindPermissionDenied
-			case 404:
+			case 404, 410:
 				kind = sandbox.ErrorKindNotFound
 			case 408:
 				kind = sandbox.ErrorKindTimeout
 			case 409:
 				kind = sandbox.ErrorKindConflict
-			case 410:
-				kind = sandbox.ErrorKindNotFound
 			case 412:
 				kind = sandbox.ErrorKindFailedPrecondition
-			case 422:
-				kind = sandbox.ErrorKindInvalidArgument
 			case 429:
 				kind = sandbox.ErrorKindRateLimited
 			case 500:
