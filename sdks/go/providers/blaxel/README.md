@@ -87,9 +87,10 @@ exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
 stderr. Omit or zero `Timeout` for no Blaxel command limit. Command timeouts
 must be whole seconds. Cancel the context to stop waiting.
 
-`resources.memory_mib` is passed through as Blaxel's memory integer (SDK unit:
-megabytes) with no conversion. Blaxel derives CPU from that value, so
-`cpu_cores` and disk overrides are rejected.
+`resources.memory_mib` maps 1:1 onto Blaxel's memory field. Blaxel labels that
+integer MB; Kit does not convert. Blaxel derives CPU from that value, so
+`cpu_cores` and disk overrides are rejected. Kit has no portable volume
+fields; Blaxel volumes are outside create.
 
 ## License
 

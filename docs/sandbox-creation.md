@@ -26,11 +26,13 @@ Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
 
 
 Blaxel create requires a nonblank name, an image source, and a client
-`region`. It maps `memory_mib` (passed through as Blaxel megabytes with no
-conversion), labels, environment, ports, outbound domains, maximum lifetime,
-and idle terminate. CPU/disk overrides, placement, non-default isolation,
-runtime overrides, security, readiness, queue timeout, Ready wait, and most
-egress modes are rejected. Kit client/create timeout is the create deadline.
+`region`. It maps `memory_mib` 1:1 onto Blaxel's memory field (Blaxel labels
+that integer MB; Kit does not convert), labels, environment, ports, outbound
+domains, maximum lifetime, and idle terminate. CPU/disk overrides, placement,
+non-default isolation, runtime overrides, security, readiness, queue timeout,
+Ready wait, and most egress modes are rejected. Kit client/create timeout is
+the create deadline. Kit has no portable volume fields; Blaxel volumes stay
+out of create the same way Daytona and Modal volumes do.
 
 Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
 pools and explicit snapshot kinds are unavailable. A field the provider does
@@ -55,17 +57,18 @@ field was omitted.
 Invalid combinations fail in the client before the provider call. A field the
 selected provider does not support fails there too.
 
-| Resource         | Modal                                           | Daytona                                      |
-| ---------------- | ----------------------------------------------- | -------------------------------------------- |
-| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              |
-| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   |
-| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   |
-| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL |
+| Resource         | Modal                                           | Daytona                                      | Blaxel                                                         |
+| ---------------- | ----------------------------------------------- | -------------------------------------------- | -------------------------------------------------------------- |
+| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; Kit rejects CPU overrides       |
+| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` passed 1:1; Blaxel labels the unit MB |
+| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported                                  |
+| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | Blaxel TTL string (at least 5m when set)                       |
 
 Daytona request conversion divides MiB exactly by 1024. Allocated metadata
 converts GiB back to MiB. Snapshot creation inherits snapshot resources.
 Positive CPU or memory limits require a corresponding request and cannot be
-lower than that request.
+lower than that request. Blaxel memory is a 1:1 integer pass-through; Kit
+does not convert MiB to MB.
 
 Local checks cover syntax, known enums, documented bounds, precision, and
 supported combinations. Account quotas, class-specific permissions, image
@@ -140,10 +143,10 @@ handle. The next call returns the provider's result.
 Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
 Files inside a sandbox are described in the [filesystem guide](filesystem.md).
 
-Creation covers the sandbox itself. GPU requests, resizing, storage volumes,
-browsers, streaming process handles, sessions, PTY, and macOS or Windows
-creation are outside it. Blocking command execution is covered in
-[process](process.md).
+Creation covers the sandbox itself. GPU requests, resizing, storage volumes
+(including Blaxel volumes), browsers, streaming process handles, sessions,
+PTY, and macOS or Windows creation are outside it. Blocking command execution
+is covered in [process](process.md).
 
 See [configuration](configuration.md), [lifecycle](sandbox-lifecycle.md), and
 [filesystem](filesystem.md).

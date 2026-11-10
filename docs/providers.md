@@ -74,9 +74,13 @@ running. Closing a handle leaves the sandbox as it is. You can keep using the
 handle. The next call returns the provider's result.
 
 The public API covers create, lifecycle, files, and blocking command execution
-inside the sandbox. GPU requests, resizing, storage volumes, browsers,
-streaming process handles, sessions, PTY, and macOS or Windows creation are
-outside it.
+inside the sandbox. GPU requests, resizing, storage volumes (no portable
+volume fields; Blaxel, Daytona, and Modal volumes stay out of create),
+browsers, streaming process handles, sessions, PTY, and macOS or Windows
+creation are outside it.
+
+TypeScript Blaxel uses `@blaxel/core` process-global `settings`: one Blaxel
+Kit client, or one credential set, per process.
 
 See [configuration](configuration.md), [creation](sandbox-creation.md),
 [lifecycle](sandbox-lifecycle.md), [filesystem](filesystem.md), and

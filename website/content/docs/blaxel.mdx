@@ -105,15 +105,21 @@ func main() {
 
 | Area       | Notes                                                                 |
 | ---------- | --------------------------------------------------------------------- |
-| Create     | Name + image; memory, labels, env, ports, outbound domains, TTL/idle |
+| Create     | Name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
+| Volumes    | Not in Kit create (same as Daytona/Modal); no portable volume fields  |
 | Open       | `get` / `refresh` by sandbox name                                     |
 | Lifecycle  | `delete`, `close` — no start/stop/pause/archive/terminate/attach      |
 | Filesystem | Shared eight methods; absolute sandbox paths                          |
 | Process    | Blocking `run` with argv or shell                                     |
 
-`resources.memoryMib` / `memory_mib` is sent as Blaxel's memory integer
-(megabytes) with no unit conversion. Client `timeout` is the create/operation
-deadline; Ready wait and readiness probes are unsupported.
+`resources.memoryMib` / `memory_mib` maps 1:1 onto Blaxel's memory field.
+Blaxel labels that integer MB; Kit does not convert. Kit has no portable
+volume fields; Blaxel volumes stay out of create the same way Daytona and
+Modal volumes do. Client `timeout` is the create/operation deadline; Ready
+wait and readiness probes are unsupported.
+
+TypeScript: `@blaxel/core` stores credentials in process-global `settings`.
+Use one Blaxel Kit client, or one credential set, per process.
 
 Closing the client closes your connection to Blaxel. Closing a handle leaves the sandbox as it is.
 

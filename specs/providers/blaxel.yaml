@@ -120,6 +120,7 @@ groups:
       - { from: name, to: name }
       - { from: environment, to: environment }
       - { from: labels, to: labels }
+  # memory_mib → Blaxel memory is 1:1; Blaxel labels the unit MB; Kit does not convert.
   - name: mapResources
     direction: request
     source: { name: Resources }

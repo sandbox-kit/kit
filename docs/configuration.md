@@ -68,6 +68,10 @@ created. Omit `auth` when the provider should use credentials it already finds
 in the environment. Daytona can take the organization from that environment
 when you use a bearer token and leave organization unset.
 
+TypeScript Blaxel clients share `@blaxel/core` process-global `settings`. Use
+one Blaxel Kit client, or one credential set, per process; a second client
+overwrites the first.
+
 A remote endpoint uses HTTPS. HTTP is accepted for `localhost` or a loopback
 address. A URL with a username, password, or fragment is rejected. Daytona uses
 `endpoint` when you set it, and otherwise uses `https://app.daytona.io/api`.

@@ -387,7 +387,9 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 <ForProvider id="blaxel">
   Blaxel uses the Kit deadline only. It has no separate native create-wait
-  timeout. Ready wait and readiness probes are unsupported.
+  timeout. Ready wait and readiness probes are unsupported. TypeScript Blaxel
+  clients share `@blaxel/core` process-global `settings`: use one Blaxel Kit
+  client, or one credential set, per process.
 </ForProvider>
 
 ## Credentials
