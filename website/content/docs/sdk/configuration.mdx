@@ -47,6 +47,12 @@ await using client = new Client({
   omits its own timeout, Daytona still uses a **60s** default on its side.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel uses the Kit deadline only (no separate native create-wait timeout).
+  `region` is required for create. `endpoint` is unsupported. TypeScript
+  credentials go through process-global `@blaxel/core` `settings`.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -85,6 +91,11 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 <ForProvider id="daytona">
   This sets the client deadline only. If a create/start/stop/pause/delete call
   omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Blaxel uses the Kit deadline only (no separate native create-wait timeout).
+  `Region` is required for create. `Endpoint` is unsupported.
 </ForProvider>
 
   </Tab>

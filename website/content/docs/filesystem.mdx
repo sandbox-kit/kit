@@ -112,6 +112,34 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Timeouts are milliseconds. File calls use the abort signal / Kit deadline. `1500` ms ends at 1.5s.
+
+```ts
+await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 1_500 });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+Every Go file call uses the context deadline.
+
+```go
+data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
+	Timeout: sandbox.Duration(1500 * time.Millisecond),
+})
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+
 ## Read a file
 
 Returns the bytes of one file. A missing file is not found. A directory path fails at the provider.
@@ -217,6 +245,11 @@ err := instance.Filesystem().CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil)
 <ForProvider id="modal">
   Modal accepts a directory that already exists. With `parents: false`, the
   parent must exist and the new directory must not.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Blaxel creates missing parents when `parents` is omitted or true, and rejects
+  `parents: false` before the call (field `parents`).
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

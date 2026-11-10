@@ -99,6 +99,23 @@ await using client = new Client({
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+import { blaxel } from "@sandbox-kit/blaxel";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -155,6 +172,35 @@ if region := os.Getenv("MODAL_REGION"); region != "" {
 	config.Region = sandbox.Value(region)
 }
 client, err := sandbox.NewClient(modal.New(), config)
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+import (
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Scope: &sandbox.Scope{
+		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+	},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if region := os.Getenv("BL_REGION"); region != "" {
+	config.Region = sandbox.Value(region)
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
 ```
 
 </ForProvider>
@@ -288,6 +334,60 @@ client, err := sandbox.NewClient(modal.New(), config)
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Setting        | What to pass                                   |
+| -------------- | ---------------------------------------------- |
+| API key        | `auth.apiKey.key`                              |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials       |
+| Workspace      | `scope.workspace`                              |
+| Region         | `region` — required for create                 |
+| Endpoint       | Unsupported                                    |
+
+```ts
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+| Setting   | What to pass                                  |
+| --------- | --------------------------------------------- |
+| API key   | `APIKey`                                      |
+| Workspace | `Scope.Workspace`                             |
+| Region    | `Config.Region` — required for create         |
+| Endpoint  | Unsupported                                   |
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Scope: &sandbox.Scope{
+		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+	},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+Token-pair, bearer, and OAuth modes are rejected. Scope fields other than workspace are rejected.
+
+</ForProvider>
+
 ## Timeouts
 
 `timeout` on the client is the default deadline. Create and lifecycle calls can override it.
@@ -323,6 +423,25 @@ await using client = new Client({
 
 const sandbox = await client.create(
   { source: { image: { reference: "alpine:3.21" } } },
+  { timeout: 60_000 }, // override for this call; 0 = no deadline
+);
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+await using client = new Client({
+  provider: blaxel(),
+  timeout: 120_000, // default for calls that omit timeout
+});
+
+const sandbox = await client.create(
+  {
+    name: "kit-example",
+    source: { image: { reference: "blaxel/base-image:latest" } },
+  },
   { timeout: 60_000 }, // override for this call; 0 = no deadline
 );
 ```
@@ -367,6 +486,29 @@ if err != nil {
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
 		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no deadline
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	Timeout: sandbox.Duration(2 * time.Minute), // default deadline
+})
+if err != nil {
+	return err
+}
+
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
 	}},
 	Provisioning: &sandbox.ProvisioningOptions{
 		Timeout: sandbox.Duration(60 * time.Second), // override; 0 = no deadline
@@ -433,6 +575,22 @@ await using client = new Client(config);
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const config = {
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+};
+
+await using client = new Client(config);
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -467,6 +625,24 @@ config := &sandbox.Config{
 	Timeout: sandbox.Duration(2 * time.Minute),
 }
 client, err := sandbox.NewClient(modal.New(), config)
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Scope: &sandbox.Scope{
+		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+	},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
 ```
 
 </ForProvider>

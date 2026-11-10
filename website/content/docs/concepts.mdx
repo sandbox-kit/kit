@@ -145,6 +145,18 @@ console.log(sandbox.id);
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+});
+console.log(sandbox.id);
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -170,6 +182,23 @@ fmt.Println(instance.ID())
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
 		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+})
+if err != nil {
+	return err
+}
+fmt.Println(instance.ID())
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
 	}},
 })
 if err != nil {
@@ -259,7 +288,7 @@ fmt.Println(result)
 
 Each provider is its own package. Pass it into the client. Auth, create defaults, and which lifecycle calls exist depend on the provider; the client methods stay the same.
 
-The client talks to Daytona or Modal directly. There is no separate Kit cloud in the middle.
+The client talks to Daytona, Modal, or Blaxel directly. There is no separate Kit cloud in the middle.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -299,6 +328,24 @@ await using client = new Client({
 ```
 
 Setup: [Modal](/docs/modal).
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+import { blaxel } from "@sandbox-kit/blaxel";
+import { Client } from "@sandbox-kit/sandbox";
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+});
+```
+
+Setup: [Blaxel](/docs/blaxel).
 
 </ForProvider>
 
@@ -347,6 +394,29 @@ client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
 ```
 
 Setup: [Modal](/docs/modal).
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+import (
+	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Scope: &sandbox.Scope{
+		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+	},
+	Region: sandbox.Value("us-pdx-1"),
+})
+```
+
+Setup: [Blaxel](/docs/blaxel).
 
 </ForProvider>
 

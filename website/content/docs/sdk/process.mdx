@@ -123,6 +123,12 @@ Outcome of a finished command.
   explicit 0).
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel returns both `stdout` and `stderr`. `argv` is sent as a POSIX-quoted
+  shell string. Omit/zero timeout means no Blaxel command limit. Runs are
+  blocking.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -142,6 +148,11 @@ Outcome of a finished command.
   Modal returns both Stdout and Stderr. Argv is passed as-is; Shell runs via
   `bash -c`. Omit/zero Timeout omits Modal's timeoutMs (Modal rejects an
   explicit 0).
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Blaxel returns both Stdout and Stderr. Argv is sent as a POSIX-quoted shell
+  string. Omit/zero Timeout means no Blaxel command limit. Runs are blocking.
 </ForProvider>
 
   </Tab>

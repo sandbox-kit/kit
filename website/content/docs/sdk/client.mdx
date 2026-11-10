@@ -143,6 +143,21 @@ console.log(sandbox.id);
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const sandbox = await client.create(
+  {
+    name: "kit-example",
+    source: { image: { reference: "blaxel/base-image:latest" } },
+  },
+  { timeout: 60_000 }, // deadline for this call (ms)
+);
+console.log(sandbox.id);
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -186,6 +201,22 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
 		Image: &sandbox.ImageSource{Reference: "alpine:3.21"},
+	}},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second), // deadline for this call
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
 	}},
 	Provisioning: &sandbox.ProvisioningOptions{
 		Timeout: sandbox.Duration(60 * time.Second), // deadline for this call
@@ -256,6 +287,45 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
 instance, err := client.Get(ctx, knownID)
 // Info(): Id, Provider, Name, ProviderState, Region, Isolation,
 //         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(instance.Info())
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+### get
+
+Looks up a sandbox by **name** (Blaxel id is the name) and returns a verified handle.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+get(id: string, options?: OperationOptions): Promise<Sandbox>
+```
+
+**Example**
+
+```ts
+const sandbox = await client.get(knownName);
+console.log(sandbox.info());
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
+```
+
+**Example**
+
+```go
+instance, err := client.Get(ctx, knownName)
 fmt.Println(instance.Info())
 ```
 

@@ -43,6 +43,19 @@ Daytona may still reject a supported op for a given sandbox. Snippets assume a c
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+| Operation                      | Support                                    |
+| ------------------------------ | ------------------------------------------ |
+| Open existing                  | [`get`](#open-a-sandbox) (lookup by name)  |
+| start / stop / pause / archive | Unsupported                                |
+| Destroy                        | [`delete`](#delete)                        |
+| Local disconnect               | [`close`](#close-the-client)               |
+
+Snippets assume a constructed client — [Blaxel](/docs/blaxel).
+
+</ForProvider>
+
 ## Open a sandbox
 
 <ForProvider id="daytona">
@@ -105,6 +118,40 @@ instance, err := client.Attach(ctx, os.Getenv("MODAL_SANDBOX_ID"))
 if err != nil {
 	return err
 }
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
+const info = await sandbox.refresh();
+console.log(info);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import "os"
+
+instance, err := client.Get(ctx, os.Getenv("BL_SANDBOX_NAME"))
+if err != nil {
+	return err
+}
+if err := instance.Refresh(ctx); err != nil {
+	return err
+}
+fmt.Println(instance.Info())
 ```
 
   </Tab>
@@ -202,6 +249,47 @@ import (
 )
 
 instance, err := client.Get(ctx, os.Getenv("DAYTONA_SANDBOX_ID"))
+if err != nil {
+	return err
+}
+if err := instance.Delete(ctx, &sandbox.DeleteOptions{
+	Timeout: sandbox.Duration(time.Minute),
+}); err != nil {
+	return err
+}
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+## Delete
+
+`delete` removes a Blaxel sandbox.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
+await sandbox.delete({ timeout: 60_000 });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+import (
+	"os"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+instance, err := client.Get(ctx, os.Getenv("BL_SANDBOX_NAME"))
 if err != nil {
 	return err
 }
@@ -318,6 +406,11 @@ state. See [Errors](/docs/errors).
   `refresh` or `get` on Modal.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  After a lifecycle call, call `refresh` (or `get` again) before assuming the
+  sandbox is gone.
+</ForProvider>
+
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
@@ -333,6 +426,15 @@ console.log(info);
 ```ts
 const refreshed = await sandbox.refresh();
 // refreshed: same SandboxInfo shape as info()
+console.log(refreshed);
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+const refreshed = await sandbox.refresh();
 console.log(refreshed);
 ```
 
@@ -355,6 +457,17 @@ if err := instance.Refresh(ctx); err != nil {
 	return err
 }
 // Info(): same SandboxInfo fields as above
+fmt.Println(instance.Info())
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+if err := instance.Refresh(ctx); err != nil {
+	return err
+}
 fmt.Println(instance.Info())
 ```
 

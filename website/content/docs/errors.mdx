@@ -297,3 +297,46 @@ _ = instance
 See [Examples](/docs/examples).
 
 </ForProvider>
+
+<ForProvider id="blaxel">
+
+`get` before retry so you know whether the sandbox exists (lookup by name).
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+try {
+  await client.create(request);
+} catch (error) {
+  if (knownName) {
+    const sandbox = await client.get(knownName);
+    console.log(sandbox.info());
+  }
+  throw error;
+}
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, opts)
+if err != nil {
+	if knownName != "" {
+		existing, getErr := client.Get(ctx, knownName)
+		if getErr == nil {
+			fmt.Println(existing.Info())
+		}
+	}
+	return err
+}
+_ = instance
+```
+
+  </Tab>
+</Tabs>
+
+See [Examples](/docs/examples).
+
+</ForProvider>

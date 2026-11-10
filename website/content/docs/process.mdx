@@ -151,6 +151,44 @@ fmt.Println(result)
   </Tab>
 </Tabs>
 
+
+
+<ForProvider id="blaxel">
+
+| You pass               | On Blaxel                     |
+| ---------------------- | ----------------------------- |
+| `argv`                 | POSIX-quoted shell string     |
+| `shell`                | shell string as-is            |
+| omit / zero timeout    | no command limit              |
+| fractional (`1500` ms) | rejected (`timeout`)          |
+
+Blaxel returns both `stdout` and `stderr`. Runs are blocking.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello"], // sent as a POSIX-quoted shell string
+});
+// result: { exitCode, stdout, stderr }
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv: []string{"echo", "hello"}, // sent as a POSIX-quoted shell string
+})
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
+```
+
+  </Tab>
+</Tabs>
+
 </ForProvider>
 
 A non-zero exit code is **not** an SDK error.

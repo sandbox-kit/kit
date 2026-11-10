@@ -98,34 +98,95 @@ func main() {
 }
 ```
 
+Optional strings use `sandbox.Value`.
+
   </Tab>
 </Tabs>
 
-## What Blaxel supports
+Omit `auth` and `scope.workspace` to let the Blaxel SDK pick credentials from its environment (`BL_API_KEY`, `BL_WORKSPACE`). `region` is still required for create. `endpoint` is rejected. Closing the client does not delete the sandbox.
 
-| Area       | Notes                                                                 |
-| ---------- | --------------------------------------------------------------------- |
-| Create     | Name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
-| Volumes    | Not in Kit create (same as Daytona/Modal); no portable volume fields  |
-| Open       | `get` / `refresh` by sandbox name                                     |
-| Lifecycle  | `delete`, `close` — no start/stop/pause/archive/terminate/attach      |
-| Filesystem | Shared eight methods; absolute sandbox paths                          |
-| Process    | Blocking `run` with argv or shell                                     |
+## Configuration
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Setting        | Notes                                      |
+| -------------- | ------------------------------------------ |
+| API key        | `auth.apiKey`                              |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials   |
+| Workspace      | `scope.workspace` — required for create when auth is set explicitly, or via env |
+| Region         | `region` — required for create             |
+| Endpoint       | Unsupported                                |
+
+```ts
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  scope: { workspace: process.env.BL_WORKSPACE! },
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+| Setting   | Notes                                     |
+| --------- | ----------------------------------------- |
+| API key   | `Auth` with `APIKey`                      |
+| Workspace | `Scope.Workspace`                         |
+| Region    | `Config.Region` — required for create     |
+| Endpoint  | Unsupported                               |
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Scope: &sandbox.Scope{
+		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+	},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+Token-pair, bearer, and OAuth client modes are rejected. Scope fields other than workspace are rejected. TypeScript: `@blaxel/core` stores credentials in process-global `settings` — use one Blaxel Kit client, or one credential set, per process. Full rules: [Configuration](/docs/configuration).
+
+## What works
+
+| Area      | Notes                                                                 |
+| --------- | --------------------------------------------------------------------- |
+| Create    | Name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
+| Volumes   | Not in Kit create; no portable volume fields                          |
+| Open      | `get` / `refresh` by sandbox name                                     |
+| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach      |
+| Files     | Filesystem methods — [Filesystem](/docs/filesystem)                   |
+| Process   | `run` — [Run a command](/docs/process)                                |
 
 `resources.memoryMib` / `memory_mib` maps 1:1 onto Blaxel's memory field.
-Blaxel labels that integer MB; Kit does not convert. Kit has no portable
-volume fields; Blaxel volumes stay out of create the same way Daytona and
-Modal volumes do. Client `timeout` is the create/operation deadline; Ready
-wait and readiness probes are unsupported.
+Blaxel labels that integer MB; Kit does not convert. Blaxel derives CPU from
+memory, so CPU and disk overrides are rejected. Client `timeout` is the
+create/operation deadline; Ready wait and readiness probes are unsupported.
 
-TypeScript: `@blaxel/core` stores credentials in process-global `settings`.
-Use one Blaxel Kit client, or one credential set, per process.
+## Related
 
-Closing the client closes your connection to Blaxel. Closing a handle leaves the sandbox as it is.
+- Labels, ports, TTL/idle — [Create](/docs/create)
+- get / refresh / delete — [Lifecycle](/docs/lifecycle)
 
-## Next
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
 
-- [Configuration](/docs/configuration)
-- [Create](/docs/create)
-- [Lifecycle](/docs/lifecycle)
-- [Examples](/docs/examples)
+Example: [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/configuration/create-blaxel-sandbox)
+
+  </Tab>
+  <Tab value="Go">
+
+Example: [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/configuration/create-blaxel-sandbox)
+
+  </Tab>
+</Tabs>

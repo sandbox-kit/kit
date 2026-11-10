@@ -125,6 +125,16 @@ if (!sandbox.supports(LifecycleCapability.Terminate)) {
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+if (!sandbox.supports(LifecycleCapability.Delete)) {
+  throw new Error(`cannot delete ${sandbox.id}`);
+}
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -162,6 +172,16 @@ if !instance.Supports(sandbox.LifecycleCapabilityStop) {
 ```go
 if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
 	return fmt.Errorf("cannot terminate %s", instance.ID())
+}
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+if !instance.Supports(sandbox.LifecycleCapabilityDelete) {
+	return fmt.Errorf("cannot delete %s", instance.ID())
 }
 ```
 
@@ -427,6 +447,63 @@ Deletes the cloud sandbox. Set `Wait` to wait until deletion finishes.
 If you omit the timeout (or pass `0`), Daytona still uses its own **60s** default for create, start, stop, pause, and delete. Pass a positive whole-second timeout to override. Fractional seconds are rejected.
 
 </ForProvider>
+
+<ForProvider id="blaxel">
+
+### Refresh
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+refresh(options?: OperationOptions): Promise<SandboxInfo>
+```
+
+Reloads metadata from Blaxel by sandbox name.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Refresh(ctx context.Context) error
+```
+
+  </Tab>
+</Tabs>
+
+### Delete
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+delete(options?: DeleteOptions): Promise<void>
+```
+
+Removes the Blaxel sandbox.
+
+```ts
+await sandbox.delete({ timeout: 60_000 });
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error
+```
+
+```go
+err := instance.Delete(ctx, &sandbox.DeleteOptions{
+	Timeout: sandbox.Duration(time.Minute),
+})
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
 
 <ForProvider id="modal">
 

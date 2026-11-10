@@ -44,6 +44,21 @@ const sandbox = await client.create(
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const sandbox = await client.create(
+  {
+    name: "kit-example",
+    source: { image: { reference: "blaxel/base-image:latest" } },
+    resources: { memoryMib: 4096n },
+  },
+  { timeout: 60_000 }, // milliseconds
+);
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -76,6 +91,25 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Resources: &sandbox.Resources{
 		CpuCores:  sandbox.Value(1.0),
 		MemoryMib: sandbox.Value(uint64(512)),
+	},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second),
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		MemoryMib: sandbox.Value(uint64(4096)),
 	},
 	Provisioning: &sandbox.ProvisioningOptions{
 		Timeout: sandbox.Duration(60 * time.Second),
@@ -233,6 +267,64 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+|           | Blaxel                                                                |
+| --------- | --------------------------------------------------------------------- |
+| Source    | Registry image and nonblank `name` required                           |
+| CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides              |
+| Memory    | `memoryMib` / `memory_mib` passed 1:1; Blaxel labels the unit MB      |
+| Disk      | Cannot be set                                                         |
+| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m)                       |
+| Placement | Client `region` required. A placement block on this request is rejected |
+
+Kit has no portable volume fields.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
+await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+  resources: { memoryMib: 4096n },
+  lifetime: {
+    maximumLifetime: 24 * 60 * 60_000,
+    idleTerminate: { mode: PolicyMode.After, after: 60_000 },
+  },
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		MemoryMib: sandbox.Value(uint64(4096)),
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		MaximumLifetime: sandbox.Duration(24 * time.Hour),
+		IdleTerminate: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(time.Minute),
+		},
+	},
+})
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+
 ## Example
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
@@ -284,6 +376,28 @@ const sandbox = await client.create({
 ```
 
 `PolicyMode.After` starts the idle timer. `PolicyMode.Disabled` turns idle termination off.
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+import { PolicyMode } from "@sandbox-kit/sandbox";
+
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+  resources: { memoryMib: 4096n },
+  lifetime: {
+    maximumLifetime: 24 * 60 * 60_000,
+    idleTerminate: { mode: PolicyMode.After, after: 60_000 },
+  },
+  network: {
+    ports: [{ port: 3000 }],
+    outboundDomains: ["example.com"],
+  },
+});
+```
 
 </ForProvider>
 
@@ -355,6 +469,39 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Placement: &sandbox.Placement{
 		Cloud:   sandbox.Value("aws"),
 		Regions: []string{"us-east-1"},
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+import (
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		MemoryMib: sandbox.Value(uint64(4096)),
+	},
+	Lifetime: &sandbox.LifetimePolicy{
+		MaximumLifetime: sandbox.Duration(24 * time.Hour),
+		IdleTerminate: &sandbox.AutomaticAction{
+			Mode:  sandbox.PolicyModeAfter,
+			After: sandbox.Duration(time.Minute),
+		},
+	},
+	Network: &sandbox.NetworkConfig{
+		Ports: []*sandbox.PortBinding{{Port: 3000}},
+		OutboundDomains: &sandbox.StringAllowlist{Entries: []string{"example.com"}},
 	},
 })
 ```
@@ -458,6 +605,15 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 See [Examples](/docs/examples).
 
 </ForProvider>
+
+<ForProvider id="blaxel">
+
+Create needs a nonblank `name`, an image, and client `region`. Memory maps 1:1;
+CPU, disk, placement, readiness, and volumes are rejected. Ports 80, 443, and
+8080 are reserved. See [Examples](/docs/examples).
+
+</ForProvider>
+
 
 ## Result
 

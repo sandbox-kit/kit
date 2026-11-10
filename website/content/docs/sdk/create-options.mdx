@@ -73,6 +73,18 @@ const sandbox = await client.create({
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+  resources: { memoryMib: 4096n },
+});
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -142,6 +154,22 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 	Resources: &sandbox.Resources{
 		CpuCores:  sandbox.Value(1.0),
 		MemoryMib: sandbox.Value(uint64(512)),
+	},
+})
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
+	Resources: &sandbox.Resources{
+		MemoryMib: sandbox.Value(uint64(4096)),
 	},
 })
 ```
