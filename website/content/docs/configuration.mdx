@@ -385,6 +385,11 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
   rejected.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel uses the Kit deadline only. It has no separate native create-wait
+  timeout. Ready wait and readiness probes are unsupported.
+</ForProvider>
+
 ## Credentials
 
 Construction does not contact the provider. Bad credentials fail on the first create or open. See [Errors](/docs/errors).
