@@ -152,7 +152,7 @@ const sandbox = await client.create({
   name: "kit-example",
   source: { image: { reference: "blaxel/base-image:latest" } },
 });
-console.log(sandbox.id);
+console.log(sandbox.id); // same as create name
 ```
 
 </ForProvider>
@@ -204,7 +204,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 if err != nil {
 	return err
 }
-fmt.Println(instance.ID())
+fmt.Println(instance.ID()) // same as create name
 ```
 
 </ForProvider>

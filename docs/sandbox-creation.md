@@ -20,8 +20,8 @@ Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
 | Environment and labels | Environment map and tags                                                               | Environment map and labels                                         | Environment map and labels                                                                    |
 | Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                                   |
 | Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080; Default → Blaxel HTTP); outbound domains                              |
-| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m)                                               |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Kit client/create timeout; Blaxel native create timeout not forwarded; Ready wait unsupported |
+| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected               |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Kit client/create timeout; native create timeout not forwarded; waitFor Default/Scheduled only |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                                   |
 
 Kit has no portable volume fields; Blaxel volumes stay out of create the same
@@ -98,6 +98,10 @@ before provider calls unless `lifetime.ephemeral` is explicitly true.
 
 Modal idle termination supports disabled or positive whole-second delays.
 Its maximum lifetime and idle delay remain separate settings.
+
+Blaxel idle terminate supports only `PolicyModeAfter` with a delay of at least
+1m, or provider default. `PolicyModeDisabled` on idle terminate is rejected.
+Maximum lifetime, when set, must be at least 5m.
 
 Image references support lowercase repository paths, optional registry hostnames
 and ports, tags up to 128 characters, and SHA-256 digests, within 512 characters.

@@ -22,11 +22,14 @@ npm start
 
 `npm start` loads only that project’s `.env` via `--env-file-if-exists` (it
 does not override existing shell env). There is no provider-level `.env`.
-Creation examples provision real cloud resources. Filesystem, process, and lifecycle
-examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
-the client closes your connection to Daytona, Modal, or Blaxel. Modal setup:
+Creation examples provision real cloud resources. Filesystem, process, and
+lifecycle examples use the sandbox id in `.env` (`DAYTONA_SANDBOX_ID`,
+`MODAL_SANDBOX_ID`, or Blaxel `BL_SANDBOX_NAME` — Blaxel id is the create name).
+Closing a handle leaves the sandbox as it is. Closing the client closes your
+connection to Daytona, Modal, or Blaxel. Modal setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
-Blaxel setup: [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
+Blaxel needs an API key, workspace, and client region:
+[create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 
 ## Catalog
 

@@ -31,7 +31,7 @@ const sandbox = await client.create({
   resources: { memoryMib: 4096n },
   lifetime: { maximumLifetime: 24 * 60 * 60_000 },
 });
-console.log(sandbox.id);
+console.log(sandbox.id); // same as create name; use with get / BL_SANDBOX_NAME
 ```
 
 Closing the client releases local SDK resources only. Reclaim sandboxes with
@@ -59,8 +59,9 @@ integer MB; Kit does not convert; Blaxel CPU follows memory), labels,
 environment variables, ports, outbound domains, max-age TTL (at least 5m), and
 idle-delete policy (at least 1m; explicit disable is rejected). Client /
 create `timeout` is the Kit deadline. `@blaxel/core`'s native creation timeout
-(1–50s) is not forwarded. `provisioning.waitFor` Ready is unsupported.
-Creation calls native `SandboxInstance.create`, not `createIfNotExists`. Ports
+(1–50s) is not forwarded. `provisioning.waitFor` accepts only `Default` and
+`Scheduled`; Ready (and Started / Submitted) are unsupported. Creation calls
+native `SandboxInstance.create`, not `createIfNotExists`. Ports
 80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport leaves
 the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS. HTTP/2 over
 TLS is rejected. Kit has no portable volume fields; Blaxel volumes are outside

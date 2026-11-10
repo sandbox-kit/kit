@@ -159,11 +159,12 @@ Blaxel needs an API key, a workspace, and a client region:
 [TypeScript](examples/typescript/blaxel/configuration/create-blaxel-sandbox/README.md) ·
 [Go](examples/go/blaxel/configuration/create-blaxel-sandbox/README.md).
 
-Creation examples provision real sandboxes. Filesystem, process, and lifecycle examples
-use the ID in `.env` (stop / terminate / archive / delete can destroy that
-resource; filesystem examples use the path you set; process examples run one
-command). Error-handling examples
-fail locally and create nothing. Skip copying `.env.example` if you already
+Creation examples provision real sandboxes. Filesystem, process, and lifecycle
+examples use the sandbox id in `.env` (`DAYTONA_SANDBOX_ID`, `MODAL_SANDBOX_ID`,
+or Blaxel `BL_SANDBOX_NAME` — Blaxel id is the create name). Stop / terminate /
+archive / delete can destroy that resource; filesystem examples use the path
+you set; process examples run one command. Error-handling examples fail
+locally and create nothing. Skip copying `.env.example` if you already
 have a configured `.env`.
 
 Full catalog: [examples/README.md](examples/README.md) ·

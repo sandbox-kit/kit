@@ -17,12 +17,14 @@ Skip copying if `.env` already exists. Programs load only that project’s
 `.env` with `godotenv` (it does not override existing shell env). There is no
 provider-level `.env`. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
-Blaxel setup: [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
+Blaxel needs an API key, workspace, and client region:
+[create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 
 Creation programs provision real sandboxes (linked Daytona creates a parent and
-child). Filesystem, process, and lifecycle programs use the configured sandbox
-ID. Read the guide before a destructive stop, terminate, archive, delete, or
-remove.
+child). Filesystem, process, and lifecycle programs use the sandbox id in
+`.env` (`DAYTONA_SANDBOX_ID`, `MODAL_SANDBOX_ID`, or Blaxel `BL_SANDBOX_NAME` —
+Blaxel id is the create name). Read the guide before a destructive stop,
+terminate, archive, delete, or remove.
 Error-handling programs fail locally. Closing a handle leaves the sandbox as it is. Closing the client
 closes your connection to Daytona, Modal, or Blaxel.
 

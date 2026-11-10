@@ -275,9 +275,11 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 | CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides                                          |
 | Memory    | `memoryMib` / `memory_mib` passed 1:1; Blaxel labels the unit MB                                  |
 | Disk      | Cannot be set                                                                                     |
-| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m)                                                   |
+| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                   |
 | Placement | Client `region` required. A placement block on this request is rejected                           |
 | Ports     | Default → Blaxel HTTP; plain → TCP; TLS → TLS; Http2Tls rejected; 80/443/8080 reserved            |
+| Wait      | `waitFor` only `Default` / `Scheduled`; `Ready` rejected                                          |
+| Runtime   | Unsupported                                                                                       |
 
 Kit has no portable volume fields.
 
@@ -609,12 +611,14 @@ See [Examples](/docs/examples).
 <ForProvider id="blaxel">
 
 Create needs a Blaxel-valid `name` (lowercase alphanumeric with single hyphens,
-at most 49 characters), an image, and client `region`. Memory maps 1:1; CPU,
-disk, placement, readiness, and volumes are rejected. Ports 80, 443, and 8080
-are reserved. Default port transport leaves the protocol to Blaxel (HTTP);
-plain maps to TCP; TLS maps to TLS; HTTP/2 over TLS is rejected. Kit create
-timeout is the local deadline; Blaxel's native creation timeout is not
-forwarded. See [Examples](/docs/examples).
+at most 49 characters), an image, and client `region`. The returned id is that
+name. Memory maps 1:1; CPU, disk, placement, readiness, runtime, and volumes
+are rejected. Ports 80, 443, and 8080 are reserved. Default port transport
+leaves the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS;
+HTTP/2 over TLS is rejected. Max-age TTL ≥5m; idle terminate ≥1m; explicit
+idle disable is rejected. `waitFor` only `Default` / `Scheduled`; `Ready` is
+rejected. Kit create timeout is the local deadline; Blaxel's native creation
+timeout is not forwarded. See [Examples](/docs/examples).
 
 </ForProvider>
 

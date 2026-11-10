@@ -387,6 +387,12 @@ defer client.Close(context.Background())
 
 `Sandbox.Close` does not stop or delete the sandbox. Later calls on that handle still reach the provider.
 
+<ForProvider id="blaxel">
+  On Blaxel, handle `close` releases local state only and does not contact
+  Blaxel. The sandbox keeps running until you `delete` it or a lifetime policy
+  ends it.
+</ForProvider>
+
   </Tab>
 </Tabs>
 

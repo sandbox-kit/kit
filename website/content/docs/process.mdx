@@ -165,6 +165,8 @@ fmt.Println(result)
 | fractional (`1500` ms) | rejected (`timeout`)                                                                   |
 
 Blaxel returns both `stdout` and `stderr`. `run` waits until the command ends.
+Canceling the context or aborting the signal stops the wait only; the remote
+command may keep running. An HTTP 504 while waiting is a timeout error.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

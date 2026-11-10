@@ -62,6 +62,11 @@ How far provisioning wait-for waits before create returns.
 | `Started`   | Return once the sandbox has started                                     |
 | `Ready`     | Return once readiness succeeds (probe + positive timeout when required) |
 
+<ForProvider id="blaxel">
+  Blaxel accepts only `Default` and `Scheduled`. `Ready`, `Started`, and
+  `Submitted` are rejected. Readiness probes are unsupported.
+</ForProvider>
+
 ## EgressMode
 
 Outbound network policy on create.

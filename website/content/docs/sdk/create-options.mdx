@@ -242,6 +242,10 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `entrypoint`       | Entrypoint argv                                   |
 | `pty`              | Request a PTY when supported                      |
 
+<ForProvider id="blaxel">
+  Blaxel rejects create-time runtime fields before the call.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -253,6 +257,10 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `WorkingDirectory` | Working directory                                 |
 | `Entrypoint`       | Entrypoint argv                                   |
 | `Pty`              | Request a PTY when supported                      |
+
+<ForProvider id="blaxel">
+  Blaxel rejects create-time runtime fields before the call.
+</ForProvider>
 
   </Tab>
 </Tabs>
@@ -333,6 +341,13 @@ Set exactly one variant. Unsupported variants fail before the provider call.
   only. Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel supports `maximumLifetime` (≥5m when set) and `idleTerminate` (≥1m
+  when `PolicyMode.After`). `idleTerminate` with `PolicyMode.Disabled` is
+  rejected. Ephemeral, idle stop/pause, and stopped archive/delete are
+  rejected.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -355,6 +370,13 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 <ForProvider id="modal">
   Modal supports `MaximumLifetime` (whole seconds, 1…86400) and `IdleTerminate`
   only. Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Blaxel supports `MaximumLifetime` (≥5m when set) and `IdleTerminate` (≥1m
+  when `PolicyModeAfter`). `IdleTerminate` with `PolicyModeDisabled` is
+  rejected. Ephemeral, idle stop/pause, and stopped archive/delete are
+  rejected.
 </ForProvider>
 
   </Tab>
@@ -403,6 +425,13 @@ Set exactly one variant. Unsupported variants fail before the provider call.
   positive timeout. `queueTimeout` is unsupported.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Kit `timeout` / client timeout is the create deadline. `queueTimeout` is
+  unsupported. `waitFor` accepts only `Default` and `Scheduled`; `Ready`,
+  `Started`, and `Submitted` are rejected. `@blaxel/core`'s native creation
+  timeout (1–50s) is not forwarded.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -423,6 +452,13 @@ Set exactly one variant. Unsupported variants fail before the provider call.
   positive timeout. `QueueTimeout` is unsupported.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Kit `Timeout` / client timeout is the create deadline. `QueueTimeout` is
+  unsupported. `WaitFor` accepts only `Default` and `Scheduled`; `Ready`,
+  `Started`, and `Submitted` are rejected. The Go Blaxel SDK has no separate
+  creation-timeout argument.
+</ForProvider>
+
   </Tab>
 </Tabs>
 
@@ -438,6 +474,10 @@ Set either a TCP port or a command.
 | `tcpPort`      | Port `1`–`65535`               |
 | `command.argv` | Command argv that must succeed |
 
+<ForProvider id="blaxel">
+  Blaxel rejects readiness probes before the call.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -445,6 +485,10 @@ Set either a TCP port or a command.
 | --------------------- | ------------------------------ |
 | `TcpPort`             | Port `1`–`65535`               |
 | `Command` with `Argv` | Command argv that must succeed |
+
+<ForProvider id="blaxel">
+  Blaxel rejects readiness probes before the call.
+</ForProvider>
 
   </Tab>
 </Tabs>

@@ -24,14 +24,16 @@ Modal needs a token pair and an existing app:
 [Go](go/modal/configuration/create-modal-sandbox/README.md) ·
 [TypeScript](typescript/modal/configuration/create-modal-sandbox/README.md).
 
-Blaxel needs an API key and workspace:
+Blaxel needs an API key, a workspace, and a client region (examples use
+`BL_REGION`, default `us-pdx-1`):
 [Go](go/blaxel/configuration/create-blaxel-sandbox/README.md) ·
 [TypeScript](typescript/blaxel/configuration/create-blaxel-sandbox/README.md).
 
 Creation examples provision real resources. Filesystem, process, and lifecycle
-examples use the sandbox ID in `.env`. A filesystem example runs one file
-operation (read, write, copy, mkdir, list, stat, or remove) on the path you
-set. A process example runs one command. Stop,
+examples use the sandbox id in `.env` (`DAYTONA_SANDBOX_ID`, `MODAL_SANDBOX_ID`,
+or Blaxel `BL_SANDBOX_NAME` — Blaxel id is the create name). A filesystem
+example runs one file operation (read, write, copy, mkdir, list, stat, or
+remove) on the path you set. A process example runs one command. Stop,
 terminate, archive, and delete can destroy the sandbox.
 Error-handling examples fail locally. `Client.Close` closes your connection to
 Daytona, Modal, or Blaxel. `Sandbox.Close` does not change the sandbox, and you can keep

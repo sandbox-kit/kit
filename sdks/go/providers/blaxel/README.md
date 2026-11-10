@@ -44,7 +44,8 @@ if err != nil {
 fmt.Println(instance.ID())
 ```
 
-Create requires a name and an image. Closing the client does not delete the
+Create requires a name and an image. `ID()` is that name — use it with `Get`
+and example env `BL_SANDBOX_NAME`. Closing the client does not delete the
 sandbox. Call `Delete`, or set a lifetime policy.
 
 ## Settings
@@ -65,16 +66,18 @@ Create from a registry image with an explicit name. The name must be lowercase
 alphanumeric with single hyphens and at most 49 characters. You can set labels,
 environment variables, memory, ports, outbound domains, maximum lifetime, and
 idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
-Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport
-leaves the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS.
-HTTP/2 over TLS is rejected. Kit `Config.Timeout` / create call timeout is the
-create deadline. The Go Blaxel SDK has no separate creation-timeout argument.
-`WaitConditionReady` is rejected.
+`PolicyModeDisabled` on idle terminate is rejected. Ports 80, 443, and 8080 are
+rejected (Blaxel-reserved). Default port transport leaves the protocol to
+Blaxel (HTTP); plain maps to TCP; TLS maps to TLS. HTTP/2 over TLS is rejected.
+Kit `Config.Timeout` / create call timeout is the create deadline. The Go
+Blaxel SDK has no separate creation-timeout argument. `WaitFor` accepts only
+Default and Scheduled; `WaitConditionReady` is rejected. Create always uses
+the native create path (not create-if-not-exists).
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
-up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and
-`Terminate` are not supported. `Close` does not contact Blaxel and does not
-change the sandbox.
+up the sandbox by name (`ID()` equals the create name). `Attach`, `Start`,
+`Stop`, `Pause`, `Archive`, and `Terminate` are not supported. `Close` does not
+contact Blaxel and does not change the sandbox.
 
 `Filesystem` supports the shared file calls: `ReadFile`, `WriteFile`,
 `CopyFromLocal`, `CopyToLocal`, `MakeDirectory`, `ListDirectory`, `Stat`, and

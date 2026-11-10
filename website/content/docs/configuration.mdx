@@ -347,6 +347,9 @@ client, err := sandbox.NewClient(modal.New(), config)
 | Region         | `region` — required for create           |
 | Endpoint       | Unsupported                              |
 
+`@blaxel/core` stores credentials in process-global `settings`. Use one Blaxel
+Kit client, or one credential set, per process.
+
 ```ts
 await using client = new Client({
   provider: blaxel(),

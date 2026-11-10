@@ -260,6 +260,11 @@ Creates the directory at `path`. An omitted `parents` flag is `true` (create mis
   filesystem calls.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel rejects `parents: false` before the call (field `parents`). Omitted
+  or `true` creates missing parents.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -287,6 +292,11 @@ Creates the directory at `path`. An omitted `Parents` flag is true.
 <ForProvider id="modal">
   Modal accepts a directory that already exists. With `Parents: false`, the
   parent must already exist.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Blaxel rejects `Parents: false` before the call (field `parents`). Omitted
+  or true creates missing parents.
 </ForProvider>
 
   </Tab>
