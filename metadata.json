@@ -1,0 +1,29 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M73BDYW54VYEZW0BW7KVYB4G",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "sdks/go/providers/blaxel/process.go",
+    "sdks/go/providers/blaxel/process_test.go",
+    "sdks/go/providers/blaxel/provider_checks.go",
+    "sdks/go/providers/blaxel/rejection_test.go",
+    "sdks/typescript/providers/blaxel/src/blaxel.test.ts",
+    "sdks/typescript/providers/blaxel/src/blaxel.ts",
+    "sdks/typescript/providers/blaxel/src/checks/provider_checks.ts",
+    "sdks/typescript/providers/blaxel/src/mappings/mappings.ts",
+    "sdks/typescript/providers/blaxel/src/process.ts",
+    "sdks/typescript/providers/blaxel/src/rejection.test.ts",
+    "specs/providers/blaxel.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ]
+}
