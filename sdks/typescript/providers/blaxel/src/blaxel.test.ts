@@ -10,20 +10,27 @@ import {
   WaitCondition,
   ConfigFieldAuthApiKeyKey,
   ConfigFieldEndpoint,
+  ConfigFieldRegion,
   CreateFieldEnvironment,
   CreateFieldLifetimeIdleTerminate,
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldName,
   CreateFieldNetworkPortsPort,
+  CreateFieldProvisioningTimeout,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
 } from "@sandbox-kit/sandbox";
 import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 import { BlaxelProvider } from "./blaxel.js";
-import { mapResources } from "#mappings/provider_mappings.js";
+import {
+  mapResources,
+  mapSandboxIdentity,
+} from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
 import { ResponseError } from "@blaxel/core";
+
+const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
 
 describe("Blaxel mappings", () => {
   it("maps API key authentication and workspace scope", () => {
@@ -51,16 +58,32 @@ describe("Blaxel mappings", () => {
   });
 
   it("requires name and image on create", () => {
-    const config = { scope: { workspace: "ws" } };
     expect(() =>
       mapCreateRequest(
         { source: { image: { reference: "blaxel/base-image:latest" } } },
-        config,
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: CreateFieldName,
+      }),
+    );
+  });
+
+  it("requires client region on create", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+        },
+        { scope: { workspace: "ws" } },
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldRegion,
       }),
     );
   });
@@ -115,16 +138,13 @@ describe("Blaxel mappings", () => {
             after: 30 * 60_000,
           },
         },
-        provisioning: {
-          timeout: 30_000,
-        },
         labels: { purpose: "test" },
         environment: { NODE_ENV: "test" },
       },
-      { scope: { workspace: "ws" }, region: "us-pdx-1" },
+      provider,
     );
+    expect(plan.options).toBeUndefined();
     expect(plan).toMatchObject({
-      options: { timeout: 30 },
       params: {
         name: "example",
         image: "blaxel/base-image:latest",
@@ -152,10 +172,28 @@ describe("Blaxel mappings", () => {
           source: { image: { reference: "blaxel/base-image:latest" } },
           resources: { memoryMib: 128n },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ).params.memory,
     ).toBe(128);
     expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4096 });
+  });
+
+  it("rejects create timeout", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          provisioning: { timeout: 30_000 },
+        },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.Unsupported,
+        field: CreateFieldProvisioningTimeout,
+      }),
+    );
   });
 
   it("rejects WaitCondition.Ready", () => {
@@ -165,11 +203,10 @@ describe("Blaxel mappings", () => {
           name: "example",
           source: { image: { reference: "blaxel/base-image:latest" } },
           provisioning: {
-            timeout: 30_000,
             waitFor: WaitCondition.Ready,
           },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -187,7 +224,7 @@ describe("Blaxel mappings", () => {
           source: { image: { reference: "blaxel/base-image:latest" } },
           network: { ports: [{ port: 443, transport: PortTransport.Tls }] },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -205,7 +242,7 @@ describe("Blaxel mappings", () => {
           source: { image: { reference: "blaxel/base-image:latest" } },
           lifetime: { maximumLifetime: 1_500 },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -223,7 +260,7 @@ describe("Blaxel mappings", () => {
           source: { image: { reference: "blaxel/base-image:latest" } },
           lifetime: { idleTerminate: { mode: PolicyMode.Disabled } },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -255,7 +292,7 @@ describe("Blaxel mappings", () => {
           source: { image: { reference: "blaxel/base-image:latest" } },
           environment: { "NOT VALID": "value" },
         },
-        { scope: { workspace: "ws" } },
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -263,6 +300,46 @@ describe("Blaxel mappings", () => {
         field: CreateFieldEnvironment,
       }),
     );
+  });
+
+  it("maps DEPLOYED plus runtime STANDBY to paused", () => {
+    expect(
+      mapSandboxIdentity({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "STANDBY",
+        spec: { region: "us-pdx-1" },
+      }),
+    ).toMatchObject({
+      id: "demo",
+      providerState: "DEPLOYED",
+      state: SandboxState.Paused,
+      region: "us-pdx-1",
+    });
+  });
+
+  it("maps DEPLOYED plus runtime RUNNING to running", () => {
+    expect(
+      mapSandboxIdentity({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "RUNNING",
+      }),
+    ).toMatchObject({
+      providerState: "DEPLOYED",
+      state: SandboxState.Running,
+    });
+  });
+
+  it("reads runtime state from SandboxInstance wire model", () => {
+    expect(
+      mapSandboxIdentity({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        // SandboxInstance exposes runtime state only on its private wire model.
+        ...({ sandbox: { state: "STANDBY" } } as object),
+      }).state,
+    ).toBe(SandboxState.Paused);
   });
 });
 

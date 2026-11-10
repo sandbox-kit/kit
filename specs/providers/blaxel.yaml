@@ -49,7 +49,7 @@ runtime:
           type: string,
           optional: true,
           capture: region,
-          doc: "is the captured default region. Omission leaves create without a region unless the environment supplies one.",
+          doc: "is the captured default region. Omission means create rejects with Config.region required.",
         }
     cleanup:
       { method: close, accepts_context: false, returns_error: false }

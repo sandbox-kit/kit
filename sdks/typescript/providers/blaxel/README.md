@@ -44,7 +44,7 @@ TTL / idle policies or `delete`.
 | API key        | `auth: { apiKey: { key } }`                                   |
 | Omitted `auth` | Blaxel SDK environment / CLI credentials                      |
 | Workspace      | `scope.workspace` — Blaxel workspace name                     |
-| Region         | `region` — default create placement                           |
+| Region         | `region` — required for create                                |
 | Endpoint       | Not supported                                                 |
 
 Token-pair, bearer, and OAuth client modes are rejected. Scope fields other
@@ -52,13 +52,13 @@ than `workspace` are rejected.
 
 ## What you can do
 
-**Create** requires a nonblank `name` and an image source. Optional memory
-(MiB; Blaxel CPU follows memory), labels, environment variables, ports, outbound
-domains, max-age TTL (at least 5m), idle-delete policy (at least 1m; explicit
-disable is rejected), and a create timeout (1–50 whole seconds).
-`provisioning.waitFor` Ready is unsupported (`sandbox.wait` is a deprecated
-no-op in `@blaxel/core`). Creation calls native `SandboxInstance.create`, not
-`createIfNotExists`. Ports 80, 443, and 8080 are rejected (Blaxel-reserved).
+**Create** requires a nonblank `name`, an image source, and client `region`.
+Optional memory (MiB; Blaxel CPU follows memory), labels, environment
+variables, ports, outbound domains, max-age TTL (at least 5m), and idle-delete
+policy (at least 1m; explicit disable is rejected).
+`provisioning.timeout` and `provisioning.waitFor` Ready are unsupported.
+Creation calls native `SandboxInstance.create`, not `createIfNotExists`.
+Ports 80, 443, and 8080 are rejected (Blaxel-reserved).
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,

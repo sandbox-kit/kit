@@ -66,9 +66,8 @@ supported call for a particular sandbox, and Kit returns that error.
 
 Set Daytona's target with `region` on the client. A placement block on the
 create request is rejected. Modal accepts cloud and region on the create
-request, and rejects a placement target. Blaxel create needs a region via
-`Config.region` or `BL_REGION`; Go requires `Config.Region`, and TypeScript
-accepts either. Per-request placement is rejected.
+request, and rejects a placement target. Blaxel create requires
+`Config.Region` / `region` on the client. Per-request placement is rejected.
 
 Closing the client closes your connection to the provider. The sandboxes keep
 running. Closing a handle leaves the sandbox as it is. You can keep using the

@@ -1,6 +1,7 @@
 import {
   ConfigFieldAuth,
   ConfigFieldEndpoint,
+  ConfigFieldRegion,
   ConfigFieldScopeAppName,
   ConfigFieldScopeOrganizationId,
   CreateFieldIsolation,
@@ -10,6 +11,7 @@ import {
   CreateFieldObservability,
   CreateFieldPlacement,
   CreateFieldProvisioningQueueTimeout,
+  CreateFieldProvisioningTimeout,
   CreateFieldReadiness,
   CreateFieldResources,
   CreateFieldRuntime,
@@ -24,7 +26,7 @@ import { describe, expect, it } from "vitest";
 
 import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 
-const workspace = { scope: { workspace: "ws" } };
+const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
 
 describe("rejected Blaxel create settings", () => {
   const cases: {
@@ -56,6 +58,12 @@ describe("rejected Blaxel create settings", () => {
       request: { provisioning: { queueTimeout: 60_000 } },
       kind: ErrorKind.Unsupported,
       field: CreateFieldProvisioningQueueTimeout,
+    },
+    {
+      name: "create timeout",
+      request: { provisioning: { timeout: 30_000 } },
+      kind: ErrorKind.Unsupported,
+      field: CreateFieldProvisioningTimeout,
     },
     {
       name: "readiness",
@@ -107,7 +115,7 @@ describe("rejected Blaxel create settings", () => {
     expect(() =>
       mapCreateRequest(
         { source: { image: { reference: "blaxel/base-image:latest" } } },
-        workspace,
+        provider,
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -118,7 +126,7 @@ describe("rejected Blaxel create settings", () => {
   });
 
   it("missing image", () => {
-    expect(() => mapCreateRequest({ name: "box" }, workspace)).toThrowError(
+    expect(() => mapCreateRequest({ name: "box" }, provider)).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
         field: CreateFieldSource,
@@ -126,10 +134,21 @@ describe("rejected Blaxel create settings", () => {
     );
   });
 
+  it("missing region", () => {
+    expect(() =>
+      mapCreateRequest(namedImage({}), { scope: { workspace: "ws" } }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldRegion,
+      }),
+    );
+  });
+
   for (const item of cases) {
     it(item.name, () => {
       expect(() =>
-        mapCreateRequest(namedImage(item.request), workspace),
+        mapCreateRequest(namedImage(item.request), provider),
       ).toThrowError(
         expect.objectContaining({ kind: item.kind, field: item.field }),
       );

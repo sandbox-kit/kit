@@ -46,7 +46,8 @@ does not change the handle.
 
 ## Provider support
 
-The bindings use Modal v0.11.1, Daytona v0.225.0, and Blaxel SDK Go/TS current pins.
+The bindings use Modal v0.11.1, Daytona v0.225.0, `@blaxel/core@0.3.36`, and
+`github.com/blaxel-ai/sdk-go@v0.31.0`.
 
 | Setting          | Modal                                                      | Daytona                           | Blaxel                            |
 | ---------------- | ---------------------------------------------------------- | --------------------------------- | --------------------------------- |

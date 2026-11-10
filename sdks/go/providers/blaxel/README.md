@@ -64,7 +64,7 @@ Create from a registry image with an explicit name. You can set labels,
 environment variables, memory, ports, outbound domains, maximum lifetime, and
 idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
 Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Create provisioning
-timeout is not mapped (the Go Blaxel SDK has no create timeout option).
+timeout is not mapped.
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and

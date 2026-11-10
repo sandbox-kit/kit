@@ -4,7 +4,10 @@ Create one Blaxel sandbox from a registry image with an explicit name. Prints th
 
 ## What this means
 
-Blaxel create requires a nonblank `name` and an image source. Kit calls native create (not create-if-not-exists). Region comes from the client config (`BL_REGION`, default `us-pdx-1`). Closing the Kit client only drops the local SDK connection.
+Blaxel create requires a nonblank `name`, an image source, and client `region`
+(examples read `BL_REGION`, default `us-pdx-1`). Kit calls native create (not
+create-if-not-exists). Closing the Kit client only drops the local SDK
+connection.
 
 ## Edge cases
 

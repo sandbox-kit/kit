@@ -83,6 +83,18 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 	if observed.State != sandbox.SandboxStateRunning || observed.Resources.GetMemoryMib() != 2048 {
 		t.Fatalf("observed = %#v", observed)
 	}
+
+	standby, err := sandboxInfo(&blaxel.Sandbox{
+		Metadata: blaxel.Metadata{Name: "demo"},
+		Status:   blaxel.StatusDeployed,
+		State:    blaxel.SandboxStateStandby,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if standby.State != sandbox.SandboxStatePaused {
+		t.Fatalf("standby state = %#v", standby.State)
+	}
 }
 
 func TestFormatBlaxelDuration(t *testing.T) {

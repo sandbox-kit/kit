@@ -61,6 +61,7 @@ interface NativeSandboxHandle {
     readonly labels?: Readonly<Record<string, string>>;
   };
   readonly status?: unknown;
+  readonly state?: unknown;
   readonly spec?: { readonly region?: string };
   readonly fs: {
     readBinary(path: string): Promise<Blob>;

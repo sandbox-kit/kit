@@ -204,6 +204,19 @@ func TestMissingRegionRejected(t *testing.T) {
 	}
 }
 
+func TestCreateTimeoutRejected(t *testing.T) {
+	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Provisioning: &sandbox.ProvisioningOptions{Timeout: sandbox.Duration(30 * time.Second)},
+	}), "us-pdx-1")
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindUnsupported || detail.Field != sandbox.CreateFieldProvisioningTimeout {
+		t.Fatalf("error = %v detail = %#v", err, detail)
+	}
+	if detail.Message != "sandbox-kit blaxel: Blaxel create timeout is not mapped" {
+		t.Fatalf("message = %q", detail.Message)
+	}
+}
+
 func imaged(request *sandbox.CreateOptions) *sandbox.CreateOptions {
 	request.Source = &sandbox.SandboxSource{Kind: &sandbox.Image{Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"}}}
 	return request

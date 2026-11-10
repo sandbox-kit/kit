@@ -7,7 +7,8 @@ from lifecycle operations on an existing sandbox.
 ## Supported creation settings
 
 Go and TypeScript integrations target Modal v0.11.1, Daytona v0.225.0, and
-Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core` / `sdk-go`).
+Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
+`github.com/blaxel-ai/sdk-go@v0.31.0`).
 
 | Setting                | Modal                                                                                  | Daytona                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
@@ -24,10 +25,11 @@ Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core` / `sdk-go`).
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
 
 
-Blaxel create requires a nonblank name and an image source. It maps memory MiB,
-labels, environment, ports, outbound domains, maximum lifetime, and idle
-terminate. CPU/disk overrides, placement, runtime, isolation, security, and
-most egress modes are rejected. Region comes from the client config.
+Blaxel create requires a nonblank name, an image source, and a client
+`region`. It maps memory MiB, labels, environment, ports, outbound domains,
+maximum lifetime, and idle terminate. CPU/disk overrides, placement, runtime,
+isolation, security, provisioning create timeout, and most egress modes are
+rejected.
 
 Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
 pools and explicit snapshot kinds are unavailable. A field the provider does

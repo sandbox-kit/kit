@@ -27,7 +27,10 @@ export interface BlaxelSandboxIdentity {
     readonly name?: string;
     readonly labels?: Readonly<Record<string, string>>;
   };
+  /** Deployment status (DEPLOYED, FAILED, …). */
   readonly status?: unknown;
+  /** Runtime state (RUNNING / STANDBY). */
+  readonly state?: unknown;
   readonly spec?: { readonly region?: string };
 }
 
@@ -42,11 +45,14 @@ export function mapSandboxIdentity(
     target.id = name;
     target.name = name;
   }
-  if (source.status !== undefined) {
+  const runtime = runtimeState(source);
+  if (source.status !== undefined && String(source.status) !== "") {
     target.providerState = String(source.status);
-    const state = mapSandboxState(String(source.status));
-    if (state !== undefined) target.state = state;
+  } else if (runtime !== undefined) {
+    target.providerState = runtime;
   }
+  const state = mapSandboxState(source.status, runtime);
+  if (state !== undefined) target.state = state;
   const region = source.spec?.region;
   if (region !== undefined && region !== "") target.region = region;
   const labels = source.metadata?.labels;
@@ -112,32 +118,59 @@ export function mapAPIKeyCredentials(
   return target;
 }
 
-function mapSandboxState(status: string): SandboxState | undefined {
-  const normalized = status.toUpperCase();
+function runtimeState(source: BlaxelSandboxIdentity): string | undefined {
+  if (source.state !== undefined && String(source.state) !== "")
+    return String(source.state);
+  // SandboxInstance keeps the wire model on a private field; read it when present.
+  const nested = (source as { sandbox?: { state?: unknown } }).sandbox?.state;
+  if (nested !== undefined && String(nested) !== "") return String(nested);
+  return undefined;
+}
+
+/** Mirrors Go metadata.go: deployment status, then runtime standby. */
+function mapSandboxState(
+  status: unknown,
+  runtime: string | undefined,
+): SandboxState | undefined {
+  const normalized =
+    status === undefined || String(status) === ""
+      ? ""
+      : String(status).toUpperCase();
+  const runtimeNormalized = runtime?.toUpperCase();
   switch (normalized) {
-    case "RUNNING":
-    case "READY":
-    case "DEPLOYED":
-      return SandboxState.Running;
-    case "PENDING":
-    case "CREATING":
+    case "UPLOADING":
+    case "BUILDING":
     case "DEPLOYING":
-    case "STARTING":
-      return SandboxState.Starting;
-    case "STANDBY":
-    case "SUSPENDED":
-    case "SLEEPING":
-      return SandboxState.Paused;
+    case "BUILT":
+      return SandboxState.Queued;
+    case "DEPLOYED":
+      return runtimeNormalized === "STANDBY"
+        ? SandboxState.Paused
+        : SandboxState.Running;
+    case "DELETING":
+    case "DEACTIVATING":
+      return SandboxState.Deleting;
+    case "TERMINATED":
+    case "DEACTIVATED":
+    case "DELETED":
+      return SandboxState.Deleted;
+    case "ARCHIVING":
+      return SandboxState.Archiving;
     case "ARCHIVED":
       return SandboxState.Archived;
+    case "UNARCHIVING":
+      return SandboxState.Starting;
     case "FAILED":
       return SandboxState.Error;
-    case "TERMINATED":
-    case "DELETED":
-    case "DEACTIVATED":
-      return SandboxState.Deleted;
     default:
-      return undefined;
+      switch (runtimeNormalized) {
+        case "RUNNING":
+          return SandboxState.Running;
+        case "STANDBY":
+          return SandboxState.Paused;
+        default:
+          return undefined;
+      }
   }
 }
 

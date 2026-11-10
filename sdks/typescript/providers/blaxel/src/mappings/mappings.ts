@@ -67,6 +67,8 @@ export function mapCreateRequest(
     invalid(CreateFieldName, "Blaxel requires an explicit sandbox name");
   if (request.source?.image === undefined)
     unsupported(CreateFieldSource, "Blaxel requires an explicit image source");
+  if (config.region === undefined || config.region.trim() === "")
+    invalid(ConfigFieldRegion, "Config.region is required");
 
   const params: SandboxCreateConfiguration = generatedMapCommonCreateFields(
     request,
@@ -76,9 +78,7 @@ export function mapCreateRequest(
     request.source.image.reference,
     CreateFieldSourceImageReference,
   );
-
-  if (config.region !== undefined)
-    params.region = nonblankConfig(config.region, ConfigFieldRegion);
+  params.region = nonblank(config.region, ConfigFieldRegion);
 
   mapRuntime(request);
   mapIsolation(request);
@@ -89,12 +89,9 @@ export function mapCreateRequest(
   mapLifetime(request, params);
   mapReadiness(request);
   mapObservability(request);
-  const options = mapProvisioning(request);
+  mapProvisioning(request);
 
-  return {
-    params,
-    ...(options === undefined ? {} : { options }),
-  };
+  return { params };
 }
 
 function mapRuntime(r: CreateOptions): void {
@@ -268,36 +265,34 @@ function mapObservability(r: CreateOptions): void {
     );
 }
 
-// mapProvisioning maps create timeout only. WaitCondition.Ready is rejected:
-// @blaxel/core sandbox.wait() is a deprecated no-op, and Ready previously
-// conflated that with Blaxel's destructive creation deadline (1–50s).
-function mapProvisioning(r: CreateOptions): SandboxCreateOptions | undefined {
+// mapProvisioning rejects create timeout until both languages share a native
+// mapping. WaitCondition.Ready is rejected: @blaxel/core sandbox.wait() is a
+// deprecated no-op.
+function mapProvisioning(r: CreateOptions): void {
   const v = r.provisioning;
-  if (!v) return undefined;
+  if (!v) return;
   if (v.queueTimeout !== undefined)
     unsupported(
       CreateFieldProvisioningQueueTimeout,
       "Blaxel queue timeout is unsupported",
     );
 
-  let options: SandboxCreateOptions | undefined;
   if (v.timeout !== undefined) {
     const seconds = wholeSeconds(
       v.timeout,
       "create",
       CreateFieldProvisioningTimeout,
     );
-    if (seconds === undefined || seconds < 1 || seconds > 50)
-      invalid(
+    if (seconds !== undefined && seconds > 0)
+      unsupported(
         CreateFieldProvisioningTimeout,
-        "create timeout must be a whole number of seconds between 1 and 50",
+        "Blaxel create timeout is not mapped",
       );
-    options = { timeout: seconds };
   }
 
   const waitFor = v.waitFor ?? WaitCondition.Default;
   if (waitFor === WaitCondition.Default || waitFor === WaitCondition.Scheduled)
-    return options;
+    return;
   unsupported(
     CreateFieldProvisioningWaitFor,
     "requested wait condition is unsupported",
@@ -334,11 +329,6 @@ function mutable(v: SandboxInfo): {
 
 function nonblank(v: string, f: string): string {
   if (!v.trim()) invalid(f, "must not be blank");
-  return v;
-}
-
-function nonblankConfig(v: string, f: string): string {
-  if (!v.trim()) configInvalid(f, "must not be blank");
   return v;
 }
 
@@ -384,15 +374,6 @@ function unsupported(field: string, message: string): never {
   providerError({
     kind: ErrorKind.Unsupported,
     operation: "create",
-    field,
-    message,
-  });
-}
-
-function configInvalid(field: string, message: string): never {
-  providerError({
-    kind: ErrorKind.InvalidArgument,
-    operation: "initialize",
     field,
     message,
   });
