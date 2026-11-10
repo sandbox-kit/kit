@@ -1,0 +1,21 @@
+review throughly again blaxel providers and tell me what are the things I should know without merging
+
+---
+
+expliain with example + if thre is anythin we must fix lemme know
+
+---
+
+whatever u recommend to fix do it rn.
+
+---
+
+okay also verify if there are any other things whcih is weird and u want to let me know after pushthing this changes to branch
+
+---
+
+cool u did it
+
+---
+
+.env key itself needs to be changed for thagt.
