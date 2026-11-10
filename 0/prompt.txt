@@ -1,0 +1,26 @@
+can u review thorughly every part of sdk both llangauge of blaxel. 
+
+check if design pattern is written wrong. previouly u might have misconfigurd, misinterpret and also miss validate without much context. 
+
+u must also check the website, docs, .md, user facing sdks docs which show sup in pkg and npm both as well as comments. 
+
+u must also see concurrency issues u encounter and find. 
+
+u are exceptionally good in building sdks.
+validatoins, provider validations, mappings over engineered sthjings u must check and fix and do it better. 
+
+plz note that u can ay no if u don't find don;t create the problem ur self. u must have baked by strong reason .
+
+---
+
+review ur changes again and see if u have done right. 
+
+check with other providers as well. 
+
+cool lemm e know also if anything is outdated docs, sdk,comments and written in. a way which was the thing was removed u should fix that. 
+
+update user facing docs, readme, .md, website and sdks readme.md
+
+---
+
+we need to have unify interface and this is correct right ?
