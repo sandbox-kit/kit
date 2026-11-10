@@ -95,6 +95,17 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 	if standby.State != sandbox.SandboxStatePaused {
 		t.Fatalf("standby state = %#v", standby.State)
 	}
+
+	deleted, err := sandboxInfo(&blaxel.Sandbox{
+		Metadata: blaxel.Metadata{Name: "demo"},
+		Status:   blaxel.Status("DELETED"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deleted.State != sandbox.SandboxStateDeleted || deleted.GetTerminal() != true {
+		t.Fatalf("deleted = %#v", deleted)
+	}
 }
 
 func TestFormatBlaxelDuration(t *testing.T) {

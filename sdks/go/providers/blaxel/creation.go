@@ -141,11 +141,11 @@ func mapIdleTerminate(action *sandbox.AutomaticAction) (*blaxel.ExpirationPolicy
 		return nil, providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldLifetimeIdleTerminate, "disabling idle terminate is not representable")
 	case sandbox.PolicyModeAfter:
 		if action.After == nil {
-			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminate, "duration is required")
+			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminateAfter, "duration is required")
 		}
 		formatted, err := formatBlaxelDuration(action.After.AsDuration(), time.Minute)
 		if err != nil {
-			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminate, err.Error())
+			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminateAfter, err.Error())
 		}
 		return &blaxel.ExpirationPolicyParam{
 			Action: blaxel.ExpirationPolicyActionDelete,

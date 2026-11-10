@@ -13,6 +13,7 @@ import {
   ConfigFieldAuthApiKeyKey,
   ConfigFieldEndpoint,
   ConfigFieldRegion,
+  ConfigFieldScopeWorkspace,
   CreateFieldEnvironment,
   CreateFieldLifetimeIdleTerminate,
   CreateFieldLifetimeMaximumLifetime,
@@ -60,6 +61,16 @@ describe("Blaxel mappings", () => {
       expect.objectContaining({
         kind: ErrorKind.Unsupported,
         field: ConfigFieldEndpoint,
+        operation: "initialize",
+      }),
+    );
+  });
+
+  it("rejects blank workspace scope", () => {
+    expect(() => mapClientConfig({ scope: { workspace: "  " } })).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: ConfigFieldScopeWorkspace,
         operation: "initialize",
       }),
     );

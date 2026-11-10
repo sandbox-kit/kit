@@ -119,7 +119,17 @@ func TestRejectedCreateSettings(t *testing.T) {
 				},
 			}),
 			kind:  sandbox.ErrorKindInvalidArgument,
-			field: sandbox.CreateFieldLifetimeIdleTerminate,
+			field: sandbox.CreateFieldLifetimeIdleTerminateAfter,
+		},
+		{
+			name: "idle terminate after required",
+			request: namedImage(&sandbox.CreateOptions{
+				Lifetime: &sandbox.LifetimePolicy{
+					IdleTerminate: &sandbox.AutomaticAction{Mode: sandbox.PolicyModeAfter},
+				},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldLifetimeIdleTerminateAfter,
 		},
 		{
 			name: "reserved port",

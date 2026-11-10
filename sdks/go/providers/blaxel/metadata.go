@@ -44,7 +44,9 @@ func (s *observedSandbox) state() {
 		s.info.State = runtimeState(s.native.State, sandbox.SandboxStateRunning)
 	case blaxel.StatusDeleting, blaxel.StatusDeactivating:
 		s.info.State = sandbox.SandboxStateDeleting
-	case blaxel.StatusTerminated, blaxel.StatusDeactivated:
+	case blaxel.StatusTerminated, blaxel.StatusDeactivated, blaxel.Status("DELETED"):
+		// DELETED is not a typed Status constant in sdk-go v0.31.0; accept the
+		// wire string so refresh matches TypeScript mapSandboxState.
 		s.info.State = sandbox.SandboxStateDeleted
 		s.info.Terminal = sandbox.Value(true)
 	case blaxel.StatusArchiving:

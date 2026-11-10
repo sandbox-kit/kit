@@ -116,7 +116,7 @@ Omit `auth` and `scope.workspace` to let the Blaxel SDK pick credentials from it
 | -------------- | ------------------------------------------------------------------------------- |
 | API key        | `auth.apiKey`                                                                   |
 | Omitted `auth` | Blaxel SDK environment / CLI credentials                                        |
-| Workspace      | `scope.workspace` — required for create when auth is set explicitly, or via env |
+| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted                              |
 | Region         | `region` — required for create                                                  |
 | Endpoint       | Unsupported                                                                     |
 
@@ -133,12 +133,12 @@ await using client = new Client({
   </Tab>
   <Tab value="Go">
 
-| Setting   | Notes                                 |
-| --------- | ------------------------------------- |
-| API key   | `Auth` with `APIKey`                  |
-| Workspace | `Scope.Workspace`                     |
-| Region    | `Config.Region` — required for create |
-| Endpoint  | Unsupported                           |
+| Setting   | Notes                                                  |
+| --------- | ------------------------------------------------------ |
+| API key   | `Auth` with `APIKey`                                   |
+| Workspace | `Scope.Workspace` — or `BL_WORKSPACE` when omitted     |
+| Region    | `Config.Region` — required for create                  |
+| Endpoint  | Unsupported                                            |
 
 ```go
 config := &sandbox.Config{

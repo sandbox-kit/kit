@@ -2,6 +2,7 @@
 // Inventoried in specs/providers/blaxel.yaml groups when present; kept in sync by hand.
 
 import {
+  ConfigFieldScopeWorkspace,
   ErrorKind,
   SandboxState,
   type SandboxInfo,
@@ -66,11 +67,21 @@ export function mapSandboxIdentity(
 
 export function mapClientScope(
   source: Scope | undefined,
-  _operation: string = "initialize",
+  operation: string = "initialize",
 ): NativeClientConfig {
   const target: Mutable<NativeClientConfig> = {};
   if (source === undefined) return target;
-  if (source.workspace !== undefined) target.workspace = source.workspace;
+  if (source.workspace !== undefined) {
+    if (source.workspace.trim() === "") {
+      providerError({
+        kind: ErrorKind.InvalidArgument,
+        operation,
+        field: ConfigFieldScopeWorkspace,
+        message: "workspace requires a non-blank value",
+      });
+    }
+    target.workspace = source.workspace;
+  }
   return target;
 }
 
