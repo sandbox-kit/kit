@@ -1,0 +1,3 @@
+reveiw the entire blaxel solution 
+
+if anyPlease update anything that has become outdated (docs, README, user-facing docs, or the website). If anything has become obsolete in the SDKs during the addition of Blaxel, please fix it.

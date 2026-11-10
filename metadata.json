@@ -1,0 +1,48 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M73C95E45N2TYVQ6Q8CP1TVQ",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "docs/code-generation.md",
+    "sdks/go/internal/contracts/README.md",
+    "sdks/go/internal/sdk/error.go",
+    "sdks/go/sandbox/README.md",
+    "sdks/go/sandbox/capabilities.go",
+    "sdks/go/sandbox/client.go",
+    "sdks/go/sandbox/client_contracts.go",
+    "sdks/go/sandbox/create_validation.go",
+    "sdks/go/sandbox/doc.go",
+    "sdks/go/sandbox/filesystem.go",
+    "sdks/go/sandbox/lifecycle.go",
+    "sdks/go/sandbox/sandbox.go",
+    "sdks/go/sandbox/sandbox_data_contracts.go",
+    "sdks/typescript/README.md",
+    "sdks/typescript/contracts/README.md",
+    "sdks/typescript/sandbox/README.md",
+    "sdks/typescript/sandbox/src/client/client.ts",
+    "sdks/typescript/sandbox/src/client/filesystem.ts",
+    "sdks/typescript/sandbox/src/client/sandbox.ts",
+    "tooling/README.md",
+    "website/content/docs/concepts.mdx",
+    "website/content/docs/configuration.mdx",
+    "website/content/docs/sdk/configuration.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 114335,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2111232,
+    "output_tokens": 18258,
+    "api_call_count": 1
+  }
+}
