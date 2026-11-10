@@ -66,14 +66,32 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
     configure(next: NativeClientConfig): void {
       settings.setConfig(next);
     },
-    create(params, options) {
-      return SandboxInstance.create(params, options);
+    async create(params, options) {
+      return projectHandle(await SandboxInstance.create(params, options));
     },
-    get(name) {
-      return SandboxInstance.get(name);
+    async get(name) {
+      return projectHandle(await SandboxInstance.get(name));
     },
     delete(name) {
       return SandboxInstance.delete(name);
     },
   };
+}
+
+/**
+ * `@blaxel/core` types `SandboxInstance.sandbox` private and has no `state`
+ * getter. Project runtime STANDBY/RUNNING onto a Kit-facing `state` field so
+ * identity mapping never reaches into the private wire model.
+ */
+export function projectHandle(instance: SandboxInstance): NativeSandboxHandle {
+  const state = wireRuntimeState(instance);
+  if (state === undefined) return instance as unknown as NativeSandboxHandle;
+  return Object.assign(instance, { state }) as unknown as NativeSandboxHandle;
+}
+
+function wireRuntimeState(instance: SandboxInstance): string | undefined {
+  const wire = instance as unknown as { sandbox?: { state?: unknown } };
+  const value = wire.sandbox?.state;
+  if (value === undefined || String(value) === "") return undefined;
+  return String(value);
 }

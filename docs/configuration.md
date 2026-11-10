@@ -91,9 +91,9 @@ deadline or abort signal that arrives earlier still applies.
 Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
-operation timeout. Blaxel uses the Kit deadline for create. `@blaxel/core`
-also accepts a native creation timeout (1–50 whole seconds); this provider
-does not forward it. The Go Blaxel SDK has no equivalent argument.
+operation timeout. Blaxel uses the Kit deadline for create and does not pass
+`@blaxel/core` `SandboxCreateOptions` (including the native 1–50s creation
+timeout). The Go Blaxel SDK has no equivalent argument.
 
 ## Credentials
 

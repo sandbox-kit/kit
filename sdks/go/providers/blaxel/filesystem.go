@@ -104,8 +104,10 @@ func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOpti
 	if err != nil {
 		return nil, err
 	}
-	// No public Stat on SandboxInstanceFSService; rebuild the lower FS client
-	// against the instance URL so metadata uses the same sandbox endpoint.
+	// SandboxInstanceFSService has Read/LS/… but no public Get/Stat. LS always
+	// calls AsDirectory(), so a file path would look like an empty directory.
+	// Rebuild the lower SandboxFilesystemService with the instance base URL
+	// (same construction NewInstance uses for instance.FS) and call Get.
 	fs := b.filesystemService(instance)
 	res, err := fs.Get(ctx, path, blaxel.SandboxFilesystemGetParams{})
 	if err != nil {

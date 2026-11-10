@@ -30,7 +30,10 @@ export interface BlaxelSandboxIdentity {
   };
   /** Deployment status (DEPLOYED, FAILED, …). */
   readonly status?: unknown;
-  /** Runtime state (RUNNING / STANDBY). */
+  /**
+   * Runtime state (RUNNING / STANDBY). `@blaxel/core` types `sandbox` private
+   * and has no `state` getter; the native adapter projects wire state here.
+   */
   readonly state?: unknown;
   readonly spec?: {
     readonly region?: string;
@@ -146,9 +149,6 @@ export function mapAllocatedResources(
 function runtimeState(source: BlaxelSandboxIdentity): string | undefined {
   if (source.state !== undefined && String(source.state) !== "")
     return String(source.state);
-  // SandboxInstance keeps the wire model on a private field; read it when present.
-  const nested = (source as { sandbox?: { state?: unknown } }).sandbox?.state;
-  if (nested !== undefined && String(nested) !== "") return String(nested);
   return undefined;
 }
 

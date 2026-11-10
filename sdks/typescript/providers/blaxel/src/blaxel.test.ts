@@ -38,7 +38,8 @@ import {
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
 import { remainingWaitBudgetMs } from "./process.js";
-import { ResponseError } from "@blaxel/core";
+import { projectHandle } from "./native.js";
+import { ResponseError, SandboxInstance } from "@blaxel/core";
 
 const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
 
@@ -163,7 +164,6 @@ describe("Blaxel mappings", () => {
       },
       provider,
     );
-    expect(plan.options).toBeUndefined();
     expect(plan).toMatchObject({
       params: {
         name: "example",
@@ -317,6 +317,41 @@ describe("Blaxel mappings", () => {
       operation: "create",
       statusCode: 403,
       providerCode: "POLICY_VIOLATION",
+      cause: native,
+    });
+  });
+
+  it("classifies bare HTTP 409 as already exists", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      { error: { message: "conflict" } },
+      new Error("conflict"),
+    );
+    expect(mapBlaxelError(native, "create")).toMatchObject({
+      kind: ErrorKind.AlreadyExists,
+      provider: "blaxel",
+      operation: "create",
+      statusCode: 409,
+      cause: native,
+    });
+  });
+
+  it("keeps SANDBOX_DELETION_IN_PROGRESS as conflict", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      {
+        error: {
+          code: "SANDBOX_DELETION_IN_PROGRESS",
+          message: "deleting",
+          status: 409,
+        },
+      },
+      new Error("deleting"),
+    );
+    expect(mapBlaxelError(native, "delete")).toMatchObject({
+      kind: ErrorKind.Conflict,
+      providerCode: "SANDBOX_DELETION_IN_PROGRESS",
+      statusCode: 409,
       cause: native,
     });
   });
@@ -498,13 +533,40 @@ describe("Blaxel mappings", () => {
     });
   });
 
-  it("reads runtime state from SandboxInstance wire model", () => {
+  it("maps projected runtime state from the native adapter", () => {
     expect(
       mapSandboxIdentity({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        // SandboxInstance exposes runtime state only on its private wire model.
-        ...({ sandbox: { state: "STANDBY" } } as object),
+        // defaultNativeFactory.projectHandle copies wire sandbox.state here.
+        state: "STANDBY",
+      }).state,
+    ).toBe(SandboxState.Paused);
+  });
+
+  it("projectHandle copies private wire sandbox.state onto state", () => {
+    const instance = new SandboxInstance({
+      metadata: { name: "demo" },
+      status: "DEPLOYED",
+      spec: { region: "us-pdx-1" },
+    } as never);
+    // @blaxel/core types sandbox private; seed the wire model for the adapter.
+    Object.assign(instance as object, {
+      sandbox: {
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "STANDBY",
+        spec: { region: "us-pdx-1" },
+      },
+    });
+    const handle = projectHandle(instance);
+    expect(handle.state).toBe("STANDBY");
+    expect(
+      mapSandboxIdentity({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: handle.state,
+        spec: { region: "us-pdx-1" },
       }).state,
     ).toBe(SandboxState.Paused);
   });
@@ -561,6 +623,7 @@ describe("Blaxel provider orchestration", () => {
       memory: 2048,
       region: "us-pdx-1",
     });
+    // Kit never forwards @blaxel/core SandboxCreateOptions (native create timeout).
     expect(created?.options).toBeUndefined();
     expect(sandbox.id).toBe("example");
     expect(sandbox.info().name).toBe("example");

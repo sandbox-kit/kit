@@ -3,7 +3,6 @@ import type {
   Config as NativeClientConfig,
   Port,
   SandboxCreateConfiguration,
-  SandboxCreateOptions,
   SandboxLifecycle,
 } from "@blaxel/core";
 import {
@@ -51,7 +50,6 @@ import { providerError } from "#errors.js";
 
 export interface BlaxelCreatePlan {
   readonly params: SandboxCreateConfiguration;
-  readonly options?: SandboxCreateOptions;
 }
 
 export function mapClientConfig(config: Config): NativeClientConfig {

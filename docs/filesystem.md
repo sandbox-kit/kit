@@ -215,7 +215,12 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 
 ## Read metadata
 
-`Stat` returns one path. A symlink result describes the symlink. Modal can
+`Stat` returns one path. A symlink result describes the symlink. Blaxel has no
+dedicated stat API: TypeScript uses `fs.ls` (directory listing, or parent
+listing after Blaxel's file-path "Directory not found" response); Go calls the
+sandbox filesystem GET through a rebuilt lower client because
+`SandboxInstanceFSService` has no public Get/Stat and `LS` always treats the
+response as a directory. Modal can
 report a symlink. Daytona reports a file or a directory. `mode` is an octal
 string when the provider supplies one, such as `0644`. `permissions`, `owner`,
 and `group` are set when the provider supplies them. `modifiedAt` is set when

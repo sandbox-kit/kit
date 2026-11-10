@@ -109,6 +109,10 @@ An error that Kit could not classify keeps an unknown kind and the original
 cause. A kind is a category. It is not a signal that retrying is safe, and
 Kit does not retry for you.
 
+Blaxel name collisions map to `AlreadyExists` when the provider sends
+`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409. Provider codes still win when
+present, so `SANDBOX_DELETION_IN_PROGRESS` stays `Conflict`.
+
 ## After a failure
 
 An error does not prove that no sandbox exists. Readiness or metadata handling

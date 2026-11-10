@@ -69,15 +69,23 @@ create.
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,
-terminate, and attach are unsupported.
+terminate, and attach are unsupported. `refresh` / `info` map Blaxel
+deployment `DEPLOYED` plus runtime `STANDBY` to Kit `paused` (and `RUNNING` to
+`running`). `@blaxel/core` types `SandboxInstance.sandbox` private and has no
+`state` getter; the provider projects wire runtime state onto a Kit-facing
+`state` field at the native boundary. A create that collides on name maps to
+`AlreadyExists` (`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409). Coded conflicts
+such as `SANDBOX_DELETION_IN_PROGRESS` stay `Conflict`.
 
 **Files** through `sandbox.filesystem`: `readFile`, `writeFile`,
 `copyFromLocal`, `copyToLocal`, `makeDirectory`, `listDirectory`, `stat`, and
 `remove`. Paths in the sandbox are absolute. `parents` defaults to true;
-`parents: false` is rejected. A missing file passed to `copyFromLocal` is not
-found before Blaxel is called, and the error field is `local_path`. A local
-directory is an invalid argument with the same field. `copyToLocal` creates a
-missing local parent directory.
+`parents: false` is rejected. `stat` uses Blaxel `fs.ls` (GET-by-path): a
+directory listing succeeds; a file path returns Blaxel's "Directory not found"
+response, then Kit lists the parent. A missing file passed to `copyFromLocal`
+is not found before Blaxel is called, and the error field is `local_path`. A
+local directory is an invalid argument with the same field. `copyToLocal`
+creates a missing local parent directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
 `shell`. `argv` is sent as a POSIX-quoted shell string. `run` waits until the

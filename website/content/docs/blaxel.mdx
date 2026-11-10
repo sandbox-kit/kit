@@ -167,6 +167,8 @@ Token-pair, bearer, and OAuth client modes are rejected. Scope fields other than
 | Volumes   | Not in Kit create; no portable volume fields                                   |
 | Open      | `get` / `refresh` by sandbox name                                              |
 | Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach               |
+| State     | `DEPLOYED` + runtime `STANDBY` → Kit paused; `RUNNING` → running               |
+| Errors    | Name collision → AlreadyExists; coded deletion-in-progress → Conflict          |
 | Files     | Filesystem methods — [Filesystem](/docs/filesystem)                            |
 | Process   | Blocking `run` — [Run a command](/docs/process)                                |
 
@@ -176,9 +178,12 @@ memory, so CPU and disk overrides are rejected. Default port transport leaves
 the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS; HTTP/2 over
 TLS is rejected. Client `timeout` is the Kit create/operation deadline.
 `@blaxel/core`'s native creation timeout (1–50s) is not forwarded; the Go SDK
-has no equivalent. `provisioning.waitFor` accepts only `Default` and
-`Scheduled`; `Ready` (and `Started` / `Submitted`) are rejected. Readiness
-probes are unsupported. Explicit idle-terminate disable is rejected.
+has no equivalent. Create never passes `@blaxel/core` `SandboxCreateOptions`.
+`provisioning.waitFor` accepts only `Default` and `Scheduled`; `Ready` (and
+`Started` / `Submitted`) are rejected. Readiness probes are unsupported.
+Explicit idle-terminate disable is rejected. TypeScript projects runtime
+standby from `@blaxel/core`'s private wire model onto a Kit-facing `state`
+field (no public `state` getter). Go reads `Sandbox.State` on the instance.
 
 ## Related
 

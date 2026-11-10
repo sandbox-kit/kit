@@ -77,15 +77,23 @@ the native create path (not create-if-not-exists).
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name (`ID()` equals the create name). `Attach`, `Start`,
 `Stop`, `Pause`, `Archive`, and `Terminate` are not supported. `Close` does not
-contact Blaxel and does not change the sandbox.
+contact Blaxel and does not change the sandbox. `Refresh` / `Info` map Blaxel
+deployment `DEPLOYED` plus runtime `STANDBY` to Kit `Paused` (and `RUNNING` to
+`Running`) via the Go SDK's public `Sandbox.State`. A create that collides on
+name maps to `AlreadyExists` (`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409).
+Coded conflicts such as `SANDBOX_DELETION_IN_PROGRESS` stay `Conflict`.
 
 `Filesystem` supports the shared file calls: `ReadFile`, `WriteFile`,
 `CopyFromLocal`, `CopyToLocal`, `MakeDirectory`, `ListDirectory`, `Stat`, and
 `Remove`. Paths in the sandbox are absolute. A file timeout is the context
-deadline. `Parents` defaults to true. `Parents` set to false is rejected. A
-missing file passed to `CopyFromLocal` is not found, and the error field is
-`local_path`. A local directory is an invalid argument with the same field.
-`CopyToLocal` creates a missing local parent directory.
+deadline. `Parents` defaults to true. `Parents` set to false is rejected.
+`Stat` uses the sandbox filesystem GET (the same underlying call as `LS`).
+`SandboxInstanceFSService` has no public Get/Stat, and `LS` always treats the
+response as a directory, so Kit rebuilds the lower filesystem client against
+the instance URL for metadata. A missing file passed to `CopyFromLocal` is not
+found, and the error field is `local_path`. A local directory is an invalid
+argument with the same field. `CopyToLocal` creates a missing local parent
+directory.
 
 `Process().Run` runs one command and waits for the result. Set exactly one of
 `Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero

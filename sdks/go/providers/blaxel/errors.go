@@ -78,7 +78,9 @@ var providerStatusKinds = map[int]sandbox.ErrorKind{
 	404: sandbox.ErrorKindNotFound,
 	410: sandbox.ErrorKindNotFound,
 	408: sandbox.ErrorKindTimeout,
-	409: sandbox.ErrorKindConflict,
+	// Bare 409 is usually name collision; coded conflicts (e.g. deletion in
+	// progress) still win through providerCodeKinds above.
+	409: sandbox.ErrorKindAlreadyExists,
 	412: sandbox.ErrorKindFailedPrecondition,
 	429: sandbox.ErrorKindRateLimited,
 	500: sandbox.ErrorKindInternal,

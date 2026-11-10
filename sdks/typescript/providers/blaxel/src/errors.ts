@@ -97,7 +97,9 @@ const STATUS_KINDS: Record<number, ErrorInfo["kind"]> = {
   404: ErrorKind.NotFound,
   410: ErrorKind.NotFound,
   408: ErrorKind.Timeout,
-  409: ErrorKind.Conflict,
+  // Bare 409 is usually name collision; coded conflicts (e.g. deletion in
+  // progress) still win through CODE_KINDS above.
+  409: ErrorKind.AlreadyExists,
   412: ErrorKind.FailedPrecondition,
   429: ErrorKind.RateLimited,
   500: ErrorKind.Internal,
