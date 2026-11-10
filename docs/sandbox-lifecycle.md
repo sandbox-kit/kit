@@ -86,16 +86,16 @@ canceled before it starts never reaches the provider.
 
 ## Provider support
 
-| Operation   | Modal                                  | Daytona     |
-| ----------- | -------------------------------------- | ----------- |
-| Attach      | Supported; ID only, no provider lookup | Unsupported |
-| Refresh/Get | Unsupported                            | Supported   |
-| Start       | Unsupported                            | Supported   |
-| Stop        | Unsupported                            | Supported   |
-| Pause       | Unsupported                            | Supported   |
-| Terminate   | Supported                              | Unsupported |
-| Archive     | Unsupported                            | Supported   |
-| Delete      | Unsupported                            | Supported   |
+| Operation   | Modal                                  | Daytona     | Blaxel                                   |
+| ----------- | -------------------------------------- | ----------- | ---------------------------------------- |
+| Attach      | Supported; ID only, no provider lookup | Unsupported | Unsupported                              |
+| Refresh/Get | Unsupported                            | Supported   | Supported (lookup by sandbox name)       |
+| Start       | Unsupported                            | Supported   | Unsupported                              |
+| Stop        | Unsupported                            | Supported   | Unsupported                              |
+| Pause       | Unsupported                            | Supported   | Unsupported                              |
+| Terminate   | Supported                              | Unsupported | Unsupported                              |
+| Archive     | Unsupported                            | Supported   | Unsupported                              |
+| Delete      | Unsupported                            | Supported   | Supported                                |
 
 Daytona reports its resolved sandbox class after creation. Kit maps container
 and Linux VM to shared isolation kinds and preserves Windows as a provider-specific
@@ -108,6 +108,10 @@ Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 `Stop` or `Delete`. Modal's native `FromID` performs no remote lookup, so Kit
 exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
 
+Blaxel looks up sandboxes by name for `Get` and `Refresh`. `Delete` removes the
+Blaxel resource. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate`
+are unsupported. Closing a Blaxel handle does not contact Blaxel.
+
 File calls on the same handle are documented in [filesystem](filesystem.md).
-Both providers implement the same eight methods; each handle serializes those
-calls with its lifecycle transitions.
+Daytona, Modal, and Blaxel implement the same eight methods; each handle
+serializes those calls with its lifecycle transitions.

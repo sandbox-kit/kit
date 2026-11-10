@@ -43,10 +43,11 @@ if errors.As(err, &detail) {
 }
 ```
 
-The same switch works for either provider. Runnable examples:
-[Modal unsupported settings](../examples/go/modal/errors/handle-modal-errors/README.md)
+The same switch works for any provider. Runnable examples:
+[Modal unsupported settings](../examples/go/modal/errors/handle-modal-errors/README.md),
+[Daytona invalid configuration](../examples/go/daytona/errors/handle-daytona-errors/README.md),
 and
-[Daytona invalid configuration](../examples/go/daytona/errors/handle-daytona-errors/README.md).
+[Blaxel invalid configuration](../examples/go/blaxel/errors/handle-blaxel-errors/README.md).
 
 Go and TypeScript use the same field string. A rule about one setting names
 that setting, such as `resources.cpu_limit_cores`. A rule about several
@@ -78,9 +79,10 @@ try {
 ```
 
 TypeScript examples:
-[handle-daytona-errors](../examples/typescript/daytona/errors/handle-daytona-errors/README.md)
+[handle-daytona-errors](../examples/typescript/daytona/errors/handle-daytona-errors/README.md),
+[handle-modal-errors](../examples/typescript/modal/errors/handle-modal-errors/README.md),
 and
-[handle-modal-errors](../examples/typescript/modal/errors/handle-modal-errors/README.md).
+[handle-blaxel-errors](../examples/typescript/blaxel/errors/handle-blaxel-errors/README.md).
 
 ## Provider errors
 

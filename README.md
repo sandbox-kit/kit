@@ -119,7 +119,7 @@ func main() {
 
 | Language   | Core SDK                                     | Providers                                      |
 | ---------- | -------------------------------------------- | ---------------------------------------------- |
-| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`   |
+| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`, `@sandbox-kit/blaxel` |
 | Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`, `.../providers/blaxel` |
 
 Install only the provider you use. The core SDK exposes the shared client
@@ -154,6 +154,10 @@ go run .
 Modal needs a token pair and an existing app:
 [TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
 [Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
+
+Blaxel needs an API key, a workspace, and a client region:
+[TypeScript](examples/typescript/blaxel/configuration/create-blaxel-sandbox/README.md) ·
+[Go](examples/go/blaxel/configuration/create-blaxel-sandbox/README.md).
 
 Creation examples provision real sandboxes. Filesystem, process, and lifecycle examples
 use the ID in `.env` (stop / terminate / archive / delete can destroy that
@@ -258,7 +262,8 @@ More detail: [responses and errors](docs/responses-and-errors.md).
   Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
-  Daytona: whole cores and whole GiB expressed as MiB.
+  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: `memoryMib` /
+  `memory_mib` maps 1:1; Blaxel derives CPU from memory.
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·

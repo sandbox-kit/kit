@@ -24,6 +24,7 @@ Creation examples provision real cloud resources. Filesystem, process, and lifec
 examples act on the sandbox ID in `.env`. Closing a handle leaves the sandbox as it is. Closing
 the client closes your connection to Daytona, Modal, or Blaxel. Modal setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
+Blaxel setup: [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 
 ## Catalog
 
@@ -112,16 +113,6 @@ the client closes your connection to Daytona, Modal, or Blaxel. Modal setup:
 | [request-modal-termination](modal/lifecycle/request-modal-termination/README.md)           | non-waited termination                     |
 | [close-modal-handle](modal/lifecycle/close-modal-handle/README.md)                         | close the handle; sandbox keeps running    |
 
-## Verify all TypeScript projects
-
-From `tooling/`:
-
-```sh
-GOWORK=off go run ./cmd/sandbox-kit test typescript
-```
-
-Builds and tests the SDK packages first, then every example with a `package.json`.
-
 ### Blaxel
 
 | Project | Demonstrates |
@@ -153,3 +144,13 @@ Builds and tests the SDK packages first, then every example with a `package.json
 | [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | waited deletion                         |
 | [close-blaxel-handle](blaxel/lifecycle/close-blaxel-handle/README.md)                                      | close the handle; sandbox keeps running |
 | [handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md)                                       | typed validation errors                 |
+
+## Verify all TypeScript projects
+
+From `tooling/`:
+
+```sh
+GOWORK=off go run ./cmd/sandbox-kit test typescript
+```
+
+Builds and tests the SDK packages first, then every example with a `package.json`.

@@ -16,6 +16,7 @@ go run .
 Skip copying if `.env` already exists. Programs load `.env` with `godotenv`;
 shell variables win. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
+Blaxel setup: [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 
 Creation programs provision real sandboxes (linked Daytona creates a parent and
 child). Filesystem, process, and lifecycle programs use the configured sandbox
@@ -111,28 +112,6 @@ closes your connection to Daytona, Modal, or Blaxel.
 | [request-modal-termination](modal/lifecycle/request-modal-termination/README.md)           | non-waited termination                     |
 | [close-modal-handle](modal/lifecycle/close-modal-handle/README.md)                         | close the handle; sandbox keeps running    |
 
-## Verify without credentials
-
-```sh
-GOWORK=off go test -v ./...
-```
-
-Most examples compile only. Local tests live in `handle-modal-errors`,
-`handle-daytona-errors`, `create-modal-with-resources`, and
-`create-daytona-with-policies` (dummy credentials and local servers; they do not
-schedule real provider work). Local tests may bind a port.
-
-Repository-wide: `sandbox-kit test go` from `tooling/`.
-
-## Error handling
-
-[handle-modal-errors](modal/errors/handle-modal-errors/README.md) and
-[handle-daytona-errors](daytona/errors/handle-daytona-errors/README.md) switch on
-`*sandbox.Error` `Kind` in `main.go`. Other create projects print and exit.
-Cleanup failures do not replace creation failures.
-
-Modal errors: unsupported disk. Daytona errors: invalid CPU.
-
 ### Blaxel
 
 | Project | Demonstrates |
@@ -164,3 +143,27 @@ Modal errors: unsupported disk. Daytona errors: invalid CPU.
 | [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | waited deletion                         |
 | [close-blaxel-handle](blaxel/lifecycle/close-blaxel-handle/README.md)                                      | close the handle; sandbox keeps running |
 | [handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md)                                       | typed validation errors                 |
+
+## Verify without credentials
+
+```sh
+GOWORK=off go test -v ./...
+```
+
+Most examples compile only. Local tests live in `handle-modal-errors`,
+`handle-daytona-errors`, `create-modal-with-resources`, and
+`create-daytona-with-policies` (dummy credentials and local servers; they do not
+schedule real provider work). Local tests may bind a port.
+
+Repository-wide: `sandbox-kit test go` from `tooling/`.
+
+## Error handling
+
+[handle-modal-errors](modal/errors/handle-modal-errors/README.md),
+[handle-daytona-errors](daytona/errors/handle-daytona-errors/README.md), and
+[handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md) switch on
+`*sandbox.Error` `Kind` in `main.go`. Other create projects print and exit.
+Cleanup failures do not replace creation failures.
+
+Modal errors: unsupported disk. Daytona errors: invalid CPU. Blaxel errors:
+invalid create configuration.

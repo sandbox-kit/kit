@@ -7,7 +7,7 @@ options on Daytona, Modal, and Blaxel.
 | ------------------------------------- | ----- | ---------- |
 | Run a command and wait for the result | `Run` | `run`      |
 
-Open a handle with `Create`, Daytona `Get`, or Modal `Attach`, then call
+Open a handle with `Create`, Daytona or Blaxel `Get`, or Modal `Attach`, then call
 `Process()` / `sandbox.process`.
 
 Calls on one handle run one at a time (including filesystem and lifecycle). A
@@ -25,10 +25,10 @@ Setting both or neither fails with field `argv`. A blank or whitespace-only
 
 How providers run the command:
 
-| You pass | Daytona                   | Modal                    |
-| -------- | ------------------------- | ------------------------ |
-| `argv`   | POSIX-quoted shell string | argument list as-is      |
-| `shell`  | shell string as-is        | `bash -c` with that text |
+| You pass | Daytona                   | Modal                    | Blaxel                    |
+| -------- | ------------------------- | ------------------------ | ------------------------- |
+| `argv`   | POSIX-quoted shell string | argument list as-is      | POSIX-quoted shell string |
+| `shell`  | shell string as-is        | `bash -c` with that text | shell string as-is        |
 
 ## Working directory and environment
 
@@ -56,6 +56,7 @@ code.
 | -------- | ----------------------------------------------------------------- |
 | Daytona  | stdout only; `stderr` is empty (Go returns a non-nil empty slice) |
 | Modal    | both stdout and stderr                                            |
+| Blaxel   | both stdout and stderr                                            |
 
 ## Timeouts and cancel
 
@@ -73,6 +74,8 @@ quirks:
   capped at 10 seconds.
 - **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
   omits `timeoutMs` (sending `0` is rejected by Modal).
+- **Blaxel** — omit/zero adds no Blaxel command limit. Timeouts must be whole
+  seconds.
 
 Cancel behavior:
 
@@ -113,17 +116,19 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 [Go Daytona](../examples/go/daytona/process/run-daytona-command/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/process/run-daytona-command/README.md) ·
 [Go Modal](../examples/go/modal/process/run-modal-command/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/process/run-modal-command/README.md).
+[TypeScript Modal](../examples/typescript/modal/process/run-modal-command/README.md) ·
+[Go Blaxel](../examples/go/blaxel/process/run-blaxel-command/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/process/run-blaxel-command/README.md).
 
 ## More examples
 
-| Topic              | Go Daytona                                                                                      | TypeScript Daytona                                                                                      | Go Modal                                                                                  | TypeScript Modal                                                                                  |
-| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Shell string       | [run-daytona-shell-command](../examples/go/daytona/process/run-daytona-shell-command/README.md) | [run-daytona-shell-command](../examples/typescript/daytona/process/run-daytona-shell-command/README.md) | [run-modal-shell-command](../examples/go/modal/process/run-modal-shell-command/README.md) | [run-modal-shell-command](../examples/typescript/modal/process/run-modal-shell-command/README.md) |
-| Working directory  | [run-daytona-with-cwd](../examples/go/daytona/process/run-daytona-with-cwd/README.md)           | [run-daytona-with-cwd](../examples/typescript/daytona/process/run-daytona-with-cwd/README.md)           | [run-modal-with-cwd](../examples/go/modal/process/run-modal-with-cwd/README.md)           | [run-modal-with-cwd](../examples/typescript/modal/process/run-modal-with-cwd/README.md)           |
-| Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md)           | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md)           | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md)           | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md)           |
-| Timeout            | [run-daytona-with-timeout](../examples/go/daytona/process/run-daytona-with-timeout/README.md)   | [run-daytona-with-timeout](../examples/typescript/daytona/process/run-daytona-with-timeout/README.md)   | [run-modal-with-timeout](../examples/go/modal/process/run-modal-with-timeout/README.md)   | [run-modal-with-timeout](../examples/typescript/modal/process/run-modal-with-timeout/README.md)   |
-| Non-zero exit code | [run-daytona-check-exit](../examples/go/daytona/process/run-daytona-check-exit/README.md)       | [run-daytona-check-exit](../examples/typescript/daytona/process/run-daytona-check-exit/README.md)       | [run-modal-check-exit](../examples/go/modal/process/run-modal-check-exit/README.md)       | [run-modal-check-exit](../examples/typescript/modal/process/run-modal-check-exit/README.md)       |
+| Topic              | Go Daytona                                                                                      | TypeScript Daytona                                                                                      | Go Modal                                                                                  | TypeScript Modal                                                                                  | Go Blaxel                                                                                      | TypeScript Blaxel                                                                                      |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Shell string       | [run-daytona-shell-command](../examples/go/daytona/process/run-daytona-shell-command/README.md) | [run-daytona-shell-command](../examples/typescript/daytona/process/run-daytona-shell-command/README.md) | [run-modal-shell-command](../examples/go/modal/process/run-modal-shell-command/README.md) | [run-modal-shell-command](../examples/typescript/modal/process/run-modal-shell-command/README.md) | [run-blaxel-shell-command](../examples/go/blaxel/process/run-blaxel-shell-command/README.md) | [run-blaxel-shell-command](../examples/typescript/blaxel/process/run-blaxel-shell-command/README.md) |
+| Working directory  | [run-daytona-with-cwd](../examples/go/daytona/process/run-daytona-with-cwd/README.md)           | [run-daytona-with-cwd](../examples/typescript/daytona/process/run-daytona-with-cwd/README.md)           | [run-modal-with-cwd](../examples/go/modal/process/run-modal-with-cwd/README.md)           | [run-modal-with-cwd](../examples/typescript/modal/process/run-modal-with-cwd/README.md)           | [run-blaxel-with-cwd](../examples/go/blaxel/process/run-blaxel-with-cwd/README.md)           | [run-blaxel-with-cwd](../examples/typescript/blaxel/process/run-blaxel-with-cwd/README.md)           |
+| Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md)           | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md)           | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md)           | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md)           | [run-blaxel-with-env](../examples/go/blaxel/process/run-blaxel-with-env/README.md)           | [run-blaxel-with-env](../examples/typescript/blaxel/process/run-blaxel-with-env/README.md)           |
+| Timeout            | [run-daytona-with-timeout](../examples/go/daytona/process/run-daytona-with-timeout/README.md)   | [run-daytona-with-timeout](../examples/typescript/daytona/process/run-daytona-with-timeout/README.md)   | [run-modal-with-timeout](../examples/go/modal/process/run-modal-with-timeout/README.md)   | [run-modal-with-timeout](../examples/typescript/modal/process/run-modal-with-timeout/README.md)   | [run-blaxel-with-timeout](../examples/go/blaxel/process/run-blaxel-with-timeout/README.md)   | [run-blaxel-with-timeout](../examples/typescript/blaxel/process/run-blaxel-with-timeout/README.md)   |
+| Non-zero exit code | [run-daytona-check-exit](../examples/go/daytona/process/run-daytona-check-exit/README.md)       | [run-daytona-check-exit](../examples/typescript/daytona/process/run-daytona-check-exit/README.md)       | [run-modal-check-exit](../examples/go/modal/process/run-modal-check-exit/README.md)       | [run-modal-check-exit](../examples/typescript/modal/process/run-modal-check-exit/README.md)       | [run-blaxel-check-exit](../examples/go/blaxel/process/run-blaxel-check-exit/README.md)       | [run-blaxel-check-exit](../examples/typescript/blaxel/process/run-blaxel-check-exit/README.md)       |
 
 ## Limits
 

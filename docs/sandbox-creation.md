@@ -10,29 +10,22 @@ Go and TypeScript integrations target Modal v0.11.1, Daytona v0.225.0, and
 Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
 `github.com/blaxel-ai/sdk-go@v0.31.0`).
 
-| Setting                | Modal                                                                                  | Daytona                                                            |
-| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       |
-| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          |
-| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       |
-| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides |
-| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       |
-| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         |
-| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       |
-| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  |
-| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started |
-| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 |
+| Setting                | Modal                                                                                  | Daytona                                                            | Blaxel                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       | Named create; registry image required                                                           |
+| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          | Unsupported                                                                                     |
+| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       | Unsupported                                                                                     |
+| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides | Memory 1:1 (`memory_mib`); CPU/disk overrides rejected                                          |
+| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       | Client `region` required for create; request placement unsupported                              |
+| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         | Environment map and labels                                                                      |
+| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                                     |
+| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080); outbound domains                                                       |
+| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m)                                                 |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Kit client/create timeout only; Ready wait unsupported                                          |
+| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                                     |
 
-
-Blaxel create requires a nonblank name, an image source, and a client
-`region`. It maps `memory_mib` 1:1 onto Blaxel's memory field (Blaxel labels
-that integer MB; Kit does not convert), labels, environment, ports, outbound
-domains, maximum lifetime, and idle terminate. CPU/disk overrides, placement,
-non-default isolation, runtime overrides, security, readiness, queue timeout,
-Ready wait, and most egress modes are rejected. Kit client/create timeout is
-the create deadline. Kit has no portable volume fields; Blaxel volumes stay
-out of create the same way Daytona and Modal volumes do.
+Kit has no portable volume fields; Blaxel volumes stay out of create the same
+way Daytona and Modal volumes do.
 
 Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
 pools and explicit snapshot kinds are unavailable. A field the provider does

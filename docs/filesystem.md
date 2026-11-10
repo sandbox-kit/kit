@@ -1,7 +1,7 @@
 # Filesystem
 
 File calls live on the sandbox handle, next to lifecycle. Daytona, Modal, and Blaxel
-implement the same methods. Open the handle with `Create`, Daytona `Get`, or
+implement the same methods. Open the handle with `Create`, Daytona or Blaxel `Get`, or
 Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 
 | You want to                   | Go              | TypeScript      |
@@ -56,8 +56,9 @@ omitted, the abort signal carries the client deadline.
 `makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
 `1500` ends the call at 1.5 seconds. Every Go file call uses the context as
 the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
-file calls use the context or the abort signal. `1500` milliseconds ends the
-call at 1.5 seconds.
+and Blaxel file calls use the context or the abort signal. `1500` milliseconds
+ends the call at 1.5 seconds. Blaxel rejects `parents: false` before the
+provider call (field `parents`).
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
@@ -87,7 +88,9 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
 [Go Daytona](../examples/go/daytona/filesystem/read-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/read-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/read-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/read-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/read-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/read-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/read-blaxel-file/README.md).
 
 ## Write a file
 
@@ -106,7 +109,9 @@ err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", []byte("h
 [Go Daytona](../examples/go/daytona/filesystem/write-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/write-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/write-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/write-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/write-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/write-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/write-blaxel-file/README.md).
 
 ## Copy a file
 
@@ -140,24 +145,29 @@ Into the sandbox:
 [Go Daytona](../examples/go/daytona/filesystem/copy-file-into-daytona/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-into-daytona/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/copy-file-into-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-into-modal/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-into-modal/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/copy-file-into-blaxel/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/copy-file-into-blaxel/README.md).
 
 Out of the sandbox:
 [Go Daytona](../examples/go/daytona/filesystem/copy-file-from-daytona/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-from-daytona/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/copy-file-from-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-from-modal/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-from-modal/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/copy-file-from-blaxel/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/copy-file-from-blaxel/README.md).
 
 ## Create a directory
 
 `parents` defaults to true, so the call creates missing parents. Modal accepts
 a directory that already exists. Daytona returns the provider error when it
-already exists.
+already exists. Blaxel creates missing parents when `parents` is omitted or
+true.
 
 Set `parents` to false when the parent directory must already exist. Modal
 then requires that parent, and returns an error if the new directory is
-already there. Daytona rejects `false` before the call. The error field is
-`parents`.
+already there. Daytona and Blaxel reject `false` before the call. The error
+field is `parents`.
 
 ```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files");
@@ -176,7 +186,9 @@ err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox
 [Go Daytona](../examples/go/daytona/filesystem/make-daytona-directory/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/make-daytona-directory/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/make-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/make-modal-directory/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/make-modal-directory/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/make-blaxel-directory/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/make-blaxel-directory/README.md).
 
 ## List a directory
 
@@ -197,7 +209,9 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 [Go Daytona](../examples/go/daytona/filesystem/list-daytona-directory/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/list-daytona-directory/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/list-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/list-modal-directory/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/list-modal-directory/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/list-blaxel-directory/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/list-blaxel-directory/README.md).
 
 ## Read metadata
 
@@ -219,7 +233,9 @@ info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 [Go Daytona](../examples/go/daytona/filesystem/stat-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/stat-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/stat-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/stat-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/stat-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/stat-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/stat-blaxel-file/README.md).
 
 ## Delete a file or directory
 
@@ -248,4 +264,6 @@ if err := files.Remove(ctx, "/tmp/kit-files", &sandbox.RemoveOptions{
 [Go Daytona](../examples/go/daytona/filesystem/remove-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/remove-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/remove-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/remove-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/remove-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/remove-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/remove-blaxel-file/README.md).
