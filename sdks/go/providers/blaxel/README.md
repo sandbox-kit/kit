@@ -66,9 +66,10 @@ alphanumeric with single hyphens and at most 49 characters. You can set labels,
 environment variables, memory, ports, outbound domains, maximum lifetime, and
 idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
 Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport
-leaves the protocol to Blaxel (HTTP); plain maps to TCP. Kit
-`Config.Timeout` / create call timeout is the create deadline. The Go Blaxel
-SDK has no separate creation-timeout argument. `WaitConditionReady` is rejected.
+leaves the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS.
+HTTP/2 over TLS is rejected. Kit `Config.Timeout` / create call timeout is the
+create deadline. The Go Blaxel SDK has no separate creation-timeout argument.
+`WaitConditionReady` is rejected.
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and
@@ -86,10 +87,12 @@ missing file passed to `CopyFromLocal` is not found, and the error field is
 `Process().Run` runs one command and waits for the result. Set exactly one of
 `Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero
 exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
-stderr. Omit or zero `Timeout` for no Blaxel process auto-kill. The blocking
-wait can still end at Blaxel's edge hold (about one to two minutes) while the
-command keeps running. Command timeouts must be whole seconds. Cancel the
-context to stop waiting.
+stderr. Omit or zero `Timeout` for no Blaxel process auto-kill; Kit then polls
+until the command ends or the context ends. A positive timeout of at most 60
+seconds uses Blaxel's blocking completion request. A longer timeout sets the
+process auto-kill and polls. Command timeouts must be whole seconds. Cancel
+the context to stop waiting; the remote command may keep running. An HTTP 504
+during the wait is a timeout error.
 
 `resources.memory_mib` maps 1:1 onto Blaxel's memory field. Blaxel labels that
 integer MB; Kit does not convert. Blaxel derives CPU from that value, so

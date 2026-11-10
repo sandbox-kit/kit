@@ -303,3 +303,19 @@ func TestDefaultPortOmitsProtocol(t *testing.T) {
 		t.Fatalf("Ports = %#v", ports)
 	}
 }
+
+func TestRejectsHttp2TlsPortTransport(t *testing.T) {
+	_, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Network: &sandbox.NetworkConfig{
+			Ports: []*sandbox.PortBinding{
+				{Port: 3000, Transport: sandbox.PortTransportHTTP2TLS},
+			},
+		},
+	}), "us-pdx-1")
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) ||
+		detail.Kind != sandbox.ErrorKindInvalidArgument ||
+		detail.Field != sandbox.CreateFieldNetworkPortsTransport {
+		t.Fatalf("error = %v detail = %#v", err, detail)
+	}
+}

@@ -249,10 +249,8 @@ func blaxelPortProtocol(transport sandbox.PortTransport) (blaxel.PortProtocol, e
 		return blaxel.PortProtocolTcp, nil
 	case sandbox.PortTransportTLS:
 		return blaxel.PortProtocolTls, nil
-	case sandbox.PortTransportHTTP2TLS:
-		// Blaxel exposes HTTP (not H2). Kit HTTP/2+TLS maps to that HTTP protocol.
-		return blaxel.PortProtocolHTTP, nil
 	default:
+		// Blaxel has no HTTP/2 port protocol (Kit Http2Tls included).
 		return "", providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsTransport, "requested port transport is unsupported")
 	}
 }

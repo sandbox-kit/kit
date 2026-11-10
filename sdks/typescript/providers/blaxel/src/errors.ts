@@ -52,8 +52,10 @@ export function mapBlaxelError(
   if (error instanceof DOMException && error.name === "TimeoutError")
     return create({ kind: ErrorKind.Timeout, error, operation });
 
+  const cause = causeOf(error);
   let kind: ErrorInfo["kind"] = ErrorKind.Unknown;
-  const statusCode = getBlaxelErrorStatus(error);
+  const statusCode =
+    getBlaxelErrorStatus(error) ?? getBlaxelErrorStatus(cause);
   const providerCode = stringifyCode(getBlaxelErrorCode(error));
 
   if (error instanceof CredentialsError) kind = ErrorKind.Authentication;
@@ -63,8 +65,15 @@ export function mapBlaxelError(
       isCreationTimeoutError(error))
   )
     kind = ErrorKind.Timeout;
-  // Edge 504 (waitForCompletion hold / origin-read) is a timeout, matching Go.
-  if (kind === ErrorKind.Unknown && isGatewayTimeout(error))
+  // process.wait reports its deadline as a plain Error. A 504 on one poll is
+  // retried inside wait and may be that error's cause. A bare edge 504
+  // (completion hold or origin read) is a timeout too, matching Go.
+  if (
+    kind === ErrorKind.Unknown &&
+    (isProcessWaitTimeout(error) ||
+      isGatewayTimeout(error) ||
+      isGatewayTimeout(cause))
+  )
     kind = ErrorKind.Timeout;
   if (
     kind === ErrorKind.Unknown &&
@@ -191,6 +200,17 @@ function kindFromStatus(status: number): ErrorInfo["kind"] {
     default:
       return ErrorKind.Unknown;
   }
+}
+
+function isProcessWaitTimeout(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.message.startsWith("Process did not finish in time")
+  );
+}
+
+function causeOf(error: unknown): unknown {
+  return error instanceof Error ? error.cause : undefined;
 }
 
 function stringifyCode(code: unknown): string | undefined {

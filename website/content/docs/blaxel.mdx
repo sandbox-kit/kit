@@ -173,10 +173,10 @@ Token-pair, bearer, and OAuth client modes are rejected. Scope fields other than
 `resources.memoryMib` / `memory_mib` maps 1:1 onto Blaxel's memory field.
 Blaxel labels that integer MB; Kit does not convert. Blaxel derives CPU from
 memory, so CPU and disk overrides are rejected. Default port transport leaves
-the protocol to Blaxel (HTTP); plain maps to TCP. Client `timeout` is the
-Kit create/operation deadline. `@blaxel/core`'s native creation timeout
-(1–50s) is not forwarded; the Go SDK has no equivalent. Ready wait and
-readiness probes are unsupported.
+the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS; HTTP/2 over
+TLS is rejected. Client `timeout` is the Kit create/operation deadline.
+`@blaxel/core`'s native creation timeout (1–50s) is not forwarded; the Go SDK
+has no equivalent. Ready wait and readiness probes are unsupported.
 
 ## Related
 

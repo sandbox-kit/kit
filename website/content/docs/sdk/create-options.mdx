@@ -223,8 +223,9 @@ Set exactly one variant. Unsupported variants fail before the provider call.
   Blaxel requires an `image` source and a Blaxel-valid `name` (lowercase
   alphanumeric with single hyphens, at most 49 characters). Client `region` is
   required. Default port transport leaves the protocol to Blaxel (HTTP); plain
-  maps to TCP. Ports 80, 443, and 8080 are reserved. Kit create timeout is the
-  local deadline; `@blaxel/core`'s native creation timeout is not forwarded.
+  maps to TCP; TLS maps to TLS; HTTP/2 over TLS is rejected. Ports 80, 443, and
+  8080 are reserved. Kit create timeout is the local deadline; `@blaxel/core`'s
+  native creation timeout is not forwarded.
 </ForProvider>
 
 ## RuntimeConfig

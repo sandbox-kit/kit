@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   Client,
   ErrorKind,
+  FileType,
   PolicyMode,
   PortTransport,
   SandboxState,
@@ -16,8 +17,10 @@ import {
   CreateFieldLifetimeMaximumLifetime,
   CreateFieldName,
   CreateFieldNetworkPortsPort,
+  CreateFieldNetworkPortsTransport,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
+  FileFieldPath,
 } from "@sandbox-kit/sandbox";
 import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 import { BlaxelProvider } from "./blaxel.js";
@@ -128,7 +131,7 @@ describe("Blaxel mappings", () => {
         resources: { memoryMib: 4096n },
         network: {
           outboundDomains: ["example.com"],
-          ports: [{ port: 3000, transport: PortTransport.Http2Tls }],
+          ports: [{ port: 3000, transport: PortTransport.Tls }],
         },
         lifetime: {
           maximumLifetime: 24 * 60 * 60_000,
@@ -152,7 +155,7 @@ describe("Blaxel mappings", () => {
         ttl: "1d",
         labels: { purpose: "test" },
         envs: [{ name: "NODE_ENV", value: "test" }],
-        ports: [{ target: 3000, protocol: "HTTP" }],
+        ports: [{ target: 3000, protocol: "TLS" }],
         network: { allowedDomains: ["example.com"] },
         lifecycle: {
           expirationPolicies: [
@@ -312,6 +315,16 @@ describe("Blaxel mappings", () => {
       operation: "run",
       cause: native,
     });
+    const waited = new Error(
+      "Process did not finish in time (proc); it may still be running",
+      { cause: native },
+    );
+    expect(mapBlaxelError(waited, "run")).toMatchObject({
+      kind: ErrorKind.Timeout,
+      operation: "run",
+      statusCode: 504,
+      cause: waited,
+    });
   });
 
   it("omits protocol for default port transport", () => {
@@ -324,6 +337,26 @@ describe("Blaxel mappings", () => {
       provider,
     );
     expect(plan.params.ports).toEqual([{ target: 3000 }]);
+  });
+
+  it("rejects HTTP/2 TLS port transport", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          network: {
+            ports: [{ port: 3000, transport: PortTransport.Http2Tls }],
+          },
+        },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldNetworkPortsTransport,
+      }),
+    );
   });
 
   it("applies environment checks before mapping", () => {
@@ -610,12 +643,21 @@ describe("Blaxel provider orchestration", () => {
     expect(lookedUp).toBe(false);
   });
 
-  it("runs commands with waitForCompletion and second-based timeouts", async () => {
+  it("keeps short runs on waitForCompletion and polls the rest", async () => {
     const seen: Array<{
       command: string;
       waitForCompletion?: boolean;
       timeout?: number;
+      workingDir?: string;
+      env?: Record<string, string>;
     }> = [];
+    const waits: Array<{
+      identifier: string;
+      maxWait?: number;
+      interval?: number;
+      signal?: AbortSignal;
+    }> = [];
+    const signal = new AbortController().signal;
     const backend = new BlaxelProvider(() => ({
       configure() {},
       async create() {
@@ -634,8 +676,47 @@ describe("Blaxel provider orchestration", () => {
                 entry.waitForCompletion = request.waitForCompletion;
               if (request.timeout !== undefined)
                 entry.timeout = request.timeout;
+              if (request.workingDir !== undefined)
+                entry.workingDir = request.workingDir;
+              if (request.env !== undefined) entry.env = request.env;
               seen.push(entry);
-              return { exitCode: 0, stdout: "ok", stderr: "" };
+              if (request.waitForCompletion) {
+                return {
+                  exitCode: 0,
+                  stdout: "ok",
+                  stderr: "",
+                  status: "completed",
+                  pid: "short",
+                };
+              }
+              return {
+                exitCode: 0,
+                stdout: "",
+                stderr: "",
+                status: "running",
+                pid: "long",
+                name: "proc",
+              };
+            },
+            async wait(identifier, options) {
+              waits.push({
+                identifier,
+                ...(options?.maxWait === undefined
+                  ? {}
+                  : { maxWait: options.maxWait }),
+                ...(options?.interval === undefined
+                  ? {}
+                  : { interval: options.interval }),
+                ...(options?.signal === undefined
+                  ? {}
+                  : { signal: options.signal }),
+              });
+              return {
+                exitCode: 7,
+                stdout: "out",
+                stderr: "err",
+                status: "failed",
+              };
             },
           },
           async wait() {
@@ -653,12 +734,27 @@ describe("Blaxel provider orchestration", () => {
     });
     if (backend.run === undefined) throw new Error("run is missing");
 
-    await backend.run("sandbox-1", { argv: ["echo", "hi"] }, {});
+    const polled = await backend.run("sandbox-1", { argv: ["echo", "hi"] }, {});
     await backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 0 }, {});
+    const held = await backend.run(
+      "sandbox-1",
+      {
+        argv: ["echo", "hi"],
+        timeout: 5_000,
+        workingDirectory: "/workspace",
+        environment: { MODE: "test" },
+      },
+      {},
+    );
     await backend.run(
       "sandbox-1",
-      { argv: ["echo", "hi"], timeout: 5_000 },
+      { argv: ["echo", "hi"], timeout: 60_000 },
       {},
+    );
+    await backend.run(
+      "sandbox-1",
+      { argv: ["echo", "hi"], timeout: 61_000 },
+      { signal },
     );
     await expect(
       backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 1_500 }, {}),
@@ -668,10 +764,286 @@ describe("Blaxel provider orchestration", () => {
       operation: "run",
     });
 
+    expect(polled).toMatchObject({ exitCode: 7 });
+    expect(polled.stdout).toEqual(new TextEncoder().encode("out"));
+    expect(polled.stderr).toEqual(new TextEncoder().encode("err"));
+    expect(held).toMatchObject({ exitCode: 0 });
+    expect(held.stdout).toEqual(new TextEncoder().encode("ok"));
     expect(seen).toEqual([
-      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 0 },
-      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 0 },
-      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 5 },
+      { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
+      { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
+      {
+        command: "'echo' 'hi'",
+        waitForCompletion: true,
+        timeout: 5,
+        workingDir: "/workspace",
+        env: { MODE: "test" },
+      },
+      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 60 },
+      { command: "'echo' 'hi'", waitForCompletion: false, timeout: 61 },
+    ]);
+    expect(waits).toEqual([
+      { identifier: "long", maxWait: -1, interval: 1_000 },
+      { identifier: "long", maxWait: -1, interval: 1_000 },
+      { identifier: "long", maxWait: 61_000, interval: 1_000, signal },
     ]);
   });
+
+  it("returns a finished process without polling", async () => {
+    const backend = runBackend({
+      async exec() {
+        return {
+          status: "killed",
+          exitCode: 9,
+          stdout: "partial",
+          stderr: "stopped",
+        };
+      },
+      async wait() {
+        throw new Error("wait must not run");
+      },
+    });
+    const result = await backend.run!(
+      "sandbox-1",
+      { argv: ["sleep", "1"] },
+      {},
+    );
+    expect(result.exitCode).toBe(9);
+    expect(result.stdout).toEqual(new TextEncoder().encode("partial"));
+    expect(result.stderr).toEqual(new TextEncoder().encode("stopped"));
+  });
+
+  it("rejects a running process with no identifier", async () => {
+    const backend = runBackend({
+      async exec() {
+        return { status: "running", exitCode: 0, stdout: "", stderr: "" };
+      },
+      async wait() {
+        throw new Error("wait must not run");
+      },
+    });
+    await expect(
+      backend.run!("sandbox-1", { argv: ["echo", "hi"] }, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "run",
+    });
+  });
+
+  it("maps an aborted process wait and a wait deadline", async () => {
+    const controller = new AbortController();
+    const aborted = runBackend({
+      async exec() {
+        return { status: "running", pid: "long", stdout: "", stderr: "" };
+      },
+      async wait(_identifier, options) {
+        controller.abort();
+        options?.signal?.throwIfAborted();
+        return { status: "completed", exitCode: 0, stdout: "", stderr: "" };
+      },
+    });
+    await expect(
+      aborted.run!(
+        "sandbox-1",
+        { argv: ["sleep", "30"], timeout: 0 },
+        { signal: controller.signal },
+      ),
+    ).rejects.toMatchObject({ kind: ErrorKind.Canceled, operation: "run" });
+
+    const deadline = runBackend({
+      async exec() {
+        return { status: "running", pid: "long", stdout: "", stderr: "" };
+      },
+      async wait() {
+        throw new Error(
+          "Process did not finish in time (long); it may still be running",
+        );
+      },
+    });
+    await expect(
+      deadline.run!(
+        "sandbox-1",
+        { argv: ["sleep", "90"], timeout: 61_000 },
+        {},
+      ),
+    ).rejects.toMatchObject({ kind: ErrorKind.Timeout, operation: "run" });
+  });
 });
+
+describe("Blaxel filesystem.stat", () => {
+  it("returns directory metadata from ls on the path", async () => {
+    const backend = fsBackend({
+      async ls(path) {
+        expect(path).toBe("/app");
+        return {
+          name: "app",
+          path: "/app",
+          files: [],
+          subdirectories: [],
+        };
+      },
+    });
+    await expect(backend.stat!("sandbox-1", "/app", {}, {})).resolves.toEqual({
+      name: "app",
+      path: "/app",
+      type: FileType.Directory,
+      size: 0n,
+    });
+  });
+
+  it("reads file metadata from the parent listing when ls rejects a file path", async () => {
+    const backend = fsBackend({
+      async ls(path) {
+        if (path === "/app/readme.txt") {
+          throw new Error(JSON.stringify({ error: "Directory not found" }));
+        }
+        expect(path).toBe("/app");
+        return {
+          name: "app",
+          path: "/app",
+          files: [
+            {
+              name: "readme.txt",
+              path: "/app/readme.txt",
+              size: 12,
+              permissions: "0644",
+              owner: "user",
+              group: "user",
+              lastModified: "2024-01-02T03:04:05Z",
+            },
+          ],
+          subdirectories: [],
+        };
+      },
+    });
+    await expect(
+      backend.stat!("sandbox-1", "/app/readme.txt", {}, {}),
+    ).resolves.toMatchObject({
+      name: "readme.txt",
+      path: "/app/readme.txt",
+      type: FileType.File,
+      size: 12n,
+      permissions: "0644",
+    });
+  });
+
+  it("propagates non-file ls errors and reports missing files", async () => {
+    const missing = fsBackend({
+      async ls() {
+        throw new Error("boom");
+      },
+    });
+    await expect(
+      missing.stat!("sandbox-1", "/missing", {}, {}),
+    ).rejects.toMatchObject({ kind: ErrorKind.Unknown, operation: "stat" });
+
+    const gone = fsBackend({
+      async ls(path) {
+        if (path === "/app/gone.txt") {
+          throw new Error(JSON.stringify({ error: "Directory not found" }));
+        }
+        return {
+          name: "app",
+          path: "/app",
+          files: [],
+          subdirectories: [],
+        };
+      },
+    });
+    await expect(
+      gone.stat!("sandbox-1", "/app/gone.txt", {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.NotFound,
+      operation: "stat",
+      field: FileFieldPath,
+    });
+  });
+});
+
+function fsBackend(fs: {
+  ls(path: string): Promise<{
+    name: string;
+    path: string;
+    files: Array<{
+      name: string;
+      path: string;
+      size: number;
+      permissions?: string;
+      owner?: string;
+      group?: string;
+      lastModified?: string;
+    }>;
+    subdirectories: Array<{ name: string; path: string }>;
+  }>;
+}) {
+  return new BlaxelProvider(() => ({
+    configure() {},
+    async create() {
+      throw new Error("unexpected create");
+    },
+    async get() {
+      return {
+        metadata: { name: "sandbox-1" },
+        fs: fs as never,
+        process: {} as never,
+        async wait() {
+          return this;
+        },
+        async delete() {},
+      };
+    },
+    async delete() {
+      throw new Error("unexpected delete");
+    },
+  })).initialize({
+    auth: { apiKey: { key: "bl_key" } },
+    scope: { workspace: "ws" },
+  });
+}
+
+function runBackend(process: {
+  exec(request: {
+    command: string;
+    waitForCompletion?: boolean;
+    timeout?: number;
+  }): Promise<{
+    pid?: string;
+    status?: string;
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+  }>;
+  wait(
+    identifier: string,
+    options?: { signal?: AbortSignal },
+  ): Promise<{
+    exitCode?: number;
+    stdout?: string;
+    stderr?: string;
+    status?: string;
+  }>;
+}) {
+  return new BlaxelProvider(() => ({
+    configure() {},
+    async create() {
+      throw new Error("unexpected create");
+    },
+    async get() {
+      return {
+        metadata: { name: "sandbox-1" },
+        fs: {} as never,
+        process,
+        async wait() {
+          return this;
+        },
+        async delete() {},
+      };
+    },
+    async delete() {
+      throw new Error("unexpected delete");
+    },
+  })).initialize({
+    auth: { apiKey: { key: "bl_key" } },
+    scope: { workspace: "ws" },
+  });
+}

@@ -62,8 +62,9 @@ create `timeout` is the Kit deadline. `@blaxel/core`'s native creation timeout
 (1–50s) is not forwarded. `provisioning.waitFor` Ready is unsupported.
 Creation calls native `SandboxInstance.create`, not `createIfNotExists`. Ports
 80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport leaves
-the protocol to Blaxel (HTTP); plain maps to TCP. Kit has no portable volume
-fields; Blaxel volumes are outside create.
+the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS. HTTP/2 over
+TLS is rejected. Kit has no portable volume fields; Blaxel volumes are outside
+create.
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
 `close`. `close` does not delete the sandbox. Start, stop, pause, archive,
@@ -78,13 +79,15 @@ directory is an invalid argument with the same field. `copyToLocal` creates a
 missing local parent directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
-`shell`. `argv` is sent as a POSIX-quoted shell string. Runs are blocking
-(`waitForCompletion: true`). A non-zero exit code is not an SDK error—check
-`exitCode`. Blaxel returns stdout and stderr. Omit or zero `timeout` for no
-process auto-kill. The blocking wait can still end at Blaxel's edge hold
-(about one to two minutes) while the command keeps running. Command timeouts
-must be whole seconds (`2000` is two seconds; `1500` is rejected). Aborting
-the signal rejects the `await`; the remote command may keep running.
+`shell`. `argv` is sent as a POSIX-quoted shell string. `run` waits until the
+command ends. A non-zero exit code is not an SDK error—check `exitCode`.
+Blaxel returns stdout and stderr. Omit or zero `timeout` for no process
+auto-kill; Kit then polls until the command ends or the signal aborts. A
+positive timeout of at most 60 seconds uses Blaxel's blocking completion
+request. A longer timeout sets the process auto-kill and polls. Command
+timeouts must be whole seconds (`2000` is two seconds; `1500` is rejected).
+Aborting the signal rejects the `await`; the remote command may keep running.
+An HTTP 504 during the wait is a timeout error.
 
 Omitted memory keeps the Blaxel default. CPU, CPU limit, memory limit, and
 disk overrides are rejected.
