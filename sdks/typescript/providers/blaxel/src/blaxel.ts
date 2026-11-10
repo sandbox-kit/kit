@@ -16,6 +16,7 @@ import {
   FileFieldParents,
   FileType,
   SandboxState,
+  sandboxError,
   type FileInfo,
   type OperationOptions,
   type Provider,
@@ -55,6 +56,15 @@ import {
   type ProviderState,
 } from "#config/provider_config.js";
 
+interface BlaxelProcessResult {
+  readonly pid?: string;
+  readonly name?: string;
+  readonly status?: string;
+  readonly exitCode?: number;
+  readonly stdout?: string;
+  readonly stderr?: string;
+}
+
 interface NativeSandboxHandle {
   readonly metadata?: {
     readonly name?: string;
@@ -78,11 +88,15 @@ interface NativeSandboxHandle {
       timeout?: number;
       workingDir?: string;
       env?: Record<string, string>;
-    }): Promise<{
-      exitCode?: number;
-      stdout?: string;
-      stderr?: string;
-    }>;
+    }): Promise<BlaxelProcessResult>;
+    wait(
+      identifier: string,
+      options?: {
+        maxWait?: number;
+        interval?: number;
+        signal?: AbortSignal;
+      },
+    ): Promise<BlaxelProcessResult>;
   };
   delete(): Promise<unknown>;
 }
@@ -333,11 +347,13 @@ class BlaxelBackend extends BackendBase implements Backend {
   ): Promise<ExecResult> {
     return this.#withSandbox("run", id, options, async (sandbox) => {
       const timeout = execTimeoutSeconds(request.timeout);
-      const result = await sandbox.process.exec({
+      const started = await sandbox.process.exec({
         command: blaxelCommand(request),
-        waitForCompletion: true,
+        // A positive timeout of at most 60 seconds can stay on Blaxel's
+        // completion request. Omit, zero, and longer timeouts start the
+        // process and poll so the edge hold does not fail the call.
+        waitForCompletion: holdsCompletion(timeout),
         // Blaxel: omit/0 means no auto-kill. Kit omit/0 map to 0.
-        // waitForCompletion waits are still cut by Blaxel's edge hold.
         timeout: timeout ?? 0,
         ...(request.workingDirectory === undefined
           ? {}
@@ -346,11 +362,27 @@ class BlaxelBackend extends BackendBase implements Backend {
           ? {}
           : { env: { ...request.environment } }),
       });
-      return {
-        exitCode: result.exitCode ?? 0,
-        stdout: new TextEncoder().encode(result.stdout ?? ""),
-        stderr: new TextEncoder().encode(result.stderr ?? ""),
-      };
+      if (holdsCompletion(timeout) || processFinished(started.status)) {
+        return execResult(started);
+      }
+      const identifier = started.pid || started.name;
+      if (!identifier) {
+        throw sandboxError({
+          kind: ErrorKind.InvalidResponse,
+          provider: "blaxel",
+          operation: "run",
+          field: "",
+          message: "sandbox-kit blaxel: SDK returned no process identifier",
+        });
+      }
+      // wait polls until a terminal status or until the signal / maxWait ends.
+      // A gateway 504 on one read is retried inside wait; the deadline is a timeout.
+      const finished = await sandbox.process.wait(identifier, {
+        maxWait: timeout === undefined ? -1 : timeout * 1_000,
+        interval: 1_000,
+        ...(options.signal === undefined ? {} : { signal: options.signal }),
+      });
+      return execResult(finished);
     });
   }
 
@@ -402,6 +434,36 @@ function directoryInfo(info: BlaxelSubdirectory): FileInfo {
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
+}
+
+/** Blaxel's documented limit for a single waitForCompletion request. */
+const blaxelCompletionHoldSeconds = 60;
+
+function holdsCompletion(timeoutSeconds: number | undefined): boolean {
+  return (
+    timeoutSeconds !== undefined &&
+    timeoutSeconds > 0 &&
+    timeoutSeconds <= blaxelCompletionHoldSeconds
+  );
+}
+
+const terminalProcessStatus = new Set([
+  "completed",
+  "failed",
+  "killed",
+  "stopped",
+]);
+
+function processFinished(status: string | undefined): boolean {
+  return status !== undefined && terminalProcessStatus.has(status);
+}
+
+function execResult(result: BlaxelProcessResult): ExecResult {
+  return {
+    exitCode: result.exitCode ?? 0,
+    stdout: new TextEncoder().encode(result.stdout ?? ""),
+    stderr: new TextEncoder().encode(result.stderr ?? ""),
+  };
 }
 
 function blaxelCommand(request: ExecOptions): string {

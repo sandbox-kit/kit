@@ -4,8 +4,10 @@ Cap a Blaxel Process.Run with a whole-second timeout.
 
 ## What this means
 
-Command timeouts must be whole seconds. Omit or zero for no Blaxel process
-auto-kill; the blocking wait can still end at Blaxel's edge hold.
+Command timeouts must be whole seconds. This run uses 5 seconds, so Blaxel
+kills the process at 5 seconds and waits on its completion request. Omit or
+zero adds no process auto-kill; Kit polls until the command ends or the call
+is canceled. A timeout longer than 60 seconds sets the auto-kill and polls.
 
 ## Edge cases
 

@@ -78,13 +78,15 @@ directory is an invalid argument with the same field. `copyToLocal` creates a
 missing local parent directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
-`shell`. `argv` is sent as a POSIX-quoted shell string. Runs are blocking
-(`waitForCompletion: true`). A non-zero exit code is not an SDK error—check
-`exitCode`. Blaxel returns stdout and stderr. Omit or zero `timeout` for no
-process auto-kill. The blocking wait can still end at Blaxel's edge hold
-(about one to two minutes) while the command keeps running. Command timeouts
-must be whole seconds (`2000` is two seconds; `1500` is rejected). Aborting
-the signal rejects the `await`; the remote command may keep running.
+`shell`. `argv` is sent as a POSIX-quoted shell string. `run` waits until the
+command ends. A non-zero exit code is not an SDK error—check `exitCode`.
+Blaxel returns stdout and stderr. Omit or zero `timeout` for no process
+auto-kill; Kit then polls until the command ends or the signal aborts. A
+positive timeout of at most 60 seconds uses Blaxel's blocking completion
+request. A longer timeout sets the process auto-kill and polls. Command
+timeouts must be whole seconds (`2000` is two seconds; `1500` is rejected).
+Aborting the signal rejects the `await`; the remote command may keep running.
+An HTTP 504 during the wait is a timeout error.
 
 Omitted memory keeps the Blaxel default. CPU, CPU limit, memory limit, and
 disk overrides are rejected.

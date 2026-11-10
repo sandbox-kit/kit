@@ -125,8 +125,10 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both `stdout` and `stderr`. `argv` is sent as a POSIX-quoted
-  shell string. Omit/zero timeout means no Blaxel process auto-kill; the
-  blocking wait can still end at Blaxel's edge hold. Runs are blocking.
+  shell string. Omit or zero timeout means no process auto-kill; Kit polls
+  until the command ends or the call is canceled. A timeout of at most 60
+  seconds uses Blaxel's blocking completion request. A longer timeout sets
+  the process auto-kill and polls. `run` waits until the command ends.
 </ForProvider>
 
   </Tab>
@@ -152,8 +154,10 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both Stdout and Stderr. Argv is sent as a POSIX-quoted shell
-  string. Omit/zero Timeout means no Blaxel process auto-kill; the blocking wait
-  can still end at Blaxel's edge hold. Runs are blocking.
+  string. Omit or zero Timeout means no process auto-kill; Kit polls until the
+  command ends or the call is canceled. A Timeout of at most 60 seconds uses
+  Blaxel's blocking completion request. A longer Timeout sets the process
+  auto-kill and polls. Run waits until the command ends.
 </ForProvider>
 
   </Tab>

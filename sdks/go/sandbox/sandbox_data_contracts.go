@@ -153,8 +153,8 @@ type (
 	// An omitted Timeout uses Config.Timeout as the call deadline. Explicit
 	// zero adds no extra deadline for this call. Both omit and zero also mean
 	// no provider process auto-kill (Daytona uses 0 so its 10s native default
-	// does not apply; Modal adds no command limit; Blaxel adds no auto-kill,
-	// though its blocking wait can still end at the edge hold). Command
+	// does not apply; Modal adds no command limit; Blaxel adds no auto-kill
+	// and polls until the command ends). Command
 	// timeouts must be whole seconds.
 	ExecOptions = sandboxv1.ExecOptions
 
