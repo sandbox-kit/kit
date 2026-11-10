@@ -185,7 +185,7 @@ function mapSecurity(r: CreateOptions): void {
   rejectIfSet(
     r.security !== undefined,
     CreateFieldSecurity,
-    "Blaxel security settings are not mapped",
+    "Blaxel security fields are not mapped",
   );
 }
 
@@ -195,7 +195,7 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
   if (hasUnsupportedLifetimeFields(v))
     unsupported(
       CreateFieldLifetime,
-      "requested lifecycle policy is unsupported by Blaxel",
+      "one or more Blaxel lifetime fields are not mapped",
     );
 
   if (v.maximumLifetime !== undefined) {
@@ -251,7 +251,7 @@ function mapObservability(r: CreateOptions): void {
   rejectIfSet(
     r.observability !== undefined,
     CreateFieldObservability,
-    "Blaxel observability settings are not mapped",
+    "Blaxel observability fields are not mapped",
   );
 }
 

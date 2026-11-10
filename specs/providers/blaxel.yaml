@@ -30,8 +30,9 @@ checks:
       notes: "Default omits protocol (Blaxel HTTP); Plain→TCP; TLS→TLS; Http2Tls rejected in create mapping",
     }
   - {
-      path: network.outbound_domains,
-      notes: "mapped to allowedDomains; no Kit-side domain format check",
+      path: network.outbound_domains.entries,
+      format: domain,
+      notes: "mapped to allowedDomains; wildcard prefix *. is stripped for format check",
     }
   - {
       path: network.outbound_cidrs,

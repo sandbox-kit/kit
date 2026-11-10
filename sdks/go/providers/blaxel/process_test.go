@@ -44,8 +44,17 @@ func TestCompletionHoldAndWaitBudget(t *testing.T) {
 	if completionHold(0) || completionHold(61*time.Second) || !completionHold(60*time.Second) || !completionHold(time.Second) {
 		t.Fatal("completion hold boundary")
 	}
-	if waitBudget(0) != blaxelWaitUnlimited || waitBudget(90*time.Second) != 90*time.Second {
-		t.Fatal("wait budget")
+	if remainingWaitBudget(0, time.Minute) != blaxelWaitUnlimited {
+		t.Fatal("unlimited wait budget")
+	}
+	if remainingWaitBudget(90*time.Second, 0) != 90*time.Second {
+		t.Fatal("full wait budget")
+	}
+	if remainingWaitBudget(90*time.Second, 30*time.Second) != 60*time.Second {
+		t.Fatal("remaining wait budget")
+	}
+	if remainingWaitBudget(5*time.Second, 5*time.Second) != 0 || remainingWaitBudget(5*time.Second, 6*time.Second) != 0 {
+		t.Fatal("exhausted wait budget")
 	}
 }
 

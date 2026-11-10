@@ -8,6 +8,7 @@ import {
   CreateFieldLifetime,
   CreateFieldName,
   CreateFieldNetwork,
+  CreateFieldNetworkOutboundDomainsEntries,
   CreateFieldObservability,
   CreateFieldPlacement,
   CreateFieldProvisioningQueueTimeout,
@@ -149,6 +150,34 @@ describe("rejected Blaxel create settings", () => {
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: CreateFieldSourceImage,
+      }),
+    );
+  });
+
+  it("blank image reference", () => {
+    expect(() =>
+      mapCreateRequest(
+        { name: "box", source: { image: { reference: "   " } } },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldSourceImage,
+      }),
+    );
+  });
+
+  it("invalid outbound domain", () => {
+    expect(() =>
+      mapCreateRequest(
+        namedImage({ network: { outboundDomains: ["not a domain!!!"] } }),
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldNetworkOutboundDomainsEntries,
       }),
     );
   });

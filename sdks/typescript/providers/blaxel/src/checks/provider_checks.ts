@@ -2,6 +2,7 @@ import {
   ErrorKind,
   CreateFieldEnvironment,
   CreateFieldName,
+  CreateFieldNetworkOutboundDomainsEntries,
   CreateFieldPlacement,
   CreateFieldResourcesCpuCores,
   CreateFieldResourcesCpuLimitCores,
@@ -9,6 +10,7 @@ import {
   CreateFieldResourcesMemoryLimitMib,
   CreateFieldSource,
   CreateFieldSourceImage,
+  validDomain,
   validEnvName,
   type ErrorInfo,
 } from "@sandbox-kit/sandbox";
@@ -35,7 +37,10 @@ export function validateProviderCreate(request: CreateOptions): void {
       "name must be lowercase alphanumeric with single hyphens, at most 49 characters",
     );
   }
-  if (request.source?.image === undefined) {
+  if (
+    request.source?.image === undefined ||
+    !request.source.image.reference?.trim()
+  ) {
     reject(
       ErrorKind.InvalidArgument,
       CreateFieldSourceImage,
@@ -66,6 +71,15 @@ export function validateProviderCreate(request: CreateOptions): void {
         ErrorKind.InvalidArgument,
         CreateFieldEnvironment,
         "environment is outside supported values",
+      );
+    }
+  }
+  for (const value of request.network?.outboundDomains ?? []) {
+    if (!validDomain(value)) {
+      reject(
+        ErrorKind.InvalidArgument,
+        CreateFieldNetworkOutboundDomainsEntries,
+        "network.outbound_domains.entries is outside supported values",
       );
     }
   }

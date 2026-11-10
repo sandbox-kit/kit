@@ -46,7 +46,10 @@ export function processRequest(
 export interface FinishProcessArgs {
   process: NativeSandboxHandle["process"];
   started: BlaxelProcessResult;
+  /** Kit process timeout in whole seconds; undefined means unlimited. */
   timeout: number | undefined;
+  /** Date.now() taken immediately before Process.exec. */
+  startedAt: number;
   signal: AbortSignal | undefined;
 }
 
@@ -64,16 +67,35 @@ export async function finishProcess(
       message: "sandbox-kit blaxel: SDK returned no process identifier",
     });
   }
+  const maxWait = remainingWaitBudgetMs(args.timeout, args.startedAt);
+  if (args.timeout !== undefined && maxWait <= 0) {
+    providerError({
+      kind: ErrorKind.Timeout,
+      operation: "run",
+      field: ExecFieldTimeout,
+      message: "process did not finish before the timeout",
+    });
+  }
   const waitOptions: {
     maxWait: number;
     interval: number;
     signal?: AbortSignal;
   } = {
-    maxWait: args.timeout === undefined ? -1 : args.timeout * 1_000,
+    maxWait,
     interval: 1_000,
   };
   if (args.signal !== undefined) waitOptions.signal = args.signal;
   return execResult(await args.process.wait(identifier, waitOptions));
+}
+
+/** Poll window after Process.exec, subtracting time spent on completion hold. */
+export function remainingWaitBudgetMs(
+  timeoutSeconds: number | undefined,
+  startedAt: number,
+  now: number = Date.now(),
+): number {
+  if (timeoutSeconds === undefined) return -1;
+  return timeoutSeconds * 1_000 - (now - startedAt);
 }
 
 /**

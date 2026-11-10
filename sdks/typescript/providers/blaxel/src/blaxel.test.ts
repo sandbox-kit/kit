@@ -37,6 +37,7 @@ import {
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
+import { remainingWaitBudgetMs } from "./process.js";
 import { ResponseError } from "@blaxel/core";
 
 const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
@@ -902,6 +903,13 @@ describe("Blaxel provider orchestration", () => {
     expect(result.exitCode).toBe(9);
     expect(result.stdout).toEqual(new TextEncoder().encode("partial"));
     expect(result.stderr).toEqual(new TextEncoder().encode("stopped"));
+  });
+
+  it("subtracts elapsed time from the process wait budget", () => {
+    expect(remainingWaitBudgetMs(undefined, 0, 10_000)).toBe(-1);
+    expect(remainingWaitBudgetMs(90, 1_000, 31_000)).toBe(60_000);
+    expect(remainingWaitBudgetMs(5, 1_000, 6_000)).toBe(0);
+    expect(remainingWaitBudgetMs(5, 1_000, 7_000)).toBeLessThan(0);
   });
 
   it("polls when a completion-hold start still returns running", async () => {

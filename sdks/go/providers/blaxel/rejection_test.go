@@ -37,6 +37,27 @@ func TestRejectedCreateSettings(t *testing.T) {
 			field:   sandbox.CreateFieldSourceImage,
 		},
 		{
+			name: "blank image reference",
+			request: &sandbox.CreateOptions{
+				Name: sandbox.Value("sandbox"),
+				Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+					Image: &sandbox.ImageSource{Reference: "   "},
+				}},
+			},
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldSourceImage,
+		},
+		{
+			name: "invalid outbound domain",
+			request: namedImage(&sandbox.CreateOptions{
+				Network: &sandbox.NetworkConfig{
+					OutboundDomains: &sandbox.StringAllowlist{Entries: []string{"not a domain!!!"}},
+				},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldNetworkOutboundDomainsEntries,
+		},
+		{
 			name: "cpu cores",
 			request: namedImage(&sandbox.CreateOptions{
 				Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0)},

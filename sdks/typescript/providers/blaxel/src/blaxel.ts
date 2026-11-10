@@ -289,6 +289,7 @@ class BlaxelBackend extends BackendBase implements Backend {
       options,
       body: async (sandbox) => {
         const timeout = execTimeoutSeconds(request.timeout);
+        const startedAt = Date.now();
         const started = await sandbox.process.exec(
           processRequest(request, timeout),
         );
@@ -296,6 +297,7 @@ class BlaxelBackend extends BackendBase implements Backend {
           process: sandbox.process,
           started,
           timeout,
+          startedAt,
           signal: options.signal,
         });
       },
