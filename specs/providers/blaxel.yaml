@@ -1,7 +1,9 @@
 version: 1
 provider: blaxel
-# Provider create checks are handwritten in sdks/*/providers/blaxel (provider_checks).
-# Keep this list in sync with those implementations; it is not emitted.
+# Create checks are handwritten. Name/image/placement/resources/env live in
+# provider_checks; readiness/security/observability/provisioning/ports/network
+# live in create mapping (Go creation.go, TS mappings/mappings.ts). Keep this
+# list in sync; it is not emitted.
 checks:
   - {
       path: name,
@@ -18,21 +20,40 @@ checks:
   - { path: resources.cpu_limit_cores, unsupported: true }
   - { path: resources.memory_limit_mib, unsupported: true }
   - { path: resources.disk_mib, unsupported: true }
+  - {
+      path: network.ports.port,
+      notes: "reject reserved 80, 443, and 8080; enforced in create mapping",
+    }
+  - {
+      path: network.ports.transport,
+      allowed: [default, plain, tls],
+      notes: "Default omits protocol (Blaxel HTTP); Plain→TCP; TLS→TLS; Http2Tls rejected in create mapping",
+    }
+  - {
+      path: network.outbound_domains,
+      notes: "mapped to allowedDomains; no Kit-side domain format check",
+    }
+  - {
+      path: network.outbound_cidrs,
+      unsupported: true,
+      notes: "with outbound_proxy_url, inbound_cidrs, private_network, and related fields",
+    }
   - { path: readiness, unsupported: true }
   - { path: security, unsupported: true }
   - { path: observability, unsupported: true }
   - { path: provisioning.queue_timeout, unsupported: true }
   - {
       path: provisioning.wait_for,
-      unsupported: true,
-      notes: "only Default and Scheduled accepted; Ready/Started and others rejected",
+      allowed: [default, scheduled],
+      notes: "Ready/Started/Submitted rejected; enforced in create mapping",
     }
 client:
   target:
     name: ClientOptions
     bindings:
       go: { import: github.com/blaxel-ai/sdk-go/option, name: RequestOption }
-      typescript: { import: "@blaxel/core", name: ClientOptions }
+      # Handwritten TS maps into @blaxel/core settings Config (process-global).
+      typescript: { import: "@blaxel/core", name: Config }
   managed: [provider, timeout]
   retained: [region]
   rejected:
@@ -44,6 +65,7 @@ client:
     - { field: api_key, group: mapAPIKeyCredentials }
 runtime:
   go:
+    # Native SDK entry used by Provider.NewClient.
     constructor: { function: NewClient }
     state:
       - {
@@ -55,7 +77,8 @@ runtime:
         }
     cleanup: { method: Close, accepts_context: true, returns_error: false }
   typescript:
-    constructor: { function: BlaxelApiClient }
+    # @blaxel/core has no client class; credentials go through process-global settings.
+    constructor: { function: settings.setConfig }
     state:
       - {
           name: region,
@@ -65,8 +88,8 @@ runtime:
           doc: "is the captured default region. Omission means create rejects with Config.region required.",
         }
     cleanup: { method: close, accepts_context: false, returns_error: false }
-# Mapping groups are handwritten in sdks/*/providers/blaxel (provider_mappings).
-# Keep this inventory in sync with those implementations; it is not emitted.
+# Mapping groups are handwritten in sdks/*/providers/blaxel (provider_mappings
+# plus create mapping for image/region/ports/network). Keep in sync; not emitted.
 groups:
   - name: mapClientScope
     direction: request
@@ -80,7 +103,7 @@ groups:
           fields: { workspace: WithWorkspace }
         typescript:
           import: "@blaxel/core"
-          name: ClientOptions
+          name: Config
           fields: { workspace: workspace }
     fields:
       - { from: workspace, to: workspace }
@@ -96,7 +119,8 @@ groups:
           fields: { key: WithAPIKey }
         typescript:
           import: "@blaxel/core"
-          name: ClientOptions
+          name: Config
+          # Handwritten field is apiKey; @blaxel/core Config documents apikey.
           fields: { key: apiKey }
     fields:
       - { from: key, to: key }
@@ -117,17 +141,53 @@ groups:
             }
         typescript:
           import: "@blaxel/core"
-          name: SandboxCreateRequest
+          name: SandboxCreateConfiguration
           fields:
             {
-              name: metadata.name,
-              environment: spec.runtime.envs,
-              labels: metadata.labels,
+              name: name,
+              environment: envs,
+              labels: labels,
             }
     fields:
       - { from: name, to: name }
       - { from: environment, to: environment }
       - { from: labels, to: labels }
+  - name: mapImage
+    direction: request
+    source: { name: ImageSource }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { image: Sandbox.Spec.Runtime.Image }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { image: image }
+    fields:
+      - { from: reference, to: image }
+  - name: mapCreateRegion
+    direction: request
+    source: { name: Config }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { region: Sandbox.Spec.Region }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { region: region }
+    fields:
+      - {
+          from: region,
+          to: region,
+          notes: "required for create; taken from captured client Config.region",
+        }
   # memory_mib → Blaxel memory is 1:1; Blaxel labels the unit MB; Kit does not convert.
   - name: mapResources
     direction: request
@@ -141,8 +201,8 @@ groups:
           fields: { memory: Sandbox.Spec.Runtime.Memory }
         typescript:
           import: "@blaxel/core"
-          name: SandboxCreateRequest
-          fields: { memory: spec.runtime.memory }
+          name: SandboxCreateConfiguration
+          fields: { memory: memory }
     fields:
       - {
           from: memory_mib,
@@ -162,8 +222,8 @@ groups:
           fields: { ttl: Sandbox.Spec.Runtime.Ttl }
         typescript:
           import: "@blaxel/core"
-          name: SandboxCreateRequest
-          fields: { ttl: spec.runtime.ttl }
+          name: SandboxCreateConfiguration
+          fields: { ttl: ttl }
     fields:
       - { from: maximum_lifetime, to: ttl, transform: duration_blaxel }
   - name: mapIdleDuration
@@ -179,10 +239,47 @@ groups:
           fields: { lifecycle: Sandbox.Spec.Lifecycle.ExpirationPolicies }
         typescript:
           import: "@blaxel/core"
-          name: SandboxCreateRequest
-          fields: { lifecycle: spec.lifecycle.expirationPolicies }
+          name: SandboxCreateConfiguration
+          fields: { lifecycle: lifecycle }
     fields:
       - { from: after, to: lifecycle, transform: duration_blaxel_idle }
+  - name: mapPorts
+    direction: request
+    source: { name: PortBinding }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { ports: Sandbox.Spec.Runtime.Ports }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { ports: ports }
+    fields:
+      - { from: port, to: target }
+      - {
+          from: transport,
+          to: protocol,
+          notes: "Default omits protocol; Plain→TCP; TLS→TLS",
+        }
+  - name: mapOutboundDomains
+    direction: request
+    source: { name: NetworkConfig }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { outbound_domains: Sandbox.Spec.Network.AllowedDomains }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { outbound_domains: network.allowedDomains }
+    fields:
+      - { from: outbound_domains, to: outbound_domains }
   - name: mapSandboxInfo
     direction: response
     source:
@@ -214,7 +311,12 @@ groups:
     fields:
       - { from: id, to: id }
       - { from: name, to: name }
-      - { from: state, to: provider_state, cast: string }
+      - {
+          from: state,
+          to: provider_state,
+          cast: string,
+          notes: "Status preferred; runtime State used when Status empty; DELETED/TERMINATED/DEACTIVATED → Deleted with terminal=true",
+        }
       - { from: region, to: region }
       - { from: labels, to: labels }
   - name: mapAllocatedResources
