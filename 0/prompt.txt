@@ -31,3 +31,7 @@ I think thre are things on how we there are lot of conditions on if statements a
 can u make it much more readable theere. 
 
 that would make the code really well and clean + if there are more parameters in functions (not user facing internals only) then we must fix those to coonvert it to object or use a really well design pattern whcih is great.
+
+---
+
+is there anything u wanna improve or u want to commit and push and update the PR with changes u have made with diagrams.
