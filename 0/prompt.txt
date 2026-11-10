@@ -1,0 +1,85 @@
+now we want to integrate blaxel can u have a look for both typescript and golang sdk
+
+check if u need anything from me. and decision u need from me
+
+---
+
+cool go ahead with what u recommend. 
+
++ we need to ship this in cloud agents of cursor
+
+---
+
+Build
+
+---
+
+Implement the plan as specified, it is attached for your reference. Do NOT edit the plan file itself.
+
+To-do's from the plan have already been created. Do not create them again. Mark them as in_progress as you work, starting with the first one. Don't stop until you have completed all the to-dos.
+
+---
+
+stop
+
+---
+
+can u help me how to add cloud agents cursor in repo ?
+
+---
+
+I have done can u start working by creating branch in cloud + previous local-workftree u should delete ig.
+
+---
+
+cool this is on going ? right I can off the ide and internet and still work ?
+
+---
+
+when it finishes it will make PR ?
+
+---
+
+I think it finished ?
+
+---
+
+once its done can u start other. I am closing my laptop so u might need to setup schedule by starting the sandbox or cloud rn ?
+
+---
+
+once its done can u start others. I am closing my laptop so u might need to setup schedule by starting the sandbox or cloud rn ?
+
+---
+
+can I off my laptop ?
+
+---
+
+cool can u look pr and all the cloud agents chat session. and latest merged pr in this branch. 
+
+lemme know whats all implemented. and what are the bugs currently and what are the stuff which needs improvement u can go and verify along with reference sdk u have.
+
+---
+
+go ahead implement it here not in cloud agent.s
+
+---
+
+now lets start with navigating everything we have. 
+
+
+first things first we need to verify that all the mappings and validation are done right + validation with protovalidate and provider validation both are right. 
+
+
+tell me what all decisions which are weird or u need me to know. 
+
++ also about errors I see thre is merged kind of errors with one kind its fine but still look if u feel to introduce new error fields kind I am okay but it should be very logical. 
+
+talking about request, response everything is in place and their isn't any conflict. 
+
+also make sure the design patterns and everything u used is really upto mark and best of u can have. 
+
++ also we have some fields which might be new to add incase or missing one plz fix those issues and mention it. 
+
+update user facing docs + docs, readme and .md being a technical writer documentation engineer.
