@@ -112,13 +112,13 @@ Omit `auth` and `scope.workspace` to let the Blaxel SDK pick credentials from it
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Setting        | Notes                                                                           |
-| -------------- | ------------------------------------------------------------------------------- |
-| API key        | `auth.apiKey`                                                                   |
-| Omitted `auth` | Blaxel SDK environment / CLI credentials                                        |
-| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted                              |
-| Region         | `region` — required for create                                                  |
-| Endpoint       | Unsupported                                                                     |
+| Setting        | Notes                                              |
+| -------------- | -------------------------------------------------- |
+| API key        | `auth.apiKey`                                      |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials           |
+| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted |
+| Region         | `region` — required for create                     |
+| Endpoint       | Unsupported                                        |
 
 ```ts
 await using client = new Client({
@@ -133,12 +133,12 @@ await using client = new Client({
   </Tab>
   <Tab value="Go">
 
-| Setting   | Notes                                                  |
-| --------- | ------------------------------------------------------ |
-| API key   | `Auth` with `APIKey`                                   |
-| Workspace | `Scope.Workspace` — or `BL_WORKSPACE` when omitted     |
-| Region    | `Config.Region` — required for create                  |
-| Endpoint  | Unsupported                                            |
+| Setting   | Notes                                              |
+| --------- | -------------------------------------------------- |
+| API key   | `Auth` with `APIKey`                               |
+| Workspace | `Scope.Workspace` — or `BL_WORKSPACE` when omitted |
+| Region    | `Config.Region` — required for create              |
+| Endpoint  | Unsupported                                        |
 
 ```go
 config := &sandbox.Config{
