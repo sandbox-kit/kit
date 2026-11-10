@@ -117,6 +117,7 @@ function kindFromCode(code: string): ErrorInfo["kind"] {
     case "VOLUME_ALREADY_ATTACHED":
       return ErrorKind.AlreadyExists;
     case "BAD_REQUEST":
+    case "POLICY_VIOLATION": // reserved gateway code; matches Go ErrPolicyViolation
     case "INVALID_INPUT":
     case "INVALID_IMAGE":
     case "INVALID_PORTS":
