@@ -25,7 +25,15 @@ type backend struct {
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(New(), &sandbox.Config{})
+//	client, err := sandbox.NewClient(New(), &sandbox.Config{
+//		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+//			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+//		}},
+//		Scope: &sandbox.Scope{
+//			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
+//		},
+//		Region: sandbox.Value("us-pdx-1"),
+//	})
 func New() *Provider {
 	return &Provider{}
 }

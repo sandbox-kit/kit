@@ -6,8 +6,10 @@ import (
 )
 
 // mapClientConfig maps shared client configuration into native SDK options.
-// Unsupported supplied settings fail before the SDK is constructed.
-// Shared Config validation runs in sandbox.NewClient; this maps only.
+// Endpoint is unsupported. Scope.Workspace maps to the native workspace
+// option when set. Unsupported supplied settings fail before the SDK is
+// constructed. Shared Config validation runs in sandbox.NewClient; this
+// maps only.
 type clientSettings struct {
 	source *sandbox.Config
 	opts   []option.RequestOption

@@ -434,7 +434,16 @@ function execTimeoutSeconds(timeout: number | undefined): number | undefined {
   return timeout / 1_000;
 }
 
-/** Selects Blaxel as the provider for the shared Sandbox Kit client. */
+/**
+ * Selects Blaxel as the provider for the shared Sandbox Kit client.
+ *
+ * Create needs `name`, an image source, and client `region`. Set
+ * `auth.apiKey` and `scope.workspace`, or omit them so `@blaxel/core` can use
+ * `BL_API_KEY` / `BL_WORKSPACE`. `memoryMib` maps 1:1 onto Blaxel's memory
+ * field; Kit has no portable volume fields. `@blaxel/core` stores credentials
+ * in process-global `settings` — use one Blaxel Kit client, or one credential
+ * set, per process.
+ */
 export function blaxel(): Provider {
   return new BlaxelProvider();
 }

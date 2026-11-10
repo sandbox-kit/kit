@@ -92,6 +92,22 @@ integer MB; Kit does not convert. Blaxel derives CPU from that value, so
 `cpu_cores` and disk overrides are rejected. Kit has no portable volume
 fields; Blaxel volumes are outside create.
 
+## Examples
+
+| Operation                | Program                                                                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create                   | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/configuration/create-blaxel-sandbox)         |
+| Run a command            | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process/run-blaxel-command)                     |
+| Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process)                                          |
+| Read a file              | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem/read-blaxel-file)                      |
+| Filesystem               | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem)                                    |
+| Look up                  | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/get-blaxel-sandbox)                   |
+| Delete                   | [delete-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/delete-blaxel-sandbox)             |
+| All                      | [Go examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go)                                                             |
+
+pkg.go.dev also shows `ExampleNew_*` samples in this package for create,
+lifecycle, process, and filesystem.
+
 ## License
 
 MIT
