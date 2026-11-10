@@ -1,0 +1,93 @@
+can u review thorughly every part of sdk both llangauge of blaxel. 
+
+check if design pattern is written wrong. previouly u might have misconfigurd, misinterpret and also miss validate without much context. 
+
+u must also check the website, docs, .md, user facing sdks docs which show sup in pkg and npm both as well as comments. 
+
+u must also see concurrency issues u encounter and find. 
+
+u are exceptionally good in building sdks.
+validatoins, provider validations, mappings over engineered sthjings u must check and fix and do it better. 
+
+plz note that u can ay no if u don't find don;t create the problem ur self. u must have baked by strong reason .
+
+---
+
+review ur changes again and see if u have done right. 
+
+check with other providers as well. 
+
+cool lemm e know also if anything is outdated docs, sdk,comments and written in. a way which was the thing was removed u should fix that. 
+
+update user facing docs, readme, .md, website and sdks readme.md
+
+---
+
+we need to have unify interface and this is correct right ?
+
+---
+
+commit and push
+
+---
+
+u have any other suggestinos based n what I asked previously in every check once.
+
+---
+
+are u sure ?
+
+---
+
+cool implement in cloud agents. whatever u feel go ahead. I am closing my laptop so
+
+---
+
+is it complete ?
+
+---
+
+can u check entire codebase now for blaxel and see compare the decisions made in other providers. 
+
+if it goes slightly in wrong direction lemme know.
+
+---
+
+I meant the order PR which is made.
+
+---
+
+can u check the review the branch for evrything now. again
+
+
+find things which are still wrong, not upto the mark and completely weird implementatino.s
+
+---
+
+fix all of it in this branch here in local onlyl
+
+---
+
+cool comit and push
+
+---
+
+again review, Review all validations around protovalidate and provider validations thoroughly. We have mappings, and some fields and parameters are probably mapped incorrectly. All the request-response error mappings should be well defined. Concurrency issues: If you encounter timeout problems, please fix them and explain how you will do so.
+
+Please compile a comprehensive list of design pattern skills for Go and TypeScript. If you need to search the internet, feel free to do so.
+
+Each decision should be supported by strong reasons that you have verified with the reference SDK. Our goal is a unified interface for all sandbox providers, and decisions should be made accordingly.
+
+Update the docs, website, and README.md with user‑facing examples in the Go documentation. Also, we have.Commands in the code that appear in the docs/npm section of the SDKs. As a technical documentation engineer at a dev‑tool company, make these changes.
+
+---
+
+cool can u verify the changes u have made ? 
+
+also where ever possible make sure u write the code very clean. 
+
+do this changes for all the blaxel changes in this PR. 
+
+write clean code, very freindly to read. 
+
+also make sure all the things u have changed is correct and was needed.
