@@ -1,0 +1,33 @@
+you are really best sdk and design patterns engineer writing golang and typescript for 10+ years. 
+
+can u fix the clean code readablity and also structure of code. 
+
+we must have as lean code as possible but still have no difference and zero difference around the output. 
+
+do all this changs only for this branch and blaxel providers only.
+
+---
+
+you are really best sdk and design patterns engineer writing golang and typescript for 10+ years. 
+
+can u fix the clean code readablity and also structure of code. 
+
+we must have as lean code as possible but still have no difference and zero difference around the output. 
+
+do all this changs only for this branch and blaxel changes only.
+
+---
+
+there will be lot more cleanups in how there is readablity. can u go ahead of do it more for blaxel
+
+---
+
+check errors.go again if there is anything missing i touched that file so verify once.
+
+---
+
+I think thre are things on how we there are lot of conditions on if statements and all that. 
+
+can u make it much more readable theere. 
+
+that would make the code really well and clean + if there are more parameters in functions (not user facing internals only) then we must fix those to coonvert it to object or use a really well design pattern whcih is great.

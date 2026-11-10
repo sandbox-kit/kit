@@ -1,0 +1,51 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M72ZTRYCA99YYTPBBQ3ARHZP",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "sdks/go/providers/blaxel/client.go",
+    "sdks/go/providers/blaxel/creation.go",
+    "sdks/go/providers/blaxel/errors.go",
+    "sdks/go/providers/blaxel/filesystem.go",
+    "sdks/go/providers/blaxel/instance.go",
+    "sdks/go/providers/blaxel/lifecycle.go",
+    "sdks/go/providers/blaxel/local.go",
+    "sdks/go/providers/blaxel/metadata.go",
+    "sdks/go/providers/blaxel/process.go",
+    "sdks/go/providers/blaxel/process_test.go",
+    "sdks/go/providers/blaxel/provider.go",
+    "sdks/go/providers/blaxel/provider_checks.go",
+    "sdks/go/providers/blaxel/provider_mappings.go",
+    "sdks/go/providers/blaxel/sandbox.go",
+    "sdks/typescript/providers/blaxel/src/blaxel.test.ts",
+    "sdks/typescript/providers/blaxel/src/blaxel.ts",
+    "sdks/typescript/providers/blaxel/src/checks/provider_checks.ts",
+    "sdks/typescript/providers/blaxel/src/config/provider_config.ts",
+    "sdks/typescript/providers/blaxel/src/errors.ts",
+    "sdks/typescript/providers/blaxel/src/filesystem.ts",
+    "sdks/typescript/providers/blaxel/src/local.ts",
+    "sdks/typescript/providers/blaxel/src/mappings/mappings.ts",
+    "sdks/typescript/providers/blaxel/src/mappings/provider_mappings.ts",
+    "sdks/typescript/providers/blaxel/src/native.ts",
+    "sdks/typescript/providers/blaxel/src/process.ts",
+    "specs/providers/blaxel.yaml"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 266905,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 6526336,
+    "output_tokens": 70565,
+    "api_call_count": 4
+  }
+}
