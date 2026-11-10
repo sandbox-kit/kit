@@ -295,6 +295,7 @@ export function mapSandboxInfo(
   if (mapped.region !== undefined) mutable(result).region = mapped.region;
   if (mapped.providerState !== undefined)
     mutable(result).providerState = mapped.providerState;
+  if (result.state === SandboxState.Deleted) mutable(result).terminal = true;
   const resources = mapAllocatedResources(value);
   if (resources !== undefined) mutable(result).resources = resources;
   return result;

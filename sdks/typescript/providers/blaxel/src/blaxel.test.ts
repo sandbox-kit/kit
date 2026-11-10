@@ -402,6 +402,22 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("marks DELETED and TERMINATED refresh as terminal", () => {
+    for (const status of ["DELETED", "TERMINATED", "DEACTIVATED"] as const) {
+      expect(
+        mapSandboxInfo({
+          metadata: { name: "gone" },
+          status,
+        }),
+      ).toMatchObject({
+        id: "gone",
+        state: SandboxState.Deleted,
+        terminal: true,
+        providerState: status,
+      });
+    }
+  });
+
   it("omits protocol for default port transport", () => {
     const plan = mapCreateRequest(
       {
