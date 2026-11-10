@@ -1,0 +1,61 @@
+review throughly again blaxel providers and tell me what are the things I should know without merging
+
+---
+
+expliain with example + if thre is anythin we must fix lemme know
+
+---
+
+whatever u recommend to fix do it rn.
+
+---
+
+okay also verify if there are any other things whcih is weird and u want to let me know after pushthing this changes to branch
+
+---
+
+cool u did it
+
+---
+
+.env key itself needs to be changed for thagt.
+
+---
+
+cool now can u double check - User-facing docs
+- User-facing SDK docs
+- README
+- Website docs
+
+As a technical documentation engineer, please fix this. If any items are outdated, update them.Anything not written forces the SDK user to fill in the gaps. Refine it, keep it crisp, and avoid overcomplicating it.
+
+---
+
+cool commit and push
+
+---
+
+just making sure every response either error or response from sdk
+
+maps to our own unified interface ?
+
+---
+
+explian with examples.
+
+---
+
+yah that looks good only. so no changes.
+
+---
+
+review thorughly again blaxel and all the changes within this branch. 
+you are a unified sdk expert.
+
+---
+
+expliain wth examples and changes needs to make
+
+---
+
+so what needs to be changed ddo it.
