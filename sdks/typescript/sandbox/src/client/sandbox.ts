@@ -98,7 +98,7 @@ export class Sandbox implements AsyncDisposable {
   get id(): string {
     return this.#info.id;
   }
-  /** `"daytona"` or `"modal"`. */
+  /** `"daytona"`, `"modal"`, or `"blaxel"`. */
   get providerName(): string {
     return this.#info.provider;
   }
@@ -124,7 +124,7 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Loads current metadata from the provider and stores it on this handle.
-   * Daytona supports refresh. Modal throws `ErrorKind.Unsupported`.
+   * Daytona and Blaxel support refresh. Modal throws `ErrorKind.Unsupported`.
    */
   async refresh(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#serialized(
@@ -147,7 +147,7 @@ export class Sandbox implements AsyncDisposable {
   /**
    * Starts a stopped sandbox and stores the updated metadata on this handle.
    * An omitted `timeout` uses the client timeout as this call's deadline.
-   * Daytona supports start. Modal throws `ErrorKind.Unsupported`.
+   * Daytona supports start. Modal and Blaxel throw `ErrorKind.Unsupported`.
    */
   async start(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
@@ -160,7 +160,7 @@ export class Sandbox implements AsyncDisposable {
   /**
    * Stops a sandbox and stores the updated metadata on this handle.
    * Set `force` to request an immediate stop.
-   * Daytona supports stop. Modal throws `ErrorKind.Unsupported`.
+   * Daytona supports stop. Modal and Blaxel throw `ErrorKind.Unsupported`.
    */
   async stop(options: StopCallOptions = {}): Promise<SandboxInfo> {
     const { force, ...call } = options;
@@ -176,7 +176,8 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Pauses a sandbox and stores the updated metadata on this handle.
-   * Daytona accepts or rejects the sandbox. Modal throws `ErrorKind.Unsupported`.
+   * Daytona accepts or rejects the sandbox. Modal and Blaxel throw
+   * `ErrorKind.Unsupported`.
    */
   async pause(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
@@ -190,7 +191,8 @@ export class Sandbox implements AsyncDisposable {
    * Ends a sandbox. The result includes `exitCode` when `wait` is set.
    * An omitted `timeout` uses the client timeout as this call's deadline.
    * Modal waits on that deadline and does not take a separate terminate duration.
-   * Modal supports terminate. Daytona throws `ErrorKind.Unsupported`. Use `delete` or `stop`.
+   * Modal supports terminate. Daytona and Blaxel throw `ErrorKind.Unsupported`.
+   * Use `delete` or `stop` on Daytona; `delete` on Blaxel.
    */
   async terminate(options: TerminateCallOptions = {}): Promise<ExitResult> {
     const { wait, ...call } = options;
@@ -218,7 +220,8 @@ export class Sandbox implements AsyncDisposable {
    * Archives a sandbox and stores the updated metadata on this handle.
    * Daytona archive does not take a separate duration. The call still uses
    * `timeout` as its deadline.
-   * Daytona accepts or rejects the sandbox. Modal throws `ErrorKind.Unsupported`.
+   * Daytona accepts or rejects the sandbox. Modal and Blaxel throw
+   * `ErrorKind.Unsupported`.
    */
   async archive(options: OperationOptions = {}): Promise<SandboxInfo> {
     return this.#update(
@@ -231,7 +234,8 @@ export class Sandbox implements AsyncDisposable {
   /**
    * Deletes the cloud sandbox and stores the metadata the provider returns.
    * Set `wait` to wait until deletion finishes. `close` leaves the sandbox in place.
-   * Daytona supports delete. Modal throws `ErrorKind.Unsupported`. Use `terminate`.
+   * Daytona and Blaxel support delete. Modal throws `ErrorKind.Unsupported`. Use
+   * `terminate`.
    */
   async delete(options: DeleteCallOptions = {}): Promise<SandboxInfo> {
     const { wait, ...call } = options;
@@ -247,7 +251,8 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Closes this handle. The sandbox stays as it is, and you can keep using the handle.
-   * Closing a Daytona handle does not contact Daytona. Closing a Modal handle does not terminate the sandbox.
+   * Closing a Daytona or Blaxel handle does not contact the provider. Closing a
+   * Modal handle does not terminate the sandbox.
    */
   async close(options: OperationOptions = {}): Promise<void> {
     await this.#serialized("close", options, this.#timeout, (signal) =>

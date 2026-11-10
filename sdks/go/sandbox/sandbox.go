@@ -58,7 +58,7 @@ func (s *Sandbox) ID() string {
 	return s.currentID()
 }
 
-// ProviderName returns "daytona" or "modal".
+// ProviderName returns "daytona", "modal", or "blaxel".
 // A nil handle returns an empty string.
 func (s *Sandbox) ProviderName() string {
 	if s == nil {

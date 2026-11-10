@@ -135,7 +135,7 @@ export class Filesystem {
   /**
    * Creates the directory at `path`.
    * An omitted `parents` flag is true: missing parents are created.
-   * Daytona rejects `false`.
+   * Daytona and Blaxel reject `false`.
    */
   makeDirectory(
     path: string,

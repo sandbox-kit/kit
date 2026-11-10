@@ -94,9 +94,9 @@ Portable messages come from standard protobuf generation into contract packages.
 SDK runtimes alias them and keep handwritten clone helpers (for example Go
 `clone.go` and TypeScript metadata helpers).
 
-Provider error classification is not generated: Modal and Daytona mappers live
-in handwritten `errors.go` / `errors.ts`. Unavailable fields receive no
-fabricated values.
+Provider error classification is not generated: Modal, Daytona, and Blaxel
+mappers live in handwritten `errors.go` / `errors.ts`. Unavailable fields
+receive no fabricated values.
 
 See [responses and errors](responses-and-errors.md) for the public contract,
 native cause preservation, and copy restrictions.

@@ -1,8 +1,9 @@
 # `@sandbox-kit/sandbox`
 
 Create and manage cloud sandboxes with a consistent TypeScript client interface.
-Pick a provider package (`@sandbox-kit/daytona` or `@sandbox-kit/modal`),
-construct a client, then create or open sandboxes through that client.
+Pick a provider package (`@sandbox-kit/daytona`, `@sandbox-kit/modal`, or
+`@sandbox-kit/blaxel`), construct a client, then create or open sandboxes
+through that client.
 
 Closing a client or handle releases **local** SDK resources only. It does not
 stop, terminate, or delete the remote sandbox.
@@ -13,6 +14,8 @@ stop, terminate, or delete the remote sandbox.
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or
 npm install @sandbox-kit/sandbox @sandbox-kit/modal
+# or
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
 Requires Node.js 20, 22, or 24.15+.
@@ -40,14 +43,14 @@ Prefer `await using` when available. Otherwise call `await client.close()` in a
 
 Pass the provider on `ClientConfig`, then shared settings:
 
-| Field      | Purpose                                                         |
-| ---------- | --------------------------------------------------------------- |
-| `provider` | Provider factory (`daytona()`, `modal()`, …)                    |
-| `auth`     | One credential shape (`apiKey`, `bearerToken`, `tokenPair`, …)  |
-| `scope`    | App, environment, organization, or project (provider-dependent) |
-| `endpoint` | API URL when the provider supports it                           |
-| `region`   | Target or placement preference                                  |
-| `timeout`  | Default operation deadline in **milliseconds**                  |
+| Field      | Purpose                                                                    |
+| ---------- | -------------------------------------------------------------------------- |
+| `provider` | Provider factory (`daytona()`, `modal()`, …)                               |
+| `auth`     | One credential shape (`apiKey`, `bearerToken`, `tokenPair`, …)             |
+| `scope`    | App, environment, organization, project, or workspace (provider-dependent) |
+| `endpoint` | API URL when the provider supports it                                      |
+| `region`   | Target or placement preference                                             |
+| `timeout`  | Default operation deadline in **milliseconds**                             |
 
 Omit `auth` when the provider SDK should resolve credentials from its own
 environment. Provider-specific auth and scope rules live in each provider
@@ -153,6 +156,7 @@ try {
 | ---------------------- | ----------------- |
 | `@sandbox-kit/daytona` | Daytona sandboxes |
 | `@sandbox-kit/modal`   | Modal sandboxes   |
+| `@sandbox-kit/blaxel`  | Blaxel sandboxes  |
 
 ## Examples
 

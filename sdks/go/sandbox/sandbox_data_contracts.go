@@ -136,7 +136,7 @@ type (
 	FileCopyOptions = sandboxv1.FileCopyOptions
 
 	// MakeDirectoryOptions sets the timeout and Parents flag for Filesystem.MakeDirectory.
-	// An omitted Parents flag is true. Set false with Value. Daytona rejects false.
+	// An omitted Parents flag is true. Set false with Value. Daytona and Blaxel reject false.
 	MakeDirectoryOptions = sandboxv1.MakeDirectoryOptions
 
 	// ListDirectoryOptions sets the timeout for Filesystem.ListDirectory.

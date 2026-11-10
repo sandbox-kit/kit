@@ -81,7 +81,7 @@ func (f *Filesystem) CopyToLocal(ctx context.Context, remotePath, localPath stri
 
 // MakeDirectory creates the directory at path.
 // An omitted Parents flag is true: missing parents are created. Set false with Value.
-// Daytona rejects false.
+// Daytona and Blaxel reject false.
 // path is absolute. A nil context returns ErrorKindInvalidArgument.
 func (f *Filesystem) MakeDirectory(ctx context.Context, path string, options *MakeDirectoryOptions) error {
 	return f.call(ctx, "make_directory", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {

@@ -93,13 +93,14 @@ export class Client implements AsyncDisposable {
       });
     }
   }
-  /** `"daytona"` or `"modal"`. */
+  /** `"daytona"`, `"modal"`, or `"blaxel"`. */
   get providerName(): string {
     return this.#providerName;
   }
   /**
    * Returns a handle for an existing sandbox ID without looking it up.
-   * Modal supports attach. Daytona throws `ErrorKind.Unsupported`. Use `get`.
+   * Modal supports attach. Daytona and Blaxel throw `ErrorKind.Unsupported`.
+   * Use `get`.
    */
   async attach(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("attach", id, options, (fetchOptions) => {
@@ -109,7 +110,8 @@ export class Client implements AsyncDisposable {
   }
   /**
    * Looks up a sandbox by ID and returns a handle the provider has verified.
-   * Daytona supports get. Modal throws `ErrorKind.Unsupported`. Use `attach`.
+   * Daytona and Blaxel support get. Modal throws `ErrorKind.Unsupported`. Use
+   * `attach`.
    */
   async get(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("get", id, options, (fetchOptions) => {
@@ -152,7 +154,7 @@ export class Client implements AsyncDisposable {
   /**
    * Creates one sandbox and returns its handle.
    * An empty request uses the provider default. Daytona uses its default
-   * snapshot. Modal requires an image.
+   * snapshot. Modal requires an image. Blaxel requires a name and an image.
    */
   async create(
     request: CreateOptions = {},

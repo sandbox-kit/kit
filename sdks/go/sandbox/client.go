@@ -18,7 +18,7 @@ import (
 // Close releases that connection. It does not stop or delete a cloud sandbox.
 // CloseSandbox runs when the caller closes a sandbox handle. It does not stop or delete the cloud sandbox.
 type Backend interface {
-	// Name returns the provider name, "daytona" or "modal".
+	// Name returns the provider name, "daytona", "modal", or "blaxel".
 	Name() string
 	// Close releases the provider connection. It does not stop or delete a cloud sandbox.
 	Close(context.Context) error
@@ -28,9 +28,9 @@ type Backend interface {
 }
 
 // Provider is the value passed to NewClient.
-// Use daytona.New or modal.New.
+// Use daytona.New, modal.New, or blaxel.New.
 type Provider interface {
-	// Name returns the provider name, "daytona" or "modal".
+	// Name returns the provider name, "daytona", "modal", or "blaxel".
 	Name() string
 	// NewClient opens the provider from config.
 	// Call the package NewClient. That checks config and owns cleanup.
@@ -65,7 +65,7 @@ func missingClientBinding(binding any) bool {
 // NewClient checks config and opens a client for the selected provider.
 // Closing the client releases the provider SDK. It does not stop or delete a sandbox.
 //
-// Pass daytona.New or modal.New as providerFactory.
+// Pass daytona.New, modal.New, or blaxel.New as providerFactory.
 //
 // Example:
 //
@@ -142,7 +142,7 @@ func secureEndpoint(value string) bool {
 	return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
 }
 
-// ProviderName returns "daytona" or "modal".
+// ProviderName returns "daytona", "modal", or "blaxel".
 // A nil client returns an empty string.
 func (c *Client) ProviderName() string {
 	if c == nil || c.backend == nil {
@@ -173,7 +173,8 @@ func (c *Client) Close(ctx context.Context) (result error) {
 }
 
 // Create creates one sandbox and returns its handle.
-// A nil request uses the provider default. Modal requires an image in CreateOptions.Source.
+// A nil request uses the provider default. Modal requires an image in
+// CreateOptions.Source. Blaxel requires a name and an image.
 // A nil client or a nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 // Close the client when finished. That does not delete the sandbox.
 //
