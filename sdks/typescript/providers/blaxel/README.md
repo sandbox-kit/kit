@@ -100,13 +100,13 @@ overwrites the first.
 
 | Example       | Project                                                                                                                                              |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation      | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
-| Run a command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process/run-blaxel-command)             |
-| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process)                                  |
-| Read a file   | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem/read-blaxel-file)              |
-| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem)                            |
-| Retrieval     | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/lifecycle/get-blaxel-sandbox)           |
-| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript)                                              |
+| Creation      | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
+| Run a command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-command)             |
+| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process)                                  |
+| Read a file   | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/read-blaxel-file)              |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem)                            |
+| Retrieval     | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/lifecycle/get-blaxel-sandbox)           |
+| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/main/examples/typescript)                                              |
 
 ## License
 
