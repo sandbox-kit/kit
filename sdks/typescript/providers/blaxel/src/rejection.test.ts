@@ -127,6 +127,23 @@ describe("rejected Blaxel create settings", () => {
     );
   });
 
+  it("invalid name", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "My_Sandbox",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+        },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldName,
+      }),
+    );
+  });
+
   it("missing image", () => {
     expect(() => mapCreateRequest({ name: "box" }, provider)).toThrowError(
       expect.objectContaining({

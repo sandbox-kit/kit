@@ -27,7 +27,9 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 
 ## Create
 
-Set `BL_API_KEY` and `BL_WORKSPACE`. Create requires a name and an image. Set `region` on the client (default examples use `us-pdx-1`).
+Set `BL_API_KEY` and `BL_WORKSPACE`. Create requires a Blaxel-valid name
+(lowercase alphanumeric with single hyphens, at most 49 characters) and an
+image. Set `region` on the client (default examples use `us-pdx-1`).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -110,13 +112,13 @@ Omit `auth` and `scope.workspace` to let the Blaxel SDK pick credentials from it
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Setting        | Notes                                      |
-| -------------- | ------------------------------------------ |
-| API key        | `auth.apiKey`                              |
-| Omitted `auth` | Blaxel SDK environment / CLI credentials   |
+| Setting        | Notes                                                                           |
+| -------------- | ------------------------------------------------------------------------------- |
+| API key        | `auth.apiKey`                                                                   |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials                                        |
 | Workspace      | `scope.workspace` — required for create when auth is set explicitly, or via env |
-| Region         | `region` — required for create             |
-| Endpoint       | Unsupported                                |
+| Region         | `region` — required for create                                                  |
+| Endpoint       | Unsupported                                                                     |
 
 ```ts
 await using client = new Client({
@@ -131,12 +133,12 @@ await using client = new Client({
   </Tab>
   <Tab value="Go">
 
-| Setting   | Notes                                     |
-| --------- | ----------------------------------------- |
-| API key   | `Auth` with `APIKey`                      |
-| Workspace | `Scope.Workspace`                         |
-| Region    | `Config.Region` — required for create     |
-| Endpoint  | Unsupported                               |
+| Setting   | Notes                                 |
+| --------- | ------------------------------------- |
+| API key   | `Auth` with `APIKey`                  |
+| Workspace | `Scope.Workspace`                     |
+| Region    | `Config.Region` — required for create |
+| Endpoint  | Unsupported                           |
 
 ```go
 config := &sandbox.Config{
@@ -159,19 +161,22 @@ Token-pair, bearer, and OAuth client modes are rejected. Scope fields other than
 
 ## What works
 
-| Area      | Notes                                                                 |
-| --------- | --------------------------------------------------------------------- |
-| Create    | Name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
-| Volumes   | Not in Kit create; no portable volume fields                          |
-| Open      | `get` / `refresh` by sandbox name                                     |
-| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach      |
-| Files     | Filesystem methods — [Filesystem](/docs/filesystem)                   |
-| Process   | `run` — [Run a command](/docs/process)                                |
+| Area      | Notes                                                                          |
+| --------- | ------------------------------------------------------------------------------ |
+| Create    | Valid name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
+| Volumes   | Not in Kit create; no portable volume fields                                   |
+| Open      | `get` / `refresh` by sandbox name                                              |
+| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach               |
+| Files     | Filesystem methods — [Filesystem](/docs/filesystem)                            |
+| Process   | Blocking `run` — [Run a command](/docs/process)                                |
 
 `resources.memoryMib` / `memory_mib` maps 1:1 onto Blaxel's memory field.
 Blaxel labels that integer MB; Kit does not convert. Blaxel derives CPU from
-memory, so CPU and disk overrides are rejected. Client `timeout` is the
-create/operation deadline; Ready wait and readiness probes are unsupported.
+memory, so CPU and disk overrides are rejected. Default port transport leaves
+the protocol to Blaxel (HTTP); plain maps to TCP. Client `timeout` is the
+Kit create/operation deadline. `@blaxel/core`'s native creation timeout
+(1–50s) is not forwarded; the Go SDK has no equivalent. Ready wait and
+readiness probes are unsupported.
 
 ## Related
 

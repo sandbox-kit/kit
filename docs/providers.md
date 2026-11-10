@@ -26,7 +26,6 @@ await using client = new Client({
 });
 ```
 
-
 ```go
 client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
     Auth: &sandbox.AuthConfig{
@@ -50,15 +49,15 @@ await using client = new Client({
 
 ## What each provider can do
 
-| Operation                           | Modal                              | Daytona                                    | Blaxel                                      |
-| ----------------------------------- | ---------------------------------- | ------------------------------------------ | ------------------------------------------- |
-| Create                              | Registry image and an existing app | Default snapshot, named snapshot, or image | Named image create                          |
-| Open an existing sandbox            | `attach` (ID only)                 | `get` (provider lookup)                    | `get` / `refresh` by name                   |
-| Start, stop, pause, archive         | Unsupported                        | Supported                                  | Unsupported                                 |
-| Delete                              | Unsupported                        | Supported                                  | Supported                                   |
-| Terminate                           | Supported                          | Unsupported                                | Unsupported                                 |
-| Filesystem                          | Same eight shared methods          | Same eight shared methods                  | Same eight shared methods                   |
-| Process                             | Same blocking `Run`                | Same blocking `Run`                        | Same blocking `Run`                         |
+| Operation                   | Modal                              | Daytona                                    | Blaxel                                 |
+| --------------------------- | ---------------------------------- | ------------------------------------------ | -------------------------------------- |
+| Create                      | Registry image and an existing app | Default snapshot, named snapshot, or image | Named image create (Blaxel name rules) |
+| Open an existing sandbox    | `attach` (ID only)                 | `get` (provider lookup)                    | `get` / `refresh` by name              |
+| Start, stop, pause, archive | Unsupported                        | Supported                                  | Unsupported                            |
+| Delete                      | Unsupported                        | Supported                                  | Supported                              |
+| Terminate                   | Supported                          | Unsupported                                | Unsupported                            |
+| Filesystem                  | Same eight shared methods          | Same eight shared methods                  | Same eight shared methods              |
+| Process                     | Same blocking `Run`                | Same blocking `Run`                        | Same blocking `Run`                    |
 
 `supports` reports whether the provider implements that operation. A missing
 operation fails before the provider call. Daytona still accepts or rejects a

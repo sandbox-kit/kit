@@ -152,9 +152,10 @@ type (
 	// ExecOptions configures Process.Run. Set exactly one of Argv or Shell.
 	// An omitted Timeout uses Config.Timeout as the call deadline. Explicit
 	// zero adds no extra deadline for this call. Both omit and zero also mean
-	// no provider command limit (Daytona uses 0 so its 10s native default does
-	// not apply; Modal adds no command limit). Command timeouts must be whole
-	// seconds.
+	// no provider process auto-kill (Daytona uses 0 so its 10s native default
+	// does not apply; Modal adds no command limit; Blaxel adds no auto-kill,
+	// though its blocking wait can still end at the edge hold). Command
+	// timeouts must be whole seconds.
 	ExecOptions = sandboxv1.ExecOptions
 
 	// ExecResult is the outcome of Process.Run. A non-zero ExitCode is not an error.

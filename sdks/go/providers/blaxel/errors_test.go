@@ -52,3 +52,19 @@ func TestMapProviderErrorSandboxAlreadyExists(t *testing.T) {
 		t.Fatalf("error = %v detail = %#v", mapped, detail)
 	}
 }
+
+func TestMapProviderErrorGatewayTimeout(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo/process")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusGatewayTimeout,
+		Request:    &http.Request{Method: http.MethodPost, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusGatewayTimeout},
+	}, "run")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindTimeout {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}

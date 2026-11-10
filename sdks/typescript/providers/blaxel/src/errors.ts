@@ -12,6 +12,7 @@ import {
   getBlaxelErrorStatus,
   isCreationTimeoutError,
   isGatewayError,
+  isGatewayTimeout,
   ResponseError,
   SandboxCreationTimeoutError,
   SandboxGatewayError,
@@ -41,7 +42,10 @@ export interface ProviderErrorInput {
   message: string;
 }
 
-export function mapBlaxelError(error: unknown, operation: string): SandboxError {
+export function mapBlaxelError(
+  error: unknown,
+  operation: string,
+): SandboxError {
   if (error instanceof SandboxError) return error;
   if (error instanceof DOMException && error.name === "AbortError")
     return create({ kind: ErrorKind.Canceled, error, operation });
@@ -55,8 +59,12 @@ export function mapBlaxelError(error: unknown, operation: string): SandboxError 
   if (error instanceof CredentialsError) kind = ErrorKind.Authentication;
   if (
     kind === ErrorKind.Unknown &&
-    (error instanceof SandboxCreationTimeoutError || isCreationTimeoutError(error))
+    (error instanceof SandboxCreationTimeoutError ||
+      isCreationTimeoutError(error))
   )
+    kind = ErrorKind.Timeout;
+  // Edge 504 (waitForCompletion hold / origin-read) is a timeout, matching Go.
+  if (kind === ErrorKind.Unknown && isGatewayTimeout(error))
     kind = ErrorKind.Timeout;
   if (
     kind === ErrorKind.Unknown &&

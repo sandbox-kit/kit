@@ -14,6 +14,10 @@ import {
 import type { CreateOptions } from "@sandbox-kit/sandbox";
 import { providerError } from "#errors.js";
 
+// Blaxel Metadata.Name: lowercase alphanumeric with single hyphens, max 49.
+const PROVIDER_SANDBOX_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PROVIDER_SANDBOX_NAME_MAX = 49;
+
 // validateProviderCreate rejects creation settings this provider cannot honor.
 // Rules are inventoried in specs/providers/blaxel.yaml checks when present.
 export function validateProviderCreate(request: CreateOptions): void {
@@ -23,6 +27,18 @@ export function validateProviderCreate(request: CreateOptions): void {
       operation: "create",
       field: CreateFieldName,
       message: "name is required",
+    });
+  }
+  if (
+    request.name.length > PROVIDER_SANDBOX_NAME_MAX ||
+    !PROVIDER_SANDBOX_NAME.test(request.name)
+  ) {
+    providerError({
+      kind: ErrorKind.InvalidArgument,
+      operation: "create",
+      field: CreateFieldName,
+      message:
+        "name must be lowercase alphanumeric with single hyphens, at most 49 characters",
     });
   }
   if (request.source?.image === undefined) {
@@ -49,8 +65,7 @@ export function validateProviderCreate(request: CreateOptions): void {
       kind: ErrorKind.Unsupported,
       operation: "create",
       field: CreateFieldPlacement,
-      message:
-        "per-request Blaxel placement is unsupported; use Config.region",
+      message: "per-request Blaxel placement is unsupported; use Config.region",
     });
   }
   const resources = request.resources;

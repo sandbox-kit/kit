@@ -49,24 +49,26 @@ sandbox. Call `Delete`, or set a lifetime policy.
 
 ## Settings
 
-| Setting   | How to set it                          |
-| --------- | -------------------------------------- |
-| API key   | `Auth` with `APIKey`                   |
-| Workspace | `Scope.Workspace`                      |
-| Region    | `Config.Region` (required for create)  |
-| Timeout   | `Config.Timeout` (create/op deadline)  |
+| Setting   | How to set it                         |
+| --------- | ------------------------------------- |
+| API key   | `Auth` with `APIKey`                  |
+| Workspace | `Scope.Workspace`                     |
+| Region    | `Config.Region` (required for create) |
+| Timeout   | `Config.Timeout` (create/op deadline) |
 
 `Config.Endpoint` is not supported. Token pair, OAuth, and bearer auth are
 rejected. `Scope` fields other than `Workspace` are rejected.
 
 ## Operations
 
-Create from a registry image with an explicit name. You can set labels,
+Create from a registry image with an explicit name. The name must be lowercase
+alphanumeric with single hyphens and at most 49 characters. You can set labels,
 environment variables, memory, ports, outbound domains, maximum lifetime, and
 idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
-Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Kit
-`Config.Timeout` / create call timeout is the create deadline; Blaxel has no
-separate native create-wait timeout. `WaitConditionReady` is rejected.
+Ports 80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport
+leaves the protocol to Blaxel (HTTP); plain maps to TCP. Kit
+`Config.Timeout` / create call timeout is the create deadline. The Go Blaxel
+SDK has no separate creation-timeout argument. `WaitConditionReady` is rejected.
 
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name. `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and
@@ -84,8 +86,10 @@ missing file passed to `CopyFromLocal` is not found, and the error field is
 `Process().Run` runs one command and waits for the result. Set exactly one of
 `Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero
 exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
-stderr. Omit or zero `Timeout` for no Blaxel command limit. Command timeouts
-must be whole seconds. Cancel the context to stop waiting.
+stderr. Omit or zero `Timeout` for no Blaxel process auto-kill. The blocking
+wait can still end at Blaxel's edge hold (about one to two minutes) while the
+command keeps running. Command timeouts must be whole seconds. Cancel the
+context to stop waiting.
 
 `resources.memory_mib` maps 1:1 onto Blaxel's memory field. Blaxel labels that
 integer MB; Kit does not convert. Blaxel derives CPU from that value, so
@@ -94,16 +98,16 @@ fields; Blaxel volumes are outside create.
 
 ## Examples
 
-| Operation                | Program                                                                                                                                             |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Create                   | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/configuration/create-blaxel-sandbox)         |
-| Run a command            | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process/run-blaxel-command)                     |
-| Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process)                                          |
-| Read a file              | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem/read-blaxel-file)                      |
-| Filesystem               | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem)                                    |
-| Look up                  | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/get-blaxel-sandbox)                   |
-| Delete                   | [delete-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/delete-blaxel-sandbox)             |
-| All                      | [Go examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go)                                                             |
+| Operation                | Program                                                                                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Create                   | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/configuration/create-blaxel-sandbox) |
+| Run a command            | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process/run-blaxel-command)             |
+| Shell / cwd / env / exit | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/process)                                  |
+| Read a file              | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem/read-blaxel-file)              |
+| Filesystem               | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/filesystem)                            |
+| Look up                  | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/get-blaxel-sandbox)           |
+| Delete                   | [delete-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go/blaxel/lifecycle/delete-blaxel-sandbox)     |
+| All                      | [Go examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/go)                                                      |
 
 pkg.go.dev also shows `ExampleNew_*` samples in this package for create,
 lifecycle, process, and filesystem.

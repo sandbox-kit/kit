@@ -4,7 +4,8 @@ Create one Blaxel sandbox that publishes selected ports.
 
 ## What this means
 
-Maps `network.ports` to Blaxel runtime ports. Default/plain → TCP, TLS → TLS, HTTP/2 over TLS → HTTP.
+Maps `network.ports` to Blaxel runtime ports. Default leaves the protocol to
+Blaxel (HTTP). Plain → TCP, TLS → TLS, HTTP/2 over TLS → HTTP.
 
 ## Edge cases
 

@@ -339,13 +339,13 @@ client, err := sandbox.NewClient(modal.New(), config)
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Setting        | What to pass                                   |
-| -------------- | ---------------------------------------------- |
-| API key        | `auth.apiKey.key`                              |
-| Omitted `auth` | Blaxel SDK environment / CLI credentials       |
-| Workspace      | `scope.workspace`                              |
-| Region         | `region` — required for create                 |
-| Endpoint       | Unsupported                                    |
+| Setting        | What to pass                             |
+| -------------- | ---------------------------------------- |
+| API key        | `auth.apiKey.key`                        |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials |
+| Workspace      | `scope.workspace`                        |
+| Region         | `region` — required for create           |
+| Endpoint       | Unsupported                              |
 
 ```ts
 await using client = new Client({
@@ -360,12 +360,12 @@ await using client = new Client({
   </Tab>
   <Tab value="Go">
 
-| Setting   | What to pass                                  |
-| --------- | --------------------------------------------- |
-| API key   | `APIKey`                                      |
-| Workspace | `Scope.Workspace`                             |
-| Region    | `Config.Region` — required for create         |
-| Endpoint  | Unsupported                                   |
+| Setting   | What to pass                          |
+| --------- | ------------------------------------- |
+| API key   | `APIKey`                              |
+| Workspace | `Scope.Workspace`                     |
+| Region    | `Config.Region` — required for create |
+| Endpoint  | Unsupported                           |
 
 ```go
 config := &sandbox.Config{
@@ -528,10 +528,11 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel uses the Kit deadline only. It has no separate native create-wait
-  timeout. Ready wait and readiness probes are unsupported. TypeScript Blaxel
-  clients share `@blaxel/core` process-global `settings`: use one Blaxel Kit
-  client, or one credential set, per process.
+  Blaxel uses the Kit deadline for create. `@blaxel/core` also accepts a native
+  creation timeout (1–50 whole seconds); this provider does not forward it. The
+  Go Blaxel SDK has no equivalent argument. Ready wait and readiness probes are
+  unsupported. TypeScript Blaxel clients share `@blaxel/core` process-global
+  `settings`: use one Blaxel Kit client, or one credential set, per process.
 </ForProvider>
 
 ## Credentials

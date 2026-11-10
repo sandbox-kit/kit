@@ -8,6 +8,11 @@ import (
 
 var providerEnvNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
+// Blaxel Metadata.Name: lowercase alphanumeric with single hyphens, max 49.
+var providerSandboxNamePattern = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
+
+const providerSandboxNameMaxLen = 49
+
 // validateProviderCreate rejects creation settings this provider cannot honor.
 // It runs before the native create call.
 //
@@ -17,8 +22,12 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 	if request == nil {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name is required")
 	}
-	if request.GetName() == "" {
+	name := request.GetName()
+	if name == "" {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name is required")
+	}
+	if len(name) > providerSandboxNameMaxLen || !providerSandboxNamePattern.MatchString(name) {
+		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name must be lowercase alphanumeric with single hyphens, at most 49 characters")
 	}
 	if request.GetSource().GetImage() == nil || request.GetSource().GetImage().Reference == "" {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldSourceImage, "an explicit image source is required")

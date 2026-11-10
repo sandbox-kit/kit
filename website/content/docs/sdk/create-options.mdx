@@ -219,6 +219,14 @@ Set exactly one variant. Unsupported variants fail before the provider call.
   and `idleTerminate` only.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Blaxel requires an `image` source and a Blaxel-valid `name` (lowercase
+  alphanumeric with single hyphens, at most 49 characters). Client `region` is
+  required. Default port transport leaves the protocol to Blaxel (HTTP); plain
+  maps to TCP. Ports 80, 443, and 8080 are reserved. Kit create timeout is the
+  local deadline; `@blaxel/core`'s native creation timeout is not forwarded.
+</ForProvider>
+
 ## RuntimeConfig
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

@@ -84,6 +84,14 @@ Transport for a published port.
 | `Http2Tls` | HTTP/2 over TLS                     |
 | `Plain`    | Unencrypted / plain transport       |
 
+<ForProvider id="modal">
+  Modal requires an explicit transport (`Default` is rejected).
+</ForProvider>
+<ForProvider id="blaxel">
+  Blaxel: `Default` omits protocol (Blaxel defaults to HTTP). `Plain` → TCP,
+  `Tls` → TLS, `Http2Tls` → HTTP.
+</ForProvider>
+
 ## IsolationKind
 
 Sandbox isolation class.

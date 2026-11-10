@@ -3,7 +3,12 @@ provider: blaxel
 # Provider create checks are handwritten in sdks/*/providers/blaxel (provider_checks).
 # Keep this list in sync with those implementations; it is not emitted.
 checks:
-  - { path: name, required: true }
+  - {
+      path: name,
+      required: true,
+      format: blaxel_sandbox_name,
+      notes: "lowercase alphanumeric with single hyphens, max 49",
+    }
   - { path: source.image, required: true }
   - { path: environment, format: env_name }
   - { path: placement, unsupported: true }
@@ -13,16 +18,16 @@ checks:
   - { path: resources.disk_mib, unsupported: true }
   - { path: readiness, unsupported: true }
   - { path: provisioning.queue_timeout, unsupported: true }
-  - { path: provisioning.wait_for, unsupported: true, notes: "Ready and Started rejected; Default/Scheduled accepted" }
+  - {
+      path: provisioning.wait_for,
+      unsupported: true,
+      notes: "Ready and Started rejected; Default/Scheduled accepted",
+    }
 client:
   target:
     name: ClientOptions
     bindings:
-      go:
-        {
-          import: github.com/blaxel-ai/sdk-go/option,
-          name: RequestOption,
-        }
+      go: { import: github.com/blaxel-ai/sdk-go/option, name: RequestOption }
       typescript: { import: "@blaxel/core", name: ClientOptions }
   managed: [provider, timeout]
   retained: [region]
@@ -55,8 +60,7 @@ runtime:
           capture: region,
           doc: "is the captured default region. Omission means create rejects with Config.region required.",
         }
-    cleanup:
-      { method: close, accepts_context: false, returns_error: false }
+    cleanup: { method: close, accepts_context: false, returns_error: false }
 # Mapping groups are handwritten in sdks/*/providers/blaxel (provider_mappings).
 # Keep this inventory in sync with those implementations; it is not emitted.
 groups:
@@ -136,12 +140,7 @@ groups:
           name: SandboxCreateRequest
           fields: { memory: spec.runtime.memory }
     fields:
-      - {
-          from: memory_mib,
-          to: memory,
-          maximum: 2147483647,
-          cast: integer,
-        }
+      - { from: memory_mib, to: memory, maximum: 2147483647, cast: integer }
   - name: mapLifetimeDuration
     direction: request
     source: { name: LifetimePolicy }
@@ -157,11 +156,7 @@ groups:
           name: SandboxCreateRequest
           fields: { ttl: spec.runtime.ttl }
     fields:
-      - {
-          from: maximum_lifetime,
-          to: ttl,
-          transform: duration_blaxel,
-        }
+      - { from: maximum_lifetime, to: ttl, transform: duration_blaxel }
   - name: mapIdleDuration
     error_path: lifetime.idle_terminate
     direction: request
@@ -178,11 +173,7 @@ groups:
           name: SandboxCreateRequest
           fields: { lifecycle: spec.lifecycle.expirationPolicies }
     fields:
-      - {
-          from: after,
-          to: lifecycle,
-          transform: duration_blaxel_idle,
-        }
+      - { from: after, to: lifecycle, transform: duration_blaxel_idle }
   - name: mapSandboxInfo
     direction: response
     source:

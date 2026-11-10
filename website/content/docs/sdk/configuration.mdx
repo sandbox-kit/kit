@@ -48,9 +48,10 @@ await using client = new Client({
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel uses the Kit deadline only (no separate native create-wait timeout).
-  `region` is required for create. `endpoint` is unsupported. TypeScript
-  credentials go through process-global `@blaxel/core` `settings`.
+  Blaxel uses the Kit deadline for create. `@blaxel/core`'s native creation
+  timeout (1–50s) is not forwarded. `region` is required for create. `endpoint`
+  is unsupported. TypeScript credentials go through process-global
+  `@blaxel/core` `settings`.
 </ForProvider>
 
   </Tab>
@@ -94,8 +95,9 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel uses the Kit deadline only (no separate native create-wait timeout).
-  `Region` is required for create. `Endpoint` is unsupported.
+  Blaxel uses the Kit deadline for create. The Go Blaxel SDK has no separate
+  creation-timeout argument. `Region` is required for create. `Endpoint` is
+  unsupported.
 </ForProvider>
 
   </Tab>

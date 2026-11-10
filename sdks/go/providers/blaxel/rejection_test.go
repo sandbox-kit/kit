@@ -23,6 +23,14 @@ func TestRejectedCreateSettings(t *testing.T) {
 			field:   sandbox.CreateFieldName,
 		},
 		{
+			name: "invalid name",
+			request: imaged(&sandbox.CreateOptions{
+				Name: sandbox.Value("My_Sandbox"),
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldName,
+		},
+		{
 			name:    "missing image",
 			request: &sandbox.CreateOptions{Name: sandbox.Value("sandbox")},
 			kind:    sandbox.ErrorKindInvalidArgument,
@@ -276,5 +284,22 @@ func TestMappedNetworkPortsAndDomains(t *testing.T) {
 	}
 	if ports[1].Target != 3001 || ports[1].Protocol != blaxel.PortProtocolTcp {
 		t.Fatalf("Ports[1] = %#v", ports[1])
+	}
+}
+
+func TestDefaultPortOmitsProtocol(t *testing.T) {
+	plan, err := planCreate(namedImage(&sandbox.CreateOptions{
+		Network: &sandbox.NetworkConfig{
+			Ports: []*sandbox.PortBinding{
+				{Port: 3000, Transport: sandbox.PortTransportDefault},
+			},
+		},
+	}), "us-pdx-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ports := plan.params.Sandbox.Spec.Runtime.Ports
+	if len(ports) != 1 || ports[0].Target != 3000 || ports[0].Protocol != "" {
+		t.Fatalf("Ports = %#v", ports)
 	}
 }

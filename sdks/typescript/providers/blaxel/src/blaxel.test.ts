@@ -278,6 +278,32 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("classifies edge gateway 504 as timeout", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 504, statusText: "Gateway Timeout" }),
+      { error: { message: "gateway timeout" } },
+      new Error("gateway timeout"),
+    );
+    expect(mapBlaxelError(native, "run")).toMatchObject({
+      kind: ErrorKind.Timeout,
+      provider: "blaxel",
+      operation: "run",
+      cause: native,
+    });
+  });
+
+  it("omits protocol for default port transport", () => {
+    const plan = mapCreateRequest(
+      {
+        name: "example",
+        source: { image: { reference: "blaxel/base-image:latest" } },
+        network: { ports: [{ port: 3000 }] },
+      },
+      provider,
+    );
+    expect(plan.params.ports).toEqual([{ target: 3000 }]);
+  });
+
   it("applies environment checks before mapping", () => {
     expect(() =>
       mapCreateRequest(
@@ -339,9 +365,7 @@ describe("Blaxel mappings", () => {
 
 describe("Blaxel provider orchestration", () => {
   it("creates with SandboxInstance.create and never createIfNotExists", async () => {
-    let created:
-      | { params: unknown; options: unknown }
-      | undefined;
+    let created: { params: unknown; options: unknown } | undefined;
     let configured: unknown;
     const nativeSandbox = {
       metadata: { name: "example" },
@@ -586,7 +610,8 @@ describe("Blaxel provider orchestration", () => {
               };
               if (request.waitForCompletion !== undefined)
                 entry.waitForCompletion = request.waitForCompletion;
-              if (request.timeout !== undefined) entry.timeout = request.timeout;
+              if (request.timeout !== undefined)
+                entry.timeout = request.timeout;
               seen.push(entry);
               return { exitCode: 0, stdout: "ok", stderr: "" };
             },

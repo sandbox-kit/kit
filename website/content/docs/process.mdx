@@ -155,14 +155,15 @@ fmt.Println(result)
 
 <ForProvider id="blaxel">
 
-| You pass               | On Blaxel                     |
-| ---------------------- | ----------------------------- |
-| `argv`                 | POSIX-quoted shell string     |
-| `shell`                | shell string as-is            |
-| omit / zero timeout    | no command limit              |
-| fractional (`1500` ms) | rejected (`timeout`)          |
+| You pass               | On Blaxel                                                            |
+| ---------------------- | -------------------------------------------------------------------- |
+| `argv`                 | POSIX-quoted shell string                                            |
+| `shell`                | shell string as-is                                                   |
+| omit / zero timeout    | no process auto-kill; blocking wait still ends at Blaxel's edge hold |
+| fractional (`1500` ms) | rejected (`timeout`)                                                 |
 
-Blaxel returns both `stdout` and `stderr`. Runs are blocking.
+Blaxel returns both `stdout` and `stderr`. Runs are blocking
+(`waitForCompletion`).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -201,7 +202,8 @@ A non-zero exit code is **not** an SDK error.
 | `0`            | No extra client deadline for this call                            |
 | Positive value | Cap this call; must be whole seconds (`5000` ok, `1500` rejected) |
 
-Omit or zero also means no separate provider command limit.
+Omit or zero also means no separate provider process auto-kill (see provider
+tables above for Blaxel's blocking-wait edge hold).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

@@ -4,11 +4,15 @@ Create one Blaxel sandbox from a registry image with an explicit name. Prints th
 
 ## What this means
 
-Blaxel create requires a nonblank `name` and an image source. Kit calls native create (not create-if-not-exists). Region comes from the client config (`BL_REGION`, default `us-pdx-1`). Closing the Kit client only drops the local SDK connection.
+Blaxel create requires a Blaxel-valid `name` (lowercase alphanumeric with
+single hyphens, at most 49 characters) and an image source. Kit calls native
+create (not create-if-not-exists). Region comes from the client config
+(`BL_REGION`, default `us-pdx-1`). Closing the Kit client only drops the local
+SDK connection.
 
 ## Edge cases
 
-- Omitting `name` or `source.image` fails before Blaxel is called.
+- Omitting `name` or `source.image`, or using an invalid name, fails before Blaxel is called.
 - A create error is not proof that no sandbox was provisioned.
 - Reclaim sandboxes with TTL / idle policies or `delete`.
 

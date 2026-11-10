@@ -39,28 +39,30 @@ TTL / idle policies or `delete`.
 
 ## Configuration
 
-| Setting        | Notes                                                         |
-| -------------- | ------------------------------------------------------------- |
-| API key        | `auth: { apiKey: { key } }`                                   |
-| Omitted `auth` | Blaxel SDK environment / CLI credentials                      |
-| Workspace      | `scope.workspace` — Blaxel workspace name                     |
-| Region         | `region` — required for create                                |
-| Endpoint       | Not supported                                                 |
+| Setting        | Notes                                     |
+| -------------- | ----------------------------------------- |
+| API key        | `auth: { apiKey: { key } }`               |
+| Omitted `auth` | Blaxel SDK environment / CLI credentials  |
+| Workspace      | `scope.workspace` — Blaxel workspace name |
+| Region         | `region` — required for create            |
+| Endpoint       | Not supported                             |
 
 Token-pair, bearer, and OAuth client modes are rejected. Scope fields other
 than `workspace` are rejected.
 
 ## What you can do
 
-**Create** requires a nonblank `name`, an image source, and client `region`.
+**Create** requires a Blaxel-valid `name` (lowercase alphanumeric with single
+hyphens, at most 49 characters), an image source, and client `region`.
 Optional `memoryMib` maps 1:1 onto Blaxel's memory field (Blaxel labels that
 integer MB; Kit does not convert; Blaxel CPU follows memory), labels,
 environment variables, ports, outbound domains, max-age TTL (at least 5m), and
 idle-delete policy (at least 1m; explicit disable is rejected). Client /
-create `timeout` is the Kit deadline; Blaxel has no separate native
-create-wait timeout. `provisioning.waitFor` Ready is unsupported. Creation
-calls native `SandboxInstance.create`, not `createIfNotExists`. Ports 80,
-443, and 8080 are rejected (Blaxel-reserved). Kit has no portable volume
+create `timeout` is the Kit deadline. `@blaxel/core`'s native creation timeout
+(1–50s) is not forwarded. `provisioning.waitFor` Ready is unsupported.
+Creation calls native `SandboxInstance.create`, not `createIfNotExists`. Ports
+80, 443, and 8080 are rejected (Blaxel-reserved). Default port transport leaves
+the protocol to Blaxel (HTTP); plain maps to TCP. Kit has no portable volume
 fields; Blaxel volumes are outside create.
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
@@ -79,9 +81,10 @@ missing local parent directory.
 `shell`. `argv` is sent as a POSIX-quoted shell string. Runs are blocking
 (`waitForCompletion: true`). A non-zero exit code is not an SDK error—check
 `exitCode`. Blaxel returns stdout and stderr. Omit or zero `timeout` for no
-command limit. Command timeouts must be whole seconds (`2000` is two seconds;
-`1500` is rejected). Aborting the signal rejects the `await`; the remote
-command may keep running.
+process auto-kill. The blocking wait can still end at Blaxel's edge hold
+(about one to two minutes) while the command keeps running. Command timeouts
+must be whole seconds (`2000` is two seconds; `1500` is rejected). Aborting
+the signal rejects the `await`; the remote command may keep running.
 
 Omitted memory keeps the Blaxel default. CPU, CPU limit, memory limit, and
 disk overrides are rejected.
@@ -92,15 +95,15 @@ overwrites the first.
 
 ## Examples
 
-| Example       | Project                                                                                                                                                               |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Creation      | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/configuration/create-blaxel-sandbox)                   |
-| Run a command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process/run-blaxel-command)                               |
-| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process)                                                    |
-| Read a file   | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem/read-blaxel-file)                                |
-| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem)                                              |
-| Retrieval     | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/lifecycle/get-blaxel-sandbox)                             |
-| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript)                                                               |
+| Example       | Project                                                                                                                                              |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Creation      | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
+| Run a command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process/run-blaxel-command)             |
+| Process       | [process examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/process)                                  |
+| Read a file   | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem/read-blaxel-file)              |
+| Filesystem    | [filesystem examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/filesystem)                            |
+| Retrieval     | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript/blaxel/lifecycle/get-blaxel-sandbox)           |
+| Full index    | [TypeScript examples](https://github.com/sandbox-kit/kit/tree/feat/blaxel-provider/examples/typescript)                                              |
 
 ## License
 

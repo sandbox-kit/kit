@@ -28,14 +28,14 @@ result. Closing one handle does not close the client.
 
 ## Configuration fields
 
-| Go / TypeScript         | Purpose                                                             |
-| ----------------------- | ------------------------------------------------------------------- |
+| Go / TypeScript         | Purpose                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
 | Provider / `provider`   | `daytona.New()` / `daytona()`, `modal.New()` / `modal()`, or `blaxel.New()` / `blaxel()` |
-| `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials |
-| `Scope` / `scope`       | App, environment, organization, project, or workspace               |
-| `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                   |
-| `Region` / `region`     | Provider target or default placement                                |
-| `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds  |
+| `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials                      |
+| `Scope` / `scope`       | App, environment, organization, project, or workspace                                    |
+| `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                                        |
+| `Region` / `region`     | Provider target or default placement                                                     |
+| `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds                       |
 
 TypeScript auth is one nested shape: `auth: { apiKey: { key } }`, `tokenPair`,
 `bearerToken`, or `oauthRefresh`.
@@ -49,19 +49,19 @@ does not change the handle.
 The bindings use Modal v0.11.1, Daytona v0.225.0, `@blaxel/core@0.3.36`, and
 `github.com/blaxel-ai/sdk-go@v0.31.0`.
 
-| Setting          | Modal                                                      | Daytona                           | Blaxel                            |
-| ---------------- | ---------------------------------------------------------- | --------------------------------- | --------------------------------- |
-| API key          | Unsupported                                                | `APIKey`                          | `APIKey`                          |
-| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       | Unsupported                       |
-| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required | Unsupported                       |
-| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       | Unsupported                       |
-| Endpoint         | Unsupported                                                | API URL                           | Unsupported                       |
-| Region           | Default sandbox region preference                          | Target                            | Required for create               |
-| App name         | Required for app lookup                                    | Unsupported                       | Unsupported                       |
-| Environment      | Client, app, and secret lookup environment                 | Unsupported                       | Unsupported                       |
-| Organization ID  | Unsupported                                                | Organization                      | Unsupported                       |
-| Project ID       | Unsupported                                                | Unsupported                       | Unsupported                       |
-| Workspace        | Unsupported                                                | Unsupported                       | Required Blaxel workspace name    |
+| Setting          | Modal                                                      | Daytona                           | Blaxel                         |
+| ---------------- | ---------------------------------------------------------- | --------------------------------- | ------------------------------ |
+| API key          | Unsupported                                                | `APIKey`                          | `APIKey`                       |
+| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       | Unsupported                    |
+| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required | Unsupported                    |
+| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       | Unsupported                    |
+| Endpoint         | Unsupported                                                | API URL                           | Unsupported                    |
+| Region           | Default sandbox region preference                          | Target                            | Required for create            |
+| App name         | Required for app lookup                                    | Unsupported                       | Unsupported                    |
+| Environment      | Client, app, and secret lookup environment                 | Unsupported                       | Unsupported                    |
+| Organization ID  | Unsupported                                                | Organization                      | Unsupported                    |
+| Project ID       | Unsupported                                                | Unsupported                       | Unsupported                    |
+| Workspace        | Unsupported                                                | Unsupported                       | Required Blaxel workspace name |
 
 A setting the provider does not support fails before the provider client is
 created. Omit `auth` when the provider should use credentials it already finds
@@ -91,8 +91,9 @@ deadline or abort signal that arrives earlier still applies.
 Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
-operation timeout. Blaxel uses the Kit deadline only; it has no separate
-native create-wait timeout.
+operation timeout. Blaxel uses the Kit deadline for create. `@blaxel/core`
+also accepts a native creation timeout (1–50 whole seconds); this provider
+does not forward it. The Go Blaxel SDK has no equivalent argument.
 
 ## Credentials
 

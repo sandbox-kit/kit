@@ -8,8 +8,8 @@ Sets `Config.Timeout` / `timeout` on the shared client. This bounds local waitin
 
 ## Edge cases
 
-- Create provisioning timeouts are not mapped on Go; use the client timeout instead.
-- TypeScript can also pass a create `provisioning.timeout` (1–50 whole seconds).
+- Kit `Timeout` / `provisioning.timeout` is the local create deadline.
+- The Go Blaxel SDK has no separate creation-timeout argument.
 
 ## Run
 

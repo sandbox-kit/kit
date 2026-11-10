@@ -337,6 +337,7 @@ class BlaxelBackend extends BackendBase implements Backend {
         command: blaxelCommand(request),
         waitForCompletion: true,
         // Blaxel: omit/0 means no auto-kill. Kit omit/0 map to 0.
+        // waitForCompletion waits are still cut by Blaxel's edge hold.
         timeout: timeout ?? 0,
         ...(request.workingDirectory === undefined
           ? {}

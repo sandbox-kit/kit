@@ -94,7 +94,7 @@ func blaxelCommand(request *sandbox.ExecOptions) (string, error) {
 }
 
 // commandTimeout maps Kit ExecOptions.timeout to Blaxel's whole-second timeout.
-// Nil and explicit zero become 0 so Blaxel adds no command limit.
+// Nil and explicit zero become 0 so Blaxel adds no process auto-kill.
 func commandTimeout(operation string, value *durationpb.Duration) (time.Duration, error) {
 	timeout, ok := sdk.WholeSecondDuration(value)
 	if !ok {

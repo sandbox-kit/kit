@@ -241,11 +241,16 @@ func (c *creation) network() error {
 
 func blaxelPortProtocol(transport sandbox.PortTransport) (blaxel.PortProtocol, error) {
 	switch transport {
-	case sandbox.PortTransportDefault, sandbox.PortTransportPlain:
+	case sandbox.PortTransportDefault:
+		// Kit Default leaves the protocol to the provider. Blaxel defaults to HTTP
+		// when protocol is omitted (omitzero on PortParam).
+		return "", nil
+	case sandbox.PortTransportPlain:
 		return blaxel.PortProtocolTcp, nil
 	case sandbox.PortTransportTLS:
 		return blaxel.PortProtocolTls, nil
 	case sandbox.PortTransportHTTP2TLS:
+		// Blaxel exposes HTTP (not H2). Kit HTTP/2+TLS maps to that HTTP protocol.
 		return blaxel.PortProtocolHTTP, nil
 	default:
 		return "", providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsTransport, "requested port transport is unsupported")
@@ -257,8 +262,8 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	// Client.Create already applies this as the context deadline. Blaxel has no
-	// separate native create-wait timeout on NewInstance.
+	// Client.Create already applies this as the context deadline. The Go Blaxel
+	// SDK's NewInstance has no separate creation-timeout argument.
 	config.Timeout = nil
 	if config.QueueTimeout != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningQueueTimeout, "Blaxel queue timeout is unsupported")

@@ -269,14 +269,15 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 <ForProvider id="blaxel">
 
-|           | Blaxel                                                                |
-| --------- | --------------------------------------------------------------------- |
-| Source    | Registry image and nonblank `name` required                           |
-| CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides              |
-| Memory    | `memoryMib` / `memory_mib` passed 1:1; Blaxel labels the unit MB      |
-| Disk      | Cannot be set                                                         |
-| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m)                       |
-| Placement | Client `region` required. A placement block on this request is rejected |
+|           | Blaxel                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------- |
+| Source    | Registry image and Blaxel-valid `name` required (lowercase alphanumeric with single hyphens, ≤49) |
+| CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides                                          |
+| Memory    | `memoryMib` / `memory_mib` passed 1:1; Blaxel labels the unit MB                                  |
+| Disk      | Cannot be set                                                                                     |
+| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m)                                                   |
+| Placement | Client `region` required. A placement block on this request is rejected                           |
+| Ports     | Default leaves protocol to Blaxel (HTTP); plain → TCP; 80/443/8080 reserved                       |
 
 Kit has no portable volume fields.
 
@@ -323,7 +324,6 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 </Tabs>
 
 </ForProvider>
-
 
 ## Example
 
@@ -608,12 +608,14 @@ See [Examples](/docs/examples).
 
 <ForProvider id="blaxel">
 
-Create needs a nonblank `name`, an image, and client `region`. Memory maps 1:1;
-CPU, disk, placement, readiness, and volumes are rejected. Ports 80, 443, and
-8080 are reserved. See [Examples](/docs/examples).
+Create needs a Blaxel-valid `name` (lowercase alphanumeric with single hyphens,
+at most 49 characters), an image, and client `region`. Memory maps 1:1; CPU,
+disk, placement, readiness, and volumes are rejected. Ports 80, 443, and 8080
+are reserved. Default port transport leaves the protocol to Blaxel (HTTP).
+Kit create timeout is the local deadline; Blaxel's native creation timeout is
+not forwarded. See [Examples](/docs/examples).
 
 </ForProvider>
-
 
 ## Result
 

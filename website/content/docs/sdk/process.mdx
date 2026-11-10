@@ -125,8 +125,8 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both `stdout` and `stderr`. `argv` is sent as a POSIX-quoted
-  shell string. Omit/zero timeout means no Blaxel command limit. Runs are
-  blocking.
+  shell string. Omit/zero timeout means no Blaxel process auto-kill; the
+  blocking wait can still end at Blaxel's edge hold. Runs are blocking.
 </ForProvider>
 
   </Tab>
@@ -152,7 +152,8 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both Stdout and Stderr. Argv is sent as a POSIX-quoted shell
-  string. Omit/zero Timeout means no Blaxel command limit. Runs are blocking.
+  string. Omit/zero Timeout means no Blaxel process auto-kill; the blocking wait
+  can still end at Blaxel's edge hold. Runs are blocking.
 </ForProvider>
 
   </Tab>

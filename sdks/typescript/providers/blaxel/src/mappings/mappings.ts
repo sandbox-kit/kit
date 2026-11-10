@@ -64,9 +64,8 @@ export function mapCreateRequest(
   if (config.region === undefined || config.region.trim() === "")
     invalid(ConfigFieldRegion, "Config.region is required");
 
-  const params: SandboxCreateConfiguration = generatedMapCommonCreateFields(
-    request,
-  );
+  const params: SandboxCreateConfiguration =
+    generatedMapCommonCreateFields(request);
   params.name = nonblank(request.name!, CreateFieldName);
   params.image = nonblank(
     request.source!.image!.reference,
@@ -119,10 +118,7 @@ function mapIsolation(r: CreateOptions): void {
     unsupported(CreateFieldIsolation, "Blaxel isolation class is not mapped");
 }
 
-function mapResources(
-  r: CreateOptions,
-  p: SandboxCreateConfiguration,
-): void {
+function mapResources(r: CreateOptions, p: SandboxCreateConfiguration): void {
   const v = r.resources;
   if (!v) return;
   Object.assign(p, generatedMapResources(v));
@@ -164,12 +160,10 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
           CreateFieldNetworkPortsPort,
           "ports 80, 443, and 8080 are reserved by Blaxel",
         );
-      ports.push({
-        target: port,
-        protocol: blaxelPortProtocol(
-          x.transport ?? PortTransport.Default,
-        ),
-      });
+      const protocol = blaxelPortProtocol(x.transport ?? PortTransport.Default);
+      ports.push(
+        protocol === undefined ? { target: port } : { target: port, protocol },
+      );
     }
     p.ports = ports;
   }
@@ -177,12 +171,11 @@ function mapNetwork(r: CreateOptions, p: SandboxCreateConfiguration): void {
 
 function blaxelPortProtocol(
   transport: PortTransport,
-): NonNullable<Port["protocol"]> {
-  if (
-    transport === PortTransport.Default ||
-    transport === PortTransport.Plain
-  )
-    return "TCP";
+): Port["protocol"] | undefined {
+  // Kit Default leaves the protocol to the provider. Blaxel defaults to HTTP
+  // when protocol is omitted (normalizePorts).
+  if (transport === PortTransport.Default) return undefined;
+  if (transport === PortTransport.Plain) return "TCP";
   if (transport === PortTransport.Tls) return "TLS";
   // Blaxel exposes HTTP (not H2). Kit HTTP/2+TLS maps to that HTTP protocol.
   if (transport === PortTransport.Http2Tls) return "HTTP";
@@ -194,10 +187,7 @@ function blaxelPortProtocol(
 
 function mapSecurity(r: CreateOptions): void {
   if (r.security !== undefined)
-    unsupported(
-      CreateFieldSecurity,
-      "Blaxel security settings are not mapped",
-    );
+    unsupported(CreateFieldSecurity, "Blaxel security settings are not mapped");
 }
 
 function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
@@ -261,7 +251,8 @@ function mapObservability(r: CreateOptions): void {
 }
 
 // Kit Client.create applies provisioning.timeout as the abort deadline.
-// Blaxel has no separate native create-wait timeout beyond that.
+// @blaxel/core also accepts SandboxCreateOptions.timeout (1–50s); this
+// provider does not forward it — use the Kit deadline instead.
 function mapProvisioning(r: CreateOptions): void {
   const v = r.provisioning;
   if (!v) return;
@@ -317,8 +308,7 @@ function nonblank(v: string, f: string): string {
 function durationString(ms: number, field: string, minimumMs: number): string {
   if (!Number.isFinite(ms) || ms <= 0 || ms % 1_000 !== 0)
     invalid(field, "must be a whole number of seconds");
-  if (ms < minimumMs)
-    invalid(field, "is below the Blaxel minimum duration");
+  if (ms < minimumMs) invalid(field, "is below the Blaxel minimum duration");
   const seconds = ms / 1_000;
   if (seconds % 86_400 === 0) return `${seconds / 86_400}d`;
   if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;

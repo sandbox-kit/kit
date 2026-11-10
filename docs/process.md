@@ -66,16 +66,18 @@ code.
 | `timeout: 0` / `Duration(0)` | Do not add an extra client deadline for this call                                                                                 |
 | Positive timeout             | Cap this call; must be a whole number of seconds (`5000` ms or `5 * time.Second` is fine; `1500` ms is rejected, field `timeout`) |
 
-Omit or zero also means **no separate provider command limit**. Provider
-quirks:
+Omit or zero also means **no separate provider process auto-kill** (see
+provider quirks). Provider quirks:
 
 - **Daytona** — if you omit a native timeout, Daytona defaults to 10 seconds.
   This client therefore uses timeout `0` for omit/zero so the command is not
   capped at 10 seconds.
 - **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
   omits `timeoutMs` (sending `0` is rejected by Modal).
-- **Blaxel** — omit/zero adds no Blaxel command limit. Timeouts must be whole
-  seconds.
+- **Blaxel** — omit/zero adds no Blaxel process auto-kill. Timeouts must be
+  whole seconds. Blocking `run` uses `waitForCompletion`; Blaxel's edge still
+  ends that wait after about a minute (public docs) to two minutes (SDK), while
+  the remote command may keep running.
 
 Cancel behavior:
 
@@ -122,8 +124,8 @@ result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 
 ## More examples
 
-| Topic              | Go Daytona                                                                                      | TypeScript Daytona                                                                                      | Go Modal                                                                                  | TypeScript Modal                                                                                  | Go Blaxel                                                                                      | TypeScript Blaxel                                                                                      |
-| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Topic              | Go Daytona                                                                                      | TypeScript Daytona                                                                                      | Go Modal                                                                                  | TypeScript Modal                                                                                  | Go Blaxel                                                                                    | TypeScript Blaxel                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Shell string       | [run-daytona-shell-command](../examples/go/daytona/process/run-daytona-shell-command/README.md) | [run-daytona-shell-command](../examples/typescript/daytona/process/run-daytona-shell-command/README.md) | [run-modal-shell-command](../examples/go/modal/process/run-modal-shell-command/README.md) | [run-modal-shell-command](../examples/typescript/modal/process/run-modal-shell-command/README.md) | [run-blaxel-shell-command](../examples/go/blaxel/process/run-blaxel-shell-command/README.md) | [run-blaxel-shell-command](../examples/typescript/blaxel/process/run-blaxel-shell-command/README.md) |
 | Working directory  | [run-daytona-with-cwd](../examples/go/daytona/process/run-daytona-with-cwd/README.md)           | [run-daytona-with-cwd](../examples/typescript/daytona/process/run-daytona-with-cwd/README.md)           | [run-modal-with-cwd](../examples/go/modal/process/run-modal-with-cwd/README.md)           | [run-modal-with-cwd](../examples/typescript/modal/process/run-modal-with-cwd/README.md)           | [run-blaxel-with-cwd](../examples/go/blaxel/process/run-blaxel-with-cwd/README.md)           | [run-blaxel-with-cwd](../examples/typescript/blaxel/process/run-blaxel-with-cwd/README.md)           |
 | Environment        | [run-daytona-with-env](../examples/go/daytona/process/run-daytona-with-env/README.md)           | [run-daytona-with-env](../examples/typescript/daytona/process/run-daytona-with-env/README.md)           | [run-modal-with-env](../examples/go/modal/process/run-modal-with-env/README.md)           | [run-modal-with-env](../examples/typescript/modal/process/run-modal-with-env/README.md)           | [run-blaxel-with-env](../examples/go/blaxel/process/run-blaxel-with-env/README.md)           | [run-blaxel-with-env](../examples/typescript/blaxel/process/run-blaxel-with-env/README.md)           |
