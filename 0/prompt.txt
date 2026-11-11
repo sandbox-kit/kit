@@ -1,0 +1,132 @@
+review this branch changes deepply lemme know if there is anything which needs to fix. Everything should be supported by strong reasons.Provider-specific. Then you should have a strong reason for selecting a message, such as using the provider SDK in both languages.
+
+---
+
+expian with examples.  on what u mean code examples are great and much better.
+
+---
+
+fix it
+
+---
+
+cool. are u sure about it + lemme knw what else u think u need to change /
+
+---
+
+explian with code examples
+
+---
+
+ig we shouldn't invent labels in ts. that should be appraoch.
+
+fix 2. 
+
+3. is intentionsal don't change anything in that
+
+4. fix 4
+
+---
+
+cool if u need to chage .mdx or .md with this change do it
+
+---
+
+cool go ahead commit and push to branch
+
+---
+
+review again and lemme know
+
+---
+
+LOCKDOWN_ERROR → FailedPrecondition
+
+this should fix.
+
++ spec  left overs fix it
+
+---
+
+fix it
+
+---
+
+cool commit and push
+
+---
+
+anything else ?
+
+---
+
+do it rn
+
+---
+
+we must remove the dead code, obselete code always do it for this branch for now.
+
+---
+
+cool commit and push
+
+---
+
+cool now revieew again and lemme know if there is anything to do so
+
+---
+
+Low: whitespace-only name error text differs slightly Go vs TS
+
+Low: TS Stat fills missing name/path via basename; Go leaves empty strings
+
+
+whats better ? I mean whats better fixes for both
+
+---
+
+fix it
+
+---
+
+if mdx and md needs to fix do it too
+
+---
+
+cool commit and push
+
+---
+
+go ahead and check and review again is there anything else.
+
+---
+
+fix standards
+
+provider metadaa dn createdAt was intentional 
+
+Else everyother thing fix it, after fixing again review whole branch
+
+---
+
+commit and push
+
+---
+
+cool now lemme know what u suggested and found out we still need changes
+
+---
+
+what are the fixes for 2 and 3
+
+---
+
+whats ur recco lemme know.
+
+---
+
+do it iI mean both
+
+---
+
+if md and mdx needs update do it
