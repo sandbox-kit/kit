@@ -127,7 +127,7 @@ if err != nil {
 
 <ForProvider id="blaxel">
 
-`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available. `delete` returns Blaxel's DELETE response state (often deleting); set `wait: true` to poll until gone or deleted. `DEPLOYED` with runtime `STANDBY` maps to Kit paused; `RUNNING` maps to running.
+`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available. A successful `delete` is reported as deleted (Blaxel may still finish asynchronously). `DEPLOYED` with runtime `STANDBY` maps to Kit paused; `RUNNING` maps to running.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

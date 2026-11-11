@@ -682,7 +682,7 @@ describe("Blaxel provider orchestration", () => {
     expect(info).toMatchObject({ id: "existing", provider: "blaxel" });
   });
 
-  it("maps delete from the Blaxel DELETE response state", async () => {
+  it("unifies a successful delete as Deleted", async () => {
     const deleted: string[] = [];
     const backend = new BlaxelProvider(() => ({
       configure() {},
@@ -694,6 +694,7 @@ describe("Blaxel provider orchestration", () => {
       },
       async delete(name) {
         deleted.push(name);
+        // Wire may still say DELETING; Kit reports Deleted.
         return { metadata: { name }, status: "DELETING" };
       },
     })).initialize({
@@ -705,10 +706,10 @@ describe("Blaxel provider orchestration", () => {
     expect(deleted).toEqual(["doomed"]);
     expect(info).toMatchObject({
       id: "doomed",
-      state: SandboxState.Deleting,
-      providerState: "DELETING",
+      state: SandboxState.Deleted,
+      terminal: true,
+      providerState: "TERMINATED",
     });
-    expect(info.terminal).toBeUndefined();
   });
 
   it("does not create a sandbox after the signal aborts during mapping", async () => {

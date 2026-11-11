@@ -113,18 +113,20 @@ class BlaxelBackend extends BackendBase implements Backend {
 
   async delete(
     id: string,
-    request: DeleteOptions,
+    _request: DeleteOptions,
     options: OperationOptions,
   ): Promise<SandboxInfo> {
     try {
       throwIfAborted(options.signal);
       const deleted = await this.native.delete(id);
       throwIfAborted(options.signal);
-      let info = mapSandboxInfo(deleted);
-      if (request.wait === true) {
-        info = await this.#waitUntilDeleted(id, info, options.signal);
-      }
-      return info;
+      // Blaxel DELETE may still finish asynchronously; unify as Deleted.
+      return {
+        ...mapSandboxInfo(deleted),
+        state: SandboxState.Deleted,
+        terminal: true,
+        providerState: "TERMINATED",
+      };
     } catch (error) {
       throw mapBlaxelError(error, "delete");
     }
@@ -312,36 +314,6 @@ class BlaxelBackend extends BackendBase implements Backend {
     }
   }
 
-  async #waitUntilDeleted(
-    id: string,
-    last: SandboxInfo,
-    signal: AbortSignal | undefined,
-  ): Promise<SandboxInfo> {
-    if (last.state === SandboxState.Deleted) return last;
-    for (;;) {
-      throwIfAborted(signal);
-      await delay(1_000, signal);
-      try {
-        const sandbox = await this.native.get(id);
-        last = mapSandboxInfo(sandbox);
-        if (last.state === SandboxState.Deleted) return last;
-      } catch (error) {
-        const mapped = mapBlaxelError(error, "delete");
-        if (mapped.kind === ErrorKind.NotFound) {
-          return {
-            id,
-            provider: "blaxel",
-            state: SandboxState.Deleted,
-            terminal: true,
-            providerState: "TERMINATED",
-            labels: {},
-          };
-        }
-        throw mapped;
-      }
-    }
-  }
-
   async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(options: OperationOptions): Promise<void> {
@@ -351,24 +323,6 @@ class BlaxelBackend extends BackendBase implements Backend {
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
-}
-
-function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (signal?.aborted) {
-      reject(signal.reason);
-      return;
-    }
-    const timer = setTimeout(() => {
-      signal?.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(signal?.reason);
-    };
-    signal?.addEventListener("abort", onAbort, { once: true });
-  });
 }
 
 /**

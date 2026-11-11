@@ -77,10 +77,10 @@ the native create path (not create-if-not-exists).
 On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
 up the sandbox by name (`ID()` equals the create name). `Attach`, `Start`,
 `Stop`, `Pause`, `Archive`, and `Terminate` are not supported. `Close` does not
-contact Blaxel and does not change the sandbox. `Delete` returns Blaxel's DELETE
-response state (often `Deleting`); `wait: true` polls until the name is gone or
-`Deleted`. `Refresh` / `Info` map Blaxel deployment `DEPLOYED` plus runtime
-`STANDBY` to Kit `Paused` (and `RUNNING` to `Running`) via the Go SDK's public
+contact Blaxel and does not change the sandbox. A successful `Delete` is
+reported as `Deleted` (Blaxel may still finish removal asynchronously).
+`Refresh` / `Info` map Blaxel deployment `DEPLOYED` plus runtime `STANDBY` to
+Kit `Paused` (and `RUNNING` to `Running`) via the Go SDK's public
 `Sandbox.State`. A create that collides on name maps to `AlreadyExists`
 (`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409 on create). A bare 409 on other
 operations is `Conflict`. Coded conflicts such as

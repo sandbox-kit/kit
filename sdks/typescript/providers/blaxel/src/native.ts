@@ -45,7 +45,6 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
       },
     ): Promise<BlaxelProcessResult>;
   };
-  /** Returns the DELETE response body (often still DELETING). */
   delete(): Promise<BlaxelSandboxIdentity>;
 }
 
@@ -56,7 +55,6 @@ export interface NativeBlaxel {
     options?: SandboxCreateOptions,
   ): Promise<NativeSandboxHandle>;
   get(name: string): Promise<NativeSandboxHandle>;
-  /** Returns the DELETE response body (often still DELETING). */
   delete(name: string): Promise<BlaxelSandboxIdentity>;
 }
 
