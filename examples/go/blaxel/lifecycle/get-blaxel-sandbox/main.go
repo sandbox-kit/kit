@@ -44,5 +44,5 @@ func main() {
 		log.Fatal(err)
 	}
 	info := instance.Info()
-	fmt.Printf("Blaxel sandbox: id=%s state=%s native=%s capabilities=%v\n", info.Id, info.State, info.GetProviderState(), instance.Capabilities())
+	fmt.Printf("Blaxel sandbox: id=%s state=%s terminal=%v capabilities=%v\n", info.Id, info.State, info.GetTerminal(), instance.Capabilities())
 }

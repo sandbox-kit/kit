@@ -108,14 +108,12 @@ Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 `Stop` or `Delete`. Modal's native `FromID` performs no remote lookup, so Kit
 exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
 
-Blaxel looks up sandboxes by name for `Get` and `Refresh`. `Delete` removes the
-Blaxel resource; a successful call is reported as `Deleted` even if Blaxel
-finishes the removal asynchronously. `Attach`, `Start`, `Stop`, `Pause`,
-`Archive`, and `Terminate` are unsupported. Closing a Blaxel handle does not
-contact Blaxel. On `Get` / `Refresh`, Blaxel deployment `DEPLOYED` with runtime
-`STANDBY` maps to Kit paused, and `RUNNING` maps to running. Go uses the SDK's
-public `Sandbox.State`. TypeScript projects runtime state from `@blaxel/core`'s
-private wire model onto a Kit-facing `state` field (no public `state` getter).
+Blaxel looks up sandboxes by name for `Get` and `Refresh`. After a successful
+`Delete`, the handle reports `Deleted` and `terminal`. Wait before recreating
+the same name — Blaxel may still be cleaning up and return `Conflict`.
+`Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate` are unsupported.
+Closing a Blaxel handle does not contact Blaxel. On `Get` / `Refresh`, an idle
+sandbox shows as paused and an active one shows as running.
 
 File calls on the same handle are documented in [filesystem](filesystem.md).
 Daytona, Modal, and Blaxel implement the same eight methods; each handle

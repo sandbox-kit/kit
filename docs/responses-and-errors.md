@@ -109,11 +109,9 @@ An error that Kit could not classify keeps an unknown kind and the original
 cause. A kind is a category. It is not a signal that retrying is safe, and
 Kit does not retry for you.
 
-Blaxel name collisions map to `AlreadyExists` when the provider sends
-`SANDBOX_ALREADY_EXISTS`, or a bare HTTP 409 on **create**. A bare 409 on
-other operations maps to `Conflict` (same status fallback Daytona uses).
-Provider codes still win when present, so `SANDBOX_DELETION_IN_PROGRESS`
-stays `Conflict`.
+On Blaxel, creating a sandbox whose name already exists returns
+`AlreadyExists`. If a delete is still finishing or another conflict occurs,
+you get `Conflict`.
 
 ## After a failure
 

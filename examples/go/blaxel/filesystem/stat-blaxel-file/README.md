@@ -4,7 +4,8 @@ Stat one absolute path in a Blaxel sandbox.
 
 ## What this means
 
-Returns type and size for the path.
+Returns whether the path is a file or a directory, plus size and mode when
+Blaxel provides them. Size may be zero when Blaxel does not return it.
 
 ## Edge cases
 

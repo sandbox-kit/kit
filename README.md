@@ -117,9 +117,9 @@ func main() {
 
 ### What gets installed
 
-| Language   | Core SDK                                     | Providers                                      |
-| ---------- | -------------------------------------------- | ---------------------------------------------- |
-| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`, `@sandbox-kit/blaxel` |
+| Language   | Core SDK                                     | Providers                                                              |
+| ---------- | -------------------------------------------- | ---------------------------------------------------------------------- |
+| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`, `@sandbox-kit/blaxel`    |
 | Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`, `.../providers/blaxel` |
 
 Install only the provider you use. The core SDK exposes the shared client
@@ -263,8 +263,9 @@ More detail: [responses and errors](docs/responses-and-errors.md).
   Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
-  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: `memoryMib` /
-  `memory_mib` maps 1:1; Blaxel derives CPU from memory.
+  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: set
+  `memoryMib` / `memory_mib` (Blaxel documents MB; Kit does not convert); CPU
+  follows memory.
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·
@@ -285,17 +286,17 @@ Open http://localhost:3000. Docs are organized as Quickstart, Concepts, Provider
 
 These pages are the behavior reference for the same API:
 
-| Guide                                                                                                          | Covers                                        |
-| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines              |
-| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                       |
-| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                     |
-| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove  |
-| [Process](docs/process.md)                                                                                     | Run a command and wait for exit code + output |
-| [Providers](docs/providers.md)                                                                                 | Daytona, Modal, and Blaxel                    |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes             |
-| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) / [Blaxel](sdks/typescript/providers/blaxel/README.md) | TypeScript provider notes |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md) / [Blaxel](sdks/go/providers/blaxel/README.md) | Go provider notes |
+| Guide                                                                                                                                                                 | Covers                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [Client configuration](docs/configuration.md)                                                                                                                         | Auth, scope, defaults, deadlines              |
+| [Sandbox creation](docs/sandbox-creation.md)                                                                                                                          | Fields, units, policies                       |
+| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                                                                        | Get, attach, capabilities                     |
+| [Filesystem](docs/filesystem.md)                                                                                                                                      | Read, write, copy, list, stat, mkdir, remove  |
+| [Process](docs/process.md)                                                                                                                                            | Run a command and wait for exit code + output |
+| [Providers](docs/providers.md)                                                                                                                                        | Daytona, Modal, and Blaxel                    |
+| [Responses and errors](docs/responses-and-errors.md)                                                                                                                  | Error details and provider causes             |
+| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) / [Blaxel](sdks/typescript/providers/blaxel/README.md) | TypeScript provider notes                     |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md) / [Blaxel](sdks/go/providers/blaxel/README.md)                         | Go provider notes                             |
 
 ## License
 

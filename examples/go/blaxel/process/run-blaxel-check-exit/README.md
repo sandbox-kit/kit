@@ -4,7 +4,7 @@ Run a command that exits non-zero and read the exit code from the result.
 
 ## What this means
 
-A non-zero exit is not an SDK error. Applications check `exitCode` / `GetExitCode`.
+A non-zero exit is not an SDK error. Check `GetExitCode` on the result.
 
 ## Edge cases
 

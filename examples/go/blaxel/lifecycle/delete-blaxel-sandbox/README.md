@@ -1,10 +1,12 @@
 # Delete a Blaxel sandbox
 
-Delete an existing Blaxel sandbox by name and wait for completion.
+Delete an existing Blaxel sandbox by name.
 
 ## What this means
 
-`Delete` permanently removes the Blaxel sandbox. Start, stop, pause, archive, and terminate are unsupported.
+`Delete` permanently removes the Blaxel sandbox. When the call succeeds you get
+`Deleted` with `terminal` set. Wait before recreating the same name, or you may
+get `Conflict`. Start, stop, pause, archive, and terminate are unsupported.
 
 ## Edge cases
 

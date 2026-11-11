@@ -1,13 +1,12 @@
 # Run a Blaxel command with timeout
 
-Cap a Blaxel Process.Run with a whole-second timeout.
+Cap a Blaxel `Process().Run` with a whole-second timeout.
 
 ## What this means
 
-Command timeouts must be whole seconds. This run uses 5 seconds, so Blaxel
-sets process auto-kill and Kit uses one native wait with that budget. Omit or
-zero adds no process auto-kill and waits until the command ends or the call
-is canceled.
+Command timeouts must be whole seconds. This run uses 5 seconds and caps how
+long the command may run. Omit or zero waits until the command ends (or you
+cancel), with no Blaxel process time limit.
 
 ## Edge cases
 

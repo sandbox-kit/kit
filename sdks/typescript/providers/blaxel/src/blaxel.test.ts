@@ -1050,9 +1050,9 @@ describe("Blaxel provider orchestration", () => {
 });
 
 describe("Blaxel filesystem.stat", () => {
-  it("returns directory metadata from ls on the path", async () => {
+  it("returns directory metadata from get on the path", async () => {
     const backend = fsBackend({
-      async ls(path) {
+      async get(path) {
         expect(path).toBe("/app");
         return {
           name: "app",
@@ -1070,11 +1070,19 @@ describe("Blaxel filesystem.stat", () => {
     });
   });
 
-  it("reports a file when ls rejects a file path", async () => {
+  it("returns file metadata including size from get", async () => {
     const backend = fsBackend({
-      async ls(path) {
+      async get(path) {
         expect(path).toBe("/app/readme.txt");
-        throw new Error(JSON.stringify({ error: "Directory not found" }));
+        return {
+          name: "readme.txt",
+          path: "/app/readme.txt",
+          size: 12,
+          permissions: "0644",
+          owner: "user",
+          group: "user",
+          lastModified: "2024-01-02T03:04:05Z",
+        };
       },
     });
     await expect(
@@ -1083,13 +1091,16 @@ describe("Blaxel filesystem.stat", () => {
       name: "readme.txt",
       path: "/app/readme.txt",
       type: FileType.File,
-      size: 0n,
+      size: 12n,
+      permissions: "0644",
+      owner: "user",
+      group: "user",
     });
   });
 
-  it("propagates non-file ls errors", async () => {
+  it("propagates get errors", async () => {
     const missing = fsBackend({
-      async ls() {
+      async get() {
         throw new Error("boom");
       },
     });
@@ -1100,20 +1111,31 @@ describe("Blaxel filesystem.stat", () => {
 });
 
 function fsBackend(fs: {
-  ls(path: string): Promise<{
-    name: string;
-    path: string;
-    files: Array<{
-      name: string;
-      path: string;
-      size: number;
-      permissions?: string;
-      owner?: string;
-      group?: string;
-      lastModified?: string;
-    }>;
-    subdirectories: Array<{ name: string; path: string }>;
-  }>;
+  get(path: string): Promise<
+    | {
+        name: string;
+        path: string;
+        files: Array<{
+          name: string;
+          path: string;
+          size: number;
+          permissions?: string;
+          owner?: string;
+          group?: string;
+          lastModified?: string;
+        }>;
+        subdirectories: Array<{ name: string; path: string }>;
+      }
+    | {
+        name: string;
+        path: string;
+        size: number;
+        permissions?: string;
+        owner?: string;
+        group?: string;
+        lastModified?: string;
+      }
+  >;
 }) {
   return new BlaxelProvider(() => ({
     configure() {},

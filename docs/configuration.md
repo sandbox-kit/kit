@@ -46,8 +46,8 @@ does not change the handle.
 
 ## Provider support
 
-The bindings use Modal v0.11.1, Daytona v0.225.0, `@blaxel/core@0.3.36`, and
-`github.com/blaxel-ai/sdk-go@v0.31.0`.
+The bindings target Modal, Daytona, and Blaxel. Pinned dependency versions live
+in each provider package.
 
 | Setting          | Modal                                                      | Daytona                           | Blaxel                         |
 | ---------------- | ---------------------------------------------------------- | --------------------------------- | ------------------------------ |
@@ -68,9 +68,8 @@ created. Omit `auth` when the provider should use credentials it already finds
 in the environment. Daytona can take the organization from that environment
 when you use a bearer token and leave organization unset.
 
-TypeScript Blaxel clients share `@blaxel/core` process-global `settings`. Use
-one Blaxel Kit client, or one credential set, per process; a second client
-overwrites the first.
+In TypeScript, use one Blaxel client (or one API key) per process. A second
+client with different credentials replaces the first.
 
 A remote endpoint uses HTTPS. HTTP is accepted for `localhost` or a loopback
 address. A URL with a username, password, or fragment is rejected. Daytona uses
@@ -91,9 +90,8 @@ deadline or abort signal that arrives earlier still applies.
 Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
-operation timeout. Blaxel uses the Kit deadline for create and does not pass
-`@blaxel/core` `SandboxCreateOptions` (including the native 1–50s creation
-timeout). The Go Blaxel SDK has no equivalent argument.
+operation timeout. On Blaxel, your client/create `timeout` is how long create
+may take.
 
 ## Credentials
 

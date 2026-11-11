@@ -27,7 +27,7 @@ How providers run the command:
 
 | You pass | Daytona                   | Modal                    | Blaxel                    |
 | -------- | ------------------------- | ------------------------ | ------------------------- |
-| `argv`   | POSIX-quoted shell string | argument list as-is      | POSIX-quoted shell string |
+| `argv`   | One quoted shell command string | argument list as-is | One quoted shell command string |
 | `shell`  | shell string as-is        | `bash -c` with that text | shell string as-is        |
 
 ## Working directory and environment
@@ -66,7 +66,7 @@ code.
 | `timeout: 0` / `Duration(0)` | Do not add an extra client deadline for this call                                                                                 |
 | Positive timeout             | Cap this call; must be a whole number of seconds (`5000` ms or `5 * time.Second` is fine; `1500` ms is rejected, field `timeout`) |
 
-Omit or zero also means **no separate provider process auto-kill** (see
+Omit or zero also means **no separate provider process time limit** (see
 provider quirks). Provider quirks:
 
 - **Daytona** — if you omit a native timeout, Daytona defaults to 10 seconds.
@@ -74,12 +74,10 @@ provider quirks). Provider quirks:
   capped at 10 seconds.
 - **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
   omits `timeoutMs` (sending `0` is rejected by Modal).
-- **Blaxel** — omit or zero adds no Blaxel process auto-kill. Timeouts must
-  be whole seconds. Kit starts without Blaxel's completion hold and uses one
-  native wait. Omit or zero waits without a Kit budget (context/signal can
-  still cancel). A positive timeout sets auto-kill and the wait budget. The
-  Kit deadline and cancel stop that wait and leave the remote command
-  running. An HTTP 504 during the wait is a timeout error.
+- **Blaxel** — omit or zero waits until the command ends (or you cancel), with
+  no Blaxel process time limit. Positive timeouts must be whole seconds and
+  cap how long the command may run. Canceling stops waiting; the remote
+  command may keep running. If the wait times out, you get a timeout error.
 
 Cancel behavior:
 

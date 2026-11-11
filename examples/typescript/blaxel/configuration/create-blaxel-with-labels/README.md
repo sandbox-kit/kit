@@ -4,7 +4,7 @@ Create one Blaxel sandbox with labels and environment variables.
 
 ## What this means
 
-Labels become Blaxel metadata labels. Environment entries are injected into the sandbox runtime.
+Set `labels` and create-time environment variables. They appear as sandbox metadata and runtime env.
 
 ## Edge cases
 

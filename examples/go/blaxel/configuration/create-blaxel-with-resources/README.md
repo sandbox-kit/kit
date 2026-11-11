@@ -4,7 +4,7 @@ Create one Blaxel sandbox with an explicit memory size in MiB. Blaxel derives CP
 
 ## What this means
 
-Only `resources.memoryMib` is mapped. CPU cores, limits, and disk MiB overrides are rejected. Omitted memory keeps the Blaxel default.
+You can set `resources.memory_mib` only. CPU cores, limits, and disk overrides are rejected. Omit memory to use Blaxel's default.
 
 ## Edge cases
 

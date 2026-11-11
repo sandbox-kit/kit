@@ -146,7 +146,7 @@ Blaxel needs an API key, workspace, and client region:
 | [remove-blaxel-file](blaxel/filesystem/remove-blaxel-file/README.md)                                       | remove one path                         |
 | [get-blaxel-sandbox](blaxel/lifecycle/get-blaxel-sandbox/README.md)                                        | remote retrieval and metadata           |
 | [refresh-blaxel-sandbox](blaxel/lifecycle/refresh-blaxel-sandbox/README.md)                                | metadata refresh                        |
-| [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | waited deletion                         |
+| [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | delete by name                          |
 | [close-blaxel-handle](blaxel/lifecycle/close-blaxel-handle/README.md)                                      | close the handle; sandbox keeps running |
 | [handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md)                                       | typed validation errors                 |
 

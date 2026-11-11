@@ -113,7 +113,7 @@ Outcome of a finished command.
 
 <ForProvider id="daytona">
   Daytona returns stdout only; `stderr` is empty (stdout may include merged
-  streams). `argv` is sent as a POSIX-quoted shell string. Omit/zero timeout
+  streams). `argv` is sent as one quoted shell command string. Omit/zero timeout
   sends `0` so Daytona does not apply its 10s command default.
 </ForProvider>
 
@@ -124,13 +124,11 @@ Outcome of a finished command.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel returns both `stdout` and `stderr`. `argv` is sent as a POSIX-quoted
-  shell string. Kit starts without Blaxel's completion hold and uses one native
-  wait. Omit or zero timeout means no process auto-kill and an unlimited wait
-  (signal can still abort). A positive timeout sets auto-kill and the wait
-  budget. `run` waits until the command ends. Aborting the signal stops the wait
-  only; the remote command may keep running. An HTTP 504 while waiting is a
-  timeout error.
+  You get both `stdout` and `stderr`. `argv` is one quoted shell command string.
+  Omit or zero timeout waits until the command ends (or you abort), with no
+  Blaxel time limit. A positive timeout must be whole seconds and caps how long
+  the command may run. Aborting stops waiting only; the remote command may keep
+  running. If the wait times out, you get a timeout error.
 </ForProvider>
 
   </Tab>
@@ -144,7 +142,7 @@ Outcome of a finished command.
 
 <ForProvider id="daytona">
   Daytona returns Stdout only; Stderr is empty (Stdout may include merged
-  streams). Argv is sent as a POSIX-quoted shell string. Omit/zero Timeout sends
+  streams). Argv is sent as one quoted shell command string. Omit/zero Timeout sends
   0 so Daytona does not apply its 10s command default.
 </ForProvider>
 
@@ -155,13 +153,11 @@ Outcome of a finished command.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel returns both Stdout and Stderr. Argv is sent as a POSIX-quoted shell
-  string. Kit starts without Blaxel's completion hold and uses one native Wait.
-  Omit or zero Timeout means no process auto-kill and an unlimited wait
-  (context can still cancel). A positive Timeout sets auto-kill and the wait
-  budget. Run waits until the command ends. Canceling the context stops the wait
-  only; the remote command may keep running. An HTTP 504 while waiting is a
-  timeout error.
+  You get both Stdout and Stderr. Argv is one quoted shell command string. Omit or
+  zero Timeout waits until the command ends (or you cancel), with no Blaxel time
+  limit. A positive Timeout must be whole seconds and caps how long the command
+  may run. Canceling stops waiting only; the remote command may keep running. An
+  If the wait times out, you get a timeout error.
 </ForProvider>
 
   </Tab>

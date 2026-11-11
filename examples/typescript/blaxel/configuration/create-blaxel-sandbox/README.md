@@ -4,11 +4,10 @@ Create one Blaxel sandbox from a registry image with an explicit name. Prints th
 
 ## What this means
 
-Blaxel create requires a Blaxel-valid `name` (lowercase alphanumeric with
-single hyphens, at most 49 characters), an image source, and client `region`
-(examples read `BL_REGION`, default `us-pdx-1`). Kit calls native create (not
-create-if-not-exists). Closing the Kit client only drops the local SDK
-connection.
+Create needs a Blaxel-valid `name` (lowercase alphanumeric with single hyphens,
+at most 49 characters), an image, and client `region` (examples read
+`BL_REGION`, default `us-pdx-1`). If the name already exists, you get
+`AlreadyExists`. Closing the client does not delete the sandbox.
 
 ## Edge cases
 

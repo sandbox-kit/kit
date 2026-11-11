@@ -139,7 +139,6 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
 
 </ForProvider>
 
-
 ## Read a file
 
 Returns the bytes of one file. A missing file is not found. A directory path fails at the provider.
@@ -348,11 +347,8 @@ fmt.Println(entries)
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel has no dedicated stat API. TypeScript uses `fs.ls` (GET-by-path): a
-  directory listing succeeds; a file path returns Blaxel's "Directory not
-  found" response and Kit reports a file. Go calls the sandbox filesystem GET
-  through a rebuilt lower client because `SandboxInstanceFSService` has no
-  public Get/Stat and `LS` always treats the response as a directory.
+  Directories return type directory. Files return type file, with size and
+  permission fields when Blaxel provides them.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

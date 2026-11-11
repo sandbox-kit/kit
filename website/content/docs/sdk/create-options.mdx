@@ -222,10 +222,9 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 <ForProvider id="blaxel">
   Blaxel requires an `image` source and a Blaxel-valid `name` (lowercase
   alphanumeric with single hyphens, at most 49 characters). Client `region` is
-  required. Default port transport leaves the protocol to Blaxel (HTTP); plain
-  maps to TCP; TLS maps to TLS; HTTP/2 over TLS is rejected. Ports 80, 443, and
-  8080 are reserved. Kit create timeout is the local deadline; `@blaxel/core`'s
-  native creation timeout is not forwarded.
+  required. Default ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
+  not supported. Ports 80, 443, and 8080 are reserved. Your client/create
+  `timeout` is how long create may take.
 </ForProvider>
 
 ## RuntimeConfig
@@ -424,10 +423,8 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Kit `timeout` / client timeout is the create deadline. `queueTimeout` is
-  unsupported. `waitFor` accepts only `Default` and `Scheduled`; `Ready`,
-  `Started`, and `Submitted` are rejected. `@blaxel/core`'s native creation
-  timeout (1–50s) is not forwarded.
+  Client `timeout` is how long create may take. `queueTimeout` is unsupported.
+  `waitFor` accepts only `Default` and `Scheduled`; Ready wait is not supported.
 </ForProvider>
 
   </Tab>
@@ -451,10 +448,8 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Kit `Timeout` / client timeout is the create deadline. `QueueTimeout` is
-  unsupported. `WaitFor` accepts only `Default` and `Scheduled`; `Ready`,
-  `Started`, and `Submitted` are rejected. The Go Blaxel SDK has no separate
-  creation-timeout argument.
+  Client `Timeout` is how long create may take. `QueueTimeout` is unsupported.
+  `WaitFor` accepts only `Default` and `Scheduled`; Ready wait is not supported.
 </ForProvider>
 
   </Tab>

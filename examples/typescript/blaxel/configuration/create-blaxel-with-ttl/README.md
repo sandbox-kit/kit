@@ -4,7 +4,7 @@ Create one Blaxel sandbox that deletes after a maximum lifetime TTL.
 
 ## What this means
 
-Maps `lifetime.maximumLifetime` to Blaxel max-age TTL. Durations must be whole seconds and meet Blaxel minima (5 minutes for max-age).
+Set `lifetime.maximumLifetime` (whole seconds, at least 5 minutes). The sandbox deletes when that max age elapses.
 
 ## Edge cases
 

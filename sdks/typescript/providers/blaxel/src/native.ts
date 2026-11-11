@@ -1,10 +1,14 @@
 import {
+  getFilesystemByPath,
+  ResponseError,
   SandboxInstance,
   settings,
   type Config as NativeClientConfig,
   type Directory,
+  type File as BlaxelFile,
   type SandboxCreateConfiguration,
   type SandboxCreateOptions,
+  type SandboxFileSystem,
 } from "@blaxel/core";
 import type { BlaxelSandboxIdentity } from "#mappings/provider_mappings.js";
 
@@ -31,6 +35,8 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
     writeBinary(path: string, content: Uint8Array): Promise<unknown>;
     mkdir(path: string, permissions?: string): Promise<unknown>;
     ls(path: string): Promise<Directory>;
+    /** GET path: directory listing or file metadata (size, permissions, …). */
+    get(path: string): Promise<Directory | BlaxelFile>;
     rm(path: string, recursive?: boolean): Promise<unknown>;
     download(src: string, destinationPath: string): Promise<void>;
   };
@@ -81,12 +87,68 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
 /**
  * `@blaxel/core` types `SandboxInstance.sandbox` private and has no `state`
  * getter. Project runtime STANDBY/RUNNING onto a Kit-facing `state` field so
- * identity mapping never reaches into the private wire model.
+ * identity mapping never reaches into the private wire model. Wrap `fs` with
+ * `get` so Stat can use the same filesystem GET as Go.
  */
 export function projectHandle(instance: SandboxInstance): NativeSandboxHandle {
   const state = wireRuntimeState(instance);
-  if (state === undefined) return instance as unknown as NativeSandboxHandle;
-  return Object.assign(instance, { state }) as unknown as NativeSandboxHandle;
+  const base =
+    state === undefined ? instance : Object.assign(instance, { state });
+  return Object.assign(base, {
+    fs: wrapFilesystem(instance.fs),
+  }) as unknown as NativeSandboxHandle;
+}
+
+function wrapFilesystem(fs: SandboxFileSystem): NativeSandboxHandle["fs"] {
+  return {
+    readBinary: (path) => fs.readBinary(path),
+    writeBinary: (path, content) => fs.writeBinary(path, content),
+    mkdir: (path, permissions) => fs.mkdir(path, permissions),
+    ls: (path) => fs.ls(path),
+    rm: (path, recursive) => fs.rm(path, recursive),
+    download: (src, destinationPath) => fs.download(src, destinationPath),
+    get: (path) => filesystemGet(fs, path),
+  };
+}
+
+async function filesystemGet(
+  fs: SandboxFileSystem,
+  path: string,
+): Promise<Directory | BlaxelFile> {
+  const { response, data, error } = await getFilesystemByPath({
+    path: { path },
+    baseUrl: fs.url,
+    client: fs.client,
+  });
+  if (!response.ok || data == null) {
+    throw new ResponseError(response, data, error);
+  }
+  if (isDirectoryListing(data)) return data;
+  if (isFileMetadata(data)) {
+    const { content: _content, ...meta } = data as BlaxelFile & {
+      content?: string;
+    };
+    return meta;
+  }
+  throw new Error("Unsupported filesystem path type");
+}
+
+function isDirectoryListing(data: unknown): data is Directory {
+  return (
+    !!data &&
+    typeof data === "object" &&
+    ("files" in data || "subdirectories" in data)
+  );
+}
+
+function isFileMetadata(data: unknown): data is BlaxelFile {
+  return (
+    !!data &&
+    typeof data === "object" &&
+    "size" in data &&
+    !("files" in data) &&
+    !("subdirectories" in data)
+  );
 }
 
 function wireRuntimeState(instance: SandboxInstance): string | undefined {

@@ -8,8 +8,7 @@ Sets `Config.Timeout` / `timeout` on the shared client. This bounds local waitin
 
 ## Edge cases
 
-- Kit `timeout` / `provisioning.timeout` is the local create deadline.
-- Blaxel's native creation timeout (1–50s on `@blaxel/core`) is not forwarded.
+- Client `timeout` is how long create may take.
 
 ## Run
 
