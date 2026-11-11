@@ -151,10 +151,12 @@ console.log(sandbox.id);
 import { blaxel } from "@sandbox-kit/blaxel";
 import { Client } from "@sandbox-kit/sandbox";
 
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000, // default client deadline (ms)
 });
@@ -268,6 +270,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
@@ -275,16 +278,17 @@ import (
 )
 
 func main() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	config := &sandbox.Config{
 		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 		}},
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
 		Region:  sandbox.Value("us-pdx-1"),
 		Timeout: sandbox.Duration(2 * time.Minute),
-	})
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -105,10 +105,12 @@ await using client = new Client({
 import { blaxel } from "@sandbox-kit/blaxel";
 import { Client } from "@sandbox-kit/sandbox";
 
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000,
 });
@@ -181,6 +183,7 @@ client, err := sandbox.NewClient(modal.New(), config)
 ```go
 import (
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
@@ -191,11 +194,11 @@ config := &sandbox.Config{
 	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 	}},
-	Scope: &sandbox.Scope{
-		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-	},
 	Region:  sandbox.Value("us-pdx-1"),
 	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 }
 if region := os.Getenv("BL_REGION"); region != "" {
 	config.Region = sandbox.Value(region)
@@ -343,7 +346,7 @@ client, err := sandbox.NewClient(modal.New(), config)
 | -------------- | ------------------------------------------------------- |
 | API key        | `auth.apiKey.key`                                       |
 | Omitted `auth` | Uses `BL_API_KEY` / `BL_WORKSPACE` from the environment |
-| Workspace      | `scope.workspace`                                       |
+| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted      |
 | Region         | `region` — required for create                          |
 | Endpoint       | Unsupported                                             |
 
@@ -351,10 +354,12 @@ In TypeScript, use one Blaxel client (or one API key) per process. A second
 client with different credentials replaces the first.
 
 ```ts
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000,
 });
@@ -363,23 +368,23 @@ await using client = new Client({
   </Tab>
   <Tab value="Go">
 
-| Setting   | What to pass                          |
-| --------- | ------------------------------------- |
-| API key   | `APIKey`                              |
-| Workspace | `Scope.Workspace`                     |
-| Region    | `Config.Region` — required for create |
-| Endpoint  | Unsupported                           |
+| Setting   | What to pass                                       |
+| --------- | -------------------------------------------------- |
+| API key   | `APIKey`                                           |
+| Workspace | `Scope.Workspace` — or `BL_WORKSPACE` when omitted |
+| Region    | `Config.Region` — required for create              |
+| Endpoint  | Unsupported                                        |
 
 ```go
 config := &sandbox.Config{
 	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 	}},
-	Scope: &sandbox.Scope{
-		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-	},
 	Region:  sandbox.Value("us-pdx-1"),
 	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 }
 client, err := sandbox.NewClient(blaxel.New(), config)
 ```
@@ -580,10 +585,12 @@ await using client = new Client(config);
 <ForProvider id="blaxel">
 
 ```ts
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 const config = {
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000,
 };
@@ -638,11 +645,11 @@ config := &sandbox.Config{
 	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 	}},
-	Scope: &sandbox.Scope{
-		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-	},
 	Region:  sandbox.Value("us-pdx-1"),
 	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 }
 client, err := sandbox.NewClient(blaxel.New(), config)
 ```

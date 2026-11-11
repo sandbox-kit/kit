@@ -38,10 +38,12 @@ single hyphens, ≤49 characters), an image, and client `region`.
 import { blaxel } from "@sandbox-kit/blaxel";
 import { Client } from "@sandbox-kit/sandbox";
 
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000,
 });
@@ -67,6 +69,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
@@ -74,16 +77,17 @@ import (
 )
 
 func main() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	config := &sandbox.Config{
 		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 		}},
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
 		Region:  sandbox.Value("us-pdx-1"),
 		Timeout: sandbox.Duration(2 * time.Minute),
-	})
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		panic(err)
 	}
@@ -125,10 +129,12 @@ supported. Closing the client does not delete the sandbox.
 | Endpoint       | Unsupported                                             |
 
 ```ts
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION || "us-pdx-1",
   timeout: 120_000,
 });
@@ -149,11 +155,11 @@ config := &sandbox.Config{
 	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 	}},
-	Scope: &sandbox.Scope{
-		Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-	},
 	Region:  sandbox.Value("us-pdx-1"),
 	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 }
 client, err := sandbox.NewClient(blaxel.New(), config)
 ```
@@ -189,6 +195,11 @@ supported. Ready/Started/Submitted wait and idle disable are not supported.
 
 Set client or create `timeout` for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name.
+
+If Blaxel’s edge returns HTTP 504 during create, TypeScript may keep waiting
+until the sandbox is ready or your create timeout ends. Go returns a timeout as
+soon as that response arrives. A Go timeout does not always mean the sandbox
+was never created — call `get` / `Get` by name before recreating.
 
 ## Related
 

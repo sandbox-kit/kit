@@ -17,16 +17,17 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ## Create a sandbox
 
 ```go
-client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+config := &sandbox.Config{
     Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
         ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
     }},
-    Scope: &sandbox.Scope{
-        Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-    },
     Region:  sandbox.Value("us-pdx-1"),
     Timeout: sandbox.Duration(2 * time.Minute),
-})
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+    config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
 if err != nil {
     log.Fatal(err)
 }
@@ -53,7 +54,7 @@ sandbox. Call `Delete`, or set a lifetime policy.
 | Setting   | How to set it                         |
 | --------- | ------------------------------------- |
 | API key   | `Auth` with `APIKey`                  |
-| Workspace | `Scope.Workspace`                     |
+| Workspace | `Scope.Workspace` (or `BL_WORKSPACE`) |
 | Region    | `Config.Region` (required for create) |
 | Timeout   | `Config.Timeout` (create/op deadline) |
 
@@ -76,6 +77,11 @@ plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
 Set client or create timeout for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name. Ready/Started/Submitted wait and
 readiness probes are not supported (`WaitFor` only Default or Scheduled).
+
+If Blaxel’s edge returns HTTP 504 during create, Go returns a timeout as soon
+as that response arrives. TypeScript may keep waiting until the sandbox is
+ready or your create timeout ends. A Go timeout does not always mean the
+sandbox was never created — call `Get` by name before recreating.
 
 Set `Resources.MemoryMib` for memory size. Blaxel documents that value as MB;
 Kit does not convert units. CPU follows memory on Blaxel — do not set CPU or

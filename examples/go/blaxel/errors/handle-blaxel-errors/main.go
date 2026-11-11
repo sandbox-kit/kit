@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -29,11 +30,11 @@ func main() {
 				},
 			},
 		},
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
 		Region:  sandbox.Value(region),
 		Timeout: sandbox.Duration(2 * time.Minute),
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 	}
 	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {

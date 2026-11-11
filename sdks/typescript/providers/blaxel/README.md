@@ -17,10 +17,12 @@ Requires Node.js 20, 22, or 24.15+, a Blaxel API key, and a workspace name.
 import { blaxel } from "@sandbox-kit/blaxel";
 import { Client } from "@sandbox-kit/sandbox";
 
+const workspace = process.env.BL_WORKSPACE?.trim();
+
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region: process.env.BL_REGION ?? "us-pdx-1",
   timeout: 120_000,
 });
@@ -43,7 +45,7 @@ idle policies or `delete`.
 | -------------- | ------------------------------------------------------- |
 | API key        | `auth: { apiKey: { key } }`                             |
 | Omitted `auth` | Uses `BL_API_KEY` / `BL_WORKSPACE` from the environment |
-| Workspace      | `scope.workspace` — Blaxel workspace name               |
+| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted      |
 | Region         | `region` — required for create                          |
 | Endpoint       | Not supported                                           |
 
@@ -71,6 +73,11 @@ Set client or create `timeout` for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name. Ready/Started/Submitted wait is not
 supported (`waitFor` only Default or Scheduled). Ports 80, 443, and 8080 are
 reserved.
+
+If Blaxel’s edge returns HTTP 504 during create, TypeScript may keep waiting
+until the sandbox is ready or your create timeout ends. Go returns a timeout as
+soon as that response arrives. A Go timeout does not always mean the sandbox
+was never created — call `get` by name before recreating.
 Default port transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
 not supported. Volumes are not part of create.
 

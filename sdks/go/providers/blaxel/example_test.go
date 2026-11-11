@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
@@ -16,16 +17,17 @@ func ExampleNew() {
 	if region == "" {
 		region = "us-pdx-1"
 	}
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	config := &sandbox.Config{
 		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 		}},
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
 		Region:  sandbox.Value(region),
 		Timeout: sandbox.Duration(2 * time.Minute),
-	})
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -50,12 +52,13 @@ func ExampleNew_image() {
 	if region == "" {
 		region = "us-pdx-1"
 	}
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
+	config := &sandbox.Config{
 		Region: sandbox.Value(region),
-	})
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -79,11 +82,11 @@ func ExampleNew_image() {
 }
 
 func ExampleNew_get() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -101,11 +104,11 @@ func ExampleNew_get() {
 }
 
 func ExampleNew_delete() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -128,12 +131,13 @@ func ExampleNew_close() {
 	if region == "" {
 		region = "us-pdx-1"
 	}
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
+	config := &sandbox.Config{
 		Region: sandbox.Value(region),
-	})
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -170,11 +174,11 @@ func ExampleNew_errors() {
 }
 
 func ExampleNew_process() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -197,11 +201,11 @@ func ExampleNew_process() {
 }
 
 func ExampleNew_processShell() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -224,11 +228,11 @@ func ExampleNew_processShell() {
 }
 
 func ExampleNew_processEnv() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -252,11 +256,11 @@ func ExampleNew_processEnv() {
 }
 
 func ExampleNew_filesystem() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -282,11 +286,11 @@ func ExampleNew_filesystem() {
 }
 
 func ExampleNew_makeDirectory() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -305,11 +309,11 @@ func ExampleNew_makeDirectory() {
 }
 
 func ExampleNew_listDirectory() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -330,11 +334,11 @@ func ExampleNew_listDirectory() {
 }
 
 func ExampleNew_stat() {
-	client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-		Scope: &sandbox.Scope{
-			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-		},
-	})
+	config := &sandbox.Config{}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
 	if err != nil {
 		fmt.Println(err)
 		return

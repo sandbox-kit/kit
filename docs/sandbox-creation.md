@@ -20,7 +20,7 @@ dependency versions live in each provider package.
 | Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                                                            |
 | Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080; Default → Blaxel HTTP); outbound domains                                                       |
 | Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                                        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Create `timeout`; 1–50s frees the name on timeout; waitFor Default/Scheduled only; Ready/Started/Submitted unsupported |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Create `timeout`; 1–50s frees the name on timeout; waitFor Default/Scheduled only; Ready/Started/Submitted unsupported; edge HTTP 504: TypeScript may keep waiting, Go returns timeout (get by name before recreate) |
 | Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                                                            |
 
 Kit has no portable volume fields; Blaxel volumes stay out of create the same
@@ -125,6 +125,10 @@ deadline. A caller-context deadline still applies. A Daytona creation timeout
 must be a whole number of seconds. An omitted Daytona creation timeout and an
 explicit zero both leave Daytona's 60-second create default in place. Modal
 ready waiting also requires a readiness probe and a positive creation timeout.
+On Blaxel, an edge HTTP 504 during create can leave TypeScript waiting until
+the sandbox is ready or the create timeout ends, while Go returns a timeout as
+soon as that response arrives. A Go timeout does not always mean the sandbox
+was never created — call `Get` by name before recreating.
 
 ## Results and cleanup
 

@@ -91,7 +91,9 @@ Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
 operation timeout. On Blaxel, your client/create `timeout` is how long create
-may take.
+may take. An edge HTTP 504 during create can leave TypeScript waiting until
+the sandbox is ready or that timeout ends; Go returns a timeout when the 504
+arrives.
 
 ## Credentials
 

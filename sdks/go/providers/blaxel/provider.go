@@ -21,15 +21,16 @@ type backend struct {
 //
 // Example:
 //
-//	client, err := sandbox.NewClient(New(), &sandbox.Config{
+//	config := &sandbox.Config{
 //		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
 //			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
 //		}},
-//		Scope: &sandbox.Scope{
-//			Workspace: sandbox.Value(os.Getenv("BL_WORKSPACE")),
-//		},
 //		Region: sandbox.Value("us-pdx-1"),
-//	})
+//	}
+//	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+//		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+//	}
+//	client, err := sandbox.NewClient(New(), config)
 func New() *Provider { return &Provider{} }
 
 func (*Provider) Name() string { return "blaxel" }

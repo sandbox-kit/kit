@@ -15,11 +15,12 @@ function assertCapability(
 }
 
 const region = process.env.BL_REGION || "us-pdx-1";
+const workspace = process.env.BL_WORKSPACE?.trim();
 
 await using client = new Client({
   provider: blaxel(),
   auth: { apiKey: { key: process.env.BL_API_KEY! } },
-  scope: { workspace: process.env.BL_WORKSPACE! },
+  ...(workspace ? { scope: { workspace } } : {}),
   region,
   timeout: 120_000,
 });
