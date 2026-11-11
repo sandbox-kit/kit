@@ -22,8 +22,10 @@ import {
   CreateFieldNetworkPortsTransport,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
+  FileFieldPath,
 } from "@sandbox-kit/sandbox";
 import {
+  blaxelCreateTimeoutSeconds,
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
@@ -205,6 +207,16 @@ describe("Blaxel mappings", () => {
     ).not.toThrow();
   });
 
+  it("forwards Blaxel create timeout only for whole seconds 1..50", () => {
+    expect(blaxelCreateTimeoutSeconds(30_000)).toBe(30);
+    expect(blaxelCreateTimeoutSeconds(1_000)).toBe(1);
+    expect(blaxelCreateTimeoutSeconds(50_000)).toBe(50);
+    expect(blaxelCreateTimeoutSeconds(undefined)).toBeUndefined();
+    expect(blaxelCreateTimeoutSeconds(0)).toBeUndefined();
+    expect(blaxelCreateTimeoutSeconds(1_500)).toBeUndefined();
+    expect(blaxelCreateTimeoutSeconds(120_000)).toBeUndefined();
+  });
+
   it("rejects WaitCondition.Ready", () => {
     expect(() =>
       mapCreateRequest(
@@ -289,6 +301,13 @@ describe("Blaxel mappings", () => {
       kind: ErrorKind.NotFound,
       provider: "blaxel",
       operation: "refresh",
+      field: "",
+      cause: native,
+    });
+    expect(mapBlaxelError(native, "stat")).toMatchObject({
+      kind: ErrorKind.NotFound,
+      operation: "stat",
+      field: FileFieldPath,
       cause: native,
     });
   });
@@ -447,6 +466,18 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("omits labels when Blaxel does not return them", () => {
+    const info = mapSandboxInfo({
+      metadata: { name: "demo" },
+      status: "DEPLOYED",
+      state: "RUNNING",
+      spec: { region: "us-pdx-1" },
+    });
+    expect(info.labels).toBeUndefined();
+    expect(info.createdAt).toBeUndefined();
+    expect(info.providerMetadata).toBeUndefined();
+  });
+
   it("marks DELETED and TERMINATED refresh as terminal", () => {
     for (const status of ["DELETED", "TERMINATED", "DEACTIVATED"] as const) {
       expect(
@@ -585,6 +616,7 @@ describe("Blaxel mappings", () => {
 describe("Blaxel provider orchestration", () => {
   it("creates with SandboxInstance.create and never createIfNotExists", async () => {
     let created: unknown;
+    let createOptions: unknown;
     let configured: unknown;
     const nativeSandbox = {
       metadata: { name: "example" },
@@ -599,8 +631,9 @@ describe("Blaxel provider orchestration", () => {
         configure(config) {
           configured = config;
         },
-        async create(params) {
+        async create(params, options) {
           created = params;
+          createOptions = options;
           return nativeSandbox;
         },
         async get() {
@@ -619,6 +652,7 @@ describe("Blaxel provider orchestration", () => {
       name: "example",
       source: { image: { reference: "blaxel/base-image:latest" } },
       resources: { memoryMib: 2048n },
+      provisioning: { timeout: 30_000 },
     });
     await client.close();
 
@@ -629,6 +663,7 @@ describe("Blaxel provider orchestration", () => {
       memory: 2048,
       region: "us-pdx-1",
     });
+    expect(createOptions).toEqual({ timeout: 30 });
     expect(sandbox.id).toBe("example");
     expect(sandbox.info().name).toBe("example");
   });

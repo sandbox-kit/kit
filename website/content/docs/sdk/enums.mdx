@@ -63,8 +63,7 @@ How far provisioning wait-for waits before create returns.
 | `Ready`     | Return once readiness succeeds (probe + positive timeout when required) |
 
 <ForProvider id="blaxel">
-  Blaxel accepts only `Default` and `Scheduled`. `Ready`, `Started`, and
-  `Submitted` are rejected. Readiness probes are unsupported.
+  Use only `Default` or `Scheduled`. Ready wait is not supported.
 </ForProvider>
 
 ## EgressMode

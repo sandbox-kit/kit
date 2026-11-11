@@ -49,15 +49,18 @@ Durations on this type are **milliseconds**. Allowlists under `network` are plai
 | `observability` | Verbose logging / telemetry                             |
 
 <ForProvider id="daytona">
-  Daytona treats `name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+  Daytona treats `name` as a display name. Omit it to keep the provider default.
+  An explicit empty string asks for unnamed.
 </ForProvider>
 
 <ForProvider id="modal">
-  Modal treats `name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+  Modal treats `name` as a display name. Omit it to keep the provider default.
+  An explicit empty string asks for unnamed.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  On Blaxel, `name` is required and **is** the sandbox id. Use lowercase letters, digits, and single hyphens (`[a-z0-9]+(?:-[a-z0-9]+)*`), at most 49 characters. Look the sandbox up with `get(name)`.
+  `name` is required and is the sandbox id. Use lowercase letters, digits, and
+  single hyphens, at most 49 characters. Look it up with `get(name)`.
 </ForProvider>
 
 **Example**
@@ -139,15 +142,18 @@ Durations use `sandbox.Duration`. Optional numbers use `sandbox.Value`.
 | `Observability` | Verbose logging / telemetry                             |
 
 <ForProvider id="daytona">
-  Daytona treats `Name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+  Daytona treats `Name` as a display name. Omit it to keep the provider default.
+  An explicit empty string asks for unnamed.
 </ForProvider>
 
 <ForProvider id="modal">
-  Modal treats `Name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+  Modal treats `Name` as a display name. Omit it to keep the provider default.
+  An explicit empty string asks for unnamed.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  On Blaxel, `Name` is required and **is** the sandbox id. Use lowercase letters, digits, and single hyphens (`[a-z0-9]+(?:-[a-z0-9]+)*`), at most 49 characters. Look the sandbox up with `Get(name)`.
+  `Name` is required and is the sandbox id. Use lowercase letters, digits, and
+  single hyphens, at most 49 characters. Look it up with `Get(name)`.
 </ForProvider>
 
 **Example**
@@ -244,11 +250,10 @@ Set exactly one variant. Unsupported variants are rejected.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel requires an `image` source and a `name` (lowercase alphanumeric with
-  single hyphens, at most 49 characters). Client `region` is required. Default
-  ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
-  Ports 80, 443, and 8080 are reserved. Create `timeout` is how long create may
-  take.
+  Requires `name`, an `image` source, and client `region`. Ports 80, 443, and
+  8080 are reserved. Default port transport is HTTP; plain is TCP; TLS is TLS.
+  HTTP/2 over TLS is not supported. Set create `timeout` for how long create may
+  wait (1–50s frees the name on timeout).
 </ForProvider>
 
 ## RuntimeConfig
@@ -266,7 +271,7 @@ Set exactly one variant. Unsupported variants are rejected.
 | `pty`              | Request a PTY when supported                      |
 
 <ForProvider id="blaxel">
-  Blaxel does not support runtime fields on create.
+  Runtime fields are not supported on create.
 </ForProvider>
 
   </Tab>
@@ -282,7 +287,7 @@ Set exactly one variant. Unsupported variants are rejected.
 | `Pty`              | Request a PTY when supported                      |
 
 <ForProvider id="blaxel">
-  Blaxel does not support runtime fields on create.
+  Runtime fields are not supported on create.
 </ForProvider>
 
   </Tab>
@@ -302,7 +307,7 @@ Set exactly one variant. Unsupported variants are rejected.
 | `diskMib`        | Requested disk in MiB                          |
 
 <ForProvider id="blaxel">
-  Blaxel accepts `memoryMib` only. CPU and disk overrides are rejected; Blaxel derives CPU from memory.
+  Pass `memoryMib` only. CPU and disk overrides are not supported.
 </ForProvider>
 
   </Tab>
@@ -317,7 +322,7 @@ Set exactly one variant. Unsupported variants are rejected.
 | `DiskMib`        | Requested disk in MiB                          |
 
 <ForProvider id="blaxel">
-  Blaxel accepts `MemoryMib` only. CPU and disk overrides are rejected; Blaxel derives CPU from memory.
+  Pass `MemoryMib` only. CPU and disk overrides are not supported.
 </ForProvider>
 
   </Tab>
@@ -373,9 +378,8 @@ Set exactly one variant. Unsupported variants are rejected.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel supports `maximumLifetime` (≥5m when set) and `idleTerminate` (≥1m when
-  `PolicyMode.After`). `idleTerminate` with `PolicyMode.Disabled` is rejected.
-  Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
+  Use `maximumLifetime` (≥5m) and `idleTerminate` (≥1m with `PolicyMode.After`).
+  Disabling idle terminate is not supported.
 </ForProvider>
 
   </Tab>
@@ -403,9 +407,8 @@ Set exactly one variant. Unsupported variants are rejected.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel supports `MaximumLifetime` (≥5m when set) and `IdleTerminate` (≥1m when
-  `PolicyModeAfter`). `IdleTerminate` with `PolicyModeDisabled` is rejected.
-  Ephemeral, idle stop/pause, and stopped archive/delete are rejected.
+  Use `MaximumLifetime` (≥5m) and `IdleTerminate` (≥1m with `PolicyModeAfter`).
+  Disabling idle terminate is not supported.
 </ForProvider>
 
   </Tab>
@@ -455,8 +458,8 @@ Set exactly one variant. Unsupported variants are rejected.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Client `timeout` is how long create may take. `queueTimeout` is unsupported.
-  `waitFor` accepts only `Default` and `Scheduled`; Ready wait is not supported.
+  Set `timeout` for how long create may wait (1–50s frees the name on timeout).
+  `queueTimeout` is not supported. `waitFor` only `Default` or `Scheduled`.
 </ForProvider>
 
   </Tab>
@@ -480,8 +483,8 @@ Set exactly one variant. Unsupported variants are rejected.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Client `Timeout` is how long create may take. `QueueTimeout` is unsupported.
-  `WaitFor` accepts only `Default` and `Scheduled`; Ready wait is not supported.
+  Set `Timeout` for how long create may wait (1–50s frees the name on timeout).
+  `QueueTimeout` is not supported. `WaitFor` only `Default` or `Scheduled`.
 </ForProvider>
 
   </Tab>
@@ -499,9 +502,7 @@ Set either a TCP port or a command.
 | `tcpPort`      | Port `1`–`65535`               |
 | `command.argv` | Command argv that must succeed |
 
-<ForProvider id="blaxel">
-  Blaxel does not support readiness probes.
-</ForProvider>
+<ForProvider id="blaxel">Readiness probes are not supported.</ForProvider>
 
   </Tab>
   <Tab value="Go">
@@ -511,9 +512,7 @@ Set either a TCP port or a command.
 | `TcpPort`             | Port `1`–`65535`               |
 | `Command` with `Argv` | Command argv that must succeed |
 
-<ForProvider id="blaxel">
-  Blaxel does not support readiness probes.
-</ForProvider>
+<ForProvider id="blaxel">Readiness probes are not supported.</ForProvider>
 
   </Tab>
 </Tabs>
@@ -537,7 +536,8 @@ Set either a TCP port or a command.
 | `ports`            | Published ports (`port`, optional `transport`)              |
 
 <ForProvider id="blaxel">
-  Blaxel accepts ports (not 80, 443, or 8080) and outbound domains. Default transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is rejected.
+  Use ports (not 80, 443, or 8080) and outbound domains. Default transport is
+  HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not supported.
 </ForProvider>
 
   </Tab>
@@ -557,7 +557,8 @@ Set either a TCP port or a command.
 | `Ports`            | Published ports (`Port`, optional `Transport`)              |
 
 <ForProvider id="blaxel">
-  Blaxel accepts ports (not 80, 443, or 8080) and outbound domains. Default transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is rejected.
+  Use ports (not 80, 443, or 8080) and outbound domains. Default transport is
+  HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not supported.
 </ForProvider>
 
   </Tab>
@@ -575,7 +576,7 @@ Set either a TCP port or a command.
 | `secrets`          | Provider-managed secret references (`reference`, injection, env var name) |
 
 <ForProvider id="blaxel">
-  Blaxel does not support security fields on create.
+  Security fields are not supported on create.
 </ForProvider>
 
   </Tab>
@@ -588,7 +589,7 @@ Set either a TCP port or a command.
 | `Secrets`          | Provider-managed secret references (`Reference`, injection, env var name) |
 
 <ForProvider id="blaxel">
-  Blaxel does not support security fields on create.
+  Security fields are not supported on create.
 </ForProvider>
 
   </Tab>

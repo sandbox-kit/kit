@@ -51,9 +51,17 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
   };
 }
 
+export interface NativeCreateOptions {
+  /** Blaxel create timeout in whole seconds (1..50). */
+  readonly timeout?: number;
+}
+
 export interface NativeBlaxel {
   configure(config: NativeClientConfig): void;
-  create(params: SandboxCreateConfiguration): Promise<NativeSandboxHandle>;
+  create(
+    params: SandboxCreateConfiguration,
+    options?: NativeCreateOptions,
+  ): Promise<NativeSandboxHandle>;
   get(name: string): Promise<NativeSandboxHandle>;
   delete(name: string): Promise<BlaxelSandboxIdentity>;
 }
@@ -66,8 +74,15 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
     configure(next: NativeClientConfig): void {
       settings.setConfig(next);
     },
-    async create(params) {
-      return projectHandle(await SandboxInstance.create(params));
+    async create(params, options) {
+      return projectHandle(
+        await SandboxInstance.create(
+          params,
+          options?.timeout === undefined
+            ? undefined
+            : { timeout: options.timeout },
+        ),
+      );
     },
     async get(name) {
       return projectHandle(await SandboxInstance.get(name));

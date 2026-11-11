@@ -102,11 +102,13 @@ func TestAuthReportsTheMissingCredential(t *testing.T) {
 }
 
 func TestBlankWorkspaceRejected(t *testing.T) {
-	_, err := mapClientConfig(&sandbox.Config{
-		Scope: &sandbox.Scope{Workspace: sandbox.Value("")},
-	})
-	var detail *sandbox.Error
-	if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.ConfigFieldScopeWorkspace {
-		t.Fatalf("error = %v detail = %#v", err, detail)
+	for _, workspace := range []string{"", "   "} {
+		_, err := mapClientConfig(&sandbox.Config{
+			Scope: &sandbox.Scope{Workspace: sandbox.Value(workspace)},
+		})
+		var detail *sandbox.Error
+		if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.ConfigFieldScopeWorkspace {
+			t.Fatalf("workspace %q: error = %v detail = %#v", workspace, err, detail)
+		}
 	}
 }

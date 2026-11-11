@@ -124,11 +124,11 @@ Outcome of a finished command.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  You get both `stdout` and `stderr`. `argv` is one quoted shell command string.
-  Omit or zero timeout waits until the command ends (or you abort), with no
-  Blaxel time limit. A positive timeout must be whole seconds and caps how long
-  the command may run. Aborting stops waiting only; the remote command may keep
-  running. If the wait times out, you get a timeout error.
+You get `stdout` and `stderr`. `argv` becomes one shell command string.
+
+Omit or zero `timeout` to wait until the command ends. A positive timeout must
+be whole seconds and caps how long the command may run. Abort stops the wait
+only — the remote command may keep running.
 </ForProvider>
 
   </Tab>
@@ -153,11 +153,11 @@ Outcome of a finished command.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  You get both Stdout and Stderr. Argv is one quoted shell command string. Omit or
-  zero Timeout waits until the command ends (or you cancel), with no Blaxel time
-  limit. A positive Timeout must be whole seconds and caps how long the command
-  may run. Canceling stops waiting only; the remote command may keep running. If
-  the wait times out, you get a timeout error.
+You get Stdout and Stderr. Argv becomes one shell command string.
+
+Omit or zero Timeout to wait until the command ends. A positive Timeout must be
+whole seconds and caps how long the command may run. Cancel stops the wait
+only — the remote command may keep running.
 </ForProvider>
 
   </Tab>

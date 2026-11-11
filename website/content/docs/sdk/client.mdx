@@ -5,11 +5,10 @@ description: Construct a client; create, get or attach, and close.
 
 Creates sandboxes and reopens them.
 
-<ForProvider id="daytona">
-  Reopen with [`get`](#get) by sandbox id.
-</ForProvider>
+<ForProvider id="daytona">Reopen with [`get`](#get) by sandbox id.</ForProvider>
 <ForProvider id="modal">
-  Reopen with [`attach`](#attach) by sandbox id. Attach does not check that the sandbox exists.
+  Reopen with [`attach`](#attach) by sandbox id. Attach does not check that the
+  sandbox exists.
 </ForProvider>
 <ForProvider id="blaxel">
   Reopen with [`get`](#get) by create name. Blaxel id is the name.
@@ -125,7 +124,7 @@ Creates one sandbox and returns its handle.
   Pass an `image` source. Empty options are rejected.
 </ForProvider>
 <ForProvider id="blaxel">
-  Pass a Blaxel-valid `name`, an `image` source, and client `region`. Empty options are rejected.
+  Pass a Blaxel-valid `name`, an `image` source, and client `region`.
 </ForProvider>
 
 **Parameters**
@@ -196,7 +195,7 @@ Creates one sandbox and returns its handle.
   Pass an image source. A nil request is rejected.
 </ForProvider>
 <ForProvider id="blaxel">
-  Pass a Blaxel-valid `Name`, an image source, and client `Region`. A nil request is rejected.
+  Pass a Blaxel-valid `Name`, an image source, and client `Region`.
 </ForProvider>
 
 **Parameters**
@@ -326,7 +325,7 @@ fmt.Println(instance.Info())
 
 ### get
 
-Looks up a sandbox by **name**. On Blaxel, the id is the create name.
+Looks up a sandbox by **name**. The id is the create name.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

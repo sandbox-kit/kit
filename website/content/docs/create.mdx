@@ -272,16 +272,16 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 |           | Blaxel                                                                                            |
 | --------- | ------------------------------------------------------------------------------------------------- |
 | Source    | Registry image and Blaxel-valid `name` required (lowercase alphanumeric with single hyphens, ≤49) |
-| CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides                                          |
-| Memory    | `memoryMib` / `memory_mib` (Blaxel documents MB; Kit does not convert)                             |
+| CPU       | Derived from memory; CPU overrides are not supported                                              |
+| Memory    | `memoryMib` / `memory_mib` (Blaxel treats the value as MB)                                        |
 | Disk      | Cannot be set                                                                                     |
-| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                   |
-| Placement | Client `region` required. A placement block on this request is rejected                           |
-| Ports     | Default → Blaxel HTTP; plain → TCP; TLS → TLS; Http2Tls rejected; 80/443/8080 reserved            |
-| Wait      | `waitFor` only `Default` / `Scheduled`; `Ready` rejected                                          |
-| Runtime   | Unsupported                                                                                       |
+| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); idle disable not supported                       |
+| Placement | Client `region` required; placement on the request is not supported                               |
+| Ports     | Default → HTTP; plain → TCP; TLS → TLS; Http2Tls not supported; 80/443/8080 reserved              |
+| Wait      | `waitFor` only `Default` / `Scheduled`; create `timeout` 1–50s frees the name on timeout          |
+| Runtime   | Not supported                                                                                     |
 
-Kit has no portable volume fields.
+Volumes are not available on create.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -610,15 +610,13 @@ See [Examples](/docs/examples).
 
 <ForProvider id="blaxel">
 
-Create needs a Blaxel-valid `name` (lowercase alphanumeric with single hyphens,
-at most 49 characters), an image, and client `region`. The returned id is that
-name. Pass memory as `memoryMib` / `memory_mib`; CPU, disk, placement,
-readiness, runtime, and volumes are rejected. Ports 80, 443, and 8080 are
-reserved. Default ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
-not supported. Max-age TTL ≥5m; idle terminate ≥1m; you cannot disable idle
-terminate. `waitFor` only `Default` / `Scheduled`; Ready wait is not
-supported. Your client/create `timeout` is how long create may take. See
-[Examples](/docs/examples).
+Create needs a Blaxel-valid `name`, an image, and client `region`. The returned
+id is that name.
+
+Set create `timeout` for how long create may wait. With 1–50 seconds, a
+timed-out create frees the name so you can retry.
+
+See [Examples](/docs/examples).
 
 </ForProvider>
 

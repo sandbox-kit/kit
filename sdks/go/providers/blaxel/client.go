@@ -1,6 +1,8 @@
 package blaxel
 
 import (
+	"strings"
+
 	"github.com/blaxel-ai/sdk-go/option"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
@@ -61,7 +63,7 @@ func (s *clientSettings) applyScope() error {
 		return nil
 	}
 	workspace := scope.GetWorkspace()
-	if workspace == "" {
+	if strings.TrimSpace(workspace) == "" {
 		return invalidClientField(sandbox.ConfigFieldScopeWorkspace, "workspace requires a non-blank value")
 	}
 	s.opts = append(s.opts, option.WithWorkspace(workspace))

@@ -155,17 +155,16 @@ fmt.Println(result)
 
 <ForProvider id="blaxel">
 
-| You pass               | What happens                                                      |
-| ---------------------- | ----------------------------------------------------------------- |
-| `argv`                 | Sent as one quoted shell command string                               |
-| `shell`                | Run as-is                                                         |
-| omit / zero timeout    | Wait until the command ends (or you cancel); no Blaxel time limit |
-| positive timeout       | Cap how long the command may run (whole seconds only)             |
-| fractional (`1500` ms) | Rejected                                                          |
+| You pass               | What happens                                          |
+| ---------------------- | ----------------------------------------------------- |
+| `argv`                 | Sent as one shell command string                      |
+| `shell`                | Run as-is                                             |
+| omit / zero timeout    | Wait until the command ends                           |
+| positive timeout       | Cap how long the command may run (whole seconds only) |
+| fractional (`1500` ms) | Not supported                                         |
 
-You get both `stdout` and `stderr`. `run` waits until the command ends.
-Canceling stops waiting only — the remote command may keep running. If the wait
-times out, you get a timeout error.
+You get `stdout` and `stderr`. `run` waits until the command ends. Abort stops
+the wait only — the remote command may keep running.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

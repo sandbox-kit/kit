@@ -24,6 +24,7 @@ import type {
   StatOptions,
 } from "@sandbox-kit/sandbox";
 import {
+  blaxelCreateTimeoutSeconds,
   mapClientConfig,
   mapCreateRequest,
   mapSandboxInfo,
@@ -95,7 +96,13 @@ class BlaxelBackend extends BackendBase implements Backend {
       throwIfAborted(options.signal);
       const plan = mapCreateRequest(request, this.config);
       throwIfAborted(options.signal);
-      const sandbox = await this.native.create(plan.params);
+      const timeoutSeconds = blaxelCreateTimeoutSeconds(
+        request.provisioning?.timeout,
+      );
+      const sandbox = await this.native.create(
+        plan.params,
+        timeoutSeconds === undefined ? undefined : { timeout: timeoutSeconds },
+      );
       return { sandbox: mapSandboxInfo(sandbox, request) };
     } catch (error) {
       throw mapBlaxelError(error, "create");
@@ -338,7 +345,6 @@ class BlaxelBackend extends BackendBase implements Backend {
             state: SandboxState.Deleted,
             terminal: true,
             providerState: "TERMINATED",
-            labels: {},
           };
         }
         throw mapped;

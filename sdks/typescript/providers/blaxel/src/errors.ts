@@ -16,10 +16,22 @@ import {
 } from "@blaxel/core";
 import {
   ErrorKind,
+  FileFieldPath,
   SandboxError,
   sandboxError,
   type ErrorInfo,
 } from "@sandbox-kit/sandbox";
+
+const FILESYSTEM_OPERATIONS = new Set([
+  "read_file",
+  "write_file",
+  "copy_from_local",
+  "copy_to_local",
+  "make_directory",
+  "list_directory",
+  "stat",
+  "remove",
+]);
 
 /** Inputs for translating a native/provider failure into {@link SandboxError}. */
 interface MappedErrorInput {
@@ -199,12 +211,16 @@ function stringifyCode(code: unknown): string | undefined {
 
 function create(input: MappedErrorInput): SandboxError {
   const { kind, error, operation, statusCode, providerCode } = input;
+  const field =
+    kind === ErrorKind.NotFound && FILESYSTEM_OPERATIONS.has(operation)
+      ? FileFieldPath
+      : "";
   return sandboxError(
     {
       kind,
       provider: "blaxel",
       operation,
-      field: "",
+      field,
       message:
         error instanceof Error
           ? error.message

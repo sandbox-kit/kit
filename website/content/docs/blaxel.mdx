@@ -27,9 +27,9 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 
 ## Create
 
-Set `BL_API_KEY` and `BL_WORKSPACE`. Create requires a Blaxel-valid name
-(lowercase alphanumeric with single hyphens, at most 49 characters) and an
-image. Set `region` on the client (default examples use `us-pdx-1`).
+Set `BL_API_KEY` and `BL_WORKSPACE`. Create needs a Blaxel-valid `name`
+(lowercase alphanumeric with single hyphens, ≤49 characters), an image, and
+client `region`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -53,7 +53,9 @@ const sandbox = await client.create({
 console.log(sandbox.id); // same as create name; use with get / BL_SANDBOX_NAME
 ```
 
-`timeout` is milliseconds. Prefer `await using`; otherwise call `await client.close()` when finished. Use one Blaxel client (or one API key) per process — a second client with different credentials replaces the first.
+`timeout` is milliseconds. Prefer `await using`; otherwise call
+`await client.close()` when finished. Use one Blaxel client (or one API key)
+per process.
 
   </Tab>
   <Tab value="Go">
@@ -106,8 +108,8 @@ Optional strings use `sandbox.Value`.
 </Tabs>
 
 Omit `auth` and `scope.workspace` to use `BL_API_KEY` and `BL_WORKSPACE` from
-the environment. `region` is still required for create. `endpoint` is rejected.
-Closing the client does not delete the sandbox.
+the environment. `region` is still required for create. `endpoint` is not
+supported. Closing the client does not delete the sandbox.
 
 ## Configuration
 
@@ -159,8 +161,8 @@ client, err := sandbox.NewClient(blaxel.New(), config)
   </Tab>
 </Tabs>
 
-Token-pair, bearer, and OAuth are rejected. Only workspace scope is accepted.
-In TypeScript, use one Blaxel client (or one API key) per process. Full rules:
+Only API key auth and workspace scope are supported. In TypeScript, use one
+Blaxel client (or one API key) per process. Full rules:
 [Configuration](/docs/configuration).
 
 ## What works
@@ -177,12 +179,14 @@ In TypeScript, use one Blaxel client (or one API key) per process. Full rules:
 | Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
 | Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
 
-Set `memoryMib` / `memory_mib` for memory size. Blaxel documents that value as
-MB; Kit does not convert units. CPU follows memory — CPU and disk overrides are
-rejected. Omit memory to use Blaxel's default. Default ports are HTTP; plain is
-TCP; TLS is TLS; HTTP/2 over TLS is not supported. Your client/create `timeout`
-is how long create may take. Ready wait and readiness probes are not supported.
-You cannot disable idle terminate.
+Pass `memoryMib` / `memory_mib` for memory (Blaxel treats it as MB). Omit it for
+Blaxel’s default. CPU and disk overrides are not supported.
+
+Default ports are HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not
+supported. Ready wait and idle disable are not supported.
+
+Set client or create `timeout` for how long create may wait. With a 1–50s
+timeout, a timed-out create frees the name.
 
 ## Related
 

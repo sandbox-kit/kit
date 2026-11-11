@@ -665,9 +665,8 @@ type DeleteCallOptions = OperationOptions & { wait?: boolean };
 </ForProvider>
 
 <ForProvider id="blaxel">
-  On Blaxel, omit `wait` to return when delete is accepted. Pass `wait: true` to
-  wait until removal finishes. On success, `state` is `deleted` and `terminal`
-  is true.
+  Omit `wait` to return when delete is accepted. Pass `wait: true` to wait until
+  removal finishes. On success, `state` is `deleted` and `terminal` is true.
 </ForProvider>
 
   </Tab>
@@ -690,9 +689,9 @@ Use `sandbox.Duration` for timeouts. `StopOptions` adds `Force`. `TerminateOptio
 </ForProvider>
 
 <ForProvider id="blaxel">
-  On Blaxel, omit `Wait` to return when delete is accepted. Pass `Wait: true` to
-  wait until removal finishes. On success, `State` is `Deleted` and `Terminal`
-  is true. Read it with `Info()`.
+  Omit `Wait` to return when delete is accepted. Pass `Wait: true` to wait until
+  removal finishes. On success, `State` is `Deleted` and `Terminal` is true —
+  read it with `Info()`.
 </ForProvider>
 
   </Tab>

@@ -44,6 +44,10 @@ checks:
   - { path: observability, unsupported: true }
   - { path: provisioning.queue_timeout, unsupported: true }
   - {
+      path: provisioning.timeout,
+      notes: "Kit create deadline; when whole seconds 1..50 also X-Blaxel-Creation-Timeout / SandboxInstance.create timeout so Blaxel frees the name",
+    }
+  - {
       path: provisioning.wait_for,
       allowed: [default, scheduled],
       notes: "Ready/Started/Submitted rejected; enforced in create mapping",

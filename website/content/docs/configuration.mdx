@@ -339,13 +339,13 @@ client, err := sandbox.NewClient(modal.New(), config)
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Setting        | What to pass                             |
-| -------------- | ---------------------------------------- |
-| API key        | `auth.apiKey.key`                        |
+| Setting        | What to pass                                            |
+| -------------- | ------------------------------------------------------- |
+| API key        | `auth.apiKey.key`                                       |
 | Omitted `auth` | Uses `BL_API_KEY` / `BL_WORKSPACE` from the environment |
-| Workspace      | `scope.workspace`                        |
-| Region         | `region` — required for create           |
-| Endpoint       | Unsupported                              |
+| Workspace      | `scope.workspace`                                       |
+| Region         | `region` — required for create                          |
+| Endpoint       | Unsupported                                             |
 
 In TypeScript, use one Blaxel client (or one API key) per process. A second
 client with different credentials replaces the first.
@@ -387,7 +387,7 @@ client, err := sandbox.NewClient(blaxel.New(), config)
   </Tab>
 </Tabs>
 
-Token-pair, bearer, and OAuth modes are rejected. Scope fields other than workspace are rejected.
+Only API key auth and workspace scope are supported.
 
 </ForProvider>
 
@@ -531,9 +531,8 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Your client/create `timeout` is how long create may take. Ready wait and
-  readiness probes are unsupported. In TypeScript, use one Blaxel client (or one
-  API key) per process.
+  Set client or create `timeout` for how long create may wait. Ready wait is not
+  supported. In TypeScript, use one Blaxel client (or one API key) per process.
 </ForProvider>
 
 ## Credentials

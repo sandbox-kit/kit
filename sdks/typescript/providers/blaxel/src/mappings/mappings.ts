@@ -255,7 +255,8 @@ function mapObservability(r: CreateOptions): void {
 }
 
 // Kit Client.create applies provisioning.timeout as the abort deadline.
-// This provider does not forward a native create timeout — use the Kit deadline.
+// When that deadline is a whole number of seconds in 1..50, create also
+// forwards Blaxel's native create timeout (name freed on CREATION_TIMEOUT).
 function mapProvisioning(r: CreateOptions): void {
   const v = r.provisioning;
   if (!v) return;
@@ -274,6 +275,21 @@ function mapProvisioning(r: CreateOptions): void {
   );
 }
 
+/**
+ * Blaxel `SandboxInstance.create` timeout is whole seconds 1..50.
+ * Outside that range Kit keeps the abort deadline only.
+ */
+export function blaxelCreateTimeoutSeconds(
+  timeoutMs: number | undefined,
+): number | undefined {
+  if (timeoutMs === undefined || timeoutMs === 0) return undefined;
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs % 1_000 !== 0)
+    return undefined;
+  const seconds = timeoutMs / 1_000;
+  if (seconds < 1 || seconds > 50) return undefined;
+  return seconds;
+}
+
 export function mapSandboxInfo(
   value: BlaxelSandboxIdentity,
   request?: CreateOptions,
@@ -284,11 +300,11 @@ export function mapSandboxInfo(
     id,
     provider: "blaxel",
     state: mapped.state ?? SandboxState.Unknown,
-    labels: mapped.labels ?? {},
   };
   if (mapped.name !== undefined) mutable(result).name = mapped.name;
   else if (request?.name !== undefined) mutable(result).name = request.name;
-  if (request?.labels !== undefined && mapped.labels === undefined)
+  if (mapped.labels !== undefined) mutable(result).labels = mapped.labels;
+  else if (request?.labels !== undefined)
     mutable(result).labels = { ...request.labels };
   if (mapped.region !== undefined) mutable(result).region = mapped.region;
   if (mapped.providerState !== undefined)

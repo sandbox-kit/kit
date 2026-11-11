@@ -48,9 +48,9 @@ await using client = new Client({
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Your client/create `timeout` is how long create may take. `region` is required
-  for create. `endpoint` is unsupported. Use one Blaxel client (or one API key)
-  per process.
+  Set client or create `timeout` for how long create may wait. `region` is
+  required for create. `endpoint` is not supported. Use one Blaxel client (or
+  one API key) per process.
 </ForProvider>
 
   </Tab>
@@ -94,8 +94,8 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Your client/create `Timeout` is how long create may take. `Region` is required
-  for create. `Endpoint` is unsupported.
+  Set client or create `Timeout` for how long create may wait. `Region` is
+  required for create. `Endpoint` is not supported.
 </ForProvider>
 
   </Tab>

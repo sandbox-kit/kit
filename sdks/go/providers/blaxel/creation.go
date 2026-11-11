@@ -262,7 +262,9 @@ func (c *creation) provisioning() error {
 		return nil
 	}
 	config := cloneMessage(c.request.Provisioning)
-	// Client.Create already applies Timeout as the context deadline.
+	// Client.Create applies Timeout as the context deadline. When that value
+	// is a whole number of seconds in 1..50, create also sends
+	// X-Blaxel-Creation-Timeout so Blaxel frees the name on CREATION_TIMEOUT.
 	config.Timeout = nil
 	if config.QueueTimeout != nil {
 		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldProvisioningQueueTimeout, "Blaxel queue timeout is unsupported")

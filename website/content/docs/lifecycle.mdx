@@ -127,7 +127,10 @@ if err != nil {
 
 <ForProvider id="blaxel">
 
-`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available. After `delete` succeeds you see `deleted` / `terminal: true`. Omit `wait` to return when Blaxel accepts the delete; recreating the same name too soon may return `Conflict`. Pass `wait: true` to wait until removal finishes. An idle sandbox shows as paused; an active one shows as running.
+`get` loads a sandbox that already exists by **name** (the id is the create
+name). `refresh` loads it again. `attach` is not available.
+
+Idle sandboxes show as paused; active ones as running.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -268,7 +271,9 @@ if err := instance.Delete(ctx, &sandbox.DeleteOptions{
 
 ## Delete
 
-`delete` removes a Blaxel sandbox. On success, `state` is `deleted` and `terminal` is true. Omit `wait` to return when Blaxel accepts the delete; recreating the same name too soon may return `Conflict`. Pass `wait: true` to wait until removal finishes.
+`delete` removes a Blaxel sandbox. On success, `state` is `deleted` and
+`terminal` is true. Omit `wait` to return when delete is accepted. Pass
+`wait: true` to wait until removal finishes before recreate.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -392,9 +397,8 @@ defer client.Close(context.Background())
 `Sandbox.Close` does not stop or delete the sandbox. Later calls on that handle still reach the provider.
 
 <ForProvider id="blaxel">
-  On Blaxel, handle `close` releases local state only and does not contact
-  Blaxel. The sandbox keeps running until you `delete` it or a lifetime policy
-  ends it.
+  Handle `close` does not delete the sandbox. It keeps running until you
+  `delete` it or a lifetime policy ends it.
 </ForProvider>
 
   </Tab>
@@ -416,10 +420,8 @@ mean the cloud already changed state. See [Errors](/docs/errors).
 </ForProvider>
 
 <ForProvider id="blaxel">
-  After a successful `delete`, `info.state` is `deleted` and `terminal` is true.
-  Use `wait: true` when you need removal to finish before recreate. Use
-  `refresh` or `get` when a call failed or you need fresh metadata while the
-  sandbox still exists.
+  After `delete`, use `wait: true` when you need removal to finish before
+  recreate. Use `refresh` or `get` for fresh metadata while the sandbox exists.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

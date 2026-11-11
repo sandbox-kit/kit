@@ -108,6 +108,35 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 	}
 }
 
+func TestBlaxelCreateTimeoutSeconds(t *testing.T) {
+	for _, tc := range []struct {
+		timeout *time.Duration
+		want    int
+	}{
+		{nil, 0},
+		{durationPtr(0), 0},
+		{durationPtr(30 * time.Second), 30},
+		{durationPtr(time.Second), 1},
+		{durationPtr(50 * time.Second), 50},
+		{durationPtr(1500 * time.Millisecond), 0},
+		{durationPtr(120 * time.Second), 0},
+	} {
+		request := &sandbox.CreateOptions{}
+		if tc.timeout != nil {
+			request.Provisioning = &sandbox.ProvisioningOptions{
+				Timeout: sandbox.Duration(*tc.timeout),
+			}
+		}
+		if got := blaxelCreateTimeoutSeconds(request); got != tc.want {
+			t.Fatalf("timeout %#v: got %d want %d", tc.timeout, got, tc.want)
+		}
+	}
+}
+
+func durationPtr(value time.Duration) *time.Duration {
+	return &value
+}
+
 func TestFormatBlaxelDuration(t *testing.T) {
 	for _, tc := range []struct {
 		in      time.Duration

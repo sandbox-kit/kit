@@ -117,7 +117,7 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-Timeouts are milliseconds. File calls use the abort signal / Kit deadline. `1500` ms ends at 1.5s.
+Timeouts are milliseconds. `1500` ends the call at 1.5s.
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 1_500 });
@@ -247,8 +247,8 @@ err := instance.Filesystem().CopyToLocal(ctx, "/tmp/note.txt", "note.txt", nil)
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel creates missing parents when `parents` is omitted or true, and rejects
-  `parents: false` before the call (field `parents`).
+  Missing parents are created when `parents` is omitted or true. `parents:
+  false` is not supported.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
@@ -348,7 +348,7 @@ fmt.Println(entries)
 
 <ForProvider id="blaxel">
   Directories return type directory. Files return type file, with size and
-  permission fields when Blaxel provides them.
+  permissions when available.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

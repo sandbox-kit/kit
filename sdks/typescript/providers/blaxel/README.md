@@ -65,10 +65,11 @@ memory, Blaxel applies its default. CPU and disk overrides are rejected —
 Blaxel derives CPU from memory. Set `memoryMib` for memory size; Blaxel
 documents that value as MB and Kit does not convert units.
 
-Your client/create `timeout` is how long create may take. Ready wait is not
-supported (`waitFor` only Default or Scheduled). Ports 80, 443, and 8080 are
-reserved. Default port transport is HTTP; plain is TCP; TLS is TLS; HTTP/2
-over TLS is not supported. Volumes are not part of create.
+Set client or create `timeout` for how long create may wait. With a 1–50s
+timeout, a timed-out create frees the name. Ready wait is not supported
+(`waitFor` only Default or Scheduled). Ports 80, 443, and 8080 are reserved.
+Default port transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
+not supported. Volumes are not part of create.
 
 If the name already exists, you get `AlreadyExists`.
 
