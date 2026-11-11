@@ -64,8 +64,9 @@ rejected. `Scope` fields other than `Workspace` are rejected.
 
 ### Create
 
-You need a name and an image. Names are lowercase alphanumeric with single
-hyphens (max 49 characters). You can also set labels, environment variables,
+You need a name and an image. Name is required (blank or whitespace-only is
+rejected). Names are lowercase alphanumeric with single hyphens (max 49
+characters). You can also set labels, environment variables,
 memory, ports, outbound domains, maximum lifetime (≥5 minutes), and idle
 terminate (≥1 minute). You cannot disable idle terminate. Runtime and
 isolation are not supported. `Info().Labels` is set only when Blaxel reports
@@ -104,8 +105,9 @@ remove. Paths must be absolute. `Parents` defaults to true; Blaxel does not
 support `Parents: false`.
 
 `Stat` returns `Type` (file or directory), `Size`, and usually `Permissions`,
-`Owner`, `Group`, and `ModifiedAt`. Missing local files for `CopyFromLocal`
-return not found with field `local_path`.
+`Owner`, `Group`, and `ModifiedAt`. `Name` and `Path` are whatever Blaxel
+reports. Missing local files for `CopyFromLocal` return not found with field
+`local_path`.
 
 ### Process
 

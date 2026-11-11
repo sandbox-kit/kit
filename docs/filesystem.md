@@ -226,9 +226,9 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 `Stat` returns one path. A symlink result describes the symlink.
 
 On Blaxel, you get `type` (file or directory), `size`, and usually
-`permissions`, `owner`, `group`, and `modifiedAt`. Modal can report a
-symlink. Daytona reports a file or a directory. `mode` is an octal string
-when present, such as `0644`.
+`permissions`, `owner`, `group`, and `modifiedAt`. `name` and `path` are
+whatever Blaxel reports. Modal can report a symlink. Daytona reports a file
+or a directory. `mode` is an octal string when present, such as `0644`.
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");

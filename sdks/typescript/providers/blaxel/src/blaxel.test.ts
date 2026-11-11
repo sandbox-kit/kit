@@ -1310,6 +1310,25 @@ describe("Blaxel filesystem.stat", () => {
     });
   });
 
+  it("does not invent directory name or path when Blaxel omits them", async () => {
+    const backend = fsBackend({
+      async get() {
+        return {
+          name: "",
+          path: "",
+          files: [],
+          subdirectories: [],
+        };
+      },
+    });
+    await expect(backend.stat!("sandbox-1", "/app", {}, {})).resolves.toEqual({
+      name: "",
+      path: "",
+      type: FileType.Directory,
+      size: 0n,
+    });
+  });
+
   it("returns file metadata including size from get", async () => {
     const backend = fsBackend({
       async get(path) {

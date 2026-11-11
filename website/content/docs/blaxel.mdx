@@ -28,8 +28,8 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ## Create
 
 Set `BL_API_KEY` and `BL_WORKSPACE`. Create needs a Blaxel-valid `name`
-(lowercase alphanumeric with single hyphens, ≤49 characters), an image, and
-client `region`.
+(required; blank or whitespace-only is rejected; lowercase alphanumeric with
+single hyphens, ≤49 characters), an image, and client `region`.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

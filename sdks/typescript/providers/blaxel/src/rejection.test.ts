@@ -128,6 +128,24 @@ describe("rejected Blaxel create settings", () => {
     );
   });
 
+  it("whitespace name", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "   ",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+        },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldName,
+        message: expect.stringContaining("name is required"),
+      }),
+    );
+  });
+
   it("invalid name", () => {
     expect(() =>
       mapCreateRequest(

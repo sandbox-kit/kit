@@ -59,8 +59,9 @@ Durations on this type are **milliseconds**. Allowlists under `network` are plai
 </ForProvider>
 
 <ForProvider id="blaxel">
-  `name` is required and is the sandbox id. Use lowercase letters, digits, and
-  single hyphens, at most 49 characters. Look it up with `get(name)`.
+  `name` is required (blank or whitespace-only is rejected) and is the sandbox
+  id. Use lowercase letters, digits, and single hyphens, at most 49 characters.
+  Look it up with `get(name)`.
 </ForProvider>
 
 **Example**
@@ -152,8 +153,9 @@ Durations use `sandbox.Duration`. Optional numbers use `sandbox.Value`.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  `Name` is required and is the sandbox id. Use lowercase letters, digits, and
-  single hyphens, at most 49 characters. Look it up with `Get(name)`.
+  `Name` is required (blank or whitespace-only is rejected) and is the sandbox
+  id. Use lowercase letters, digits, and single hyphens, at most 49 characters.
+  Look it up with `Get(name)`.
 </ForProvider>
 
 **Example**

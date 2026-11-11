@@ -57,8 +57,9 @@ client with different credentials replaces the first.
 
 ### Create
 
-You need a valid `name` (lowercase alphanumeric with single hyphens, max 49
-characters), an image, and `region`. You can also set `memoryMib`, labels,
+You need a valid `name` (required; blank or whitespace-only is rejected;
+lowercase alphanumeric with single hyphens, max 49 characters), an image, and
+`region`. You can also set `memoryMib`, labels,
 environment variables, ports, outbound domains, max-age TTL (≥5 minutes), and
 idle-delete (≥1 minute). You cannot disable idle terminate. Runtime and
 isolation are not supported. `info().labels` is set only when Blaxel reports
@@ -97,8 +98,9 @@ must be absolute. `parents` defaults to true; Blaxel does not support
 `parents: false`.
 
 `stat` returns `type` (file or directory), `size`, and usually `permissions`,
-`owner`, `group`, and `modifiedAt`. Missing local files for `copyFromLocal`
-return not found with field `local_path`.
+`owner`, `group`, and `modifiedAt`. `name` and `path` are whatever Blaxel
+reports. Missing local files for `copyFromLocal` return not found with field
+`local_path`.
 
 ### Process
 

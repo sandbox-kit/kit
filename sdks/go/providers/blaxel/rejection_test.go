@@ -2,12 +2,27 @@ package blaxel
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
 	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
+
+func TestWhitespaceNameIsRequired(t *testing.T) {
+	_, err := planCreate(imaged(&sandbox.CreateOptions{Name: sandbox.Value("   ")}), "us-pdx-1")
+	var detail *sandbox.Error
+	if !errors.As(err, &detail) {
+		t.Fatalf("error = %v", err)
+	}
+	if detail.Kind != sandbox.ErrorKindInvalidArgument || detail.Field != sandbox.CreateFieldName {
+		t.Fatalf("detail = %#v", detail)
+	}
+	if !strings.Contains(detail.Message, "name is required") {
+		t.Fatalf("message = %q", detail.Message)
+	}
+}
 
 func TestRejectedCreateSettings(t *testing.T) {
 	for _, tc := range []struct {
@@ -21,6 +36,14 @@ func TestRejectedCreateSettings(t *testing.T) {
 			request: imaged(&sandbox.CreateOptions{}),
 			kind:    sandbox.ErrorKindInvalidArgument,
 			field:   sandbox.CreateFieldName,
+		},
+		{
+			name: "whitespace name",
+			request: imaged(&sandbox.CreateOptions{
+				Name: sandbox.Value("   "),
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldName,
 		},
 		{
 			name: "invalid name",

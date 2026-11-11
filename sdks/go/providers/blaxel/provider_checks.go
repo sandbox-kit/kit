@@ -24,7 +24,7 @@ func validateProviderCreate(request *sandbox.CreateOptions) error {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name is required")
 	}
 	name := request.GetName()
-	if name == "" {
+	if strings.TrimSpace(name) == "" {
 		return providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldName, "name is required")
 	}
 	if len(name) > providerSandboxNameMaxLen || !providerSandboxNamePattern.MatchString(name) {

@@ -1,6 +1,11 @@
-import { basename } from "node:path";
 import type { Directory, File as BlaxelFile } from "@blaxel/core";
-import { FileType, type FileInfo } from "@sandbox-kit/sandbox";
+import {
+  ErrorKind,
+  FileFieldPath,
+  FileType,
+  type FileInfo,
+} from "@sandbox-kit/sandbox";
+import { providerError } from "./errors.js";
 import type { NativeSandboxHandle } from "./native.js";
 
 type BlaxelSubdirectory = Directory["subdirectories"][number];
@@ -30,7 +35,8 @@ export function directoryInfo(info: BlaxelSubdirectory): FileInfo {
 
 /**
  * Stat one path. Uses the same filesystem GET as Go: a directory listing or
- * file metadata (size, permissions when Blaxel supplies them).
+ * file metadata (size, permissions when Blaxel supplies them). Does not invent
+ * name or path when Blaxel omits them.
  */
 export async function blaxelStat(
   fs: NativeSandboxHandle["fs"],
@@ -39,15 +45,26 @@ export async function blaxelStat(
   const data = await fs.get(path);
   if (isDirectoryListing(data)) {
     return {
-      name: data.name || basename(path) || "/",
-      path: data.path || path,
+      name: data.name ?? "",
+      path: data.path ?? "",
       type: FileType.Directory,
       size: 0n,
     };
   }
+  const name = data.name ?? "";
+  const filePath = data.path ?? "";
+  // Match Go blaxelFileInfo: empty name and path is not usable file metadata.
+  if (!name && !filePath) {
+    providerError({
+      kind: ErrorKind.InvalidResponse,
+      operation: "stat",
+      field: FileFieldPath,
+      message: "SDK returned no file metadata",
+    });
+  }
   return fileInfo({
-    name: data.name || basename(path) || path,
-    path: data.path || path,
+    name,
+    path: filePath,
     size: data.size,
     permissions: data.permissions ?? "",
     owner: data.owner ?? "",
