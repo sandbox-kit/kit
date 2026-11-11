@@ -95,7 +95,6 @@ const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
   RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
   WORKSPACE_RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
   SANDBOX_DELETION_IN_PROGRESS: ErrorKind.Conflict,
-  LOCKDOWN_ERROR: ErrorKind.FailedPrecondition,
   WORKLOAD_UNAVAILABLE: ErrorKind.Unavailable,
   ROUTING_UNAVAILABLE: ErrorKind.Unavailable,
   SERVICE_UNAVAILABLE: ErrorKind.Unavailable,
@@ -118,6 +117,7 @@ const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
   PROXY_CONFIG_ERROR: ErrorKind.Internal,
   CALLBACK_SEND_FAILED: ErrorKind.Internal,
   FORK_FAILED: ErrorKind.Internal,
+  LOCKDOWN_ERROR: ErrorKind.Internal,
   UNKNOWN_ERROR: ErrorKind.Internal,
 };
 

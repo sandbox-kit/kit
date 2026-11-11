@@ -25,7 +25,14 @@ checks:
       unsupported: true,
       notes: "working_directory, user, language, version, entrypoint, and PTY; enforced in create mapping",
     }
-  - { path: isolation, unsupported: true }
+  - {
+      path: isolation,
+      notes: "Default-only / empty is a no-op; non-default kind, providerKind, and nestedVirtualization rejected in create mapping",
+    }
+  - {
+      path: lifetime.maximum_lifetime,
+      notes: "whole seconds ≥5m (Blaxel ttl-max-age floor); enforced in create mapping",
+    }
   - {
       path: lifetime.idle_terminate,
       notes: "PolicyModeDisabled rejected; After maps to ttl-idle ≥60s; enforced in create mapping",
@@ -240,7 +247,12 @@ groups:
           name: SandboxCreateConfiguration
           fields: { ttl: ttl }
     fields:
-      - { from: maximum_lifetime, to: ttl, transform: duration_blaxel }
+      - {
+          from: maximum_lifetime,
+          to: ttl,
+          transform: duration_blaxel,
+          notes: "whole seconds ≥5m",
+        }
   - name: mapIdleDuration
     error_path: lifetime.idle_terminate
     direction: request

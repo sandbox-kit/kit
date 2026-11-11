@@ -151,7 +151,7 @@ func TestMapProviderErrorCreatePlaneCodes(t *testing.T) {
 		{"REGION_MISMATCH", sandbox.ErrorKindInvalidArgument},
 		{"UPLOAD_NOT_SUPPORTED", sandbox.ErrorKindUnsupported},
 		{"UPLOAD_UNAVAILABLE", sandbox.ErrorKindUnavailable},
-		{"LOCKDOWN_ERROR", sandbox.ErrorKindFailedPrecondition},
+		{"LOCKDOWN_ERROR", sandbox.ErrorKindInternal},
 	} {
 		mapped := mapProviderError(&sdkblaxel.Error{
 			StatusCode: http.StatusBadRequest,

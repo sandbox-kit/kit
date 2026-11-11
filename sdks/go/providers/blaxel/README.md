@@ -73,8 +73,8 @@ labels. Ports 80, 443, and 8080 are reserved. Default port transport is HTTP;
 plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
 
 Set client or create timeout for how long create may wait. With a 1–50s
-timeout, a timed-out create frees the name. Ready wait and readiness probes
-are not supported (`WaitFor` only Default or Scheduled).
+timeout, a timed-out create frees the name. Ready/Started/Submitted wait and
+readiness probes are not supported (`WaitFor` only Default or Scheduled).
 
 Set `Resources.MemoryMib` for memory size. Blaxel documents that value as MB;
 Kit does not convert units. CPU follows memory on Blaxel — do not set CPU or

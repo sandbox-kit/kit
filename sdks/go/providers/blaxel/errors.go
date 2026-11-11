@@ -64,7 +64,6 @@ var providerCodeKinds = map[string]sandbox.ErrorKind{
 	"WORKSPACE_RATE_LIMIT_EXCEEDED": sandbox.ErrorKindRateLimited,
 
 	"SANDBOX_DELETION_IN_PROGRESS": sandbox.ErrorKindConflict,
-	"LOCKDOWN_ERROR":               sandbox.ErrorKindFailedPrecondition,
 
 	sdkblaxel.ErrWorkloadUnavailable: sandbox.ErrorKindUnavailable,
 	"ROUTING_UNAVAILABLE":            sandbox.ErrorKindUnavailable,
@@ -89,6 +88,7 @@ var providerCodeKinds = map[string]sandbox.ErrorKind{
 	"PROXY_CONFIG_ERROR":   sandbox.ErrorKindInternal,
 	"CALLBACK_SEND_FAILED": sandbox.ErrorKindInternal,
 	"FORK_FAILED":          sandbox.ErrorKindInternal,
+	"LOCKDOWN_ERROR":       sandbox.ErrorKindInternal,
 	"UNKNOWN_ERROR":        sandbox.ErrorKindInternal,
 }
 
