@@ -109,8 +109,9 @@ Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
 
 Blaxel looks up sandboxes by name for `Get` and `Refresh`. After a successful
-`Delete`, the handle reports `Deleted` and `terminal`. Wait before recreating
-the same name — Blaxel may still be cleaning up and return `Conflict`.
+`Delete`, the handle reports `Deleted` and `terminal`. Omit `Wait` to return
+when Blaxel accepts the delete; recreating the same name too soon may return
+`Conflict`. Pass `Wait: true` to wait until removal finishes.
 `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate` are unsupported.
 Closing a Blaxel handle does not contact Blaxel. On `Get` / `Refresh`, an idle
 sandbox shows as paused and an active one shows as running.

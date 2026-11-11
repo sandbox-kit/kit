@@ -40,7 +40,7 @@ func TestCommandTimeoutWholeSeconds(t *testing.T) {
 	}
 }
 
-func TestRunCommandStartsWithoutCompletionHold(t *testing.T) {
+func TestRunCommandStartsWithoutWaitForCompletion(t *testing.T) {
 	var posts []map[string]any
 	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -138,7 +138,7 @@ func TestRunCommandWaitsWhenStartReturnsRunning(t *testing.T) {
 	}
 }
 
-func TestRunCommandReturnsAFinishedStartWithoutPolling(t *testing.T) {
+func TestRunCommandReturnsAFinishedStartWithoutWaiting(t *testing.T) {
 	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/sandboxes/sbx":

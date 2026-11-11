@@ -3,7 +3,7 @@ title: Concepts
 description: Client, handle, filesystem, process, providers, concurrency, and close.
 ---
 
-Sandbox Kit is an SDK. You construct a client with a provider and config; the client calls that provider for create, lifecycle, filesystem, and process work. Application code stays on the shared client surface.
+Sandbox Kit is an SDK. Construct a client with a provider and config, then create, look up, and operate on sandboxes through that client.
 
 ## Client
 
@@ -333,7 +333,7 @@ fmt.Println(result)
 
 Each provider is its own package. Pass it into the client. Auth, create defaults, and which lifecycle calls exist depend on the provider; the client methods stay the same.
 
-The client talks to Daytona, Modal, or Blaxel directly. There is no separate Kit cloud in the middle.
+The client calls Daytona, Modal, or Blaxel directly.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -470,7 +470,7 @@ Setup: [Blaxel](/docs/blaxel).
 
 ## Capabilities
 
-Unsupported calls fail before anything reaches the cloud. The cloud can still refuse a supported call for a particular sandbox; that comes back as a provider error.
+Unsupported calls return an error. Check `supports` before a lifecycle method that might be unavailable. A supported call can still fail if the provider rejects that sandbox.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -499,6 +499,21 @@ if (!sandbox.supports(LifecycleCapability.Terminate)) {
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+import { LifecycleCapability } from "@sandbox-kit/sandbox";
+
+if (!sandbox.supports(LifecycleCapability.Delete)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be deleted`);
+}
+if (!sandbox.supports(LifecycleCapability.Refresh)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be refreshed`);
+}
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -521,6 +536,21 @@ import "github.com/sandbox-kit/kit/sdks/go/sandbox"
 
 if !instance.Supports(sandbox.LifecycleCapabilityTerminate) {
 	return fmt.Errorf("sandbox %s cannot be terminated", instance.ID())
+}
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+import "github.com/sandbox-kit/kit/sdks/go/sandbox"
+
+if !instance.Supports(sandbox.LifecycleCapabilityDelete) {
+	return fmt.Errorf("sandbox %s cannot be deleted", instance.ID())
+}
+if !instance.Supports(sandbox.LifecycleCapabilityRefresh) {
+	return fmt.Errorf("sandbox %s cannot be refreshed", instance.ID())
 }
 ```
 
@@ -571,6 +601,19 @@ await Promise.all([
 ```ts
 // Parallel work: another handle for the same id has its own queue.
 const other = await client.attach(sandbox.id);
+await Promise.all([
+  sandbox.process.run({ argv: ["echo", "a"] }),
+  other.process.run({ argv: ["echo", "b"] }),
+]);
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+// Parallel work: another handle via get(name) has its own queue.
+const other = await client.get(sandbox.id);
 await Promise.all([
   sandbox.process.run({ argv: ["echo", "a"] }),
   other.process.run({ argv: ["echo", "b"] }),
@@ -646,6 +689,32 @@ for range 2 {
 ```go
 // Parallel work: another handle for the same id has its own queue.
 other, err := client.Attach(ctx, instance.ID())
+if err != nil {
+	return err
+}
+errCh = make(chan error, 2)
+go func() {
+	_, err := instance.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "a"}})
+	errCh <- err
+}()
+go func() {
+	_, err := other.Process().Run(ctx, &sandbox.ExecOptions{Argv: []string{"echo", "b"}})
+	errCh <- err
+}()
+for range 2 {
+	if err := <-errCh; err != nil {
+		return err
+	}
+}
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```go
+// Parallel work: another handle via Get(name) has its own queue.
+other, err := client.Get(ctx, instance.ID())
 if err != nil {
 	return err
 }

@@ -140,10 +140,13 @@ func (s *Sandbox) Archive(ctx context.Context, options *ArchiveOptions) error {
 }
 
 // Delete deletes the cloud sandbox and stores the metadata the provider returns.
-// Set DeleteOptions.Wait with Value(true) to wait until deletion finishes. Value(false) returns after the provider accepts the request.
-// A nil timeout uses the client timeout as this call's deadline. The provider receives a timeout only when one is set.
-// Close leaves the cloud sandbox in place. Daytona and Blaxel support Delete. Modal returns ErrorKindUnsupported. Use Terminate for Modal.
-// A nil context returns ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
+// Daytona and Blaxel honor DeleteOptions.Wait: Value(true) blocks until deletion
+// finishes. Without Wait, Blaxel returns Deleted with Terminal true as soon as
+// delete is accepted. A nil timeout uses the client timeout as this call's
+// deadline. The provider receives a timeout only when one is set. Close leaves
+// the cloud sandbox in place. Daytona and Blaxel support Delete. Modal returns
+// ErrorKindUnsupported; use Terminate for Modal. A nil context returns
+// ErrorKindInvalidArgument. Read a failure with errors.As and *Error.
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error {
 	operationContext, cancel, id, err := s.operationContext(ctx, "delete", sdk.OptionalDuration(options.GetTimeout()))
 	if err != nil {

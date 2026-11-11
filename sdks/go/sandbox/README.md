@@ -44,8 +44,9 @@ requires a name and an image, plus client `Region`.
 
 `client.Close` closes your connection to Daytona, Modal, or Blaxel.
 `instance.Close` does not stop, terminate, or delete the sandbox, and you can
-keep using the handle. The sandbox keeps running until you stop, terminate,
-archive, or delete it.
+keep using the handle. Reclaim a Daytona sandbox with Stop, Archive, or
+Delete; a Modal sandbox with Terminate or lifetime; a Blaxel sandbox with
+Delete or TTL/idle. Blaxel has no Stop, Terminate, or Archive.
 
 ## Run a command
 
@@ -93,10 +94,10 @@ Paths inside the sandbox are absolute. The same handle also supports
 | [Modal](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/modal)     | `modal.New()`   | `client.Attach`          |
 | [Blaxel](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/blaxel)   | `blaxel.New()`  | `client.Get` (by name)   |
 
-`Supports` reports whether the provider implements that operation. An
-unimplemented method returns an error and does not call the provider. A
-provider rejection, including one from a closed SDK, comes back as that
-provider's error.
+`Supports` tells you whether this handle can attempt that operation. On
+Blaxel, you can `Get`, `Refresh`, `Delete`, and `Close`. Other lifecycle
+methods are not available. If the provider rejects a supported call, you get
+that provider's error.
 
 ## Read an error
 

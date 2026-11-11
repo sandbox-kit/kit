@@ -148,7 +148,7 @@ function classifyKind(args: ClassifyArgs): ErrorInfo["kind"] {
     isCreationTimeoutError(error)
   )
     return ErrorKind.Timeout;
-  // process.wait deadline is a plain Error; a 504 on one poll may be its cause.
+  // process.wait deadline is a plain Error; a 504 on that wait may be its cause.
   // A bare edge 504 is a timeout too, matching Go.
   if (
     isProcessWaitTimeout(error) ||

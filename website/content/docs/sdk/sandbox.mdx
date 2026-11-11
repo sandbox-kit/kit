@@ -477,13 +477,24 @@ func (s *Sandbox) Refresh(ctx context.Context) error
   <Tab value="TypeScript">
 
 ```ts
-delete(options?: DeleteOptions): Promise<void>
+delete(options?: DeleteCallOptions): Promise<SandboxInfo>
 ```
 
-Removes the Blaxel sandbox.
+Deletes the Blaxel sandbox. On success, `state` is `deleted` and `terminal` is true. Omit `wait` to return when Blaxel accepts the delete. Pass `wait: true` to wait until removal finishes.
+
+**Parameters**
+
+| Name       | Type                | Description                                       |
+| ---------- | ------------------- | ------------------------------------------------- |
+| `options?` | `DeleteCallOptions` | `OperationOptions` plus optional `wait?: boolean` |
+
+**Returns**
+
+`Promise<SandboxInfo>` — also stored on the handle
 
 ```ts
-await sandbox.delete({ timeout: 60_000 });
+const info = await sandbox.delete({ wait: true, timeout: 60_000 });
+console.log(info.state, info.terminal);
 ```
 
   </Tab>
@@ -493,17 +504,32 @@ await sandbox.delete({ timeout: 60_000 });
 func (s *Sandbox) Delete(ctx context.Context, options *DeleteOptions) error
 ```
 
+Deletes the Blaxel sandbox. On success, `Info().State` is `Deleted` and `Terminal` is true. Omit `Wait` to return when Blaxel accepts the delete. Pass `Wait: true` to wait until removal finishes. Read the outcome with `Info()`.
+
+**Parameters**
+
+| Name      | Type              | Description                |
+| --------- | ----------------- | -------------------------- |
+| `ctx`     | `context.Context` | Cancellation and deadline  |
+| `options` | `*DeleteOptions`  | `Timeout`, optional `Wait` |
+
+**Returns**
+
+`error`
+
 ```go
 err := instance.Delete(ctx, &sandbox.DeleteOptions{
+	Wait:    sandbox.Value(true),
 	Timeout: sandbox.Duration(time.Minute),
 })
+info := instance.Info()
+fmt.Println(info.State, info.GetTerminal())
 ```
 
   </Tab>
 </Tabs>
 
 </ForProvider>
-
 
 <ForProvider id="modal">
 
@@ -623,23 +649,51 @@ type TerminateCallOptions = OperationOptions & { wait?: boolean };
 type DeleteCallOptions = OperationOptions & { wait?: boolean };
 ```
 
-| Field     | Description                                                                  |
-| --------- | ---------------------------------------------------------------------------- |
-| `signal`  | Abort the wait. The handle stays busy until the in-flight call finishes.     |
-| `timeout` | Deadline for this call (ms). Omitted → client default. `0` → no deadline.    |
-| `force`   | On stop: request an immediate stop.                                          |
-| `wait`    | On terminate/delete: wait until the operation finishes.                      |
+| Field     | Description                                                               |
+| --------- | ------------------------------------------------------------------------- |
+| `signal`  | Abort the wait. The handle stays busy until the in-flight call finishes.  |
+| `timeout` | Deadline for this call (ms). Omitted → client default. `0` → no deadline. |
+| `force`   | On stop: request an immediate stop.                                       |
+| `wait`    | On terminate/delete: wait until the operation finishes.                   |
+
+<ForProvider id="daytona">
+  On Daytona, `wait: true` waits until deletion finishes.
+</ForProvider>
+
+<ForProvider id="modal">
+  On Modal, `wait: true` waits until terminate finishes.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  On Blaxel, omit `wait` to return when delete is accepted. Pass `wait: true` to
+  wait until removal finishes. On success, `state` is `deleted` and `terminal`
+  is true.
+</ForProvider>
 
   </Tab>
   <Tab value="Go">
 
-Lifecycle option messages carry `Timeout *durationpb.Duration` (via `sandbox.Duration`). `StopOptions` adds `Force *bool`. `TerminateOptions` and `DeleteOptions` add `Wait *bool`.
+Use `sandbox.Duration` for timeouts. `StopOptions` adds `Force`. `TerminateOptions` and `DeleteOptions` add `Wait`.
 
 | Field     | Description                                                                |
 | --------- | -------------------------------------------------------------------------- |
 | `Timeout` | Deadline for this call. Nil → client default. Explicit zero → no deadline. |
 | `Force`   | On stop: `Value(true)` requests an immediate stop.                         |
 | `Wait`    | On terminate/delete: wait until finished.                                  |
+
+<ForProvider id="daytona">
+  On Daytona, `Wait` waits until deletion finishes.
+</ForProvider>
+
+<ForProvider id="modal">
+  On Modal, `Wait` waits until terminate finishes.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  On Blaxel, omit `Wait` to return when delete is accepted. Pass `Wait: true` to
+  wait until removal finishes. On success, `State` is `Deleted` and `Terminal`
+  is true. Read it with `Info()`.
+</ForProvider>
 
   </Tab>
 </Tabs>

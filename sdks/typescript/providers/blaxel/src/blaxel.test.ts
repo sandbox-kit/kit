@@ -1,6 +1,6 @@
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   Client,
   EgressMode,
@@ -39,7 +39,7 @@ import { mapBlaxelError } from "#errors.js";
 import { projectHandle } from "./native.js";
 import { ResponseError, SandboxInstance } from "@blaxel/core";
 
-const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
+const provider = { region: "us-pdx-1" };
 
 describe("Blaxel mappings", () => {
   it("maps API key authentication and workspace scope", () => {
@@ -97,7 +97,7 @@ describe("Blaxel mappings", () => {
           name: "example",
           source: { image: { reference: "blaxel/base-image:latest" } },
         },
-        { scope: { workspace: "ws" } },
+        {},
       ),
     ).toThrowError(
       expect.objectContaining({
@@ -126,18 +126,14 @@ describe("Blaxel mappings", () => {
     );
   });
 
-  it("captures retained configuration without aliasing caller state", () => {
-    const config = {
-      scope: { workspace: "original" },
-      region: "us-pdx-1",
-    };
-    const state = captureProviderState(config);
-    config.scope.workspace = "changed";
-
-    expect(state).toMatchObject({
-      scope: { workspace: "original" },
-      region: "us-pdx-1",
-    });
+  it("captures create region from client config", () => {
+    expect(
+      captureProviderState({
+        scope: { workspace: "original" },
+        region: "us-pdx-1",
+      }),
+    ).toEqual({ region: "us-pdx-1" });
+    expect(captureProviderState({ scope: { workspace: "ws" } })).toEqual({});
   });
 
   it("maps the creation surface into the native Blaxel plan", () => {
@@ -587,7 +583,7 @@ describe("Blaxel mappings", () => {
 
 describe("Blaxel provider orchestration", () => {
   it("creates with SandboxInstance.create and never createIfNotExists", async () => {
-    let created: { params: unknown; options: unknown } | undefined;
+    let created: unknown;
     let configured: unknown;
     const nativeSandbox = {
       metadata: { name: "example" },
@@ -596,20 +592,14 @@ describe("Blaxel provider orchestration", () => {
       spec: { region: "us-pdx-1" },
       fs: {} as never,
       process: {} as never,
-      async wait() {
-        return this;
-      },
-      async delete() {
-        return { metadata: { name: "example" }, status: "DELETED" };
-      },
     };
     const client = new Client({
       provider: new BlaxelProvider(() => ({
         configure(config) {
           configured = config;
         },
-        async create(params, options) {
-          created = { params, options };
+        async create(params) {
+          created = params;
           return nativeSandbox;
         },
         async get() {
@@ -632,14 +622,12 @@ describe("Blaxel provider orchestration", () => {
     await client.close();
 
     expect(configured).toEqual({ apiKey: "bl_key", workspace: "ws" });
-    expect(created?.params).toMatchObject({
+    expect(created).toMatchObject({
       name: "example",
       image: "blaxel/base-image:latest",
       memory: 2048,
       region: "us-pdx-1",
     });
-    // Kit never forwards @blaxel/core SandboxCreateOptions (native create timeout).
-    expect(created?.options).toBeUndefined();
     expect(sandbox.id).toBe("example");
     expect(sandbox.info().name).toBe("example");
   });
@@ -659,12 +647,6 @@ describe("Blaxel provider orchestration", () => {
           state: "RUNNING",
           fs: {} as never,
           process: {} as never,
-          async wait() {
-            return this;
-          },
-          async delete() {
-            return { metadata: { name: "unused" }, status: "DELETED" };
-          },
         };
       },
       async delete() {
@@ -708,6 +690,118 @@ describe("Blaxel provider orchestration", () => {
       terminal: true,
       providerState: "TERMINATED",
     });
+  });
+
+  it("does not poll get when wait is omitted", async () => {
+    let gets = 0;
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        throw new Error("unexpected create");
+      },
+      async get() {
+        gets += 1;
+        throw new Error("unexpected get");
+      },
+      async delete(name) {
+        return { metadata: { name }, status: "DELETING" };
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+    });
+    if (backend.delete === undefined) throw new Error("delete is missing");
+    await backend.delete("doomed", { wait: false }, {});
+    expect(gets).toBe(0);
+  });
+
+  it("waits until get returns NotFound when wait is true", async () => {
+    vi.useFakeTimers();
+    try {
+      let gets = 0;
+      const backend = new BlaxelProvider(() => ({
+        configure() {},
+        async create() {
+          throw new Error("unexpected create");
+        },
+        async get(name) {
+          gets += 1;
+          if (gets < 2) {
+            return {
+              metadata: { name },
+              status: "DELETING",
+              fs: {} as never,
+              process: {} as never,
+            };
+          }
+          throw new ResponseError(
+            new Response(null, { status: 404, statusText: "Not Found" }),
+            undefined,
+            undefined,
+          );
+        },
+        async delete(name) {
+          return { metadata: { name }, status: "DELETING" };
+        },
+      })).initialize({
+        auth: { apiKey: { key: "bl_key" } },
+        scope: { workspace: "ws" },
+      });
+      if (backend.delete === undefined) throw new Error("delete is missing");
+      const pending = backend.delete("doomed", { wait: true }, {});
+      await vi.advanceTimersByTimeAsync(1_000);
+      await vi.advanceTimersByTimeAsync(1_000);
+      const info = await pending;
+      expect(gets).toBe(2);
+      expect(info).toMatchObject({
+        id: "doomed",
+        state: SandboxState.Deleted,
+        terminal: true,
+        providerState: "TERMINATED",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops waiting for delete when the signal aborts", async () => {
+    vi.useFakeTimers();
+    try {
+      const controller = new AbortController();
+      const backend = new BlaxelProvider(() => ({
+        configure() {},
+        async create() {
+          throw new Error("unexpected create");
+        },
+        async get(name) {
+          return {
+            metadata: { name },
+            status: "DELETING",
+            fs: {} as never,
+            process: {} as never,
+          };
+        },
+        async delete(name) {
+          return { metadata: { name }, status: "DELETING" };
+        },
+      })).initialize({
+        auth: { apiKey: { key: "bl_key" } },
+        scope: { workspace: "ws" },
+      });
+      if (backend.delete === undefined) throw new Error("delete is missing");
+      const pending = backend.delete("doomed", { wait: true }, {
+        signal: controller.signal,
+      });
+      const expectation = expect(pending).rejects.toMatchObject({
+        kind: ErrorKind.Canceled,
+        operation: "delete",
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      controller.abort();
+      await expectation;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not create a sandbox after the signal aborts during mapping", async () => {
@@ -869,12 +963,6 @@ describe("Blaxel provider orchestration", () => {
               };
             },
           },
-          async wait() {
-            return this;
-          },
-          async delete() {
-            return { metadata: { name: "unused" }, status: "DELETED" };
-          },
         };
       },
       async delete() {
@@ -886,7 +974,11 @@ describe("Blaxel provider orchestration", () => {
     });
     if (backend.run === undefined) throw new Error("run is missing");
 
-    const polled = await backend.run("sandbox-1", { argv: ["echo", "hi"] }, {});
+    const finished = await backend.run(
+      "sandbox-1",
+      { argv: ["echo", "hi"] },
+      {},
+    );
     await backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 0 }, {});
     await backend.run(
       "sandbox-1",
@@ -916,9 +1008,9 @@ describe("Blaxel provider orchestration", () => {
       operation: "run",
     });
 
-    expect(polled).toMatchObject({ exitCode: 7 });
-    expect(polled.stdout).toEqual(new TextEncoder().encode("out"));
-    expect(polled.stderr).toEqual(new TextEncoder().encode("err"));
+    expect(finished).toMatchObject({ exitCode: 7 });
+    expect(finished.stdout).toEqual(new TextEncoder().encode("out"));
+    expect(finished.stderr).toEqual(new TextEncoder().encode("err"));
     expect(seen).toEqual([
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
@@ -941,7 +1033,7 @@ describe("Blaxel provider orchestration", () => {
     ]);
   });
 
-  it("returns a finished process without polling", async () => {
+  it("returns a finished process without waiting", async () => {
     const backend = runBackend({
       async exec() {
         return {
@@ -1147,12 +1239,6 @@ function fsBackend(fs: {
         metadata: { name: "sandbox-1" },
         fs: fs as never,
         process: {} as never,
-        async wait() {
-          return this;
-        },
-        async delete() {
-          return { metadata: { name: "unused" }, status: "DELETED" };
-        },
       };
     },
     async delete() {
@@ -1196,12 +1282,6 @@ function runBackend(process: {
         metadata: { name: "sandbox-1" },
         fs: {} as never,
         process,
-        async wait() {
-          return this;
-        },
-        async delete() {
-          return { metadata: { name: "unused" }, status: "DELETED" };
-        },
       };
     },
     async delete() {

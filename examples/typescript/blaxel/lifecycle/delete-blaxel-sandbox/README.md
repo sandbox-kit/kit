@@ -4,9 +4,12 @@ Delete an existing Blaxel sandbox by name.
 
 ## What this means
 
-`delete` permanently removes the Blaxel sandbox. When the call succeeds you get
-`deleted` / `terminal: true`. Wait before recreating the same name, or you may
-get `Conflict`. Start, stop, pause, archive, and terminate are unsupported.
+`delete` permanently removes the Blaxel sandbox and returns `SandboxInfo`.
+On success, `state` is `deleted` and `terminal` is true. This example uses
+`wait: true` so removal finishes before the call returns. Omit `wait` to
+return when Blaxel accepts the delete — recreating the same name too soon may
+return `Conflict`. Start, stop, pause, archive, and terminate are not
+available.
 
 ## Edge cases
 

@@ -255,8 +255,7 @@ function mapObservability(r: CreateOptions): void {
 }
 
 // Kit Client.create applies provisioning.timeout as the abort deadline.
-// @blaxel/core also accepts SandboxCreateOptions.timeout (1–50s); this
-// provider does not forward it — use the Kit deadline instead.
+// This provider does not forward a native create timeout — use the Kit deadline.
 function mapProvisioning(r: CreateOptions): void {
   const v = r.provisioning;
   if (!v) return;

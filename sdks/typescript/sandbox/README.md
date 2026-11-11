@@ -22,6 +22,8 @@ Requires Node.js 20, 22, or 24.15+.
 
 ## Quick start
 
+Daytona sample (`create()` with no body uses Daytona's default snapshot):
+
 ```ts
 import { daytona } from "@sandbox-kit/daytona";
 import { Client } from "@sandbox-kit/sandbox";
@@ -45,7 +47,7 @@ Pass the provider on `ClientConfig`, then shared settings:
 
 | Field      | Purpose                                                                    |
 | ---------- | -------------------------------------------------------------------------- |
-| `provider` | Provider factory (`daytona()`, `modal()`, …)                               |
+| `provider` | Provider factory (`daytona()`, `modal()`, `blaxel()`)                      |
 | `auth`     | One credential shape (`apiKey`, `bearerToken`, `tokenPair`, …)             |
 | `scope`    | App, environment, organization, project, or workspace (provider-dependent) |
 | `endpoint` | API URL when the provider supports it                                      |
@@ -58,6 +60,8 @@ package README.
 
 ## Create a sandbox
 
+Daytona example:
+
 ```ts
 const sandbox = await client.create({
   source: { image: { reference: "daytonaio/playground:latest" } },
@@ -66,15 +70,16 @@ const sandbox = await client.create({
 ```
 
 `create()` with no options uses the provider default when that is valid (for
-example Daytona's default snapshot). Timeouts and delays are millisecond
+example Daytona's default snapshot). Modal requires an image. Blaxel requires
+`name`, an image, and client `region`. Timeouts and delays are millisecond
 numbers. Nested exclusive fields use shapes like `source: { image: … }` or
 `auth: { apiKey: … }`.
 
 ## Open an existing sandbox
 
 ```ts
-const attached = await client.attach(id); // provider must support attach
-const fetched = await client.get(id); // provider-verified lookup
+const attached = await client.attach(id); // Modal: id only, no existence check
+const fetched = await client.get(id); // Daytona: sandbox id; Blaxel: create name
 ```
 
 ## Run a command
@@ -127,9 +132,10 @@ Sandbox paths are absolute. The same handle also supports `copyFromLocal`,
 | `filesystem`     | Read, write, copy, list, mkdir, stat, remove  |
 | `process`        | Run a command and wait for exit code + output |
 
-`supports` reports whether the provider implements that operation. An
-unimplemented method throws before the provider call. A provider rejection,
-including one from a closed SDK, comes back as that provider's error.
+Check `supports` before a lifecycle call that might be unavailable. On Blaxel,
+you can `get`, `refresh`, `delete`, and `close`. Other lifecycle methods are
+not available. If the provider rejects a supported call, you get that
+provider's error.
 
 ## Errors
 

@@ -87,9 +87,10 @@ You can `Get`, `Refresh`, `Delete`, and `Close`. Lookup is by name
 (`ID()` equals the create name). Attach, start, stop, pause, archive, and
 terminate are not available. `Close` only drops the local handle.
 
-After a successful `Delete`, the handle reports `Deleted` and `terminal`.
-Blaxel can still be cleaning up — recreating the same name right away may
-return `Conflict`.
+After a successful `Delete`, `Info().State` is `Deleted` and `Terminal` is
+true. Omit `Wait` to return as soon as Blaxel accepts the delete — recreating
+the same name too soon may return `Conflict`. Pass `Wait: true` to wait until
+removal finishes before the call returns.
 
 On `Get` / `Refresh` / `Info`, an idle sandbox shows as `Paused`; an active
 one shows as `Running`.
@@ -97,12 +98,12 @@ one shows as `Running`.
 ### Filesystem
 
 You get the usual file APIs: read, write, copy in/out, mkdir, list, stat, and
-remove. Paths must be absolute. `Parents` defaults to true; `Parents: false`
-is rejected.
+remove. Paths must be absolute. `Parents` defaults to true; Blaxel does not
+support `Parents: false`.
 
-`Stat` returns whether the path is a file or a directory, plus size and mode
-when Blaxel provides them. Missing local files for `CopyFromLocal` return not
-found with field `local_path`.
+`Stat` returns `Type` (file or directory), `Size`, and usually `Permissions`,
+`Owner`, `Group`, and `ModifiedAt`. Missing local files for `CopyFromLocal`
+return not found with field `local_path`.
 
 ### Process
 

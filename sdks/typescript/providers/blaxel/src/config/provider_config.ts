@@ -5,7 +5,6 @@ import type { Config as NativeClientConfig } from "@blaxel/core";
 import {
   ErrorKind,
   type Config,
-  type Scope,
   ConfigFieldAuth,
   ConfigFieldEndpoint,
   ConfigFieldScopeAppName,
@@ -52,18 +51,13 @@ export function mapGeneratedClientConfig(config: Config): NativeClientConfig {
   return target;
 }
 
+/** Retained create inputs. Scope is applied at initialize; create only needs region. */
 export interface ProviderState {
-  readonly scope?: Scope;
   readonly region?: string;
 }
 
 export function captureProviderState(config: Config): ProviderState {
-  return {
-    ...(config.scope === undefined
-      ? {}
-      : { scope: structuredClone(config.scope) }),
-    ...(config.region === undefined ? {} : { region: config.region }),
-  };
+  return config.region === undefined ? {} : { region: config.region };
 }
 
 function unsupported(field: string, message: string): never {

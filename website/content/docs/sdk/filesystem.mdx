@@ -261,8 +261,8 @@ Creates the directory at `path`. An omitted `parents` flag is `true` (create mis
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel rejects `parents: false` before the call (field `parents`). Omitted or
-  `true` creates missing parents.
+  Blaxel creates missing parents when `parents` is omitted or `true`. It does
+  not support `parents: false` (field `parents`).
 </ForProvider>
 
   </Tab>
@@ -295,8 +295,8 @@ Creates the directory at `path`. An omitted `Parents` flag is true.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel rejects `Parents: false` before the call (field `parents`). Omitted or
-  true creates missing parents.
+  Blaxel creates missing parents when `Parents` is omitted or true. It does
+  not support `Parents: false` (field `parents`).
 </ForProvider>
 
   </Tab>
@@ -375,8 +375,8 @@ console.log(info);
 ```
 
 <ForProvider id="blaxel">
-  Directories return type directory. Files return type file, with size and
-  permission fields when Blaxel provides them.
+  You get `type` (file or directory), `size`, and usually `permissions`,
+  `owner`, `group`, and `modifiedAt`.
 </ForProvider>
 
   </Tab>
@@ -401,8 +401,8 @@ fmt.Println(info)
 ```
 
 <ForProvider id="blaxel">
-  Directories return type directory. Files return type file, with size and mode
-  when Blaxel provides them.
+  You get `Type` (file or directory), `Size`, and usually `Permissions`,
+  `Owner`, `Group`, and `ModifiedAt`.
 </ForProvider>
 
   </Tab>

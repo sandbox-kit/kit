@@ -82,9 +82,13 @@ Keep examples aligned with the implemented API. Label test doubles and local
 verification limits clearly. Verify changed examples before handoff and update
 `examples/README.md` when adding a language.
 
-Update project Markdown whenever APIs, layout, architecture, or dependencies
-change. Write docs as current-state truth: present tense, remove outdated
-sections, and verify links and commands against the repository.
+Update project Markdown and `website/content/docs/` whenever APIs, layout,
+architecture, or dependencies change. Write docs as current-state truth for
+**end users and SDK callers** (not SDK builders): present tense, what to call
+and what you get back, provider- and language-specific when behavior differs.
+Remove outdated sections, and verify links and commands against the
+repository. See `.cursor/rules/docs-sdk-user-audience.mdc` and
+`.cursor/skills/docs-current-state/`.
 
 ## Development tooling
 

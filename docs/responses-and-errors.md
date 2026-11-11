@@ -19,9 +19,7 @@ if info.Resources != nil {
 ```
 
 A present optional value keeps explicit zero, false, and empty strings. A
-present map or slice keeps an empty collection. A create or lookup fails in
-the client when the provider returns no sandbox ID. When the provider sets
-`provider`, it must match the provider you selected.
+present map or slice keeps an empty collection.
 
 ## Read an error
 
@@ -39,6 +37,10 @@ if errors.As(err, &detail) {
         fmt.Println("Check configuration:", detail.Field)
     case sandbox.ErrorKindAuthentication:
         fmt.Println("Check provider credentials")
+    case sandbox.ErrorKindAlreadyExists:
+        fmt.Println("Named resource already exists")
+    case sandbox.ErrorKindConflict:
+        fmt.Println("Current state rejects this operation")
     }
 }
 ```
@@ -105,9 +107,9 @@ branch on `Kind` without importing that package.
 TypeScript keeps the provider error on the standard `cause` property of
 `SandboxError`.
 
-An error that Kit could not classify keeps an unknown kind and the original
-cause. A kind is a category. It is not a signal that retrying is safe, and
-Kit does not retry for you.
+An unclassified error keeps an unknown kind and the original cause. A kind is
+a category. It is not a signal that retrying is safe, and Kit does not retry
+for you.
 
 On Blaxel, creating a sandbox whose name already exists returns
 `AlreadyExists`. If a delete is still finishing or another conflict occurs,

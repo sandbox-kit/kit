@@ -49,5 +49,6 @@ func main() {
 	if err := instance.Delete(context.Background(), &sandbox.DeleteOptions{Wait: sandbox.Value(true)}); err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Blaxel sandbox deleted: %s (terminal=%t)\n", instance.ID(), instance.Info().GetTerminal())
+	info := instance.Info()
+	fmt.Printf("Blaxel sandbox deleted: %s (state=%s, terminal=%t)\n", instance.ID(), info.State, info.GetTerminal())
 }

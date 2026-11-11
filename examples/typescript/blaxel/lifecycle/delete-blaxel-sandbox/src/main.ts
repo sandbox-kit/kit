@@ -26,7 +26,7 @@ await using client = new Client({
 
 const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 assertCapability(sandbox, LifecycleCapability.Delete);
-await sandbox.delete({ wait: true });
+const info = await sandbox.delete({ wait: true });
 console.log(
-  `Blaxel sandbox deleted: ${sandbox.id} (terminal=${sandbox.info().terminal ?? false})`,
+  `Blaxel sandbox deleted: ${sandbox.id} (state=${info.state}, terminal=${info.terminal ?? false})`,
 );

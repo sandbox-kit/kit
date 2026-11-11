@@ -29,7 +29,7 @@ import { describe, expect, it } from "vitest";
 
 import { mapClientConfig, mapCreateRequest } from "#mappings/mappings.js";
 
-const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
+const provider = { region: "us-pdx-1" };
 
 describe("rejected Blaxel create settings", () => {
   const cases: {
@@ -183,9 +183,7 @@ describe("rejected Blaxel create settings", () => {
   });
 
   it("missing region", () => {
-    expect(() =>
-      mapCreateRequest(namedImage({}), { scope: { workspace: "ws" } }),
-    ).toThrowError(
+    expect(() => mapCreateRequest(namedImage({}), {})).toThrowError(
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: ConfigFieldRegion,

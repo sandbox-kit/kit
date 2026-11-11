@@ -165,17 +165,17 @@ In TypeScript, use one Blaxel client (or one API key) per process. Full rules:
 
 ## What works
 
-| Area      | Notes                                                                            |
-| --------- | -------------------------------------------------------------------------------- |
-| Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle             |
-| Volumes   | Not available on create                                                          |
-| Open      | `get` / `refresh` by sandbox name                                                |
-| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach                 |
-| Delete    | Succeeds as `deleted` / `terminal`; wait briefly before recreating the same name |
-| State     | Idle → paused; active → running                                                  |
-| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict        |
-| Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                       |
-| Process   | `run` waits for the command — [Run a command](/docs/process)                     |
+| Area      | Notes                                                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle                                            |
+| Volumes   | Not available on create                                                                                         |
+| Open      | `get` / `refresh` by sandbox name                                                                               |
+| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach                                                |
+| Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
+| State     | Idle → paused; active → running                                                                                 |
+| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict                                       |
+| Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
+| Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
 
 Set `memoryMib` / `memory_mib` for memory size. Blaxel documents that value as
 MB; Kit does not convert units. CPU follows memory — CPU and disk overrides are

@@ -233,9 +233,10 @@ export class Sandbox implements AsyncDisposable {
   }
   /**
    * Deletes the cloud sandbox and stores the metadata the provider returns.
-   * Set `wait` to wait until deletion finishes. `close` leaves the sandbox in place.
-   * Daytona and Blaxel support delete. Modal throws `ErrorKind.Unsupported`. Use
-   * `terminate`.
+   * Daytona and Blaxel honor `wait` to block until deletion finishes. Blaxel
+   * without `wait` returns `deleted` / `terminal: true` as soon as delete is
+   * accepted. `close` leaves the sandbox in place. Modal throws
+   * `ErrorKind.Unsupported` — use `terminate`.
    */
   async delete(options: DeleteCallOptions = {}): Promise<SandboxInfo> {
     const { wait, ...call } = options;

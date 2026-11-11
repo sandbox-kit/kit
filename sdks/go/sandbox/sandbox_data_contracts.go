@@ -154,7 +154,7 @@ type (
 	// zero adds no extra deadline for this call. Both omit and zero also mean
 	// no provider process auto-kill (Daytona uses 0 so its 10s native default
 	// does not apply; Modal adds no command limit; Blaxel adds no auto-kill
-	// and polls until the command ends). Command
+	// and waits once via Process.Wait). Command
 	// timeouts must be whole seconds.
 	ExecOptions = sandboxv1.ExecOptions
 

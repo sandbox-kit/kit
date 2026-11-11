@@ -7,17 +7,24 @@ Failed calls surface a typed error with `kind`, `provider`, `operation`, `messag
 
 Kinds are categories, not retry advice. Kit does not retry.
 
-| Kind                | What happened                                          |
-| ------------------- | ------------------------------------------------------ |
-| `InvalidArgument`   | The request shape is wrong                             |
-| `Unsupported`       | This provider does not implement the call or the field |
-| `Authentication`    | Credentials were rejected                              |
-| `PermissionDenied`  | The account cannot perform this operation              |
-| `NotFound`          | The sandbox or file path was not found                 |
-| `RateLimited`       | Provider rate limit reached                            |
-| `ResourceExhausted` | Provider quota or capacity reached                     |
-| `Canceled`          | The caller canceled the operation                      |
-| `Timeout`           | The deadline fired                                     |
+| Kind                 | What happened                                          |
+| -------------------- | ------------------------------------------------------ |
+| `InvalidArgument`    | A request field is invalid                             |
+| `Unsupported`        | This provider does not support the call or the field   |
+| `Authentication`     | Credentials were rejected                              |
+| `PermissionDenied`   | The account cannot perform this operation              |
+| `NotFound`           | The sandbox or file path was not found                 |
+| `AlreadyExists`      | The named resource already exists                      |
+| `Conflict`           | Current state rejects this operation                   |
+| `RateLimited`        | Provider rate limit reached                            |
+| `ResourceExhausted`  | Provider quota or capacity reached                     |
+| `Timeout`            | The deadline fired                                     |
+| `Canceled`           | The caller canceled the operation                      |
+| `Unavailable`        | The provider could not be reached                      |
+| `InvalidResponse`    | The provider returned an unusable response             |
+| `Internal`           | Unclassified failure                                   |
+| `FailedPrecondition` | Client or sandbox is not in a usable state             |
+| `Unknown`            | Does not match a known category                        |
 
 ## Invalid config
 
@@ -100,6 +107,12 @@ try {
     case ErrorKind.NotFound:
       console.error("Sandbox or file path not found.");
       break;
+    case ErrorKind.AlreadyExists:
+      console.error("Named resource already exists.");
+      break;
+    case ErrorKind.Conflict:
+      console.error("Current state rejects this operation.");
+      break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
       console.error("Provider rate or resource limit reached.");
@@ -142,6 +155,10 @@ if errors.As(err, &detail) {
 		fmt.Println("Your account cannot perform this operation.")
 	case sandbox.ErrorKindNotFound:
 		fmt.Println("Sandbox or file path not found.")
+	case sandbox.ErrorKindAlreadyExists:
+		fmt.Println("Named resource already exists.")
+	case sandbox.ErrorKindConflict:
+		fmt.Println("Current state rejects this operation.")
 	case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
 		fmt.Println("Provider rate or resource limit reached.")
 	case sandbox.ErrorKindCanceled:
@@ -218,8 +235,6 @@ try {
   // create may have succeeded before a later step failed — no id on the error
   if (knownId) {
     const sandbox = await client.get(knownId);
-    // info: { id, provider, name?, providerState?, region?, isolation?,
-    //         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
     console.log(sandbox.info());
   }
   throw error;
@@ -236,8 +251,6 @@ if err != nil {
 	if knownID != "" {
 		existing, getErr := client.Get(ctx, knownID)
 		if getErr == nil {
-			// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
-			//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
 			fmt.Println(existing.Info())
 		}
 	}

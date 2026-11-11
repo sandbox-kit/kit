@@ -7,7 +7,6 @@ import {
   type Directory,
   type File as BlaxelFile,
   type SandboxCreateConfiguration,
-  type SandboxCreateOptions,
   type SandboxFileSystem,
 } from "@blaxel/core";
 import type { BlaxelSandboxIdentity } from "#mappings/provider_mappings.js";
@@ -46,20 +45,15 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
       identifier: string,
       options?: {
         maxWait?: number;
-        interval?: number;
         signal?: AbortSignal;
       },
     ): Promise<BlaxelProcessResult>;
   };
-  delete(): Promise<BlaxelSandboxIdentity>;
 }
 
 export interface NativeBlaxel {
   configure(config: NativeClientConfig): void;
-  create(
-    params: SandboxCreateConfiguration,
-    options?: SandboxCreateOptions,
-  ): Promise<NativeSandboxHandle>;
+  create(params: SandboxCreateConfiguration): Promise<NativeSandboxHandle>;
   get(name: string): Promise<NativeSandboxHandle>;
   delete(name: string): Promise<BlaxelSandboxIdentity>;
 }
@@ -72,8 +66,8 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
     configure(next: NativeClientConfig): void {
       settings.setConfig(next);
     },
-    async create(params, options) {
-      return projectHandle(await SandboxInstance.create(params, options));
+    async create(params) {
+      return projectHandle(await SandboxInstance.create(params));
     },
     async get(name) {
       return projectHandle(await SandboxInstance.get(name));

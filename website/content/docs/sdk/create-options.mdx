@@ -3,7 +3,7 @@ title: CreateOptions
 description: Create request body and nested option types.
 ---
 
-Request body for [`Client.create`](/docs/sdk/client#create). Omitted fields keep provider defaults. Unsupported fields fail before the provider call.
+Request body for [`Client.create`](/docs/sdk/client#create). Omitted fields keep provider defaults. Unsupported fields are rejected.
 
 ## CreateOptions
 
@@ -33,7 +33,7 @@ Durations on this type are **milliseconds**. Allowlists under `network` are plai
 
 | Field           | Description                                             |
 | --------------- | ------------------------------------------------------- |
-| `name`          | Display name. Explicit empty string asks for unnamed.   |
+| `name`          | Sandbox name. See provider notes.                       |
 | `source`        | Image, snapshot, warm pool, or provider default         |
 | `runtime`       | Language hint, user, working directory, entrypoint, PTY |
 | `isolation`     | Isolation class                                         |
@@ -47,6 +47,18 @@ Durations on this type are **milliseconds**. Allowlists under `network` are plai
 | `provisioning`  | Create deadline, queue timeout, wait condition          |
 | `readiness`     | Probe when waiting until ready                          |
 | `observability` | Verbose logging / telemetry                             |
+
+<ForProvider id="daytona">
+  Daytona treats `name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal treats `name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  On Blaxel, `name` is required and **is** the sandbox id. Use lowercase letters, digits, and single hyphens (`[a-z0-9]+(?:-[a-z0-9]+)*`), at most 49 characters. Look the sandbox up with `get(name)`.
+</ForProvider>
 
 **Example**
 
@@ -111,7 +123,7 @@ Durations use `sandbox.Duration`. Optional numbers use `sandbox.Value`.
 
 | Field           | Description                                             |
 | --------------- | ------------------------------------------------------- |
-| `Name`          | Display name. Explicit empty string asks for unnamed.   |
+| `Name`          | Sandbox name. See provider notes.                       |
 | `Source`        | Image, snapshot, warm pool, or provider default         |
 | `Runtime`       | Language hint, user, working directory, entrypoint, PTY |
 | `Isolation`     | Isolation class                                         |
@@ -125,6 +137,18 @@ Durations use `sandbox.Duration`. Optional numbers use `sandbox.Value`.
 | `Provisioning`  | Create deadline, queue timeout, wait condition          |
 | `Readiness`     | Probe when waiting until ready                          |
 | `Observability` | Verbose logging / telemetry                             |
+
+<ForProvider id="daytona">
+  Daytona treats `Name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+</ForProvider>
+
+<ForProvider id="modal">
+  Modal treats `Name` as a display name. Omit it to keep the provider default. An explicit empty string asks for unnamed.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  On Blaxel, `Name` is required and **is** the sandbox id. Use lowercase letters, digits, and single hyphens (`[a-z0-9]+(?:-[a-z0-9]+)*`), at most 49 characters. Look the sandbox up with `Get(name)`.
+</ForProvider>
 
 **Example**
 
@@ -181,7 +205,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 ## Source
 
-Set exactly one variant. Unsupported variants fail before the provider call.
+Set exactly one variant. Unsupported variants are rejected.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -220,11 +244,11 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel requires an `image` source and a Blaxel-valid `name` (lowercase
-  alphanumeric with single hyphens, at most 49 characters). Client `region` is
-  required. Default ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
-  not supported. Ports 80, 443, and 8080 are reserved. Your client/create
-  `timeout` is how long create may take.
+  Blaxel requires an `image` source and a `name` (lowercase alphanumeric with
+  single hyphens, at most 49 characters). Client `region` is required. Default
+  ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
+  Ports 80, 443, and 8080 are reserved. Create `timeout` is how long create may
+  take.
 </ForProvider>
 
 ## RuntimeConfig
@@ -242,7 +266,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `pty`              | Request a PTY when supported                      |
 
 <ForProvider id="blaxel">
-  Blaxel rejects create-time runtime fields before the call.
+  Blaxel does not support runtime fields on create.
 </ForProvider>
 
   </Tab>
@@ -258,7 +282,7 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `Pty`              | Request a PTY when supported                      |
 
 <ForProvider id="blaxel">
-  Blaxel rejects create-time runtime fields before the call.
+  Blaxel does not support runtime fields on create.
 </ForProvider>
 
   </Tab>
@@ -277,6 +301,10 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `memoryLimitMib` | Optional memory ceiling                        |
 | `diskMib`        | Requested disk in MiB                          |
 
+<ForProvider id="blaxel">
+  Blaxel accepts `memoryMib` only. CPU and disk overrides are rejected; Blaxel derives CPU from memory.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -287,6 +315,10 @@ Set exactly one variant. Unsupported variants fail before the provider call.
 | `MemoryMib`      | Requested memory in MiB                        |
 | `MemoryLimitMib` | Optional memory ceiling                        |
 | `DiskMib`        | Requested disk in MiB                          |
+
+<ForProvider id="blaxel">
+  Blaxel accepts `MemoryMib` only. CPU and disk overrides are rejected; Blaxel derives CPU from memory.
+</ForProvider>
 
   </Tab>
 </Tabs>
@@ -468,7 +500,7 @@ Set either a TCP port or a command.
 | `command.argv` | Command argv that must succeed |
 
 <ForProvider id="blaxel">
-  Blaxel rejects readiness probes before the call.
+  Blaxel does not support readiness probes.
 </ForProvider>
 
   </Tab>
@@ -480,7 +512,7 @@ Set either a TCP port or a command.
 | `Command` with `Argv` | Command argv that must succeed |
 
 <ForProvider id="blaxel">
-  Blaxel rejects readiness probes before the call.
+  Blaxel does not support readiness probes.
 </ForProvider>
 
   </Tab>
@@ -504,6 +536,10 @@ Set either a TCP port or a command.
 | `customDomain`     | Custom domain when supported                                |
 | `ports`            | Published ports (`port`, optional `transport`)              |
 
+<ForProvider id="blaxel">
+  Blaxel accepts ports (not 80, 443, or 8080) and outbound domains. Default transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is rejected.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -520,6 +556,10 @@ Set either a TCP port or a command.
 | `CustomDomain`     | Custom domain when supported                                |
 | `Ports`            | Published ports (`Port`, optional `Transport`)              |
 
+<ForProvider id="blaxel">
+  Blaxel accepts ports (not 80, 443, or 8080) and outbound domains. Default transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is rejected.
+</ForProvider>
+
   </Tab>
 </Tabs>
 
@@ -534,6 +574,10 @@ Set either a TCP port or a command.
 | `workloadIdentity` | Request a workload identity when supported                                |
 | `secrets`          | Provider-managed secret references (`reference`, injection, env var name) |
 
+<ForProvider id="blaxel">
+  Blaxel does not support security fields on create.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -542,6 +586,10 @@ Set either a TCP port or a command.
 | `PublicAccess`     | Request public access when true                                           |
 | `WorkloadIdentity` | Request a workload identity when supported                                |
 | `Secrets`          | Provider-managed secret references (`Reference`, injection, env var name) |
+
+<ForProvider id="blaxel">
+  Blaxel does not support security fields on create.
+</ForProvider>
 
   </Tab>
 </Tabs>

@@ -23,8 +23,8 @@ provider call settles so the next call does not overlap it.
 ## Paths
 
 A path inside the sandbox is absolute: `/tmp/note.txt`. A relative path, a
-blank path, or a path that contains a NUL byte is rejected before the provider
-is called. The error field is `path`.
+blank path, or a path that contains a NUL byte is rejected. The error field
+is `path`.
 
 A path on your machine, used by copy, may be relative to the process, such as
 `./note.txt`. It must be non-blank and must not contain a NUL byte. A rejected
@@ -57,8 +57,8 @@ omitted, the abort signal carries the client deadline.
 `1500` ends the call at 1.5 seconds. Every Go file call uses the context as
 the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
 and Blaxel file calls use the context or the abort signal. `1500` milliseconds
-ends the call at 1.5 seconds. Blaxel rejects `parents: false` before the
-provider call (field `parents`).
+ends the call at 1.5 seconds. Blaxel does not support `parents: false`
+(field `parents`).
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
@@ -166,18 +166,26 @@ true.
 
 Set `parents` to false when the parent directory must already exist. Modal
 then requires that parent, and returns an error if the new directory is
-already there. Daytona and Blaxel reject `false` before the call. The error
-field is `parents`.
+already there. Daytona and Blaxel do not support `false`. The error field is
+`parents`.
 
 ```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files");
+```
+
+```go
+err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
+```
+
+Modal accepts `parents: false`:
+
+```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files/nested", {
   parents: false,
 });
 ```
 
 ```go
-err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
 err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
 	Parents: sandbox.Value(false),
 })
@@ -215,13 +223,12 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 
 ## Read metadata
 
-`Stat` returns one path. A symlink result describes the symlink. On Blaxel,
-directories return type directory; files return type file, with size and
-permission fields when Blaxel provides them. Modal can report a symlink.
-Daytona reports a file or a directory. `mode` is an octal string when the
-provider supplies one, such as `0644`. `permissions`, `owner`, and `group` are
-set when the provider supplies them. `modifiedAt` is set when the provider
-supplies a time.
+`Stat` returns one path. A symlink result describes the symlink.
+
+On Blaxel, you get `type` (file or directory), `size`, and usually
+`permissions`, `owner`, `group`, and `modifiedAt`. Modal can report a
+symlink. Daytona reports a file or a directory. `mode` is an octal string
+when present, such as `0644`.
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");

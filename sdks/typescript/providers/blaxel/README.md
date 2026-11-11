@@ -78,9 +78,10 @@ You can `get` / `refresh` (by name), `delete`, and `close`. `close` does not
 delete the sandbox. Start, stop, pause, archive, terminate, and attach are not
 available.
 
-After a successful `delete`, you get `state: "deleted"` and `terminal: true`.
-Blaxel can still be cleaning up — recreating the same name right away may
-return `Conflict`.
+After a successful `delete`, `state` is `deleted` and `terminal` is true.
+Omit `wait` to return as soon as Blaxel accepts the delete — recreating the
+same name too soon may return `Conflict`. Pass `wait: true` to wait until
+removal finishes before the call returns.
 
 On `get` / `refresh` / `info`, an idle sandbox shows as `paused`; an active one
 shows as `running`.
@@ -89,12 +90,12 @@ shows as `running`.
 
 You get the usual file APIs: `readFile`, `writeFile`, `copyFromLocal`,
 `copyToLocal`, `makeDirectory`, `listDirectory`, `stat`, and `remove`. Paths
-must be absolute. `parents` defaults to true; `parents: false` is rejected.
+must be absolute. `parents` defaults to true; Blaxel does not support
+`parents: false`.
 
-For directories, `stat` returns type directory. For files, `stat` returns type
-file with size and permission fields when Blaxel provides them.
-Missing local files for `copyFromLocal` return not found with field
-`local_path`.
+`stat` returns `type` (file or directory), `size`, and usually `permissions`,
+`owner`, `group`, and `modifiedAt`. Missing local files for `copyFromLocal`
+return not found with field `local_path`.
 
 ### Process
 

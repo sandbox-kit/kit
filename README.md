@@ -30,7 +30,7 @@ npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or: npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
-Set `DAYTONA_API_KEY`, then create a sandbox:
+Set `DAYTONA_API_KEY`, then create a Daytona sandbox:
 
 ```ts
 import { daytona } from "@sandbox-kit/daytona";
@@ -54,8 +54,10 @@ await sandbox.filesystem.writeFile(
 );
 ```
 
-Use `await client.close()` in a `finally` block when `await using` is not
-available. Timeouts are milliseconds in TypeScript.
+Empty `create()` uses Daytona's default snapshot. Modal needs an image. Blaxel
+needs `name`, an image, and client `region`. Use `await client.close()` in a
+`finally` block when `await using` is not available. Timeouts are milliseconds
+in TypeScript.
 
 ### Go
 
@@ -68,7 +70,7 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 # or: go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ```
 
-Set `DAYTONA_API_KEY`, then create a sandbox:
+Set `DAYTONA_API_KEY`, then create a Daytona sandbox:
 
 ```go
 package main
@@ -115,6 +117,9 @@ func main() {
 }
 ```
 
+`Create` with a nil request uses Daytona's default snapshot. Modal needs an
+image. Blaxel needs `Name`, an image, and client `Region`.
+
 ### What gets installed
 
 | Language   | Core SDK                                     | Providers                                                              |
@@ -122,8 +127,7 @@ func main() {
 | TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`, `@sandbox-kit/blaxel`    |
 | Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`, `.../providers/blaxel` |
 
-Install only the provider you use. The core SDK exposes the shared client
-interface; the provider package connects it to the provider's native SDK.
+Install only the provider you use.
 
 Closing a client or sandbox handle releases local SDK resources. It does not
 stop, terminate, archive, or delete the cloud sandbox.
@@ -172,7 +176,7 @@ Full catalog: [examples/README.md](examples/README.md) ·
 
 ## Handle errors
 
-Same portable kinds in both languages. Native causes stay on the TypeScript
+The same error kinds in both languages. Native causes stay on the TypeScript
 `cause` property and on Go `Unwrap` / `errors.As`. Kinds do not imply safe retries.
 
 ### TypeScript
@@ -198,6 +202,15 @@ function handleError(error: unknown): void {
       console.error(
         "Your account does not have permission for this operation.",
       );
+      break;
+    case ErrorKind.NotFound:
+      console.error("Sandbox or file path not found.");
+      break;
+    case ErrorKind.AlreadyExists:
+      console.error("Named resource already exists.");
+      break;
+    case ErrorKind.Conflict:
+      console.error("Current state rejects this operation.");
       break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
@@ -240,6 +253,12 @@ func handleError(err error) {
         fmt.Fprintln(os.Stderr, "Check your provider credentials.")
     case sandbox.ErrorKindPermissionDenied:
         fmt.Fprintln(os.Stderr, "Your account does not have permission for this operation.")
+    case sandbox.ErrorKindNotFound:
+        fmt.Fprintln(os.Stderr, "Sandbox or file path not found.")
+    case sandbox.ErrorKindAlreadyExists:
+        fmt.Fprintln(os.Stderr, "Named resource already exists.")
+    case sandbox.ErrorKindConflict:
+        fmt.Fprintln(os.Stderr, "Current state rejects this operation.")
     case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
         fmt.Fprintln(os.Stderr, "The provider's rate or resource limit was reached.")
     case sandbox.ErrorKindCanceled:

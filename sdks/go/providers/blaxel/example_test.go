@@ -90,7 +90,7 @@ func ExampleNew_get() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -112,12 +112,12 @@ func ExampleNew_delete() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	err = instance.Delete(context.Background(), &sandbox.DeleteOptions{})
+	err = instance.Delete(context.Background(), &sandbox.DeleteOptions{Wait: sandbox.Value(true)})
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -181,7 +181,7 @@ func ExampleNew_process() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -208,7 +208,7 @@ func ExampleNew_processShell() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -235,7 +235,7 @@ func ExampleNew_processEnv() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -263,7 +263,7 @@ func ExampleNew_filesystem() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -293,7 +293,7 @@ func ExampleNew_makeDirectory() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -316,7 +316,7 @@ func ExampleNew_listDirectory() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -341,7 +341,7 @@ func ExampleNew_stat() {
 	}
 	defer client.Close(context.Background())
 
-	instance, err := client.Get(context.Background(), os.Getenv("SANDBOX_ID"))
+	instance, err := client.Get(context.Background(), os.Getenv("BL_SANDBOX_NAME"))
 	if err != nil {
 		fmt.Println(err)
 		return

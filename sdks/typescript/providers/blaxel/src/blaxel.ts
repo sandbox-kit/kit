@@ -113,14 +113,18 @@ class BlaxelBackend extends BackendBase implements Backend {
 
   async delete(
     id: string,
-    _request: DeleteOptions,
+    request: DeleteOptions,
     options: OperationOptions,
   ): Promise<SandboxInfo> {
     try {
       throwIfAborted(options.signal);
       const deleted = await this.native.delete(id);
       throwIfAborted(options.signal);
-      // Blaxel DELETE may still finish asynchronously; unify as Deleted.
+      if (request.wait === true) {
+        // Blaxel has no native wait-for-delete; Kit polls until gone.
+        return await this.#waitUntilDeleted(id, options.signal);
+      }
+      // DELETE accepted; Blaxel may still finish asynchronously.
       return {
         ...mapSandboxInfo(deleted),
         state: SandboxState.Deleted,
@@ -312,6 +316,36 @@ class BlaxelBackend extends BackendBase implements Backend {
     }
   }
 
+  /** Poll get until NotFound or Deleted. Do not use the DELETE body as done. */
+  async #waitUntilDeleted(
+    id: string,
+    signal: AbortSignal | undefined,
+  ): Promise<SandboxInfo> {
+    for (;;) {
+      throwIfAborted(signal);
+      await delay(1_000, signal);
+      try {
+        const info = mapSandboxInfo(await this.native.get(id));
+        if (info.state === SandboxState.Deleted) {
+          return { ...info, terminal: true, providerState: "TERMINATED" };
+        }
+      } catch (error) {
+        const mapped = mapBlaxelError(error, "delete");
+        if (mapped.kind === ErrorKind.NotFound) {
+          return {
+            id,
+            provider: "blaxel",
+            state: SandboxState.Deleted,
+            terminal: true,
+            providerState: "TERMINATED",
+            labels: {},
+          };
+        }
+        throw mapped;
+      }
+    }
+  }
+
   async closeSandbox(_id: string, _options: OperationOptions): Promise<void> {}
 
   async close(options: OperationOptions): Promise<void> {
@@ -321,6 +355,30 @@ class BlaxelBackend extends BackendBase implements Backend {
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
+}
+
+function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(
+        signal.reason ??
+          new DOMException("The operation was aborted", "AbortError"),
+      );
+      return;
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(
+        signal?.reason ??
+          new DOMException("The operation was aborted", "AbortError"),
+      );
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 /**
