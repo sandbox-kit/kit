@@ -91,3 +91,6 @@
 {"type":"turn_ended","status":"success"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Wednesday, Nov 11, 2026, 9:48 PM (UTC+5:30)</timestamp>\n<user_query>\ncool commit and push\n</user_query>"}]}}
 {"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git status && git diff && git log -5 --oneline && git status -sb","description":"Inspect status, diff, log before commit"}}]}}
+{"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git add go.work.sum tooling/internal/commands/commands_test.go tooling/internal/commands/test.go && git commit -m \"$(cat <<'EOF'\nRegister Blaxel in sandbox-kit test go and typescript.\n\nWire the Go provider, all Go Blaxel examples, and the TypeScript provider into the harness so CI matches the tooling README.\nEOF\n)\" && git status -sb && git push -u origin HEAD && git status -sb && git log -2 --oneline","description":"Commit harness fix and push branch","required_permissions":["all"]}}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Committed `c169bd77` and pushed both local commits (`41b1767d`, `c169bd77`) to `origin/feat/blaxel-provider`."}]}}
+{"type":"turn_ended","status":"success"}

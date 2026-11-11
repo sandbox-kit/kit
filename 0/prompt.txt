@@ -1,9 +1,1 @@
-cool go ahead. commit
-
----
-
-review throughly in deeply lemme know if we should merge now.
-
----
-
-fix it
+cool commit and push
