@@ -10,7 +10,7 @@ import {
 import { providerError } from "./errors.js";
 
 /** Rejects a missing local file or a directory before Blaxel reads it. */
-export async function requireLocalFile(
+async function requireLocalFile(
   localPath: string,
   operation: string,
 ): Promise<void> {

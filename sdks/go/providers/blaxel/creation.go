@@ -81,9 +81,6 @@ func (c *creation) resources() error {
 	if err != nil {
 		return err
 	}
-	if hasUnmappedResourceFields(remaining) {
-		return providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldResources, "one or more Blaxel resource fields are not mapped")
-	}
 	if err := sdk.RejectUnmapped("blaxel", sandbox.CreateFieldResources, remaining); err != nil {
 		return err
 	}
@@ -301,10 +298,6 @@ func rejectIfSet(set bool, field, message string) error {
 func isReservedPort(port uint32) bool {
 	_, ok := reservedBlaxelPorts[port]
 	return ok
-}
-
-func hasUnmappedResourceFields(r *sandbox.Resources) bool {
-	return r.CpuCores != nil || r.CpuLimitCores != nil || r.MemoryLimitMib != nil || r.DiskMib != nil
 }
 
 func hasUnsupportedLifetimeFields(c *sandbox.LifetimePolicy) bool {

@@ -51,16 +51,12 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
   };
 }
 
-export interface NativeCreateOptions {
-  /** Blaxel create timeout in whole seconds (1..50). */
-  readonly timeout?: number;
-}
-
 export interface NativeBlaxel {
   configure(config: NativeClientConfig): void;
   create(
     params: SandboxCreateConfiguration,
-    options?: NativeCreateOptions,
+    /** Blaxel create timeout in whole seconds (1..50). */
+    options?: { readonly timeout?: number },
   ): Promise<NativeSandboxHandle>;
   get(name: string): Promise<NativeSandboxHandle>;
   delete(name: string): Promise<BlaxelSandboxIdentity>;
@@ -101,7 +97,7 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
  * filesystem GET as Go.
  */
 export function projectHandle(instance: SandboxInstance): NativeSandboxHandle {
-  const state = wireRuntimeState(instance);
+  const state = readWireRuntimeState(instance);
   return {
     metadata: instance.metadata,
     status: instance.status,
@@ -172,9 +168,18 @@ function isFileMetadata(data: unknown): data is BlaxelFile {
   );
 }
 
-function wireRuntimeState(instance: SandboxInstance): string | undefined {
-  const wire = instance as unknown as { sandbox?: { state?: unknown } };
-  const value = wire.sandbox?.state;
-  if (value === undefined || String(value) === "") return undefined;
-  return String(value);
+/**
+ * Runtime state lives on Blaxel's private wire model (`sandbox.state`). The
+ * published `SandboxInstance` typings expose status/spec getters but not state,
+ * so this is the single boundary that reads it for Kit's handle projection.
+ */
+type BlaxelWireRuntime = {
+  readonly sandbox?: { readonly state?: unknown };
+};
+
+function readWireRuntimeState(instance: SandboxInstance): string | undefined {
+  const value = (instance as unknown as BlaxelWireRuntime).sandbox?.state;
+  if (value === undefined || value === null || value === "") return undefined;
+  const text = String(value);
+  return text === "" ? undefined : text;
 }
