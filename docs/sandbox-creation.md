@@ -65,7 +65,8 @@ convert units.
 Local checks cover syntax, known enums, documented bounds, precision, and
 supported combinations. Account quotas, class-specific permissions, image
 existence, regions, and capacity remain provider-enforced. Metadata availability
-varies; resource metadata represents SDK-reported allocation, not echoed requests.
+varies; resource and label fields on the handle are what the provider reported,
+not a copy of the create request.
 
 ## Policy semantics
 
@@ -100,7 +101,8 @@ Its maximum lifetime and idle delay remain separate settings.
 
 Blaxel idle terminate supports only `PolicyModeAfter` with a delay of at least
 1m, or provider default. `PolicyModeDisabled` on idle terminate is rejected.
-Maximum lifetime, when set, must be at least 5m.
+Maximum lifetime, when set, must be at least 5m. Ephemeral, idle stop/pause,
+stopped archive/delete, runtime, and isolation are rejected.
 
 Image references support lowercase repository paths, optional registry hostnames
 and ports, tags up to 128 characters, and SHA-256 digests, within 512 characters.

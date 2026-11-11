@@ -113,7 +113,10 @@ for you.
 
 On Blaxel, creating a sandbox whose name already exists returns
 `AlreadyExists`. If a delete is still finishing or another conflict occurs,
-you get `Conflict`.
+you get `Conflict`. Lifetime below Blaxel’s floors (≥5m max lifetime, ≥1m idle)
+or a non-whole-second duration is `InvalidArgument`. Unsupported create fields
+are `Unsupported`. When Blaxel returns a control-plane code, it is on
+`ProviderCode` / `providerCode`.
 
 ## After a failure
 

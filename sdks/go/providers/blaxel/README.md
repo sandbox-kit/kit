@@ -67,9 +67,10 @@ rejected. `Scope` fields other than `Workspace` are rejected.
 You need a name and an image. Names are lowercase alphanumeric with single
 hyphens (max 49 characters). You can also set labels, environment variables,
 memory, ports, outbound domains, maximum lifetime (≥5 minutes), and idle
-terminate (≥1 minute). You cannot disable idle terminate. Ports 80, 443, and
-8080 are reserved. Default port transport is HTTP; plain is TCP; TLS is TLS;
-HTTP/2 over TLS is not supported.
+terminate (≥1 minute). You cannot disable idle terminate. Runtime and
+isolation are not supported. `Info().Labels` is set only when Blaxel reports
+labels. Ports 80, 443, and 8080 are reserved. Default port transport is HTTP;
+plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
 
 Set client or create timeout for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name. Ready wait and readiness probes
@@ -120,10 +121,14 @@ command may keep running. If the wait times out, you get a timeout error.
 
 ### Errors you will see
 
-| Situation                                  | Kind            |
-| ------------------------------------------ | --------------- |
-| Create when the name already exists        | `AlreadyExists` |
-| Conflict while a delete is still finishing | `Conflict`      |
+| Situation                                  | Kind              |
+| ------------------------------------------ | ----------------- |
+| Create when the name already exists        | `AlreadyExists`   |
+| Conflict while a delete is still finishing | `Conflict`        |
+| Lifetime below floor or not whole seconds  | `InvalidArgument` |
+| Unsupported create field (runtime, …)      | `Unsupported`     |
+
+Blaxel control-plane codes appear on `ProviderCode` when present.
 
 ## Examples
 

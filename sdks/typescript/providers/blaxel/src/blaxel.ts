@@ -103,7 +103,7 @@ class BlaxelBackend extends BackendBase implements Backend {
         plan.params,
         timeoutSeconds === undefined ? undefined : { timeout: timeoutSeconds },
       );
-      return { sandbox: mapSandboxInfo(sandbox, request) };
+      return { sandbox: mapSandboxInfo(sandbox) };
     } catch (error) {
       throw mapBlaxelError(error, "create");
     }

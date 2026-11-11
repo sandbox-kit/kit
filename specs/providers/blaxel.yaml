@@ -1,9 +1,9 @@
 version: 1
 provider: blaxel
 # Create checks are handwritten. Name/image/placement/resources/env live in
-# provider_checks; readiness/security/observability/provisioning/ports/network
-# live in create mapping (Go creation.go, TS mappings/mappings.ts). Keep this
-# list in sync; it is not emitted.
+# provider_checks; readiness/security/observability/provisioning/ports/network/
+# runtime/isolation/lifetime live in create mapping (Go creation.go, TS
+# mappings/mappings.ts). Keep this list in sync; it is not emitted.
 checks:
   - {
       path: name,
@@ -20,6 +20,21 @@ checks:
   - { path: resources.cpu_limit_cores, unsupported: true }
   - { path: resources.memory_limit_mib, unsupported: true }
   - { path: resources.disk_mib, unsupported: true }
+  - {
+      path: runtime,
+      unsupported: true,
+      notes: "working_directory, user, language, version, entrypoint, and PTY; enforced in create mapping",
+    }
+  - { path: isolation, unsupported: true }
+  - {
+      path: lifetime.idle_terminate,
+      notes: "PolicyModeDisabled rejected; After maps to ttl-idle ≥60s; enforced in create mapping",
+    }
+  - {
+      path: lifetime.ephemeral,
+      unsupported: true,
+      notes: "with idle_stop, idle_pause, stopped_archive, and stopped_delete",
+    }
   - {
       path: network.ports.port,
       notes: "reject reserved 80, 443, and 8080; enforced in create mapping",

@@ -142,26 +142,26 @@ func TestFormatBlaxelDuration(t *testing.T) {
 		in      time.Duration
 		minimum time.Duration
 		want    string
-		ok      bool
+		err     string
 	}{
-		{30 * time.Second, time.Second, "30s", true},
-		{5 * time.Minute, 5 * time.Minute, "5m", true},
-		{2 * time.Hour, 5 * time.Minute, "2h", true},
-		{48 * time.Hour, 5 * time.Minute, "2d", true},
-		{30 * time.Second, time.Minute, "", false},
-		{4 * time.Minute, 5 * time.Minute, "", false},
-		{1500 * time.Millisecond, time.Second, "", false},
-		{0, time.Second, "", false},
+		{30 * time.Second, time.Second, "30s", ""},
+		{5 * time.Minute, 5 * time.Minute, "5m", ""},
+		{2 * time.Hour, 5 * time.Minute, "2h", ""},
+		{48 * time.Hour, 5 * time.Minute, "2d", ""},
+		{30 * time.Second, time.Minute, "", "duration must be at least 1m"},
+		{4 * time.Minute, 5 * time.Minute, "", "duration must be at least 5m"},
+		{1500 * time.Millisecond, time.Second, "", "duration must be a positive whole number of seconds"},
+		{0, time.Second, "", "duration must be a positive whole number of seconds"},
 	} {
 		got, err := formatBlaxelDuration(tc.in, tc.minimum)
-		if tc.ok {
+		if tc.err == "" {
 			if err != nil || got != tc.want {
 				t.Fatalf("%v (min %v): got %q err %v", tc.in, tc.minimum, got, err)
 			}
 			continue
 		}
-		if err == nil {
-			t.Fatalf("%v (min %v): expected error", tc.in, tc.minimum)
+		if err == nil || err.Error() != tc.err {
+			t.Fatalf("%v (min %v): got err %v want %q", tc.in, tc.minimum, err, tc.err)
 		}
 	}
 }

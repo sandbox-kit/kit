@@ -4,7 +4,9 @@ Create one Blaxel sandbox with labels and environment variables.
 
 ## What this means
 
-Set `labels` and create-time environment variables. They appear as sandbox metadata and runtime env.
+Set `labels` and create-time environment variables. Environment variables are
+available inside the sandbox. `Info().Labels` is set only when Blaxel reports
+labels back — Kit does not copy them from the create request.
 
 ## Edge cases
 

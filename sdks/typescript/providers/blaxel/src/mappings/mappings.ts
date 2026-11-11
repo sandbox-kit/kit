@@ -290,22 +290,17 @@ export function blaxelCreateTimeoutSeconds(
   return seconds;
 }
 
-export function mapSandboxInfo(
-  value: BlaxelSandboxIdentity,
-  request?: CreateOptions,
-): SandboxInfo {
+/** Maps native fields into shared metadata. Does not invent values Blaxel omitted. */
+export function mapSandboxInfo(value: BlaxelSandboxIdentity): SandboxInfo {
   const mapped = generatedMapSandboxIdentity(value);
-  const id = mapped.id ?? request?.name ?? value.metadata?.name ?? "";
+  const id = mapped.id ?? value.metadata?.name ?? "";
   const result: SandboxInfo = {
     id,
     provider: "blaxel",
     state: mapped.state ?? SandboxState.Unknown,
   };
   if (mapped.name !== undefined) mutable(result).name = mapped.name;
-  else if (request?.name !== undefined) mutable(result).name = request.name;
   if (mapped.labels !== undefined) mutable(result).labels = mapped.labels;
-  else if (request?.labels !== undefined)
-    mutable(result).labels = { ...request.labels };
   if (mapped.region !== undefined) mutable(result).region = mapped.region;
   if (mapped.providerState !== undefined)
     mutable(result).providerState = mapped.providerState;
@@ -335,9 +330,18 @@ interface DurationStringArgs {
 /** Converts Kit millisecond durations into Blaxel duration strings (s/m/h/d). */
 function durationString(args: DurationStringArgs): string {
   const { ms, field, minimumMs } = args;
+  // Rejection text matches Go formatBlaxelDuration.
   if (!Number.isFinite(ms) || ms <= 0 || ms % 1_000 !== 0)
-    invalid(field, "must be a whole number of seconds");
-  if (ms < minimumMs) invalid(field, "is below the Blaxel minimum duration");
+    invalid(field, "duration must be a positive whole number of seconds");
+  if (ms < minimumMs)
+    invalid(
+      field,
+      `duration must be at least ${blaxelDurationUnits(minimumMs)}`,
+    );
+  return blaxelDurationUnits(ms);
+}
+
+function blaxelDurationUnits(ms: number): string {
   const seconds = ms / 1_000;
   if (seconds % 86_400 === 0) return `${seconds / 86_400}d`;
   if (seconds % 3_600 === 0) return `${seconds / 3_600}h`;

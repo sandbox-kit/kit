@@ -79,6 +79,14 @@ const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
   VALIDATION_FAILED: ErrorKind.InvalidArgument,
   VALIDATION_ERROR: ErrorKind.InvalidArgument,
   WORKSPACE_REQUIRED: ErrorKind.InvalidArgument,
+  PARSE_FAILED: ErrorKind.InvalidArgument,
+  REGION_MISMATCH: ErrorKind.InvalidArgument,
+  VOLUME_PROVIDER_MISMATCH: ErrorKind.InvalidArgument,
+  KERNEL_GENERATION_MISMATCH: ErrorKind.InvalidArgument,
+  VALIDATED_DATA_ERROR: ErrorKind.InvalidArgument,
+  WORKSPACE_DATA_MISSING: ErrorKind.InvalidArgument,
+  UPLOAD_NOT_SUPPORTED: ErrorKind.Unsupported,
+  UNSUPPORTED_GENERATION: ErrorKind.Unsupported,
   CREATION_TIMEOUT: ErrorKind.Timeout,
   UPSTREAM_CONNECT_TIMEOUT: ErrorKind.Timeout,
   UPSTREAM_TIMEOUT: ErrorKind.Timeout,
@@ -87,6 +95,7 @@ const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
   RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
   WORKSPACE_RATE_LIMIT_EXCEEDED: ErrorKind.RateLimited,
   SANDBOX_DELETION_IN_PROGRESS: ErrorKind.Conflict,
+  LOCKDOWN_ERROR: ErrorKind.FailedPrecondition,
   WORKLOAD_UNAVAILABLE: ErrorKind.Unavailable,
   ROUTING_UNAVAILABLE: ErrorKind.Unavailable,
   SERVICE_UNAVAILABLE: ErrorKind.Unavailable,
@@ -94,10 +103,22 @@ const CODE_KINDS: Record<string, ErrorInfo["kind"]> = {
   UPSTREAM_CONNECT_FAILED: ErrorKind.Unavailable,
   UPSTREAM_ERROR: ErrorKind.Unavailable,
   GATEWAY_INTERNAL_ERROR: ErrorKind.Unavailable,
+  UPLOAD_UNAVAILABLE: ErrorKind.Unavailable,
+  LOCK_ACQUISITION_FAILED: ErrorKind.Unavailable,
+  VOLUME_LOOKUP_FAILED: ErrorKind.Unavailable,
+  CLUSTER_GATEWAY_ERROR: ErrorKind.Unavailable,
   WORKLOAD_FAILED: ErrorKind.Internal,
   INTERNAL_ERROR: ErrorKind.Internal,
   HANDLER_ERROR: ErrorKind.Internal,
   DATABASE_ERROR: ErrorKind.Internal,
+  READ_FAILED: ErrorKind.Internal,
+  BUILD_TRIGGER_ERROR: ErrorKind.Internal,
+  PRESIGNED_URL_ERROR: ErrorKind.Internal,
+  DEPLOYMENT_FAILED: ErrorKind.Internal,
+  PROXY_CONFIG_ERROR: ErrorKind.Internal,
+  CALLBACK_SEND_FAILED: ErrorKind.Internal,
+  FORK_FAILED: ErrorKind.Internal,
+  UNKNOWN_ERROR: ErrorKind.Internal,
 };
 
 const STATUS_KINDS: Record<number, ErrorInfo["kind"]> = {
@@ -161,19 +182,19 @@ function classifyKind(args: ClassifyArgs): ErrorInfo["kind"] {
   )
     return ErrorKind.Timeout;
   // process.wait deadline is a plain Error; a 504 on that wait may be its cause.
-  // A bare edge 504 is a timeout too, matching Go.
-  if (
-    isProcessWaitTimeout(error) ||
-    isGatewayTimeout(error) ||
-    isGatewayTimeout(cause)
-  )
+  if (isProcessWaitTimeout(error)) return ErrorKind.Timeout;
+
+  // Provider codes win over bare gateway status so WORKLOAD_FAILED on 503 is
+  // Internal in both languages (Go maps ErrorCode before StatusCode).
+  if (providerCode !== undefined && CODE_KINDS[providerCode] !== undefined)
+    return CODE_KINDS[providerCode]!;
+
+  // Bare edge 504 is a timeout; other gateway statuses are Unavailable.
+  if (isGatewayTimeout(error) || isGatewayTimeout(cause) || statusCode === 504)
     return ErrorKind.Timeout;
   if (error instanceof SandboxGatewayError || isGatewayError(error))
     return ErrorKind.Unavailable;
 
-  // Unknown codes fall through so status can still classify the failure.
-  if (providerCode !== undefined && CODE_KINDS[providerCode] !== undefined)
-    return CODE_KINDS[providerCode]!;
   if (statusCode !== undefined) {
     const mapped = statusKindFor(statusCode, operation);
     if (mapped !== undefined) return mapped;

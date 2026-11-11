@@ -19,20 +19,25 @@ Returned by info and many lifecycle methods. Values are a **copy**; mutating the
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Field              | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `id`               | Sandbox identifier                                      |
-| `provider`         | Provider identifier                                     |
-| `name`             | Display name when reported                              |
+| Field              | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `id`               | Sandbox identifier                                       |
+| `provider`         | Provider identifier                                      |
+| `name`             | Display name when reported                               |
 | `providerState`    | Provider-specific status string; prefer portable `state` |
-| `region`           | Region when reported                                    |
-| `isolation`        | Reported isolation config                               |
-| `resources`        | Reported size (`cpuCores`, `memoryMib`, …)              |
-| `labels`           | Labels when reported                                    |
-| `createdAt`        | Creation time when reported                             |
-| `providerMetadata` | Extra provider metadata object                          |
-| `state`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate) |
-| `terminal`         | Whether the lifecycle is permanently complete           |
+| `region`           | Region when reported                                     |
+| `isolation`        | Reported isolation config                                |
+| `resources`        | Reported size (`cpuCores`, `memoryMib`, …)               |
+| `labels`           | Labels when reported                                     |
+| `createdAt`        | Creation time when reported                              |
+| `providerMetadata` | Extra provider metadata object                           |
+| `state`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate)  |
+| `terminal`         | Whether the lifecycle is permanently complete            |
+
+<ForProvider id="blaxel">
+  `labels` is set only when Blaxel returns them — not copied from the create
+  request.
+</ForProvider>
 
 **Example**
 
@@ -46,20 +51,25 @@ console.log(info);
   </Tab>
   <Tab value="Go">
 
-| Field              | Description                                             |
-| ------------------ | ------------------------------------------------------- |
-| `Id`               | Sandbox identifier                                      |
-| `Provider`         | Provider identifier                                     |
-| `Name`             | Display name when reported                              |
+| Field              | Description                                              |
+| ------------------ | -------------------------------------------------------- |
+| `Id`               | Sandbox identifier                                       |
+| `Provider`         | Provider identifier                                      |
+| `Name`             | Display name when reported                               |
 | `ProviderState`    | Provider-specific status string; prefer portable `State` |
-| `Region`           | Region when reported                                    |
-| `Isolation`        | Reported isolation config                               |
-| `Resources`        | Reported size (`CpuCores`, `MemoryMib`, …)              |
-| `Labels`           | Labels when reported                                    |
-| `CreatedAt`        | Creation time when reported                             |
-| `ProviderMetadata` | Extra provider metadata object                          |
-| `State`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate) |
-| `Terminal`         | Whether the lifecycle is permanently complete           |
+| `Region`           | Region when reported                                     |
+| `Isolation`        | Reported isolation config                                |
+| `Resources`        | Reported size (`CpuCores`, `MemoryMib`, …)               |
+| `Labels`           | Labels when reported                                     |
+| `CreatedAt`        | Creation time when reported                              |
+| `ProviderMetadata` | Extra provider metadata object                           |
+| `State`            | Portable [`SandboxState`](/docs/sdk/enums#sandboxstate)  |
+| `Terminal`         | Whether the lifecycle is permanently complete            |
+
+<ForProvider id="blaxel">
+  `Labels` is set only when Blaxel returns them — not copied from the create
+  request.
+</ForProvider>
 
 **Example**
 

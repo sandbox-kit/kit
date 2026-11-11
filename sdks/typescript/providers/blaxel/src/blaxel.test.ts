@@ -269,6 +269,27 @@ describe("Blaxel mappings", () => {
       expect.objectContaining({
         kind: ErrorKind.InvalidArgument,
         field: CreateFieldLifetimeMaximumLifetime,
+        message:
+          "sandbox-kit blaxel: duration must be a positive whole number of seconds",
+      }),
+    );
+  });
+
+  it("rejects lifetime durations below the Blaxel floor", () => {
+    expect(() =>
+      mapCreateRequest(
+        {
+          name: "example",
+          source: { image: { reference: "blaxel/base-image:latest" } },
+          lifetime: { maximumLifetime: 4 * 60_000 },
+        },
+        provider,
+      ),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldLifetimeMaximumLifetime,
+        message: "sandbox-kit blaxel: duration must be at least 5m",
       }),
     );
   });
@@ -408,6 +429,74 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("prefers WORKLOAD_FAILED over bare gateway 503 unavailable", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 503, statusText: "Service Unavailable" }),
+      {
+        error: {
+          code: "WORKLOAD_FAILED",
+          message: "failed",
+          status: 503,
+        },
+      },
+      new Error("failed"),
+    );
+    expect(mapBlaxelError(native, "refresh")).toMatchObject({
+      kind: ErrorKind.Internal,
+      providerCode: "WORKLOAD_FAILED",
+      statusCode: 503,
+      cause: native,
+    });
+  });
+
+  it("classifies create-plane codes from @blaxel/core BlaxelErrorCode", () => {
+    const deployment = new ResponseError(
+      new Response(null, { status: 500, statusText: "Internal Server Error" }),
+      {
+        error: {
+          code: "DEPLOYMENT_FAILED",
+          message: "deploy",
+          status_code: 500,
+        },
+      },
+      new Error("deploy"),
+    );
+    expect(mapBlaxelError(deployment, "create")).toMatchObject({
+      kind: ErrorKind.Internal,
+      providerCode: "DEPLOYMENT_FAILED",
+    });
+    const mismatch = new ResponseError(
+      new Response(null, { status: 400, statusText: "Bad Request" }),
+      {
+        error: {
+          code: "REGION_MISMATCH",
+          message: "region",
+          status_code: 400,
+        },
+      },
+      new Error("region"),
+    );
+    expect(mapBlaxelError(mismatch, "create")).toMatchObject({
+      kind: ErrorKind.InvalidArgument,
+      providerCode: "REGION_MISMATCH",
+    });
+    const unsupported = new ResponseError(
+      new Response(null, { status: 400, statusText: "Bad Request" }),
+      {
+        error: {
+          code: "UPLOAD_NOT_SUPPORTED",
+          message: "upload",
+          status_code: 400,
+        },
+      },
+      new Error("upload"),
+    );
+    expect(mapBlaxelError(unsupported, "create")).toMatchObject({
+      kind: ErrorKind.Unsupported,
+      providerCode: "UPLOAD_NOT_SUPPORTED",
+    });
+  });
+
   it("reads provider codes from error.cause", () => {
     const native = new ResponseError(
       new Response(null, { status: 403, statusText: "Forbidden" }),
@@ -476,6 +565,25 @@ describe("Blaxel mappings", () => {
     expect(info.labels).toBeUndefined();
     expect(info.createdAt).toBeUndefined();
     expect(info.providerMetadata).toBeUndefined();
+  });
+
+  it("keeps native labels and does not invent from create request", () => {
+    expect(
+      mapSandboxInfo({
+        metadata: { name: "demo", labels: { team: "kit" } },
+        status: "DEPLOYED",
+        state: "RUNNING",
+        spec: { region: "us-pdx-1" },
+      }).labels,
+    ).toEqual({ team: "kit" });
+    expect(
+      mapSandboxInfo({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "RUNNING",
+        spec: { region: "us-pdx-1" },
+      }).labels,
+    ).toBeUndefined();
   });
 
   it("marks DELETED and TERMINATED refresh as terminal", () => {

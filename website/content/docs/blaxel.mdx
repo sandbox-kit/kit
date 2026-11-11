@@ -175,12 +175,14 @@ Blaxel client (or one API key) per process. Full rules:
 | Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach                                                |
 | Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
 | State     | Idle → paused; active → running                                                                                 |
-| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict                                       |
+| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict; bad TTL/idle → InvalidArgument       |
 | Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
 | Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
 
 Pass `memoryMib` / `memory_mib` for memory (Blaxel treats it as MB). Omit it for
-Blaxel’s default. CPU and disk overrides are not supported.
+Blaxel’s default. CPU and disk overrides are not supported. Runtime and
+isolation are not supported. Labels on `info()` appear only when Blaxel reports
+them.
 
 Default ports are HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not
 supported. Ready wait and idle disable are not supported.

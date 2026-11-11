@@ -60,10 +60,11 @@ client with different credentials replaces the first.
 You need a valid `name` (lowercase alphanumeric with single hyphens, max 49
 characters), an image, and `region`. You can also set `memoryMib`, labels,
 environment variables, ports, outbound domains, max-age TTL (≥5 minutes), and
-idle-delete (≥1 minute). You cannot disable idle terminate. If you omit
-memory, Blaxel applies its default. CPU and disk overrides are rejected —
-Blaxel derives CPU from memory. Set `memoryMib` for memory size; Blaxel
-documents that value as MB and Kit does not convert units.
+idle-delete (≥1 minute). You cannot disable idle terminate. Runtime and
+isolation are not supported. `info().labels` is set only when Blaxel reports
+labels. If you omit memory, Blaxel applies its default. CPU and disk overrides
+are rejected — Blaxel derives CPU from memory. Set `memoryMib` for memory size;
+Blaxel documents that value as MB and Kit does not convert units.
 
 Set client or create `timeout` for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name. Ready wait is not supported
@@ -112,10 +113,14 @@ wait times out, you get a timeout error.
 
 ### Errors you will see
 
-| Situation                                  | Kind            |
-| ------------------------------------------ | --------------- |
-| Create when the name already exists        | `AlreadyExists` |
-| Conflict while a delete is still finishing | `Conflict`      |
+| Situation                                  | Kind              |
+| ------------------------------------------ | ----------------- |
+| Create when the name already exists        | `AlreadyExists`   |
+| Conflict while a delete is still finishing | `Conflict`        |
+| Lifetime below floor or not whole seconds  | `InvalidArgument` |
+| Unsupported create field (runtime, …)      | `Unsupported`     |
+
+Blaxel control-plane codes appear on `providerCode` when present.
 
 ## Examples
 

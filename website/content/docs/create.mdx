@@ -275,11 +275,12 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 | CPU       | Derived from memory; CPU overrides are not supported                                              |
 | Memory    | `memoryMib` / `memory_mib` (Blaxel treats the value as MB)                                        |
 | Disk      | Cannot be set                                                                                     |
-| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); idle disable not supported                       |
+| Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); idle disable / ephemeral siblings not supported  |
 | Placement | Client `region` required; placement on the request is not supported                               |
 | Ports     | Default → HTTP; plain → TCP; TLS → TLS; Http2Tls not supported; 80/443/8080 reserved              |
 | Wait      | `waitFor` only `Default` / `Scheduled`; create `timeout` 1–50s frees the name on timeout          |
 | Runtime   | Not supported                                                                                     |
+| Isolation | Not supported                                                                                     |
 
 Volumes are not available on create.
 

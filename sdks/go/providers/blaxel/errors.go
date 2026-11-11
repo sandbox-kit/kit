@@ -43,6 +43,15 @@ var providerCodeKinds = map[string]sandbox.ErrorKind{
 	"VALIDATION_FAILED":          sandbox.ErrorKindInvalidArgument,
 	"VALIDATION_ERROR":           sandbox.ErrorKindInvalidArgument,
 	"WORKSPACE_REQUIRED":         sandbox.ErrorKindInvalidArgument,
+	"PARSE_FAILED":               sandbox.ErrorKindInvalidArgument,
+	"REGION_MISMATCH":            sandbox.ErrorKindInvalidArgument,
+	"VOLUME_PROVIDER_MISMATCH":   sandbox.ErrorKindInvalidArgument,
+	"KERNEL_GENERATION_MISMATCH": sandbox.ErrorKindInvalidArgument,
+	"VALIDATED_DATA_ERROR":       sandbox.ErrorKindInvalidArgument,
+	"WORKSPACE_DATA_MISSING":     sandbox.ErrorKindInvalidArgument,
+
+	"UPLOAD_NOT_SUPPORTED":   sandbox.ErrorKindUnsupported,
+	"UNSUPPORTED_GENERATION": sandbox.ErrorKindUnsupported,
 
 	"CREATION_TIMEOUT":         sandbox.ErrorKindTimeout,
 	"UPSTREAM_CONNECT_TIMEOUT": sandbox.ErrorKindTimeout,
@@ -55,6 +64,7 @@ var providerCodeKinds = map[string]sandbox.ErrorKind{
 	"WORKSPACE_RATE_LIMIT_EXCEEDED": sandbox.ErrorKindRateLimited,
 
 	"SANDBOX_DELETION_IN_PROGRESS": sandbox.ErrorKindConflict,
+	"LOCKDOWN_ERROR":               sandbox.ErrorKindFailedPrecondition,
 
 	sdkblaxel.ErrWorkloadUnavailable: sandbox.ErrorKindUnavailable,
 	"ROUTING_UNAVAILABLE":            sandbox.ErrorKindUnavailable,
@@ -63,11 +73,23 @@ var providerCodeKinds = map[string]sandbox.ErrorKind{
 	"UPSTREAM_CONNECT_FAILED":        sandbox.ErrorKindUnavailable,
 	"UPSTREAM_ERROR":                 sandbox.ErrorKindUnavailable,
 	"GATEWAY_INTERNAL_ERROR":         sandbox.ErrorKindUnavailable,
+	"UPLOAD_UNAVAILABLE":             sandbox.ErrorKindUnavailable,
+	"LOCK_ACQUISITION_FAILED":        sandbox.ErrorKindUnavailable,
+	"VOLUME_LOOKUP_FAILED":           sandbox.ErrorKindUnavailable,
+	"CLUSTER_GATEWAY_ERROR":          sandbox.ErrorKindUnavailable,
 
-	"WORKLOAD_FAILED": sandbox.ErrorKindInternal,
-	"INTERNAL_ERROR":  sandbox.ErrorKindInternal,
-	"HANDLER_ERROR":   sandbox.ErrorKindInternal,
-	"DATABASE_ERROR":  sandbox.ErrorKindInternal,
+	"WORKLOAD_FAILED":      sandbox.ErrorKindInternal,
+	"INTERNAL_ERROR":       sandbox.ErrorKindInternal,
+	"HANDLER_ERROR":        sandbox.ErrorKindInternal,
+	"DATABASE_ERROR":       sandbox.ErrorKindInternal,
+	"READ_FAILED":          sandbox.ErrorKindInternal,
+	"BUILD_TRIGGER_ERROR":  sandbox.ErrorKindInternal,
+	"PRESIGNED_URL_ERROR":  sandbox.ErrorKindInternal,
+	"DEPLOYMENT_FAILED":    sandbox.ErrorKindInternal,
+	"PROXY_CONFIG_ERROR":   sandbox.ErrorKindInternal,
+	"CALLBACK_SEND_FAILED": sandbox.ErrorKindInternal,
+	"FORK_FAILED":          sandbox.ErrorKindInternal,
+	"UNKNOWN_ERROR":        sandbox.ErrorKindInternal,
 }
 
 var providerStatusKinds = map[int]sandbox.ErrorKind{

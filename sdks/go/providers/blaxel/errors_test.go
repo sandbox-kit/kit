@@ -117,3 +117,51 @@ func TestMapProviderErrorGatewayTimeout(t *testing.T) {
 		t.Fatalf("error = %v detail = %#v", mapped, detail)
 	}
 }
+
+func TestMapProviderErrorWorkloadFailedOverGatewayStatus(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusServiceUnavailable,
+		ErrorCode:  "WORKLOAD_FAILED",
+		Request:    &http.Request{Method: http.MethodGet, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusServiceUnavailable},
+	}, "refresh")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindInternal {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+	if detail.GetProviderCode() != "WORKLOAD_FAILED" {
+		t.Fatalf("provider code = %q", detail.GetProviderCode())
+	}
+}
+
+func TestMapProviderErrorCreatePlaneCodes(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct {
+		code string
+		kind sandbox.ErrorKind
+	}{
+		{"DEPLOYMENT_FAILED", sandbox.ErrorKindInternal},
+		{"REGION_MISMATCH", sandbox.ErrorKindInvalidArgument},
+		{"UPLOAD_NOT_SUPPORTED", sandbox.ErrorKindUnsupported},
+		{"UPLOAD_UNAVAILABLE", sandbox.ErrorKindUnavailable},
+		{"LOCKDOWN_ERROR", sandbox.ErrorKindFailedPrecondition},
+	} {
+		mapped := mapProviderError(&sdkblaxel.Error{
+			StatusCode: http.StatusBadRequest,
+			ErrorCode:  tc.code,
+			Request:    &http.Request{Method: http.MethodPost, URL: parsed},
+			Response:   &http.Response{StatusCode: http.StatusBadRequest},
+		}, "create")
+		var detail *sandbox.Error
+		if !errors.As(mapped, &detail) || detail.Kind != tc.kind {
+			t.Fatalf("%s: error = %v detail = %#v", tc.code, mapped, detail)
+		}
+	}
+}
