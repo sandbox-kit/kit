@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M75KHG44HR3FXP1K7P3HHWMS",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 5,
+  "files_touched": [
+    "docs/filesystem.md",
+    "examples/go/blaxel/filesystem/stat-blaxel-file/README.md",
+    "examples/typescript/blaxel/filesystem/stat-blaxel-file/README.md",
+    "sdks/go/providers/blaxel/README.md",
+    "sdks/go/providers/blaxel/provider_checks.go",
+    "sdks/go/providers/blaxel/rejection_test.go",
+    "sdks/typescript/providers/blaxel/README.md",
+    "sdks/typescript/providers/blaxel/src/blaxel.test.ts",
+    "sdks/typescript/providers/blaxel/src/filesystem.ts",
+    "sdks/typescript/providers/blaxel/src/rejection.test.ts",
+    "website/content/docs/blaxel.mdx",
+    "website/content/docs/create.mdx",
+    "website/content/docs/filesystem.mdx",
+    "website/content/docs/sdk/create-options.mdx",
+    "website/content/docs/sdk/filesystem.mdx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 32268,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 1944960,
+    "output_tokens": 9575,
+    "api_call_count": 2
+  }
+}
