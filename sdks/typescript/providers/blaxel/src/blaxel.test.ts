@@ -336,6 +336,21 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("classifies bare HTTP 409 outside create as conflict", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      { error: { message: "conflict" } },
+      new Error("conflict"),
+    );
+    expect(mapBlaxelError(native, "delete")).toMatchObject({
+      kind: ErrorKind.Conflict,
+      provider: "blaxel",
+      operation: "delete",
+      statusCode: 409,
+      cause: native,
+    });
+  });
+
   it("keeps SANDBOX_DELETION_IN_PROGRESS as conflict", () => {
     const native = new ResponseError(
       new Response(null, { status: 409, statusText: "Conflict" }),
@@ -586,7 +601,9 @@ describe("Blaxel provider orchestration", () => {
       async wait() {
         return this;
       },
-      async delete() {},
+      async delete() {
+        return { metadata: { name: "example" }, status: "DELETED" };
+      },
     };
     const client = new Client({
       provider: new BlaxelProvider(() => ({
@@ -647,7 +664,9 @@ describe("Blaxel provider orchestration", () => {
           async wait() {
             return this;
           },
-          async delete() {},
+          async delete() {
+            return { metadata: { name: "unused" }, status: "DELETED" };
+          },
         };
       },
       async delete() {
@@ -663,29 +682,19 @@ describe("Blaxel provider orchestration", () => {
     expect(info).toMatchObject({ id: "existing", provider: "blaxel" });
   });
 
-  it("deletes by name after a provider-verified lookup", async () => {
+  it("maps delete from the Blaxel DELETE response state", async () => {
     const deleted: string[] = [];
     const backend = new BlaxelProvider(() => ({
       configure() {},
       async create() {
         throw new Error("unexpected create");
       },
-      async get(name) {
-        return {
-          metadata: { name },
-          status: "RUNNING",
-          fs: {} as never,
-          process: {} as never,
-          async wait() {
-            return this;
-          },
-          async delete() {
-            deleted.push(name);
-          },
-        };
+      async get() {
+        throw new Error("unexpected get");
       },
       async delete(name) {
-        deleted.push(`static:${name}`);
+        deleted.push(name);
+        return { metadata: { name }, status: "DELETING" };
       },
     })).initialize({
       auth: { apiKey: { key: "bl_key" } },
@@ -696,10 +705,10 @@ describe("Blaxel provider orchestration", () => {
     expect(deleted).toEqual(["doomed"]);
     expect(info).toMatchObject({
       id: "doomed",
-      state: SandboxState.Deleted,
-      terminal: true,
-      providerState: "TERMINATED",
+      state: SandboxState.Deleting,
+      providerState: "DELETING",
     });
+    expect(info.terminal).toBeUndefined();
   });
 
   it("does not create a sandbox after the signal aborts during mapping", async () => {
@@ -877,7 +886,9 @@ describe("Blaxel provider orchestration", () => {
           async wait() {
             return this;
           },
-          async delete() {},
+          async delete() {
+            return { metadata: { name: "unused" }, status: "DELETED" };
+          },
         };
       },
       async delete() {
@@ -1178,7 +1189,9 @@ function fsBackend(fs: {
         async wait() {
           return this;
         },
-        async delete() {},
+        async delete() {
+          return { metadata: { name: "unused" }, status: "DELETED" };
+        },
       };
     },
     async delete() {
@@ -1225,7 +1238,9 @@ function runBackend(process: {
         async wait() {
           return this;
         },
-        async delete() {},
+        async delete() {
+          return { metadata: { name: "unused" }, status: "DELETED" };
+        },
       };
     },
     async delete() {

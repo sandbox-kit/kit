@@ -81,19 +81,20 @@ func (b *backend) ListDirectory(ctx context.Context, id, path string, _ *sandbox
 			return nil, err
 		}
 		result := make([]*sandbox.FileInfo, 0, len(listing.Files)+len(listing.Subdirectories))
-		for _, entry := range listing.Files {
-			info, err := blaxelFileInfo(entry, sandbox.FileTypeFile, "list_directory")
-			if err != nil {
-				return nil, err
-			}
-			result = append(result, info)
-		}
+		// Directories first, then files — matches TypeScript Blaxel listing order.
 		for _, entry := range listing.Subdirectories {
 			result = append(result, &sandbox.FileInfo{
 				Name: entry.Name,
 				Path: entry.Path,
 				Type: sandbox.FileTypeDirectory,
 			})
+		}
+		for _, entry := range listing.Files {
+			info, err := blaxelFileInfo(entry, sandbox.FileTypeFile, "list_directory")
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, info)
 		}
 		return result, nil
 	})
@@ -111,7 +112,7 @@ func (b *backend) Stat(ctx context.Context, id, path string, _ *sandbox.StatOpti
 	fs := b.filesystemService(instance)
 	res, err := fs.Get(ctx, path, blaxel.SandboxFilesystemGetParams{})
 	if err != nil {
-		return nil, mapProviderError(err, "stat")
+		return nil, mapFilesystemError(err, "stat")
 	}
 	if res == nil {
 		return nil, invalidResponse("stat", sandbox.FileFieldPath, "SDK returned no file metadata")
@@ -168,9 +169,29 @@ func withFS[T any](
 		if errors.As(err, &local) {
 			return zero, err
 		}
-		return zero, mapProviderError(err, call.Operation)
+		return zero, mapFilesystemError(err, call.Operation)
 	}
 	return result, nil
+}
+
+// mapFilesystemError attaches Field=path on NotFound so portable callers can
+// branch the same way as TypeScript Blaxel Stat/list failures.
+func mapFilesystemError(err error, operation string) error {
+	mapped := mapProviderError(err, operation)
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindNotFound || detail.Field != "" {
+		return mapped
+	}
+	return sandbox.NewError(&sandbox.ErrorInfo{
+		Kind:           detail.Kind,
+		Provider:       detail.Provider,
+		Operation:      detail.Operation,
+		Field:          sandbox.FileFieldPath,
+		Message:        detail.Message,
+		StatusCode:     detail.StatusCode,
+		ProviderCode:   detail.ProviderCode,
+		ProviderSource: detail.ProviderSource,
+	}, err)
 }
 
 func (b *backend) fileSandbox(ctx context.Context, id, operation string) (*blaxel.SandboxInstance, error) {

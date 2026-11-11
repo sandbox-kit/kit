@@ -95,11 +95,15 @@ export function mapCommonCreateFields(
   const target: Mutable<SandboxCreateConfiguration> = {};
   if (source === undefined) return target;
   if (source.name !== undefined) target.name = source.name;
+  // Match Go: omit envs when the map is empty so explicit {} equals omit.
   if (source.environment !== undefined) {
-    target.envs = Object.entries(source.environment).map(([name, value]) => ({
-      name,
-      value: String(value),
-    }));
+    const entries = Object.entries(source.environment);
+    if (entries.length > 0) {
+      target.envs = entries.map(([name, value]) => ({
+        name,
+        value: String(value),
+      }));
+    }
   }
   if (source.labels !== undefined) target.labels = { ...source.labels };
   return target;

@@ -301,7 +301,8 @@ See [Examples](/docs/examples).
 <ForProvider id="blaxel">
 
 A create that collides on name returns `AlreadyExists`
-(`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409). Coded conflicts such as
+(`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409 on create). A bare 409 on other
+operations is `Conflict`. Coded conflicts such as
 `SANDBOX_DELETION_IN_PROGRESS` stay `Conflict`. Use `get` before retry so you
 know whether the sandbox exists (lookup by name).
 

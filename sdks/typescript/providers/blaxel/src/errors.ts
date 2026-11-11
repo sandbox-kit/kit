@@ -97,9 +97,9 @@ const STATUS_KINDS: Record<number, ErrorInfo["kind"]> = {
   404: ErrorKind.NotFound,
   410: ErrorKind.NotFound,
   408: ErrorKind.Timeout,
-  // Bare 409 is usually name collision; coded conflicts (e.g. deletion in
-  // progress) still win through CODE_KINDS above.
-  409: ErrorKind.AlreadyExists,
+  // Bare 409 is Conflict for non-create ops. Create maps it in statusKindFor.
+  // Coded conflicts still win through CODE_KINDS above.
+  409: ErrorKind.Conflict,
   412: ErrorKind.FailedPrecondition,
   429: ErrorKind.RateLimited,
   500: ErrorKind.Internal,
@@ -124,7 +124,7 @@ export function mapBlaxelError(
     getBlaxelErrorCode(error) ?? getBlaxelErrorCode(cause),
   );
   return create({
-    kind: classifyKind({ error, cause, providerCode, statusCode }),
+    kind: classifyKind({ error, cause, providerCode, statusCode, operation }),
     error,
     operation,
     ...(statusCode === undefined ? {} : { statusCode }),
@@ -137,10 +137,11 @@ interface ClassifyArgs {
   cause: unknown;
   providerCode: string | undefined;
   statusCode: number | undefined;
+  operation: string;
 }
 
 function classifyKind(args: ClassifyArgs): ErrorInfo["kind"] {
-  const { error, cause, providerCode, statusCode } = args;
+  const { error, cause, providerCode, statusCode, operation } = args;
   if (error instanceof CredentialsError) return ErrorKind.Authentication;
   if (
     error instanceof SandboxCreationTimeoutError ||
@@ -161,11 +162,22 @@ function classifyKind(args: ClassifyArgs): ErrorInfo["kind"] {
   // Unknown codes fall through so status can still classify the failure.
   if (providerCode !== undefined && CODE_KINDS[providerCode] !== undefined)
     return CODE_KINDS[providerCode]!;
-  if (statusCode !== undefined && STATUS_KINDS[statusCode] !== undefined)
-    return STATUS_KINDS[statusCode]!;
+  if (statusCode !== undefined) {
+    const mapped = statusKindFor(statusCode, operation);
+    if (mapped !== undefined) return mapped;
+  }
   if (error instanceof ResponseError && error.status !== undefined)
-    return STATUS_KINDS[error.status] ?? ErrorKind.Unknown;
+    return statusKindFor(error.status, operation) ?? ErrorKind.Unknown;
   return ErrorKind.Unknown;
+}
+
+/** Bare 409 on create → AlreadyExists (name collision); otherwise Conflict. */
+function statusKindFor(
+  status: number,
+  operation: string,
+): ErrorInfo["kind"] | undefined {
+  if (status === 409 && operation === "create") return ErrorKind.AlreadyExists;
+  return STATUS_KINDS[status];
 }
 
 function isProcessWaitTimeout(error: unknown): boolean {

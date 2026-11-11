@@ -161,16 +161,16 @@ Token-pair, bearer, and OAuth client modes are rejected. Scope fields other than
 
 ## What works
 
-| Area      | Notes                                                                          |
-| --------- | ------------------------------------------------------------------------------ |
-| Create    | Valid name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle |
-| Volumes   | Not in Kit create; no portable volume fields                                   |
-| Open      | `get` / `refresh` by sandbox name                                              |
-| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach               |
-| State     | `DEPLOYED` + runtime `STANDBY` → Kit paused; `RUNNING` → running               |
-| Errors    | Name collision → AlreadyExists; coded deletion-in-progress → Conflict          |
-| Files     | Filesystem methods — [Filesystem](/docs/filesystem)                            |
-| Process   | Blocking `run` — [Run a command](/docs/process)                                |
+| Area      | Notes                                                                                             |
+| --------- | ------------------------------------------------------------------------------------------------- |
+| Create    | Valid name + image; memory 1:1, labels, env, ports, outbound domains, TTL/idle                    |
+| Volumes   | Not in Kit create; no portable volume fields                                                      |
+| Open      | `get` / `refresh` by sandbox name                                                                 |
+| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach                                  |
+| State     | `DEPLOYED` + runtime `STANDBY` → Kit paused; `RUNNING` → running                                  |
+| Errors    | Create name collision → AlreadyExists; bare 409 elsewhere / coded deletion-in-progress → Conflict |
+| Files     | Filesystem methods — [Filesystem](/docs/filesystem)                                               |
+| Process   | Blocking `run` — [Run a command](/docs/process)                                                   |
 
 `resources.memoryMib` / `memory_mib` maps 1:1 onto Blaxel's memory field.
 Blaxel labels that integer MB; Kit does not convert. Blaxel derives CPU from

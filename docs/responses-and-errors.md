@@ -110,8 +110,10 @@ cause. A kind is a category. It is not a signal that retrying is safe, and
 Kit does not retry for you.
 
 Blaxel name collisions map to `AlreadyExists` when the provider sends
-`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409. Provider codes still win when
-present, so `SANDBOX_DELETION_IN_PROGRESS` stays `Conflict`.
+`SANDBOX_ALREADY_EXISTS`, or a bare HTTP 409 on **create**. A bare 409 on
+other operations maps to `Conflict` (same status fallback Daytona uses).
+Provider codes still win when present, so `SANDBOX_DELETION_IN_PROGRESS`
+stays `Conflict`.
 
 ## After a failure
 

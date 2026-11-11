@@ -69,6 +69,22 @@ func TestMapProviderErrorBareConflictIsAlreadyExists(t *testing.T) {
 	}
 }
 
+func TestMapProviderErrorBareConflictOnDeleteIsConflict(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusConflict,
+		Request:    &http.Request{Method: http.MethodDelete, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusConflict},
+	}, "delete")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindConflict {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}
+
 func TestMapProviderErrorDeletionInProgressStaysConflict(t *testing.T) {
 	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
 	if err != nil {

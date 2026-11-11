@@ -45,7 +45,8 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
       },
     ): Promise<BlaxelProcessResult>;
   };
-  delete(): Promise<unknown>;
+  /** Returns the DELETE response body (often still DELETING). */
+  delete(): Promise<BlaxelSandboxIdentity>;
 }
 
 export interface NativeBlaxel {
@@ -55,7 +56,8 @@ export interface NativeBlaxel {
     options?: SandboxCreateOptions,
   ): Promise<NativeSandboxHandle>;
   get(name: string): Promise<NativeSandboxHandle>;
-  delete(name: string): Promise<unknown>;
+  /** Returns the DELETE response body (often still DELETING). */
+  delete(name: string): Promise<BlaxelSandboxIdentity>;
 }
 
 export type NativeFactory = (config: NativeClientConfig) => NativeBlaxel;
@@ -72,8 +74,8 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
     async get(name) {
       return projectHandle(await SandboxInstance.get(name));
     },
-    delete(name) {
-      return SandboxInstance.delete(name);
+    async delete(name) {
+      return (await SandboxInstance.delete(name)) as BlaxelSandboxIdentity;
     },
   };
 }

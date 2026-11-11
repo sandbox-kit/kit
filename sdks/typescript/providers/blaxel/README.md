@@ -68,14 +68,17 @@ TLS is rejected. Kit has no portable volume fields; Blaxel volumes are outside
 create.
 
 **Lifecycle** on the handle: `get` / `refresh` (lookup by name), `delete`, and
-`close`. `close` does not delete the sandbox. Start, stop, pause, archive,
-terminate, and attach are unsupported. `refresh` / `info` map Blaxel
-deployment `DEPLOYED` plus runtime `STANDBY` to Kit `paused` (and `RUNNING` to
-`running`). `@blaxel/core` types `SandboxInstance.sandbox` private and has no
-`state` getter; the provider projects wire runtime state onto a Kit-facing
-`state` field at the native boundary. A create that collides on name maps to
-`AlreadyExists` (`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409). Coded conflicts
-such as `SANDBOX_DELETION_IN_PROGRESS` stay `Conflict`.
+`close`. `close` does not delete the sandbox. `delete` returns Blaxel's DELETE
+response state (often `deleting`); `wait: true` polls until the name is gone or
+`deleted`. Start, stop, pause, archive, terminate, and attach are unsupported.
+`refresh` / `info` map Blaxel deployment `DEPLOYED` plus runtime `STANDBY` to
+Kit `paused` (and `RUNNING` to `running`). `@blaxel/core` types
+`SandboxInstance.sandbox` private and has no `state` getter; the provider
+projects wire runtime state onto a Kit-facing `state` field at the native
+boundary. A create that collides on name maps to `AlreadyExists`
+(`SANDBOX_ALREADY_EXISTS` or a bare HTTP 409 on create). A bare 409 on other
+operations is `Conflict`. Coded conflicts such as
+`SANDBOX_DELETION_IN_PROGRESS` stay `Conflict`.
 
 **Files** through `sandbox.filesystem`: `readFile`, `writeFile`,
 `copyFromLocal`, `copyToLocal`, `makeDirectory`, `listDirectory`, `stat`, and

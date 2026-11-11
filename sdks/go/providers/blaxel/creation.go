@@ -153,7 +153,7 @@ func mapIdleTerminate(action *sandbox.AutomaticAction) (*blaxel.ExpirationPolicy
 			Value:  blaxel.String(formatted),
 		}, nil
 	default:
-		return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminate, "unknown policy mode")
+		return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldLifetimeIdleTerminateMode, "unknown policy mode")
 	}
 }
 

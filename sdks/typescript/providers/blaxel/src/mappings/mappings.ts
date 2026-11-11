@@ -190,12 +190,7 @@ function mapSecurity(r: CreateOptions): void {
 function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
   const v = r.lifetime;
   if (!v) return;
-  if (hasUnsupportedLifetimeFields(v))
-    unsupported(
-      CreateFieldLifetime,
-      "one or more Blaxel lifetime fields are not mapped",
-    );
-
+  // Idle first (matches Go) so idle_terminate errors win over unmapped sibling fields.
   if (v.maximumLifetime !== undefined) {
     p.ttl = durationString({
       ms: v.maximumLifetime,
@@ -208,6 +203,12 @@ function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
     const lifecycle = mapIdleTerminate(v.idleTerminate);
     if (lifecycle !== undefined) p.lifecycle = lifecycle;
   }
+
+  if (hasUnsupportedLifetimeFields(v))
+    unsupported(
+      CreateFieldLifetime,
+      "one or more Blaxel lifetime fields are not mapped",
+    );
 }
 
 function mapIdleTerminate(
