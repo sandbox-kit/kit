@@ -390,9 +390,9 @@ err = instance.Filesystem().WriteFile(
 Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 
 <Callout title="Close does not stop the sandbox">
-  `client.close()` and handle `close` only release local resources. The cloud
-  sandbox keeps running until an explicit lifecycle call or a lifetime policy
-  ends it. See [Concepts](/docs/concepts) and [Lifecycle](/docs/lifecycle).
+  Closing a client or handle only releases local resources. The cloud sandbox
+  keeps running until an explicit lifecycle call or a lifetime policy ends it.
+  See [Concepts](/docs/concepts) and [Lifecycle](/docs/lifecycle).
 </Callout>
 
 ## Next

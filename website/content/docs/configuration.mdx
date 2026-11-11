@@ -38,14 +38,14 @@ if err != nil {
   </Tab>
 </Tabs>
 
-| Field      | Purpose                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------- |
-| `provider` | Provider constructor                                                                        |
-| `auth`     | One of `apiKey`, `tokenPair`, `bearerToken`, `oauthRefresh`. Omit to use provider env creds |
-| `scope`    | App, environment, organization, project, or workspace                                       |
-| `endpoint` | Provider endpoint URL override                                                              |
-| `region`   | Target / default placement                                                                  |
-| `timeout`  | Default deadline for calls that omit their own                                              |
+| Setting     | Purpose                                                                          |
+| ----------- | -------------------------------------------------------------------------------- |
+| Provider    | Provider constructor                                                             |
+| Credentials | API key, token pair, bearer token, or OAuth refresh token; omit for env creds   |
+| Scope       | App, environment, organization, project, or workspace                            |
+| Endpoint    | Provider endpoint URL override                                                   |
+| Region      | Target or default placement                                                      |
+| Timeout     | Default deadline for calls that omit their own                                   |
 
 <ForProvider id="daytona">
   Provider setup: [Daytona](/docs/daytona).
@@ -398,7 +398,8 @@ Only API key auth and workspace scope are supported.
 
 ## Timeouts
 
-`timeout` on the client is the default deadline. Create and lifecycle calls can override it.
+The client timeout is the default deadline. Create and lifecycle calls can
+override it.
 
 Explicit zero means no deadline from the client. A context deadline or abort signal that fires earlier still wins.
 
@@ -536,9 +537,12 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Set client or create `timeout` for how long create may wait. Ready, Started,
-  and Submitted wait are not supported. In TypeScript, use one Blaxel client (or
-  one API key) per process.
+  Set a client or create timeout for how long create may wait. Ready, Started,
+  and Submitted wait are not supported.
+
+  <ForLanguage id="typescript">
+    Use one Blaxel client (or one API key) per process.
+  </ForLanguage>
 </ForProvider>
 
 ## Credentials

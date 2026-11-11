@@ -5,13 +5,23 @@ description: Construct a client; create, get or attach, and close.
 
 Creates sandboxes and reopens them.
 
-<ForProvider id="daytona">Reopen with [`get`](#get) by sandbox id.</ForProvider>
+<ForProvider id="daytona">
+  <ForLanguage id="typescript">Reopen with [`get`](#get) by sandbox id.</ForLanguage>
+  <ForLanguage id="go">Reopen with [`Get`](#get) by sandbox id.</ForLanguage>
+</ForProvider>
 <ForProvider id="modal">
-  Reopen with [`attach`](#attach) by sandbox id. Attach does not check that the
-  sandbox exists.
+  <ForLanguage id="typescript">
+    Reopen with [`attach`](#attach) by sandbox id. It does not check that the
+    sandbox exists.
+  </ForLanguage>
+  <ForLanguage id="go">
+    Reopen with [`Attach`](#attach) by sandbox id. It does not check that the
+    sandbox exists.
+  </ForLanguage>
 </ForProvider>
 <ForProvider id="blaxel">
-  Reopen with [`get`](#get) by create name. Blaxel id is the name.
+  <ForLanguage id="typescript">Reopen with [`get`](#get) by create name. Blaxel id is the name.</ForLanguage>
+  <ForLanguage id="go">Reopen with [`Get`](#get) by create name. Blaxel id is the name.</ForLanguage>
 </ForProvider>
 
 Closing the client only drops the local connection—cloud sandboxes keep running.

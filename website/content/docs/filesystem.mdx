@@ -5,6 +5,8 @@ description: Read, write, copy, mkdir, list, stat, and remove paths inside a san
 
 Use the filesystem methods on an open handle.
 
+<ForLanguage id="typescript">
+
 | Method                                  | Purpose                  |
 | --------------------------------------- | ------------------------ |
 | [`readFile`](#read-a-file)              | Read file bytes          |
@@ -16,6 +18,23 @@ Use the filesystem methods on an open handle.
 | [`stat`](#read-metadata)                | Path metadata            |
 | [`remove`](#delete-a-file-or-directory) | Delete a path            |
 
+</ForLanguage>
+
+<ForLanguage id="go">
+
+| Method                                  | Purpose                  |
+| --------------------------------------- | ------------------------ |
+| [`ReadFile`](#read-a-file)              | Read file bytes          |
+| [`WriteFile`](#write-a-file)            | Replace or create a file |
+| [`CopyFromLocal`](#copy-a-file-in)      | Local → sandbox          |
+| [`CopyToLocal`](#copy-a-file-out)       | Sandbox → local          |
+| [`MakeDirectory`](#create-a-directory)  | Create a directory       |
+| [`ListDirectory`](#list-a-directory)    | List one directory       |
+| [`Stat`](#read-metadata)                | Path metadata            |
+| [`Remove`](#delete-a-file-or-directory) | Delete a path            |
+
+</ForLanguage>
+
 You need a sandbox from [create](/docs/create) or [lifecycle](/docs/lifecycle).
 
 ## Paths and bytes
@@ -25,7 +44,15 @@ You need a sandbox from [create](/docs/create) or [lifecycle](/docs/lifecycle).
 | Sandbox      | Absolute (`/tmp/note.txt`). Relative, blank, or NUL rejected | `path`       |
 | Local (copy) | May be relative (`./note.txt`). Non-blank, no NUL            | `local_path` |
 
-`readFile` and `writeFile` transfer bytes—encode and decode text in your app. Copy methods use files on disk.
+<ForLanguage id="typescript">
+  `readFile` and `writeFile` transfer bytes—encode and decode text in your app.
+  Copy methods use files on disk.
+</ForLanguage>
+
+<ForLanguage id="go">
+  `ReadFile` and `WriteFile` transfer bytes—encode and decode text in your app.
+  Copy methods use files on disk.
+</ForLanguage>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

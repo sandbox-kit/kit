@@ -167,7 +167,9 @@ if err != nil {
 
 ## Sandbox handle
 
-`create` returns a handle. To reopen an existing sandbox, use `get` or `attach`—see [Lifecycle](/docs/lifecycle). Use the handle for lifecycle, filesystem, and process calls.
+Creating a sandbox returns a handle. To reopen an existing sandbox, use the
+provider’s open operation—see [Lifecycle](/docs/lifecycle). Use the handle for
+lifecycle, filesystem, and process calls.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -480,7 +482,9 @@ Setup: [Blaxel](/docs/blaxel).
 
 ## Capabilities
 
-Unsupported calls return an error. Check `supports` before a lifecycle method that might be unavailable. A supported call can still fail if the provider rejects that sandbox.
+Unsupported calls return an error. Check a handle’s capabilities before a
+lifecycle method that might be unavailable. A supported call can still fail if
+the provider rejects that sandbox.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

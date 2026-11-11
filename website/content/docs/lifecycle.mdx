@@ -3,7 +3,8 @@ title: Lifecycle
 description: get, attach, start, stop, pause, archive, delete, terminate, and close.
 ---
 
-Operate on a handle from `create`, or reopen one with `get` / `attach`. Unsupported calls return an error.
+Operate on a handle from creation, or reopen an existing sandbox. Unsupported
+calls return an error.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -22,10 +23,10 @@ Check support with `Supports`.
 
 | Operation                      | Support                                    |
 | ------------------------------ | ------------------------------------------ |
-| Open existing                  | [`get`](#open-a-sandbox) (provider lookup) |
+| Open existing                  | [Look up](#open-a-sandbox) (provider lookup) |
 | start / stop / pause / archive | [Supported](#stop-start-pause-and-archive) |
-| Destroy                        | [`delete`](#delete)                        |
-| Local disconnect               | [`close`](#close-the-client)               |
+| Destroy                        | [Delete](#delete)                          |
+| Local disconnect               | [Close](#close-the-client)                 |
 
 Daytona may still reject a supported op for a given sandbox. Snippets assume a constructed client — [Daytona](/docs/daytona).
 
@@ -35,11 +36,12 @@ Daytona may still reject a supported op for a given sandbox. Snippets assume a c
 
 | Operation        | Support                                           |
 | ---------------- | ------------------------------------------------- |
-| Open existing    | [`attach`](#open-a-sandbox) (id only)             |
-| Destroy          | [`terminate`](#terminate) or create-time lifetime |
-| Local disconnect | [`close`](#close-the-client)                      |
+| Open existing    | [Attach](#open-a-sandbox) (id only)               |
+| Destroy          | [Terminate](#terminate) or create-time lifetime   |
+| Local disconnect | [Close](#close-the-client)                        |
 
-`start`, `stop`, `pause`, `archive`, and `delete` are rejected in Kit. Snippets assume a constructed client — [Modal](/docs/modal).
+Start, stop, pause, archive, and delete are rejected in Kit. Snippets assume a
+constructed client — [Modal](/docs/modal).
 
 </ForProvider>
 
@@ -47,10 +49,10 @@ Daytona may still reject a supported op for a given sandbox. Snippets assume a c
 
 | Operation                      | Support                                   |
 | ------------------------------ | ----------------------------------------- |
-| Open existing                  | [`get`](#open-a-sandbox) (lookup by name) |
+| Open existing                  | [Look up](#open-a-sandbox) (by name)      |
 | start / stop / pause / archive | Unsupported                               |
-| Destroy                        | [`delete`](#delete)                       |
-| Local disconnect               | [`close`](#close-the-client)              |
+| Destroy                        | [Delete](#delete)                         |
+| Local disconnect               | [Close](#close-the-client)                |
 
 Snippets assume a constructed client — [Blaxel](/docs/blaxel).
 
@@ -60,7 +62,15 @@ Snippets assume a constructed client — [Blaxel](/docs/blaxel).
 
 <ForProvider id="daytona">
 
-`get` loads a sandbox that already exists. `refresh` loads it again. `attach` is not available.
+<ForLanguage id="typescript">
+  `get` loads a sandbox that already exists. `refresh` loads it again. `attach`
+  is not available.
+</ForLanguage>
+
+<ForLanguage id="go">
+  `Get` loads a sandbox that already exists. `Refresh` loads it again. `Attach`
+  is not available.
+</ForLanguage>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -98,7 +108,15 @@ fmt.Println(instance.Info())
 
 <ForProvider id="modal">
 
-`attach` builds a handle from an id. It does not ask Modal whether that sandbox exists. `get` and `refresh` are not available.
+<ForLanguage id="typescript">
+  `attach` builds a handle from an id. It does not ask Modal whether that
+  sandbox exists. `get` and `refresh` are not available.
+</ForLanguage>
+
+<ForLanguage id="go">
+  `Attach` builds a handle from an id. It does not ask Modal whether that
+  sandbox exists. `Get` and `Refresh` are not available.
+</ForLanguage>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -127,8 +145,15 @@ if err != nil {
 
 <ForProvider id="blaxel">
 
-`get` loads a sandbox that already exists by **name** (the id is the create
-name). `refresh` loads it again. `attach` is not available.
+<ForLanguage id="typescript">
+  `get` loads a sandbox that already exists by **name** (the id is the create
+  name). `refresh` loads it again. `attach` is not available.
+</ForLanguage>
+
+<ForLanguage id="go">
+  `Get` loads a sandbox that already exists by **name** (the id is the create
+  name). `Refresh` loads it again. `Attach` is not available.
+</ForLanguage>
 
 Idle sandboxes show as paused; active ones as running.
 
@@ -166,7 +191,9 @@ fmt.Println(instance.Info())
 
 ## Stop, start, pause, and archive
 
-`stop` leaves the sandbox available to start again. `start` brings a stopped or archived sandbox back. `pause` keeps memory. `archive` moves a retained sandbox into archive storage.
+Stop leaves the sandbox available to start again. Start brings a stopped or
+archived sandbox back. Pause keeps memory. Archive moves a retained sandbox
+into archive storage.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -230,7 +257,7 @@ Daytona decides whether that sandbox can pause, archive, or stop. An ephemeral s
 
 ## Delete
 
-`delete` removes a Daytona sandbox.
+Delete removes a Daytona sandbox.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -271,9 +298,9 @@ if err := instance.Delete(ctx, &sandbox.DeleteOptions{
 
 ## Delete
 
-`delete` removes a Blaxel sandbox. On success, `state` is `deleted` and
-`terminal` is true. Omit `wait` to return when delete is accepted. Pass
-`wait: true` to wait until removal finishes before recreate.
+Delete removes a Blaxel sandbox. On success, its state is deleted and terminal.
+Omit the wait option to return when deletion is accepted; set it to wait until
+removal finishes before recreating.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -318,7 +345,8 @@ fmt.Println(info.State, info.GetTerminal())
 
 ## Terminate
 
-`terminate` finishes a Modal sandbox. A maximum lifetime or idle timeout set at [create](/docs/create) also ends it.
+Terminate finishes a Modal sandbox. A maximum lifetime or idle timeout set at
+[create](/docs/create) also ends it.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -406,22 +434,41 @@ defer client.Close(context.Background())
 
 ## Read the state
 
-`info.state` is the lifecycle state on the handle. A failed call can still
-mean the cloud already changed state. See [Errors](/docs/errors).
+The handle stores the lifecycle state. A failed call can still mean the cloud
+already changed state. See [Errors](/docs/errors).
 
 <ForProvider id="daytona">
-  After a lifecycle call, call `refresh` (or `get` again) before assuming the
-  sandbox is stopped or gone.
+  <ForLanguage id="typescript">
+    After a lifecycle call, call `refresh` (or `get` again) before assuming the
+    sandbox is stopped or gone.
+  </ForLanguage>
+  <ForLanguage id="go">
+    After a lifecycle call, call `Refresh` (or `Get` again) before assuming the
+    sandbox is stopped or gone.
+  </ForLanguage>
 </ForProvider>
 
 <ForProvider id="modal">
-  Use the info returned by the call, or `info()` on the handle. There is no
-  `refresh` or `get` on Modal.
+  <ForLanguage id="typescript">
+    Use the info returned by the call, or `info()` on the handle. There is no
+    `refresh` or `get` on Modal.
+  </ForLanguage>
+  <ForLanguage id="go">
+    Use the info returned by the call, or `Info()` on the handle. There is no
+    `Refresh` or `Get` on Modal.
+  </ForLanguage>
 </ForProvider>
 
 <ForProvider id="blaxel">
-  After `delete`, use `wait: true` when you need removal to finish before
-  recreate. Use `refresh` or `get` for fresh metadata while the sandbox exists.
+  <ForLanguage id="typescript">
+    After `delete`, use `wait: true` when you need removal to finish before
+    recreate. Use `refresh` or `get` for fresh metadata while the sandbox exists.
+  </ForLanguage>
+  <ForLanguage id="go">
+    After `Delete`, use `Wait: sandbox.Value(true)` when you need removal to
+    finish before recreate. Use `Refresh` or `Get` for fresh metadata while the
+    sandbox exists.
+  </ForLanguage>
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

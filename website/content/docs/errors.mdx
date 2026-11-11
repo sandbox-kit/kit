@@ -28,7 +28,10 @@ Kinds are categories, not retry advice. Kit does not retry.
 
 ## Invalid config
 
-Bad client config fails before any provider call. TypeScript throws; Go returns `(*Client, error)`.
+Bad client config fails before any provider call.
+
+<ForLanguage id="typescript">It throws.</ForLanguage>
+<ForLanguage id="go">It returns `(*Client, error)`.</ForLanguage>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -318,7 +321,10 @@ still finishing, you get `Conflict` — wait, then `get` before you recreate tha
 name. Lifetime below Blaxel’s floors (≥5m max lifetime, ≥1m idle) or a
 non-whole-second duration is `InvalidArgument`. Unsupported create fields
 (runtime, isolation, idle disable, …) are `Unsupported`. When Blaxel returns a
-control-plane code, read it on `providerCode` / `ProviderCode`.
+control-plane code, read it on the typed error.
+
+<ForLanguage id="typescript">Use `providerCode`.</ForLanguage>
+<ForLanguage id="go">Use `ProviderCode`.</ForLanguage>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

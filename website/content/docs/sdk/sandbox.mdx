@@ -3,7 +3,10 @@ title: Sandbox
 description: Handle for one sandbox — lifecycle, info, filesystem, and process.
 ---
 
-Handle from [`Client.create`](/docs/sdk/client#create), [`get`](/docs/sdk/client#get), or [`attach`](/docs/sdk/client#attach). Lifecycle methods that return info also update the handle. `close` only drops local resources—the cloud sandbox keeps running. Call `supports` before a lifecycle method that might be unavailable.
+Handle returned when you create or reopen a sandbox. Lifecycle methods that
+return info also update the handle. Closing only drops local resources—the cloud
+sandbox keeps running. Check capabilities before a lifecycle method that might
+be unavailable.
 
 ## Properties
 
@@ -596,7 +599,8 @@ fmt.Println(result)
   </Tab>
 </Tabs>
 
-`timeout` / `Timeout` caps how long this call waits. It is not sent to Modal as a separate terminate setting.
+The call timeout caps how long this call waits. It is not sent to Modal as a
+separate terminate setting.
 
 </ForProvider>
 
@@ -633,7 +637,7 @@ Releases local handle resources. The cloud sandbox is unchanged.
 
 ## Operation options
 
-Shared call options for TypeScript lifecycle and filesystem/process calls.
+Shared call options for lifecycle and filesystem/process calls.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

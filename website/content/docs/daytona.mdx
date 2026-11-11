@@ -3,7 +3,8 @@ title: Daytona
 description: Install, authenticate, and create a Daytona sandbox.
 ---
 
-Use Daytona when you want default snapshots, verified `get`, and start / stop / pause / archive.
+Use Daytona when you want default snapshots, verified sandbox lookup, and start,
+stop, pause, or archive operations.
 
 ## Install
 
@@ -175,8 +176,8 @@ Default endpoint: `https://app.daytona.io/api`. Remote URLs need HTTPS; HTTP is 
 | Area      | Notes                                                       |
 | --------- | ----------------------------------------------------------- |
 | Create    | Default snapshot, named snapshot, or image (with resources) |
-| Open      | `get` — verified. `attach` is unsupported                   |
-| Lifecycle | `refresh`, `start`, `stop`, `pause`, `archive`, `delete`    |
+| Open      | Verified lookup. Attach is unsupported                       |
+| Lifecycle | Refresh, start, stop, pause, archive, and delete             |
 | Files     | Filesystem methods — [Filesystem](/docs/filesystem)         |
 | Process   | `run` — [Run a command](/docs/process)                      |
 

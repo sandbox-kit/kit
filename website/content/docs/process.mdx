@@ -29,13 +29,13 @@ Set **exactly one** of:
 | `argv`  | Program + arguments      | `["echo", "hello"]` |
 | `shell` | One shell command string | `"echo hello"`      |
 
-| Field              | Rules                                                                     |
-| ------------------ | ------------------------------------------------------------------------- |
-| Both or neither    | Rejected. Field: `argv`                                                   |
-| Blank `shell`      | Rejected after trim. Field: `shell`                                       |
-| `workingDirectory` | Absolute when set. Relative, blank, or NUL → field `working_directory`    |
-| `environment`      | For this call only. Omit → provider default. Empty map → add no variables |
-| `timeout`          | See [Timeouts](#timeouts-and-cancel)                                      |
+| Setting           | Rules                                                                     |
+| ----------------- | ------------------------------------------------------------------------- |
+| Program or shell  | Set exactly one. A request with both or neither is rejected.              |
+| Shell command     | A blank command is rejected after trimming.                               |
+| Working directory | Absolute when set. Relative, blank, or NUL is rejected.                   |
+| Environment       | Applies only to this call. Omit for the provider default.                 |
+| Timeout           | See [Timeouts](#timeouts-and-cancel)                                      |
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -199,7 +199,7 @@ A non-zero exit code is **not** an SDK error.
 
 | Setting        | Meaning                                                           |
 | -------------- | ----------------------------------------------------------------- |
-| Omit `timeout` | Use the client default deadline                                   |
+| Omit timeout   | Use the client default deadline                                   |
 | `0`            | No extra client deadline for this call                            |
 | Positive value | Cap this call; must be whole seconds (`5000` ok, `1500` rejected) |
 

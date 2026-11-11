@@ -167,9 +167,12 @@ client, err := sandbox.NewClient(blaxel.New(), config)
   </Tab>
 </Tabs>
 
-Only API key auth and workspace scope are supported. In TypeScript, use one
-Blaxel client (or one API key) per process. Full rules:
+Only API key auth and workspace scope are supported. Full rules:
 [Configuration](/docs/configuration).
+
+<ForLanguage id="typescript">
+  Use one Blaxel client (or one API key) per process.
+</ForLanguage>
 
 ## What works
 
@@ -177,29 +180,44 @@ Blaxel client (or one API key) per process. Full rules:
 | --------- | --------------------------------------------------------------------------------------------------------------- |
 | Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle                                            |
 | Volumes   | Not available on create                                                                                         |
-| Open      | `get` / `refresh` by sandbox name                                                                               |
-| Lifecycle | `delete`, `close` — no start/stop/pause/archive/terminate/attach                                                |
+| Open      | Look up or refresh by sandbox name                                                                               |
+| Lifecycle | Delete or close — no start, stop, pause, archive, terminate, or attach                                          |
 | Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
 | State     | Idle → paused; active → running                                                                                 |
 | Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict; bad TTL/idle → InvalidArgument       |
 | Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
 | Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
 
-Pass `memoryMib` / `memory_mib` for memory (Blaxel treats it as MB). Omit it for
-Blaxel’s default. CPU and disk overrides are not supported. Runtime and
-isolation are not supported. Labels on `info()` appear only when Blaxel reports
-them.
+Pass a memory value (Blaxel treats it as MB), or omit it for Blaxel’s default.
+CPU and disk overrides are not supported. Runtime and isolation are not
+supported.
+
+<ForLanguage id="typescript">
+  Labels on `info()` appear only when Blaxel reports them.
+</ForLanguage>
+
+<ForLanguage id="go">
+  Labels on `Info()` appear only when Blaxel reports them.
+</ForLanguage>
 
 Default ports are HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not
 supported. Ready/Started/Submitted wait and idle disable are not supported.
 
-Set client or create `timeout` for how long create may wait. With a 1–50s
+Set a client or create timeout for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name.
 
-If Blaxel’s edge returns HTTP 504 during create, TypeScript may keep waiting
-until the sandbox is ready or your create timeout ends. Go returns a timeout as
-soon as that response arrives. A Go timeout does not always mean the sandbox
-was never created — call `get` / `Get` by name before recreating.
+<ForLanguage id="typescript">
+  If Blaxel’s edge returns HTTP 504 during create, the client may keep waiting
+  until the sandbox is ready or your create timeout ends. A timeout does not
+  always mean the sandbox was never created—call `get` by name before
+  recreating.
+</ForLanguage>
+
+<ForLanguage id="go">
+  If Blaxel’s edge returns HTTP 504 during create, the call returns a timeout as
+  soon as that response arrives. A timeout does not always mean the sandbox was
+  never created—call `Get` by name before recreating.
+</ForLanguage>
 
 ## Related
 
