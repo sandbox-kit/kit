@@ -172,10 +172,10 @@ function blaxelPortProtocol(
   if (transport === PortTransport.Default) return undefined;
   if (transport === PortTransport.Plain) return "TCP";
   if (transport === PortTransport.Tls) return "TLS";
-  // Blaxel has no HTTP/2 port protocol (Kit Http2Tls included).
-  invalid(
+  // Blaxel Port.protocol is HTTP|TCP|UDP|TLS only (Kit Http2Tls included).
+  unsupported(
     CreateFieldNetworkPortsTransport,
-    "requested port transport is unsupported",
+    "Http2Tls is not a Blaxel port protocol (HTTP|TCP|UDP|TLS)",
   );
 }
 

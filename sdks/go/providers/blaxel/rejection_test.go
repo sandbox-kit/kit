@@ -345,7 +345,7 @@ func TestRejectsHttp2TlsPortTransport(t *testing.T) {
 	}), "us-pdx-1")
 	var detail *sandbox.Error
 	if !errors.As(err, &detail) ||
-		detail.Kind != sandbox.ErrorKindInvalidArgument ||
+		detail.Kind != sandbox.ErrorKindUnsupported ||
 		detail.Field != sandbox.CreateFieldNetworkPortsTransport {
 		t.Fatalf("error = %v detail = %#v", err, detail)
 	}

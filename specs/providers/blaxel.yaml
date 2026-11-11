@@ -27,7 +27,7 @@ checks:
   - {
       path: network.ports.transport,
       allowed: [default, plain, tls],
-      notes: "Default omits protocol (Blaxel HTTP); Plain→TCP; TLS→TLS; Http2Tls rejected in create mapping",
+      notes: "Default omits protocol (Blaxel HTTP); Plain→TCP; TLS→TLS; Http2Tls → Unsupported in create mapping",
     }
   - {
       path: network.outbound_domains.entries,

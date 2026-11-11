@@ -489,7 +489,7 @@ describe("Blaxel mappings", () => {
       ),
     ).toThrowError(
       expect.objectContaining({
-        kind: ErrorKind.InvalidArgument,
+        kind: ErrorKind.Unsupported,
         field: CreateFieldNetworkPortsTransport,
       }),
     );
@@ -547,13 +547,13 @@ describe("Blaxel mappings", () => {
       mapSandboxIdentity({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        // defaultNativeFactory.projectHandle copies wire sandbox.state here.
+        // projectHandle puts wire sandbox.state on the plain handle.
         state: "STANDBY",
       }).state,
     ).toBe(SandboxState.Paused);
   });
 
-  it("projectHandle copies private wire sandbox.state onto state", () => {
+  it("projectHandle projects private wire sandbox.state without mutating", () => {
     const instance = new SandboxInstance({
       metadata: { name: "demo" },
       status: "DEPLOYED",
@@ -570,6 +570,7 @@ describe("Blaxel mappings", () => {
     });
     const handle = projectHandle(instance);
     expect(handle.state).toBe("STANDBY");
+    expect((instance as { state?: string }).state).toBeUndefined();
     expect(
       mapSandboxIdentity({
         metadata: { name: "demo" },
@@ -789,9 +790,13 @@ describe("Blaxel provider orchestration", () => {
         scope: { workspace: "ws" },
       });
       if (backend.delete === undefined) throw new Error("delete is missing");
-      const pending = backend.delete("doomed", { wait: true }, {
-        signal: controller.signal,
-      });
+      const pending = backend.delete(
+        "doomed",
+        { wait: true },
+        {
+          signal: controller.signal,
+        },
+      );
       const expectation = expect(pending).rejects.toMatchObject({
         kind: ErrorKind.Canceled,
         operation: "delete",

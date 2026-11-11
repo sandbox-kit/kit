@@ -80,17 +80,29 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
 
 /**
  * `@blaxel/core` types `SandboxInstance.sandbox` private and has no `state`
- * getter. Project runtime STANDBY/RUNNING onto a Kit-facing `state` field so
- * identity mapping never reaches into the private wire model. Wrap `fs` with
- * `get` so Stat can use the same filesystem GET as Go.
+ * getter. Project a plain Kit handle (identity + wrapped fs/process) so
+ * mapping never mutates the native instance or reaches into its private wire
+ * model after projection. Wrap `fs` with `get` so Stat uses the same
+ * filesystem GET as Go.
  */
 export function projectHandle(instance: SandboxInstance): NativeSandboxHandle {
   const state = wireRuntimeState(instance);
-  const base =
-    state === undefined ? instance : Object.assign(instance, { state });
-  return Object.assign(base, {
+  return {
+    metadata: instance.metadata,
+    status: instance.status,
+    ...(state !== undefined ? { state } : {}),
+    spec: instance.spec,
     fs: wrapFilesystem(instance.fs),
-  }) as unknown as NativeSandboxHandle;
+    process: {
+      exec: (request) =>
+        instance.process.exec(request) as Promise<BlaxelProcessResult>,
+      wait: (identifier, options) =>
+        instance.process.wait(
+          identifier,
+          options,
+        ) as Promise<BlaxelProcessResult>,
+    },
+  };
 }
 
 function wrapFilesystem(fs: SandboxFileSystem): NativeSandboxHandle["fs"] {

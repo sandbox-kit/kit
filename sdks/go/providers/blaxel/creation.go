@@ -252,7 +252,8 @@ func blaxelPortProtocol(transport sandbox.PortTransport) (blaxel.PortProtocol, e
 	case sandbox.PortTransportTLS:
 		return blaxel.PortProtocolTls, nil
 	default:
-		return "", providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsTransport, "requested port transport is unsupported")
+		// Blaxel PortProtocol is HTTP|TCP|UDP|TLS only (Kit Http2Tls included).
+		return "", providerCheckError(sandbox.ErrorKindUnsupported, sandbox.CreateFieldNetworkPortsTransport, "Http2Tls is not a Blaxel port protocol (HTTP|TCP|UDP|TLS)")
 	}
 }
 
