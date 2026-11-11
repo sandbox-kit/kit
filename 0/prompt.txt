@@ -1,19 +1,5 @@
-View all the changes in this branch:
-
-- validation provider
-- validation user-facing SDK
-- case user-facing SDK documentation
-- README
-- websiteUser-facing docs: commands shown in npm and the Go package.Request/response error mappings and validations: please see how they are well mapped.Also, while doing this, check the provider SDK, the Blaxel TypeScript, and see if you missed anything based on the scope of what we’ve said for other providers.Yes, do it, review, and let me know. Reply with the code changes. If changes are needed, explain them with code examples.
+cool commit and push
 
 ---
 
-explian in ccrisp all the fixes
-
----
-
-well we don't need to expose both ? providerMetadata ? ig we made that decision ?
-
----
-
-fix other 2
+are u sure right what chaneges u made was needed
