@@ -374,6 +374,11 @@ const info = await sandbox.filesystem.stat("/tmp/note.txt");
 console.log(info);
 ```
 
+<ForProvider id="blaxel">
+  Directories return type directory. Files return type file, with size and
+  permission fields when Blaxel provides them.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -394,6 +399,11 @@ info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 // info: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt, SymlinkTarget
 fmt.Println(info)
 ```
+
+<ForProvider id="blaxel">
+  Directories return type directory. Files return type file, with size and mode
+  when Blaxel provides them.
+</ForProvider>
 
   </Tab>
 </Tabs>

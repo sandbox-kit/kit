@@ -144,7 +144,7 @@ Indexes: [Go](go/README.md) · [TypeScript](typescript/README.md).
 | Blaxel remove one path    | [go](go/blaxel/filesystem/remove-blaxel-file/README.md)               | [typescript](typescript/blaxel/filesystem/remove-blaxel-file/README.md)               |
 | Blaxel remote retrieval and metadata | [go](go/blaxel/lifecycle/get-blaxel-sandbox/README.md)                | [typescript](typescript/blaxel/lifecycle/get-blaxel-sandbox/README.md)                |
 | Blaxel metadata refresh   | [go](go/blaxel/lifecycle/refresh-blaxel-sandbox/README.md)            | [typescript](typescript/blaxel/lifecycle/refresh-blaxel-sandbox/README.md)            |
-| Blaxel waited deletion    | [go](go/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             | [typescript](typescript/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             |
+| Blaxel delete by name     | [go](go/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             | [typescript](typescript/blaxel/lifecycle/delete-blaxel-sandbox/README.md)             |
 | Blaxel close the handle; sandbox keeps running | [go](go/blaxel/lifecycle/close-blaxel-handle/README.md)               | [typescript](typescript/blaxel/lifecycle/close-blaxel-handle/README.md)               |
 | Blaxel typed validation errors | [go](go/blaxel/errors/handle-blaxel-errors/README.md)                 | [typescript](typescript/blaxel/errors/handle-blaxel-errors/README.md)                 |
 

@@ -40,25 +40,7 @@ func TestCommandTimeoutWholeSeconds(t *testing.T) {
 	}
 }
 
-func TestCompletionHoldAndWaitBudget(t *testing.T) {
-	if completionHold(0) || completionHold(61*time.Second) || !completionHold(60*time.Second) || !completionHold(time.Second) {
-		t.Fatal("completion hold boundary")
-	}
-	if remainingWaitBudget(0, time.Minute) != blaxelWaitUnlimited {
-		t.Fatal("unlimited wait budget")
-	}
-	if remainingWaitBudget(90*time.Second, 0) != 90*time.Second {
-		t.Fatal("full wait budget")
-	}
-	if remainingWaitBudget(90*time.Second, 30*time.Second) != 60*time.Second {
-		t.Fatal("remaining wait budget")
-	}
-	if remainingWaitBudget(5*time.Second, 5*time.Second) != 0 || remainingWaitBudget(5*time.Second, 6*time.Second) != 0 {
-		t.Fatal("exhausted wait budget")
-	}
-}
-
-func TestRunCommandUsesCompletionHoldForShortTimeouts(t *testing.T) {
+func TestRunCommandStartsWithoutCompletionHold(t *testing.T) {
 	var posts []map[string]any
 	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
 		switch {
@@ -88,19 +70,19 @@ func TestRunCommandUsesCompletionHoldForShortTimeouts(t *testing.T) {
 	if len(posts) != 2 {
 		t.Fatalf("posts = %#v", posts)
 	}
-	if posts[0]["waitForCompletion"] != true || posts[0]["timeout"] != float64(5) || posts[0]["command"] != "'echo' 'hi'" || posts[0]["workingDir"] != "/workspace" {
+	if posts[0]["waitForCompletion"] != false || posts[0]["timeout"] != float64(5) || posts[0]["command"] != "'echo' 'hi'" || posts[0]["workingDir"] != "/workspace" {
 		t.Fatalf("short post = %#v", posts[0])
 	}
 	env, _ := posts[0]["env"].(map[string]any)
 	if env["MODE"] != "test" {
 		t.Fatalf("env = %#v", posts[0]["env"])
 	}
-	if posts[1]["waitForCompletion"] != true || posts[1]["timeout"] != float64(60) {
+	if posts[1]["waitForCompletion"] != false || posts[1]["timeout"] != float64(60) {
 		t.Fatalf("60s post = %#v", posts[1])
 	}
 }
 
-func TestRunCommandPollsWhenTheCompletionHoldIsUnsafe(t *testing.T) {
+func TestRunCommandWaitsWhenStartReturnsRunning(t *testing.T) {
 	var gets atomic.Int32
 	var posts []map[string]any
 	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
@@ -129,6 +111,7 @@ func TestRunCommandPollsWhenTheCompletionHoldIsUnsafe(t *testing.T) {
 		{"omit", &sandbox.ExecOptions{Shell: sandbox.Value("echo hi")}, 0},
 		{"zero", &sandbox.ExecOptions{Argv: []string{"echo", "hi"}, Timeout: sandbox.Duration(0)}, 0},
 		{"long", &sandbox.ExecOptions{Argv: []string{"echo", "hi"}, Timeout: sandbox.Duration(61 * time.Second)}, 61},
+		{"short", &sandbox.ExecOptions{Argv: []string{"echo", "hi"}, Timeout: sandbox.Duration(5 * time.Second)}, 5},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -152,41 +135,6 @@ func TestRunCommandPollsWhenTheCompletionHoldIsUnsafe(t *testing.T) {
 		if posts[i]["waitForCompletion"] != false || posts[i]["timeout"] != tc.seconds {
 			t.Fatalf("%s post = %#v", tc.name, posts[i])
 		}
-	}
-}
-
-func TestRunCommandPollsWhenCompletionHoldStillReturnsRunning(t *testing.T) {
-	var gets atomic.Int32
-	backend := processBackend(t, func(w http.ResponseWriter, r *http.Request) {
-		switch {
-		case r.Method == http.MethodGet && r.URL.Path == "/sandboxes/sbx":
-			writeJSON(t, w, map[string]any{"metadata": map[string]string{"name": "sbx"}, "spec": map[string]any{}})
-		case r.Method == http.MethodPost && r.URL.Path == "/process":
-			body := readJSON(t, r)
-			if body["waitForCompletion"] != true || body["timeout"] != float64(5) {
-				t.Fatalf("post = %#v", body)
-			}
-			writeProcess(t, w, "running", 0, "", "")
-		case r.Method == http.MethodGet && r.URL.Path == "/process/123":
-			gets.Add(1)
-			writeProcess(t, w, "completed", 0, "late", "")
-		default:
-			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
-			http.NotFound(w, r)
-		}
-	})
-	result, err := backend.RunCommand(context.Background(), "sbx", &sandbox.ExecOptions{
-		Argv:    []string{"echo", "hi"},
-		Timeout: sandbox.Duration(5 * time.Second),
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if result.GetExitCode() != 0 || string(result.GetStdout()) != "late" {
-		t.Fatalf("result = %#v", result)
-	}
-	if gets.Load() < 1 {
-		t.Fatalf("gets = %d", gets.Load())
 	}
 }
 

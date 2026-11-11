@@ -8,8 +8,7 @@ Sets `Config.Timeout` / `timeout` on the shared client. This bounds local waitin
 
 ## Edge cases
 
-- Kit `Timeout` / `provisioning.timeout` is the local create deadline.
-- The Go Blaxel SDK has no separate creation-timeout argument.
+- Client `Timeout` is how long create may take.
 
 ## Run
 

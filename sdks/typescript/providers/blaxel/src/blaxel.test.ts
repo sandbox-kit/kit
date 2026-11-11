@@ -22,7 +22,6 @@ import {
   CreateFieldNetworkPortsTransport,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
-  FileFieldPath,
 } from "@sandbox-kit/sandbox";
 import {
   mapClientConfig,
@@ -37,8 +36,8 @@ import {
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
-import { remainingWaitBudgetMs } from "./process.js";
-import { ResponseError } from "@blaxel/core";
+import { projectHandle } from "./native.js";
+import { ResponseError, SandboxInstance } from "@blaxel/core";
 
 const provider = { scope: { workspace: "ws" }, region: "us-pdx-1" };
 
@@ -163,7 +162,6 @@ describe("Blaxel mappings", () => {
       },
       provider,
     );
-    expect(plan.options).toBeUndefined();
     expect(plan).toMatchObject({
       params: {
         name: "example",
@@ -317,6 +315,56 @@ describe("Blaxel mappings", () => {
       operation: "create",
       statusCode: 403,
       providerCode: "POLICY_VIOLATION",
+      cause: native,
+    });
+  });
+
+  it("classifies bare HTTP 409 as already exists", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      { error: { message: "conflict" } },
+      new Error("conflict"),
+    );
+    expect(mapBlaxelError(native, "create")).toMatchObject({
+      kind: ErrorKind.AlreadyExists,
+      provider: "blaxel",
+      operation: "create",
+      statusCode: 409,
+      cause: native,
+    });
+  });
+
+  it("classifies bare HTTP 409 outside create as conflict", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      { error: { message: "conflict" } },
+      new Error("conflict"),
+    );
+    expect(mapBlaxelError(native, "delete")).toMatchObject({
+      kind: ErrorKind.Conflict,
+      provider: "blaxel",
+      operation: "delete",
+      statusCode: 409,
+      cause: native,
+    });
+  });
+
+  it("keeps SANDBOX_DELETION_IN_PROGRESS as conflict", () => {
+    const native = new ResponseError(
+      new Response(null, { status: 409, statusText: "Conflict" }),
+      {
+        error: {
+          code: "SANDBOX_DELETION_IN_PROGRESS",
+          message: "deleting",
+          status: 409,
+        },
+      },
+      new Error("deleting"),
+    );
+    expect(mapBlaxelError(native, "delete")).toMatchObject({
+      kind: ErrorKind.Conflict,
+      providerCode: "SANDBOX_DELETION_IN_PROGRESS",
+      statusCode: 409,
       cause: native,
     });
   });
@@ -498,13 +546,40 @@ describe("Blaxel mappings", () => {
     });
   });
 
-  it("reads runtime state from SandboxInstance wire model", () => {
+  it("maps projected runtime state from the native adapter", () => {
     expect(
       mapSandboxIdentity({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        // SandboxInstance exposes runtime state only on its private wire model.
-        ...({ sandbox: { state: "STANDBY" } } as object),
+        // defaultNativeFactory.projectHandle copies wire sandbox.state here.
+        state: "STANDBY",
+      }).state,
+    ).toBe(SandboxState.Paused);
+  });
+
+  it("projectHandle copies private wire sandbox.state onto state", () => {
+    const instance = new SandboxInstance({
+      metadata: { name: "demo" },
+      status: "DEPLOYED",
+      spec: { region: "us-pdx-1" },
+    } as never);
+    // @blaxel/core types sandbox private; seed the wire model for the adapter.
+    Object.assign(instance as object, {
+      sandbox: {
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: "STANDBY",
+        spec: { region: "us-pdx-1" },
+      },
+    });
+    const handle = projectHandle(instance);
+    expect(handle.state).toBe("STANDBY");
+    expect(
+      mapSandboxIdentity({
+        metadata: { name: "demo" },
+        status: "DEPLOYED",
+        state: handle.state,
+        spec: { region: "us-pdx-1" },
       }).state,
     ).toBe(SandboxState.Paused);
   });
@@ -524,7 +599,9 @@ describe("Blaxel provider orchestration", () => {
       async wait() {
         return this;
       },
-      async delete() {},
+      async delete() {
+        return { metadata: { name: "example" }, status: "DELETED" };
+      },
     };
     const client = new Client({
       provider: new BlaxelProvider(() => ({
@@ -561,6 +638,7 @@ describe("Blaxel provider orchestration", () => {
       memory: 2048,
       region: "us-pdx-1",
     });
+    // Kit never forwards @blaxel/core SandboxCreateOptions (native create timeout).
     expect(created?.options).toBeUndefined();
     expect(sandbox.id).toBe("example");
     expect(sandbox.info().name).toBe("example");
@@ -584,7 +662,9 @@ describe("Blaxel provider orchestration", () => {
           async wait() {
             return this;
           },
-          async delete() {},
+          async delete() {
+            return { metadata: { name: "unused" }, status: "DELETED" };
+          },
         };
       },
       async delete() {
@@ -600,29 +680,20 @@ describe("Blaxel provider orchestration", () => {
     expect(info).toMatchObject({ id: "existing", provider: "blaxel" });
   });
 
-  it("deletes by name after a provider-verified lookup", async () => {
+  it("unifies a successful delete as Deleted", async () => {
     const deleted: string[] = [];
     const backend = new BlaxelProvider(() => ({
       configure() {},
       async create() {
         throw new Error("unexpected create");
       },
-      async get(name) {
-        return {
-          metadata: { name },
-          status: "RUNNING",
-          fs: {} as never,
-          process: {} as never,
-          async wait() {
-            return this;
-          },
-          async delete() {
-            deleted.push(name);
-          },
-        };
+      async get() {
+        throw new Error("unexpected get");
       },
       async delete(name) {
-        deleted.push(`static:${name}`);
+        deleted.push(name);
+        // Wire may still say DELETING; Kit reports Deleted.
+        return { metadata: { name }, status: "DELETING" };
       },
     })).initialize({
       auth: { apiKey: { key: "bl_key" } },
@@ -735,7 +806,7 @@ describe("Blaxel provider orchestration", () => {
     expect(lookedUp).toBe(false);
   });
 
-  it("keeps short runs on waitForCompletion and polls the rest", async () => {
+  it("starts without waitForCompletion and waits when still running", async () => {
     const seen: Array<{
       command: string;
       waitForCompletion?: boolean;
@@ -746,7 +817,6 @@ describe("Blaxel provider orchestration", () => {
     const waits: Array<{
       identifier: string;
       maxWait?: number;
-      interval?: number;
       signal?: AbortSignal;
     }> = [];
     const signal = new AbortController().signal;
@@ -772,15 +842,6 @@ describe("Blaxel provider orchestration", () => {
                 entry.workingDir = request.workingDir;
               if (request.env !== undefined) entry.env = request.env;
               seen.push(entry);
-              if (request.waitForCompletion) {
-                return {
-                  exitCode: 0,
-                  stdout: "ok",
-                  stderr: "",
-                  status: "completed",
-                  pid: "short",
-                };
-              }
               return {
                 exitCode: 0,
                 stdout: "",
@@ -796,9 +857,6 @@ describe("Blaxel provider orchestration", () => {
                 ...(options?.maxWait === undefined
                   ? {}
                   : { maxWait: options.maxWait }),
-                ...(options?.interval === undefined
-                  ? {}
-                  : { interval: options.interval }),
                 ...(options?.signal === undefined
                   ? {}
                   : { signal: options.signal }),
@@ -814,7 +872,9 @@ describe("Blaxel provider orchestration", () => {
           async wait() {
             return this;
           },
-          async delete() {},
+          async delete() {
+            return { metadata: { name: "unused" }, status: "DELETED" };
+          },
         };
       },
       async delete() {
@@ -828,7 +888,7 @@ describe("Blaxel provider orchestration", () => {
 
     const polled = await backend.run("sandbox-1", { argv: ["echo", "hi"] }, {});
     await backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 0 }, {});
-    const held = await backend.run(
+    await backend.run(
       "sandbox-1",
       {
         argv: ["echo", "hi"],
@@ -859,25 +919,25 @@ describe("Blaxel provider orchestration", () => {
     expect(polled).toMatchObject({ exitCode: 7 });
     expect(polled.stdout).toEqual(new TextEncoder().encode("out"));
     expect(polled.stderr).toEqual(new TextEncoder().encode("err"));
-    expect(held).toMatchObject({ exitCode: 0 });
-    expect(held.stdout).toEqual(new TextEncoder().encode("ok"));
     expect(seen).toEqual([
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
       {
         command: "'echo' 'hi'",
-        waitForCompletion: true,
+        waitForCompletion: false,
         timeout: 5,
         workingDir: "/workspace",
         env: { MODE: "test" },
       },
-      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 60 },
+      { command: "'echo' 'hi'", waitForCompletion: false, timeout: 60 },
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 61 },
     ]);
     expect(waits).toEqual([
-      { identifier: "long", maxWait: -1, interval: 1_000 },
-      { identifier: "long", maxWait: -1, interval: 1_000 },
-      { identifier: "long", maxWait: 61_000, interval: 1_000, signal },
+      { identifier: "long", maxWait: -1 },
+      { identifier: "long", maxWait: -1 },
+      { identifier: "long", maxWait: 5_000 },
+      { identifier: "long", maxWait: 60_000 },
+      { identifier: "long", maxWait: 61_000, signal },
     ]);
   });
 
@@ -905,18 +965,11 @@ describe("Blaxel provider orchestration", () => {
     expect(result.stderr).toEqual(new TextEncoder().encode("stopped"));
   });
 
-  it("subtracts elapsed time from the process wait budget", () => {
-    expect(remainingWaitBudgetMs(undefined, 0, 10_000)).toBe(-1);
-    expect(remainingWaitBudgetMs(90, 1_000, 31_000)).toBe(60_000);
-    expect(remainingWaitBudgetMs(5, 1_000, 6_000)).toBe(0);
-    expect(remainingWaitBudgetMs(5, 1_000, 7_000)).toBeLessThan(0);
-  });
-
-  it("polls when a completion-hold start still returns running", async () => {
+  it("waits when start still returns running", async () => {
     const waits: string[] = [];
     const backend = runBackend({
       async exec(request) {
-        expect(request.waitForCompletion).toBe(true);
+        expect(request.waitForCompletion).toBe(false);
         expect(request.timeout).toBe(5);
         return { status: "running", pid: "held", stdout: "", stderr: "" };
       },
@@ -997,9 +1050,9 @@ describe("Blaxel provider orchestration", () => {
 });
 
 describe("Blaxel filesystem.stat", () => {
-  it("returns directory metadata from ls on the path", async () => {
+  it("returns directory metadata from get on the path", async () => {
     const backend = fsBackend({
-      async ls(path) {
+      async get(path) {
         expect(path).toBe("/app");
         return {
           name: "app",
@@ -1017,28 +1070,18 @@ describe("Blaxel filesystem.stat", () => {
     });
   });
 
-  it("reads file metadata from the parent listing when ls rejects a file path", async () => {
+  it("returns file metadata including size from get", async () => {
     const backend = fsBackend({
-      async ls(path) {
-        if (path === "/app/readme.txt") {
-          throw new Error(JSON.stringify({ error: "Directory not found" }));
-        }
-        expect(path).toBe("/app");
+      async get(path) {
+        expect(path).toBe("/app/readme.txt");
         return {
-          name: "app",
-          path: "/app",
-          files: [
-            {
-              name: "readme.txt",
-              path: "/app/readme.txt",
-              size: 12,
-              permissions: "0644",
-              owner: "user",
-              group: "user",
-              lastModified: "2024-01-02T03:04:05Z",
-            },
-          ],
-          subdirectories: [],
+          name: "readme.txt",
+          path: "/app/readme.txt",
+          size: 12,
+          permissions: "0644",
+          owner: "user",
+          group: "user",
+          lastModified: "2024-01-02T03:04:05Z",
         };
       },
     });
@@ -1050,57 +1093,49 @@ describe("Blaxel filesystem.stat", () => {
       type: FileType.File,
       size: 12n,
       permissions: "0644",
+      owner: "user",
+      group: "user",
     });
   });
 
-  it("propagates non-file ls errors and reports missing files", async () => {
+  it("propagates get errors", async () => {
     const missing = fsBackend({
-      async ls() {
+      async get() {
         throw new Error("boom");
       },
     });
     await expect(
       missing.stat!("sandbox-1", "/missing", {}, {}),
     ).rejects.toMatchObject({ kind: ErrorKind.Unknown, operation: "stat" });
-
-    const gone = fsBackend({
-      async ls(path) {
-        if (path === "/app/gone.txt") {
-          throw new Error(JSON.stringify({ error: "Directory not found" }));
-        }
-        return {
-          name: "app",
-          path: "/app",
-          files: [],
-          subdirectories: [],
-        };
-      },
-    });
-    await expect(
-      gone.stat!("sandbox-1", "/app/gone.txt", {}, {}),
-    ).rejects.toMatchObject({
-      kind: ErrorKind.NotFound,
-      operation: "stat",
-      field: FileFieldPath,
-    });
   });
 });
 
 function fsBackend(fs: {
-  ls(path: string): Promise<{
-    name: string;
-    path: string;
-    files: Array<{
-      name: string;
-      path: string;
-      size: number;
-      permissions?: string;
-      owner?: string;
-      group?: string;
-      lastModified?: string;
-    }>;
-    subdirectories: Array<{ name: string; path: string }>;
-  }>;
+  get(path: string): Promise<
+    | {
+        name: string;
+        path: string;
+        files: Array<{
+          name: string;
+          path: string;
+          size: number;
+          permissions?: string;
+          owner?: string;
+          group?: string;
+          lastModified?: string;
+        }>;
+        subdirectories: Array<{ name: string; path: string }>;
+      }
+    | {
+        name: string;
+        path: string;
+        size: number;
+        permissions?: string;
+        owner?: string;
+        group?: string;
+        lastModified?: string;
+      }
+  >;
 }) {
   return new BlaxelProvider(() => ({
     configure() {},
@@ -1115,7 +1150,9 @@ function fsBackend(fs: {
         async wait() {
           return this;
         },
-        async delete() {},
+        async delete() {
+          return { metadata: { name: "unused" }, status: "DELETED" };
+        },
       };
     },
     async delete() {
@@ -1162,7 +1199,9 @@ function runBackend(process: {
         async wait() {
           return this;
         },
-        async delete() {},
+        async delete() {
+          return { metadata: { name: "unused" }, status: "DELETED" };
+        },
       };
     },
     async delete() {

@@ -4,11 +4,11 @@ Refresh metadata for an existing Blaxel sandbox by name.
 
 ## What this means
 
-`Refresh` re-fetches provider metadata onto the handle.
+`sandbox.refresh` updates `info()` on this handle (state, labels, and related metadata).
 
 ## Edge cases
 
-- Unsupported when the handle does not report the refresh capability.
+- If this handle does not support refresh, you get `Unsupported`.
 
 ## Run
 

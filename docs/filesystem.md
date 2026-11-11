@@ -215,11 +215,13 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 
 ## Read metadata
 
-`Stat` returns one path. A symlink result describes the symlink. Modal can
-report a symlink. Daytona reports a file or a directory. `mode` is an octal
-string when the provider supplies one, such as `0644`. `permissions`, `owner`,
-and `group` are set when the provider supplies them. `modifiedAt` is set when
-the provider supplies a time.
+`Stat` returns one path. A symlink result describes the symlink. On Blaxel,
+directories return type directory; files return type file, with size and
+permission fields when Blaxel provides them. Modal can report a symlink.
+Daytona reports a file or a directory. `mode` is an octal string when the
+provider supplies one, such as `0644`. `permissions`, `owner`, and `group` are
+set when the provider supplies them. `modifiedAt` is set when the provider
+supplies a time.
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");

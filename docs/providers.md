@@ -78,8 +78,7 @@ volume fields; Blaxel, Daytona, and Modal volumes stay out of create),
 browsers, streaming process handles, sessions, PTY, and macOS or Windows
 creation are outside it.
 
-TypeScript Blaxel uses `@blaxel/core` process-global `settings`: one Blaxel
-Kit client, or one credential set, per process.
+In TypeScript, use one Blaxel client (or one API key) per process.
 
 See [configuration](configuration.md), [creation](sandbox-creation.md),
 [lifecycle](sandbox-lifecycle.md), [filesystem](filesystem.md), and

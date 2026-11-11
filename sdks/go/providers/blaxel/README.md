@@ -3,8 +3,8 @@
 Create and manage Blaxel sandboxes with the shared sandbox client.
 
 Requires Go 1.26.0 or later and a Blaxel API key. Set `Auth` to an API key and
-`Scope.Workspace` to the workspace name. If either is omitted, the Blaxel SDK
-uses `BL_API_KEY` and `BL_WORKSPACE` from the environment when present.
+`Scope.Workspace` to the workspace name. If either is omitted, the client uses
+`BL_API_KEY` and `BL_WORKSPACE` from the environment when present.
 `Config.Region` is required for create.
 
 ## Install
@@ -60,47 +60,68 @@ sandbox. Call `Delete`, or set a lifetime policy.
 `Config.Endpoint` is not supported. Token pair, OAuth, and bearer auth are
 rejected. `Scope` fields other than `Workspace` are rejected.
 
-## Operations
+## What you can do
 
-Create from a registry image with an explicit name. The name must be lowercase
-alphanumeric with single hyphens and at most 49 characters. You can set labels,
-environment variables, memory, ports, outbound domains, maximum lifetime, and
-idle terminate. Max-age TTL must be at least 5m; idle TTL must be at least 1m.
-`PolicyModeDisabled` on idle terminate is rejected. Ports 80, 443, and 8080 are
-rejected (Blaxel-reserved). Default port transport leaves the protocol to
-Blaxel (HTTP); plain maps to TCP; TLS maps to TLS. HTTP/2 over TLS is rejected.
-Kit `Config.Timeout` / create call timeout is the create deadline. The Go
-Blaxel SDK has no separate creation-timeout argument. `WaitFor` accepts only
-Default and Scheduled; `WaitConditionReady` is rejected. Create always uses
-the native create path (not create-if-not-exists).
+### Create
 
-On the handle: `Get`, `Refresh`, `Delete`, and `Close`. `Get` and `Refresh` look
-up the sandbox by name (`ID()` equals the create name). `Attach`, `Start`,
-`Stop`, `Pause`, `Archive`, and `Terminate` are not supported. `Close` does not
-contact Blaxel and does not change the sandbox.
+You need a name and an image. Names are lowercase alphanumeric with single
+hyphens (max 49 characters). You can also set labels, environment variables,
+memory, ports, outbound domains, maximum lifetime (≥5 minutes), and idle
+terminate (≥1 minute). You cannot disable idle terminate. Ports 80, 443, and
+8080 are reserved. Default port transport is HTTP; plain is TCP; TLS is TLS;
+HTTP/2 over TLS is not supported.
 
-`Filesystem` supports the shared file calls: `ReadFile`, `WriteFile`,
-`CopyFromLocal`, `CopyToLocal`, `MakeDirectory`, `ListDirectory`, `Stat`, and
-`Remove`. Paths in the sandbox are absolute. A file timeout is the context
-deadline. `Parents` defaults to true. `Parents` set to false is rejected. A
-missing file passed to `CopyFromLocal` is not found, and the error field is
-`local_path`. A local directory is an invalid argument with the same field.
-`CopyToLocal` creates a missing local parent directory.
+Your client/create timeout is how long create may take. Ready wait and
+readiness probes are not supported (`WaitFor` only Default or Scheduled).
 
-`Process().Run` runs one command and waits for the result. Set exactly one of
-`Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero
-exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
-stderr. Omit or zero `Timeout` for no Blaxel process auto-kill; Kit then polls
-until the command ends or the context ends. A positive timeout of at most 60
-seconds uses Blaxel's blocking completion request. A longer timeout sets the
-process auto-kill and polls. Command timeouts must be whole seconds. Cancel
-the context to stop waiting; the remote command may keep running. An HTTP 504
-during the wait is a timeout error.
+Set `Resources.MemoryMib` for memory size. Blaxel documents that value as MB;
+Kit does not convert units. CPU follows memory on Blaxel — do not set CPU or
+disk overrides. If you omit memory, Blaxel applies its default. Volumes are not
+part of create.
 
-`resources.memory_mib` maps 1:1 onto Blaxel's memory field. Blaxel labels that
-integer MB; Kit does not convert. Blaxel derives CPU from that value, so
-`cpu_cores` and disk overrides are rejected. Kit has no portable volume
-fields; Blaxel volumes are outside create.
+If the name already exists, you get `AlreadyExists`.
+
+### Lifecycle
+
+You can `Get`, `Refresh`, `Delete`, and `Close`. Lookup is by name
+(`ID()` equals the create name). Attach, start, stop, pause, archive, and
+terminate are not available. `Close` only drops the local handle.
+
+After a successful `Delete`, the handle reports `Deleted` and `terminal`.
+Blaxel can still be cleaning up — recreating the same name right away may
+return `Conflict`.
+
+On `Get` / `Refresh` / `Info`, an idle sandbox shows as `Paused`; an active
+one shows as `Running`.
+
+### Filesystem
+
+You get the usual file APIs: read, write, copy in/out, mkdir, list, stat, and
+remove. Paths must be absolute. `Parents` defaults to true; `Parents: false`
+is rejected.
+
+`Stat` returns whether the path is a file or a directory, plus size and mode
+when Blaxel provides them. Missing local files for `CopyFromLocal` return not
+found with field `local_path`.
+
+### Process
+
+`Process().Run` runs one command and waits for it to finish. Set exactly one of
+`Argv` or `Shell`. `Argv` is sent as one quoted shell command string. A
+non-zero exit code is not an error — read `GetExitCode`. You get both stdout
+and stderr.
+
+Omit or zero `Timeout` to wait without a Blaxel process time limit (your
+context can still cancel). A positive timeout must be whole seconds and caps
+how long the command may run. Canceling the context stops waiting; the remote
+command may keep running. If the wait times out, you get a timeout error.
+
+### Errors you will see
+
+| Situation                                  | Kind            |
+| ------------------------------------------ | --------------- |
+| Create when the name already exists        | `AlreadyExists` |
+| Conflict while a delete is still finishing | `Conflict`      |
 
 ## Examples
 

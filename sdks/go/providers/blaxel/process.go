@@ -12,11 +12,8 @@ import (
 )
 
 const (
-	// Docs limit waitForCompletion to 60s; longer holds can be closed by the edge.
-	blaxelCompletionHold = 60 * time.Second
 	// Process.Wait treats 0 as 1m; only -1 is unlimited.
 	blaxelWaitUnlimited = time.Duration(-1)
-	processPollInterval = time.Second // Blaxel SDK default poll gap
 )
 
 var _ sandbox.SandboxProcess = (*backend)(nil)
@@ -34,21 +31,15 @@ func (b *backend) RunCommand(ctx context.Context, id string, request *sandbox.Ex
 	if err != nil {
 		return nil, err
 	}
-	startedAt := time.Now()
 	started, err := instance.Process.New(ctx, body)
 	if err != nil {
 		return nil, mapProviderError(err, "run")
 	}
-	return finishProcess(ctx, finishProcessArgs{
-		Instance: instance,
-		Started:  started,
-		Timeout:  timeout,
-		Elapsed:  time.Since(startedAt),
-	})
+	return finishProcess(ctx, instance, started, timeout)
 }
 
-// processRequest builds Process.New. Timeout 0 disables Blaxel auto-kill;
-// WaitForCompletion is only set for 1–60s.
+// processRequest starts without waitForCompletion; Kit waits via Process.Wait.
+// Timeout 0 disables Blaxel process auto-kill.
 func processRequest(request *sandbox.ExecOptions, timeout time.Duration) (blaxel.ProcessRequestParam, error) {
 	command, err := blaxelCommand(request)
 	if err != nil {
@@ -57,7 +48,7 @@ func processRequest(request *sandbox.ExecOptions, timeout time.Duration) (blaxel
 	body := blaxel.ProcessRequestParam{
 		Command:           command,
 		Timeout:           blaxel.Int(int64(timeout / time.Second)),
-		WaitForCompletion: blaxel.Bool(completionHold(timeout)),
+		WaitForCompletion: blaxel.Bool(false),
 	}
 	if request.WorkingDirectory != nil {
 		body.WorkingDir = blaxel.String(*request.WorkingDirectory)
@@ -68,56 +59,24 @@ func processRequest(request *sandbox.ExecOptions, timeout time.Duration) (blaxel
 	return body, nil
 }
 
-type finishProcessArgs struct {
-	Instance *blaxel.SandboxInstance
-	Started  *blaxel.ProcessResponse
-	Timeout  time.Duration
-	// Elapsed covers Process.New, including any completion-hold wait.
-	Elapsed time.Duration
-}
-
-// finishProcess returns a terminal start as-is; otherwise polls with Wait
-// (also when waitForCompletion left the process running). Wait retries 504.
-func finishProcess(ctx context.Context, args finishProcessArgs) (*sandbox.ExecResult, error) {
-	if args.Started == nil || processFinished(args.Started) {
-		return execResult(args.Started)
+// finishProcess returns a terminal start as-is; otherwise one native Wait.
+func finishProcess(ctx context.Context, instance *blaxel.SandboxInstance, started *blaxel.ProcessResponse, timeout time.Duration) (*sandbox.ExecResult, error) {
+	if started == nil || processFinished(started) {
+		return execResult(started)
 	}
-	identifier := processIdentifier(args.Started)
+	identifier := processIdentifier(started)
 	if identifier == "" {
 		return nil, invalidResponse("run", "", "SDK returned no process identifier")
 	}
-	budget := remainingWaitBudget(args.Timeout, args.Elapsed)
-	if args.Timeout > 0 && budget <= 0 {
-		return nil, kitError(kitFault{
-			Kind:      sandbox.ErrorKindTimeout,
-			Operation: "run",
-			Field:     sandbox.ExecFieldTimeout,
-			Message:   "process did not finish before the timeout",
-		})
+	budget := blaxelWaitUnlimited
+	if timeout > 0 {
+		budget = timeout
 	}
-	finished, err := args.Instance.Process.Wait(ctx, identifier, budget, processPollInterval)
+	finished, err := instance.Process.Wait(ctx, identifier, budget, 0)
 	if err != nil {
 		return nil, mapProviderError(err, "run")
 	}
 	return execResult(finished)
-}
-
-func completionHold(timeout time.Duration) bool {
-	return timeout > 0 && timeout <= blaxelCompletionHold
-}
-
-// remainingWaitBudget is the poll window after Process.New. Omit/zero stays
-// unlimited. A fully consumed positive timeout yields 0 (caller times out);
-// Blaxel Wait treats 0 as 1m, so finishProcess must not pass that through.
-func remainingWaitBudget(timeout, elapsed time.Duration) time.Duration {
-	if timeout <= 0 {
-		return blaxelWaitUnlimited
-	}
-	remaining := timeout - elapsed
-	if remaining <= 0 {
-		return 0
-	}
-	return remaining
 }
 
 var terminalProcessStatus = map[blaxel.ProcessResponseStatus]struct{}{

@@ -14,5 +14,5 @@ await using client = new Client({
 const sandbox = await client.get(process.env.BL_SANDBOX_NAME!);
 const info = sandbox.info();
 console.log(
-  `Blaxel sandbox: id=${info.id} state=${info.state} native=${info.providerState ?? ""} capabilities=${sandbox.capabilities().join(",")}`,
+  `Blaxel sandbox: id=${info.id} state=${info.state} terminal=${info.terminal ?? false} capabilities=${sandbox.capabilities().join(",")}`,
 );

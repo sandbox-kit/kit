@@ -127,7 +127,7 @@ if err != nil {
 
 <ForProvider id="blaxel">
 
-`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available.
+`get` loads a sandbox that already exists by **name** (Blaxel id is the name). `refresh` loads it again. `attach` is not available. After `delete` succeeds you see `deleted` / `terminal: true` — wait before recreating the same name, or you may get `Conflict`. An idle sandbox shows as paused; an active one shows as running.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -268,7 +268,7 @@ if err := instance.Delete(ctx, &sandbox.DeleteOptions{
 
 ## Delete
 
-`delete` removes a Blaxel sandbox.
+`delete` removes a Blaxel sandbox. When the call succeeds you get `deleted` with `terminal` set. Wait before recreating the same name.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -413,8 +413,9 @@ state. See [Errors](/docs/errors).
 </ForProvider>
 
 <ForProvider id="blaxel">
-  After a lifecycle call, call `refresh` (or `get` again) before assuming the
-  sandbox is gone.
+  After a successful `delete`, trust `info.state` / `terminal` on the handle.
+  Use `refresh` or `get` when a call failed or you need fresh metadata while
+  the sandbox still exists. Prefer portable `state` over `providerState`.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

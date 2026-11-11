@@ -24,7 +24,7 @@ Returned by info and many lifecycle methods. Values are a **copy**; mutating the
 | `id`               | Sandbox identifier                                      |
 | `provider`         | Provider identifier                                     |
 | `name`             | Display name when reported                              |
-| `providerState`    | Raw state string from the cloud                         |
+| `providerState`    | Provider-specific status string; prefer portable `state` |
 | `region`           | Region when reported                                    |
 | `isolation`        | Reported isolation config                               |
 | `resources`        | Reported size (`cpuCores`, `memoryMib`, …)              |
@@ -51,7 +51,7 @@ console.log(info);
 | `Id`               | Sandbox identifier                                      |
 | `Provider`         | Provider identifier                                     |
 | `Name`             | Display name when reported                              |
-| `ProviderState`    | Raw state string from the cloud                         |
+| `ProviderState`    | Provider-specific status string; prefer portable `State` |
 | `Region`           | Region when reported                                    |
 | `Isolation`        | Reported isolation config                               |
 | `Resources`        | Reported size (`CpuCores`, `MemoryMib`, …)              |

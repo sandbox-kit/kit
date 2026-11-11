@@ -78,7 +78,7 @@ fmt.Println(result)
 
 | You pass               | On Daytona                                                      |
 | ---------------------- | --------------------------------------------------------------- |
-| `argv`                 | POSIX-quoted shell string                                       |
+| `argv`                 | One quoted shell command string                                 |
 | `shell`                | shell string as-is                                              |
 | omit / zero timeout    | no command limit (`0`, so Daytona does not use its 10s default) |
 | fractional (`1500` ms) | rejected (`timeout`)                                            |
@@ -90,7 +90,7 @@ Daytona returns stdout only; `stderr` is empty. stdout may include merged stream
 
 ```ts
 const result = await sandbox.process.run({
-  argv: ["echo", "hello"], // sent as a POSIX-quoted shell string
+  argv: ["echo", "hello"], // sent as one quoted shell command string
 });
 // result: { exitCode, stdout, stderr } — stderr often empty on Daytona
 console.log(result);
@@ -101,7 +101,7 @@ console.log(result);
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hello"}, // sent as a POSIX-quoted shell string
+	Argv: []string{"echo", "hello"}, // sent as one quoted shell command string
 })
 if err != nil {
 	return err
@@ -155,25 +155,24 @@ fmt.Println(result)
 
 <ForProvider id="blaxel">
 
-| You pass               | On Blaxel                                                                      |
-| ---------------------- | ------------------------------------------------------------------------------ |
-| `argv`                 | POSIX-quoted shell string                                                      |
-| `shell`                | shell string as-is                                                             |
-| omit / zero timeout    | no process auto-kill; Kit polls until the command ends or the call is canceled |
-| 1–60 seconds           | process auto-kill; blocking completion request                                 |
-| longer than 60 seconds | process auto-kill; Kit polls until the command ends or the call is canceled    |
-| fractional (`1500` ms) | rejected (`timeout`)                                                           |
+| You pass               | What happens                                                      |
+| ---------------------- | ----------------------------------------------------------------- |
+| `argv`                 | Sent as one quoted shell command string                               |
+| `shell`                | Run as-is                                                         |
+| omit / zero timeout    | Wait until the command ends (or you cancel); no Blaxel time limit |
+| positive timeout       | Cap how long the command may run (whole seconds only)             |
+| fractional (`1500` ms) | Rejected                                                          |
 
-Blaxel returns both `stdout` and `stderr`. `run` waits until the command ends.
-Canceling the context or aborting the signal stops the wait only; the remote
-command may keep running. An HTTP 504 while waiting is a timeout error.
+You get both `stdout` and `stderr`. `run` waits until the command ends.
+Canceling stops waiting only — the remote command may keep running. If the wait
+times out, you get a timeout error.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
 ```ts
 const result = await sandbox.process.run({
-  argv: ["echo", "hello"], // sent as a POSIX-quoted shell string
+  argv: ["echo", "hello"], // sent as one quoted shell command string
 });
 // result: { exitCode, stdout, stderr }
 console.log(result);
@@ -184,7 +183,7 @@ console.log(result);
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hello"}, // sent as a POSIX-quoted shell string
+	Argv: []string{"echo", "hello"}, // sent as one quoted shell command string
 })
 // result: ExitCode, Stdout, Stderr
 fmt.Println(result)
@@ -205,7 +204,7 @@ A non-zero exit code is **not** an SDK error.
 | `0`            | No extra client deadline for this call                            |
 | Positive value | Cap this call; must be whole seconds (`5000` ok, `1500` rejected) |
 
-Omit or zero also means no separate provider process auto-kill (see the
+Omit or zero also means no separate provider process time limit (see the
 provider tables above).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

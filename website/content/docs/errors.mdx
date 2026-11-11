@@ -300,7 +300,9 @@ See [Examples](/docs/examples).
 
 <ForProvider id="blaxel">
 
-`get` before retry so you know whether the sandbox exists (lookup by name).
+If the name is already taken on create, you get `AlreadyExists`. If a delete is
+still finishing, you get `Conflict` — wait, then `get` before you recreate that
+name.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -309,9 +311,11 @@ See [Examples](/docs/examples).
 try {
   await client.create(request);
 } catch (error) {
-  if (knownName) {
-    const sandbox = await client.get(knownName);
-    console.log(sandbox.info());
+  if (!(error instanceof SandboxError)) throw error;
+  if (error.kind === ErrorKind.AlreadyExists) {
+    console.error("Name already taken:", error.message);
+  } else if (error.kind === ErrorKind.Conflict) {
+    console.error("Name still conflicting; wait and get before recreate.");
   }
   throw error;
 }
@@ -323,10 +327,13 @@ try {
 ```go
 instance, err := client.Create(ctx, opts)
 if err != nil {
-	if knownName != "" {
-		existing, getErr := client.Get(ctx, knownName)
-		if getErr == nil {
-			fmt.Println(existing.Info())
+	var detail *sandbox.Error
+	if errors.As(err, &detail) {
+		switch detail.Kind {
+		case sandbox.ErrorKindAlreadyExists:
+			fmt.Println("Name already taken:", detail.Message)
+		case sandbox.ErrorKindConflict:
+			fmt.Println("Name still conflicting; wait and Get before recreate.")
 		}
 	}
 	return err

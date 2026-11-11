@@ -95,7 +95,7 @@ class BlaxelBackend extends BackendBase implements Backend {
       throwIfAborted(options.signal);
       const plan = mapCreateRequest(request, this.config);
       throwIfAborted(options.signal);
-      const sandbox = await this.native.create(plan.params, plan.options);
+      const sandbox = await this.native.create(plan.params);
       return { sandbox: mapSandboxInfo(sandbox, request) };
     } catch (error) {
       throw mapBlaxelError(error, "create");
@@ -116,21 +116,20 @@ class BlaxelBackend extends BackendBase implements Backend {
     _request: DeleteOptions,
     options: OperationOptions,
   ): Promise<SandboxInfo> {
-    return this.#withSandbox({
-      operation: "delete",
-      id,
-      options,
-      body: async (sandbox) => {
-        const info = mapSandboxInfo(sandbox);
-        await sandbox.delete();
-        return {
-          ...info,
-          state: SandboxState.Deleted,
-          terminal: true,
-          providerState: "TERMINATED",
-        };
-      },
-    });
+    try {
+      throwIfAborted(options.signal);
+      const deleted = await this.native.delete(id);
+      throwIfAborted(options.signal);
+      // Blaxel DELETE may still finish asynchronously; unify as Deleted.
+      return {
+        ...mapSandboxInfo(deleted),
+        state: SandboxState.Deleted,
+        terminal: true,
+        providerState: "TERMINATED",
+      };
+    } catch (error) {
+      throw mapBlaxelError(error, "delete");
+    }
   }
 
   async readFile(
@@ -289,7 +288,6 @@ class BlaxelBackend extends BackendBase implements Backend {
       options,
       body: async (sandbox) => {
         const timeout = execTimeoutSeconds(request.timeout);
-        const startedAt = Date.now();
         const started = await sandbox.process.exec(
           processRequest(request, timeout),
         );
@@ -297,7 +295,6 @@ class BlaxelBackend extends BackendBase implements Backend {
           process: sandbox.process,
           started,
           timeout,
-          startedAt,
           signal: options.signal,
         });
       },
@@ -330,11 +327,11 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
  * Selects Blaxel as the provider for the shared Sandbox Kit client.
  *
  * Create needs `name`, an image source, and client `region`. Set
- * `auth.apiKey` and `scope.workspace`, or omit them so `@blaxel/core` can use
- * `BL_API_KEY` / `BL_WORKSPACE`. `memoryMib` maps 1:1 onto Blaxel's memory
- * field; Kit has no portable volume fields. `@blaxel/core` stores credentials
- * in process-global `settings` — use one Blaxel Kit client, or one credential
- * set, per process.
+ * `auth.apiKey` and `scope.workspace`, or omit them to use `BL_API_KEY` /
+ * `BL_WORKSPACE` from the environment. Set `memoryMib` for memory size;
+ * Blaxel documents that value as MB and Kit does not convert units. Volumes
+ * are not part of create. In TypeScript, use one Blaxel client (or one API
+ * key) per process.
  */
 export function blaxel(): Provider {
   return new BlaxelProvider();

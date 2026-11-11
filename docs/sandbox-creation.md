@@ -6,23 +6,22 @@ from lifecycle operations on an existing sandbox.
 
 ## Supported creation settings
 
-Go and TypeScript integrations target Modal v0.11.1, Daytona v0.225.0, and
-Blaxel (`modal@0.11.1`, `@daytona/sdk@0.225.0`, `@blaxel/core@0.3.36` /
-`github.com/blaxel-ai/sdk-go@v0.31.0`).
+Go and TypeScript integrations target Modal, Daytona, and Blaxel. Pinned
+dependency versions live in each provider package.
 
-| Setting                | Modal                                                                                  | Daytona                                                            | Blaxel                                                                                         |
-| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       | Named create (Blaxel name rules); registry image required                                      |
-| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          | Unsupported                                                                                    |
-| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       | Unsupported                                                                                    |
-| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides | Memory 1:1 (`memory_mib`); CPU/disk overrides rejected                                         |
-| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       | Client `region` required for create; request placement unsupported                             |
-| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         | Environment map and labels                                                                     |
-| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                                    |
-| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080; Default → Blaxel HTTP); outbound domains                               |
-| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Kit client/create timeout; native create timeout not forwarded; waitFor Default/Scheduled only |
-| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                                    |
+| Setting                | Modal                                                                                  | Daytona                                                            | Blaxel                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       | Named create (Blaxel name rules); registry image required                       |
+| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          | Unsupported                                                                     |
+| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       | Unsupported                                                                     |
+| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides | Memory (`memory_mib` / `memoryMib`); CPU/disk overrides rejected                |
+| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       | Client `region` required for create; request placement unsupported              |
+| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         | Environment map and labels                                                      |
+| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                     |
+| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080; Default → Blaxel HTTP); outbound domains                |
+| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected |
+| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Client/create timeout only; waitFor Default/Scheduled only; Ready unsupported   |
+| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                     |
 
 Kit has no portable volume fields; Blaxel volumes stay out of create the same
 way Daytona and Modal volumes do.
@@ -50,18 +49,18 @@ field was omitted.
 Invalid combinations fail in the client before the provider call. A field the
 selected provider does not support fails there too.
 
-| Resource         | Modal                                           | Daytona                                      | Blaxel                                                           |
-| ---------------- | ----------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; Kit rejects CPU overrides         |
-| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` passed 1:1; Blaxel labels the unit MB |
-| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported                                    |
-| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | Blaxel TTL string (at least 5m when set)                         |
+| Resource         | Modal                                           | Daytona                                      | Blaxel                                                                 |
+| ---------------- | ----------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
+| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; Kit rejects CPU overrides               |
+| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` (Blaxel documents MB; Kit does not convert) |
+| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported                                          |
+| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | At least 5 minutes when set                                            |
 
 Daytona request conversion divides MiB exactly by 1024. Allocated metadata
 converts GiB back to MiB. Snapshot creation inherits snapshot resources.
 Positive CPU or memory limits require a corresponding request and cannot be
-lower than that request. Blaxel memory is a 1:1 integer pass-through; Kit
-does not convert MiB to MB.
+lower than that request. On Blaxel, pass memory as an integer; Kit does not
+convert units.
 
 Local checks cover syntax, known enums, documented bounds, precision, and
 supported combinations. Account quotas, class-specific permissions, image

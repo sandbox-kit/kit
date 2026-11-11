@@ -3,6 +3,7 @@ package blaxel
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	sdkblaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/sandbox-kit/kit/sdks/go/internal/sdk"
@@ -78,6 +79,8 @@ var providerStatusKinds = map[int]sandbox.ErrorKind{
 	404: sandbox.ErrorKindNotFound,
 	410: sandbox.ErrorKindNotFound,
 	408: sandbox.ErrorKindTimeout,
+	// Bare 409 is Conflict for non-create ops. Create maps it to AlreadyExists
+	// in statusKindFor (name collision). Coded conflicts still win above.
 	409: sandbox.ErrorKindConflict,
 	412: sandbox.ErrorKindFailedPrecondition,
 	429: sandbox.ErrorKindRateLimited,
@@ -85,6 +88,17 @@ var providerStatusKinds = map[int]sandbox.ErrorKind{
 	502: sandbox.ErrorKindUnavailable,
 	503: sandbox.ErrorKindUnavailable,
 	504: sandbox.ErrorKindTimeout,
+}
+
+// statusKindFor maps an HTTP status. Bare 409 on create is treated as a name
+// collision (AlreadyExists); other operations keep Conflict so portable code
+// that branches on kind matches Daytona's conflict semantics outside create.
+func statusKindFor(status int, operation string) (sandbox.ErrorKind, bool) {
+	if status == http.StatusConflict && operation == "create" {
+		return sandbox.ErrorKindAlreadyExists, true
+	}
+	kind, ok := providerStatusKinds[status]
+	return kind, ok
 }
 
 func mapProviderError(err error, operation string) error {
@@ -123,7 +137,7 @@ func mapProviderError(err error, operation string) error {
 		if kind == sandbox.ErrorKindUnknown {
 			if mapped, ok := providerCodeKinds[native.ErrorCode]; ok {
 				kind = mapped
-			} else if mapped, ok := providerStatusKinds[native.StatusCode]; ok {
+			} else if mapped, ok := statusKindFor(native.StatusCode, operation); ok {
 				kind = mapped
 			}
 		}

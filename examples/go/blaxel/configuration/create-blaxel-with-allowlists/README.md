@@ -4,7 +4,7 @@ Create one Blaxel sandbox that allows selected outbound domains.
 
 ## What this means
 
-Maps `network.outboundDomains` to Blaxel `allowedDomains`. Other egress controls are unsupported.
+Set `network.outboundDomains` to allow those hosts. Other egress controls are unsupported on Blaxel.
 
 ## Edge cases
 

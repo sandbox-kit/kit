@@ -4,7 +4,7 @@ Look up an existing Blaxel sandbox by name and print metadata.
 
 ## What this means
 
-`Get` retrieves the sandbox by name (the Blaxel id). Use the name printed by a create example as `BL_SANDBOX_NAME`.
+`client.Get` loads the sandbox by name (the Blaxel id). Use the name printed by a create example as `BL_SANDBOX_NAME`.
 
 ## Edge cases
 

@@ -139,7 +139,6 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
 
 </ForProvider>
 
-
 ## Read a file
 
 Returns the bytes of one file. A missing file is not found. A directory path fails at the provider.
@@ -345,6 +344,11 @@ fmt.Println(entries)
 
 <ForProvider id="modal">
   A symlink result describes the symlink when Modal reports one.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Directories return type directory. Files return type file, with size and
+  permission fields when Blaxel provides them.
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>

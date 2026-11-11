@@ -53,6 +53,55 @@ func TestMapProviderErrorSandboxAlreadyExists(t *testing.T) {
 	}
 }
 
+func TestMapProviderErrorBareConflictIsAlreadyExists(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusConflict,
+		Request:    &http.Request{Method: http.MethodPost, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusConflict},
+	}, "create")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindAlreadyExists {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}
+
+func TestMapProviderErrorBareConflictOnDeleteIsConflict(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusConflict,
+		Request:    &http.Request{Method: http.MethodDelete, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusConflict},
+	}, "delete")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindConflict {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}
+
+func TestMapProviderErrorDeletionInProgressStaysConflict(t *testing.T) {
+	parsed, err := url.Parse("https://example.invalid/sandboxes/demo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	mapped := mapProviderError(&sdkblaxel.Error{
+		StatusCode: http.StatusConflict,
+		ErrorCode:  "SANDBOX_DELETION_IN_PROGRESS",
+		Request:    &http.Request{Method: http.MethodDelete, URL: parsed},
+		Response:   &http.Response{StatusCode: http.StatusConflict},
+	}, "delete")
+	var detail *sandbox.Error
+	if !errors.As(mapped, &detail) || detail.Kind != sandbox.ErrorKindConflict {
+		t.Fatalf("error = %v detail = %#v", mapped, detail)
+	}
+}
+
 func TestMapProviderErrorGatewayTimeout(t *testing.T) {
 	parsed, err := url.Parse("https://example.invalid/sandboxes/demo/process")
 	if err != nil {

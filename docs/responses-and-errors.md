@@ -109,6 +109,10 @@ An error that Kit could not classify keeps an unknown kind and the original
 cause. A kind is a category. It is not a signal that retrying is safe, and
 Kit does not retry for you.
 
+On Blaxel, creating a sandbox whose name already exists returns
+`AlreadyExists`. If a delete is still finishing or another conflict occurs,
+you get `Conflict`.
+
 ## After a failure
 
 An error does not prove that no sandbox exists. Readiness or metadata handling

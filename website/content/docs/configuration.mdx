@@ -342,13 +342,13 @@ client, err := sandbox.NewClient(modal.New(), config)
 | Setting        | What to pass                             |
 | -------------- | ---------------------------------------- |
 | API key        | `auth.apiKey.key`                        |
-| Omitted `auth` | Blaxel SDK environment / CLI credentials |
+| Omitted `auth` | Uses `BL_API_KEY` / `BL_WORKSPACE` from the environment |
 | Workspace      | `scope.workspace`                        |
 | Region         | `region` — required for create           |
 | Endpoint       | Unsupported                              |
 
-`@blaxel/core` stores credentials in process-global `settings`. Use one Blaxel
-Kit client, or one credential set, per process.
+In TypeScript, use one Blaxel client (or one API key) per process. A second
+client with different credentials replaces the first.
 
 ```ts
 await using client = new Client({
@@ -531,11 +531,9 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 </ForProvider>
 
 <ForProvider id="blaxel">
-  Blaxel uses the Kit deadline for create. `@blaxel/core` also accepts a native
-  creation timeout (1–50 whole seconds); this provider does not forward it. The
-  Go Blaxel SDK has no equivalent argument. Ready wait and readiness probes are
-  unsupported. TypeScript Blaxel clients share `@blaxel/core` process-global
-  `settings`: use one Blaxel Kit client, or one credential set, per process.
+  Your client/create `timeout` is how long create may take. Ready wait and
+  readiness probes are unsupported. In TypeScript, use one Blaxel client (or one
+  API key) per process.
 </ForProvider>
 
 ## Credentials

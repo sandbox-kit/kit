@@ -4,7 +4,7 @@ Demonstrate typed validation errors from the Blaxel provider without creating a 
 
 ## What this means
 
-Requests an unsupported CPU override so Kit fails before calling Blaxel. Applications inspect `SandboxError` kind and field.
+Requests an unsupported CPU override so validation fails before any cloud call. Inspect `SandboxError` `kind` and `field`.
 
 ## Edge cases
 
@@ -36,8 +36,8 @@ BL_REGION=
 
 ## Warnings
 
-- Acts on **real** Blaxel resources when credentials succeed.
-- Closing the handle leaves the sandbox as it is. Closing the client closes your connection to the provider.
+- Validation fails locally for the unsupported CPU field; no sandbox is created.
+- Closing the client closes your connection to the provider.
 
 ## Related
 

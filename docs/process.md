@@ -27,7 +27,7 @@ How providers run the command:
 
 | You pass | Daytona                   | Modal                    | Blaxel                    |
 | -------- | ------------------------- | ------------------------ | ------------------------- |
-| `argv`   | POSIX-quoted shell string | argument list as-is      | POSIX-quoted shell string |
+| `argv`   | One quoted shell command string | argument list as-is | One quoted shell command string |
 | `shell`  | shell string as-is        | `bash -c` with that text | shell string as-is        |
 
 ## Working directory and environment
@@ -66,7 +66,7 @@ code.
 | `timeout: 0` / `Duration(0)` | Do not add an extra client deadline for this call                                                                                 |
 | Positive timeout             | Cap this call; must be a whole number of seconds (`5000` ms or `5 * time.Second` is fine; `1500` ms is rejected, field `timeout`) |
 
-Omit or zero also means **no separate provider process auto-kill** (see
+Omit or zero also means **no separate provider process time limit** (see
 provider quirks). Provider quirks:
 
 - **Daytona** — if you omit a native timeout, Daytona defaults to 10 seconds.
@@ -74,12 +74,10 @@ provider quirks). Provider quirks:
   capped at 10 seconds.
 - **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
   omits `timeoutMs` (sending `0` is rejected by Modal).
-- **Blaxel** — omit or zero adds no Blaxel process auto-kill. Timeouts must
-  be whole seconds. A positive timeout of at most 60 seconds uses Blaxel's
-  blocking completion request. Omit, zero, and longer timeouts start the
-  command and poll until it ends. The Kit deadline and cancel stop that
-  wait and leave the remote command running. A positive timeout still sets
-  Blaxel's process auto-kill. An HTTP 504 during the wait is a timeout error.
+- **Blaxel** — omit or zero waits until the command ends (or you cancel), with
+  no Blaxel process time limit. Positive timeouts must be whole seconds and
+  cap how long the command may run. Canceling stops waiting; the remote
+  command may keep running. If the wait times out, you get a timeout error.
 
 Cancel behavior:
 
@@ -87,10 +85,9 @@ Cancel behavior:
   error. The handle stays busy until that provider call returns.
 - **TypeScript** — abort rejects the `await`. The remote command may keep
   running. Daytona and Modal do not observe the signal inside exec. Blaxel
-  polls stop when the signal aborts. A Blaxel run whose timeout is 1–60
-  seconds uses a completion request that does not observe the signal. The
-  handle stays busy until the provider call settles, so the next call on
-  the same handle does not overlap it.
+  waits stop when the signal aborts. The handle stays busy until the
+  provider call settles, so the next call on the same handle does not
+  overlap it.
 
 ```ts
 const result = await sandbox.process.run({

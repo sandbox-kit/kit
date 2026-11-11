@@ -273,7 +273,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 | --------- | ------------------------------------------------------------------------------------------------- |
 | Source    | Registry image and Blaxel-valid `name` required (lowercase alphanumeric with single hyphens, ≤49) |
 | CPU       | Derived by Blaxel from memory; Kit rejects CPU overrides                                          |
-| Memory    | `memoryMib` / `memory_mib` passed 1:1; Blaxel labels the unit MB                                  |
+| Memory    | `memoryMib` / `memory_mib` (Blaxel documents MB; Kit does not convert)                             |
 | Disk      | Cannot be set                                                                                     |
 | Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                   |
 | Placement | Client `region` required. A placement block on this request is rejected                           |
@@ -612,13 +612,13 @@ See [Examples](/docs/examples).
 
 Create needs a Blaxel-valid `name` (lowercase alphanumeric with single hyphens,
 at most 49 characters), an image, and client `region`. The returned id is that
-name. Memory maps 1:1; CPU, disk, placement, readiness, runtime, and volumes
-are rejected. Ports 80, 443, and 8080 are reserved. Default port transport
-leaves the protocol to Blaxel (HTTP); plain maps to TCP; TLS maps to TLS;
-HTTP/2 over TLS is rejected. Max-age TTL ≥5m; idle terminate ≥1m; explicit
-idle disable is rejected. `waitFor` only `Default` / `Scheduled`; `Ready` is
-rejected. Kit create timeout is the local deadline; Blaxel's native creation
-timeout is not forwarded. See [Examples](/docs/examples).
+name. Pass memory as `memoryMib` / `memory_mib`; CPU, disk, placement,
+readiness, runtime, and volumes are rejected. Ports 80, 443, and 8080 are
+reserved. Default ports are HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
+not supported. Max-age TTL ≥5m; idle terminate ≥1m; you cannot disable idle
+terminate. `waitFor` only `Default` / `Scheduled`; Ready wait is not
+supported. Your client/create `timeout` is how long create may take. See
+[Examples](/docs/examples).
 
 </ForProvider>
 

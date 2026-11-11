@@ -4,7 +4,7 @@ Create one Blaxel sandbox that deletes after an idle period.
 
 ## What this means
 
-Maps `lifetime.idleTerminate` (`PolicyModeAfter`) to a Blaxel `ttl-idle` expiration policy with action delete.
+Set `lifetime.idleTerminate` with `after` and a delay (≥1 minute). The sandbox deletes after that idle period. You cannot disable idle terminate.
 
 ## Edge cases
 

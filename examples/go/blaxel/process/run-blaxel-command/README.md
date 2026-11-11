@@ -4,7 +4,7 @@ Run one argv command in a Blaxel sandbox and print exit code plus streams.
 
 ## What this means
 
-`Process.Run` is blocking. Set exactly one of `argv` or `shell`. Argv is sent as a POSIX-quoted shell string.
+`Process().Run` waits until the command finishes. Set exactly one of `Argv` or `Shell`. `Argv` is sent as one quoted shell command string.
 
 ## Edge cases
 

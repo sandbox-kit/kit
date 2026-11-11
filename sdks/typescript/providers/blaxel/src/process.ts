@@ -12,9 +12,6 @@ import type {
   ProcessExecRequest,
 } from "./native.js";
 
-/** Blaxel's documented limit for a single waitForCompletion request. */
-const blaxelCompletionHoldSeconds = 60;
-
 const terminalProcessStatus = new Set([
   "completed",
   "failed",
@@ -22,14 +19,14 @@ const terminalProcessStatus = new Set([
   "stopped",
 ]);
 
+/** Starts without waitForCompletion; Kit waits via process.wait. */
 export function processRequest(
   request: ExecOptions,
   timeout: number | undefined,
 ): ProcessExecRequest {
   const body: ProcessExecRequest = {
     command: blaxelCommand(request),
-    // 1–60s can use Blaxel's completion hold; omit/0/longer timeouts poll.
-    waitForCompletion: holdsCompletion(timeout),
+    waitForCompletion: false,
     // omit/0 → 0 disables Blaxel's default process auto-kill.
     timeout: timeout ?? 0,
   };
@@ -42,14 +39,12 @@ export function processRequest(
   return body;
 }
 
-/** Internal wait orchestration after Process.exec. */
+/** Internal wait after Process.exec: return terminal start, else one native wait. */
 export interface FinishProcessArgs {
   process: NativeSandboxHandle["process"];
   started: BlaxelProcessResult;
   /** Kit process timeout in whole seconds; undefined means unlimited. */
   timeout: number | undefined;
-  /** Date.now() taken immediately before Process.exec. */
-  startedAt: number;
   signal: AbortSignal | undefined;
 }
 
@@ -67,35 +62,14 @@ export async function finishProcess(
       message: "sandbox-kit blaxel: SDK returned no process identifier",
     });
   }
-  const maxWait = remainingWaitBudgetMs(args.timeout, args.startedAt);
-  if (args.timeout !== undefined && maxWait <= 0) {
-    providerError({
-      kind: ErrorKind.Timeout,
-      operation: "run",
-      field: ExecFieldTimeout,
-      message: "process did not finish before the timeout",
-    });
-  }
   const waitOptions: {
     maxWait: number;
-    interval: number;
     signal?: AbortSignal;
   } = {
-    maxWait,
-    interval: 1_000,
+    maxWait: args.timeout === undefined ? -1 : args.timeout * 1_000,
   };
   if (args.signal !== undefined) waitOptions.signal = args.signal;
   return execResult(await args.process.wait(identifier, waitOptions));
-}
-
-/** Poll window after Process.exec, subtracting time spent on completion hold. */
-export function remainingWaitBudgetMs(
-  timeoutSeconds: number | undefined,
-  startedAt: number,
-  now: number = Date.now(),
-): number {
-  if (timeoutSeconds === undefined) return -1;
-  return timeoutSeconds * 1_000 - (now - startedAt);
 }
 
 /**
@@ -119,14 +93,6 @@ export function execTimeoutSeconds(
 
 function isWholeSecondTimeout(timeout: number): boolean {
   return Number.isFinite(timeout) && timeout >= 0 && timeout % 1_000 === 0;
-}
-
-function holdsCompletion(timeoutSeconds: number | undefined): boolean {
-  return (
-    timeoutSeconds !== undefined &&
-    timeoutSeconds > 0 &&
-    timeoutSeconds <= blaxelCompletionHoldSeconds
-  );
 }
 
 function processFinished(status: string | undefined): boolean {
