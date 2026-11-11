@@ -61,3 +61,6 @@
 {"type":"turn_ended","status":"success"}
 {"role":"user","message":{"content":[{"type":"text","text":"<timestamp>Wednesday, Nov 11, 2026, 9:39 PM (UTC+5:30)</timestamp>\n<user_query>\ncool go ahead. commit\n</user_query>"}]}}
 {"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git status && git diff && git log -5 --oneline","description":"Status, diff, log for commit"}}]}}
+{"role":"assistant","message":{"content":[{"type":"tool_use","name":"Shell","input":{"command":"git add sdks/go/providers/blaxel/metadata.go sdks/go/providers/blaxel/sandbox_test.go && git commit -m \"$(cat <<'EOF'\nDrop Blaxel Go providerMetadata and createdAt from SandboxInfo.\n\nKeep Blaxel info on the YAML mapSandboxInfo surface so Go matches TypeScript.\nEOF\n)\" && git status -sb && git log -1 --oneline","description":"Commit Go Blaxel metadata omission"}}]}}
+{"role":"assistant","message":{"content":[{"type":"text","text":"Committed as `41b1767d` on `feat/blaxel-provider` (1 ahead of origin)."}]}}
+{"type":"turn_ended","status":"success"}
