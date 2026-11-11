@@ -72,16 +72,27 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 		t.Fatalf("info = %#v", info)
 	}
 	observed, err := sandboxInfo(&blaxel.Sandbox{
-		Metadata: blaxel.Metadata{Name: "demo"},
-		Spec:     blaxel.SandboxSpec{Runtime: blaxel.SandboxRuntime{Memory: 2048}},
-		Status:   blaxel.StatusDeployed,
-		State:    blaxel.SandboxStateRunning,
+		Metadata: blaxel.Metadata{
+			Name:        "demo",
+			DisplayName: "Demo",
+			CreatedAt:   "2026-01-02T03:04:05Z",
+			UpdatedAt:   "2026-01-02T04:05:06Z",
+		},
+		Spec:       blaxel.SandboxSpec{Runtime: blaxel.SandboxRuntime{Memory: 2048}},
+		Status:     blaxel.StatusDeployed,
+		State:      blaxel.SandboxStateRunning,
+		LastUsedAt: "2026-01-02T05:06:07Z",
+		ExpiresIn:  3600,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if observed.State != sandbox.SandboxStateRunning || observed.Resources.GetMemoryMib() != 2048 {
 		t.Fatalf("observed = %#v", observed)
+	}
+	// Blaxel keeps SandboxInfo to YAML mapSandboxInfo fields; no metadata bag or createdAt.
+	if observed.ProviderMetadata != nil || observed.CreatedAt != nil {
+		t.Fatalf("unexpected metadata = %#v createdAt = %#v", observed.ProviderMetadata, observed.CreatedAt)
 	}
 
 	standby, err := sandboxInfo(&blaxel.Sandbox{

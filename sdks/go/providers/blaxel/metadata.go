@@ -3,7 +3,6 @@ package blaxel
 import (
 	blaxel "github.com/blaxel-ai/sdk-go"
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type observedSandbox struct {
@@ -21,7 +20,6 @@ func sandboxInfo(native *blaxel.Sandbox) (*sandbox.SandboxInfo, error) {
 		return info, err
 	}
 	observed.state()
-	observed.metadata()
 	return info, nil
 }
 
@@ -80,43 +78,4 @@ func runtimeOnlyState(runtime blaxel.SandboxState) (sandbox.SandboxState, bool) 
 	default:
 		return 0, false
 	}
-}
-
-func (s *observedSandbox) metadata() {
-	native := s.native
-	values := make(map[string]*sandbox.MetadataValue, 12)
-	putText(values, "display_name", native.Metadata.DisplayName)
-	putText(values, "created_at", native.Metadata.CreatedAt)
-	putText(values, "updated_at", native.Metadata.UpdatedAt)
-	putText(values, "last_used_at", native.LastUsedAt)
-	putText(values, "node_generation", native.NodeGeneration)
-	if native.ExpiresIn > 0 {
-		values["expires_in_seconds"] = metadataInt(native.ExpiresIn)
-	}
-	if native.State != "" {
-		values["runtime_state"] = metadataText(string(native.State))
-	}
-	if len(values) > 0 {
-		s.info.ProviderMetadata = &sandbox.MetadataObject{Values: values}
-	}
-	if native.Metadata.CreatedAt != "" {
-		if parsed, err := parseBlaxelTime(native.Metadata.CreatedAt); err == nil {
-			s.info.CreatedAt = timestamppb.New(parsed)
-		}
-	}
-}
-
-func putText(values map[string]*sandbox.MetadataValue, key, value string) {
-	if value == "" {
-		return
-	}
-	values[key] = metadataText(value)
-}
-
-func metadataInt(value int64) *sandbox.MetadataValue {
-	return &sandbox.MetadataValue{Value: &sandbox.MetadataSignedInteger{SignedInteger: value}}
-}
-
-func metadataText(value string) *sandbox.MetadataValue {
-	return &sandbox.MetadataValue{Value: &sandbox.MetadataText{Text: value}}
 }
