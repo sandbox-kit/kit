@@ -6,8 +6,9 @@ sandboxes through a consistent client interface. Daytona, Modal, and Blaxel are 
 
 ## npm
 
-The TypeScript SDK is published on npm at version 0.1.7. Each badge counts every
-download npm has recorded for that package.
+TypeScript packages on npm: `@sandbox-kit/sandbox`, `@sandbox-kit/daytona`, and
+`@sandbox-kit/modal` are 0.1.7; `@sandbox-kit/blaxel` is 0.1.0. Each badge shows
+that package's registry version and download count.
 
 | Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |

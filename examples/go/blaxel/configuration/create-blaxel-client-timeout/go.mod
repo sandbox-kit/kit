@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/sandbox-kit/kit/sdks/go/providers/blaxel v0.1.5
+	github.com/sandbox-kit/kit/sdks/go/providers/blaxel v0.1.0
 	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.5
 )
 
