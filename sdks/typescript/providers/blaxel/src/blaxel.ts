@@ -38,6 +38,7 @@ import {
 import { blaxelStat, directoryInfo, fileInfo } from "./filesystem.js";
 import {
   ensureLocalParent,
+  mapCallerPathError,
   readLocalFile,
   requireLocalDestination,
 } from "./local.js";
@@ -209,7 +210,11 @@ class BlaxelBackend extends BackendBase implements Backend {
       id,
       options,
       body: async (sandbox) => {
-        await sandbox.fs.download(remotePath, localPath);
+        try {
+          await sandbox.fs.download(remotePath, localPath);
+        } catch (error) {
+          mapCallerPathError(error, "copy_to_local");
+        }
       },
     });
   }
@@ -252,7 +257,7 @@ class BlaxelBackend extends BackendBase implements Backend {
         const listing = await sandbox.fs.ls(path);
         return [
           ...listing.subdirectories.map((entry) => directoryInfo(entry)),
-          ...listing.files.map((entry) => fileInfo(entry)),
+          ...listing.files.map((entry) => fileInfo(entry, "list_directory")),
         ];
       },
     });

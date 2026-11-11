@@ -99,8 +99,8 @@ must be absolute. `parents` defaults to true; Blaxel does not support
 
 `stat` returns `type` (file or directory), `size`, and usually `permissions`,
 `owner`, `group`, and `modifiedAt`. `name` and `path` are whatever Blaxel
-reports. Missing local files for `copyFromLocal` return not found with field
-`local_path`.
+reports. Missing local files for `copyFromLocal`, and local write failures from
+`copyToLocal`, use field `local_path`.
 
 ### Process
 

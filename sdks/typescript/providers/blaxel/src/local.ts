@@ -64,6 +64,22 @@ export async function readLocalFile(
   }
 }
 
+/**
+ * Classifies a Node path failure from Blaxel download as `local_path`.
+ * Other errors are rethrown for `mapBlaxelError` (matches Go mapCallerPathError).
+ */
+export function mapCallerPathError(error: unknown, operation: string): never {
+  if (error instanceof SandboxError) throw error;
+  if (nodeCode(error) || nodeCode(causeOf(error))) {
+    throw localFileError(error, operation);
+  }
+  throw error;
+}
+
+function causeOf(error: unknown): unknown {
+  return error instanceof Error ? error.cause : undefined;
+}
+
 function localDirectory(operation: string): never {
   providerError({
     kind: ErrorKind.InvalidArgument,
@@ -74,12 +90,10 @@ function localDirectory(operation: string): never {
 }
 
 function localFileError(error: unknown, operation: string): SandboxError {
+  const code = nodeCode(error) ?? nodeCode(causeOf(error));
   return sandboxError(
     {
-      kind:
-        nodeCode(error) === "ENOENT"
-          ? ErrorKind.NotFound
-          : ErrorKind.InvalidArgument,
+      kind: code === "ENOENT" ? ErrorKind.NotFound : ErrorKind.InvalidArgument,
       provider: "blaxel",
       operation,
       field: FileFieldLocalPath,

@@ -10,7 +10,8 @@ import type { NativeSandboxHandle } from "./native.js";
 
 type BlaxelSubdirectory = Directory["subdirectories"][number];
 
-export function fileInfo(info: BlaxelFile): FileInfo {
+export function fileInfo(info: BlaxelFile, operation = "stat"): FileInfo {
+  requireFileIdentity(info, operation);
   const modified = Date.parse(info.lastModified);
   return {
     name: info.name,
@@ -51,26 +52,33 @@ export async function blaxelStat(
       size: 0n,
     };
   }
-  const name = data.name ?? "";
-  const filePath = data.path ?? "";
-  // Match Go blaxelFileInfo: empty name and path is not usable file metadata.
-  if (!name && !filePath) {
+  return fileInfo(
+    {
+      name: data.name ?? "",
+      path: data.path ?? "",
+      size: data.size,
+      permissions: data.permissions ?? "",
+      owner: data.owner ?? "",
+      group: data.group ?? "",
+      lastModified: data.lastModified ?? "",
+    },
+    "stat",
+  );
+}
+
+/** Match Go blaxelFileInfo: empty name and path is not usable file metadata. */
+function requireFileIdentity(
+  info: Pick<BlaxelFile, "name" | "path">,
+  operation: string,
+): void {
+  if (!info.name && !info.path) {
     providerError({
       kind: ErrorKind.InvalidResponse,
-      operation: "stat",
+      operation,
       field: FileFieldPath,
       message: "SDK returned no file metadata",
     });
   }
-  return fileInfo({
-    name,
-    path: filePath,
-    size: data.size,
-    permissions: data.permissions ?? "",
-    owner: data.owner ?? "",
-    group: data.group ?? "",
-    lastModified: data.lastModified ?? "",
-  });
 }
 
 function isDirectoryListing(data: Directory | BlaxelFile): data is Directory {

@@ -106,8 +106,8 @@ support `Parents: false`.
 
 `Stat` returns `Type` (file or directory), `Size`, and usually `Permissions`,
 `Owner`, `Group`, and `ModifiedAt`. `Name` and `Path` are whatever Blaxel
-reports. Missing local files for `CopyFromLocal` return not found with field
-`local_path`.
+reports. Missing local files for `CopyFromLocal`, and local write failures from
+`CopyToLocal`, use field `local_path`.
 
 ### Process
 

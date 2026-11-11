@@ -9,7 +9,9 @@ import {
   type SandboxCreateConfiguration,
   type SandboxFileSystem,
 } from "@blaxel/core";
+import { ErrorKind, FileFieldPath } from "@sandbox-kit/sandbox";
 import type { BlaxelSandboxIdentity } from "#mappings/provider_mappings.js";
+import { providerError } from "./errors.js";
 
 export interface BlaxelProcessResult {
   readonly pid?: string;
@@ -147,7 +149,14 @@ async function filesystemGet(
     };
     return meta;
   }
-  throw new Error("Unsupported filesystem path type");
+  // Match Go Stat: a non-listing GET body is treated as file metadata; when it
+  // is not usable Kit reports InvalidResponse (not Unknown from a plain Error).
+  providerError({
+    kind: ErrorKind.InvalidResponse,
+    operation: "stat",
+    field: FileFieldPath,
+    message: "SDK returned no file metadata",
+  });
 }
 
 function isDirectoryListing(data: unknown): data is Directory {

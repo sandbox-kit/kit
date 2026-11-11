@@ -1367,6 +1367,95 @@ describe("Blaxel filesystem.stat", () => {
       missing.stat!("sandbox-1", "/missing", {}, {}),
     ).rejects.toMatchObject({ kind: ErrorKind.Unknown, operation: "stat" });
   });
+
+  it("maps an unrecognized get body to InvalidResponse", async () => {
+    const backend = fsBackend({
+      async get() {
+        return { unexpected: true } as never;
+      },
+    });
+    await expect(
+      backend.stat!("sandbox-1", "/app/readme.txt", {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "stat",
+      field: FileFieldPath,
+    });
+  });
+
+  it("rejects list entries with empty name and path", async () => {
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        throw new Error("unexpected create");
+      },
+      async get() {
+        return {
+          metadata: { name: "sandbox-1" },
+          fs: {
+            async ls() {
+              return {
+                files: [{ name: "", path: "", size: 0 }],
+                subdirectories: [],
+              };
+            },
+          } as never,
+          process: {} as never,
+        };
+      },
+      async delete() {
+        throw new Error("unexpected delete");
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+    });
+    await expect(
+      backend.listDirectory!("sandbox-1", "/app", {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "list_directory",
+      field: FileFieldPath,
+    });
+  });
+
+  it("maps Node path failures from copyToLocal to local_path", async () => {
+    const local = join(tmpdir(), "kit-blaxel-copy-fail.txt");
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        throw new Error("unexpected create");
+      },
+      async get() {
+        return {
+          metadata: { name: "sandbox-1" },
+          fs: {
+            async download() {
+              const err = new Error(
+                `ENOENT: no such file or directory, open '${local}'`,
+              ) as NodeJS.ErrnoException;
+              err.code = "ENOENT";
+              throw err;
+            },
+          } as never,
+          process: {} as never,
+        };
+      },
+      async delete() {
+        throw new Error("unexpected delete");
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+    });
+    await expect(
+      backend.copyToLocal!("sandbox-1", "/tmp/note.txt", local, {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.NotFound,
+      field: FileFieldLocalPath,
+      operation: "copy_to_local",
+    });
+  });
 });
 
 function fsBackend(fs: {
