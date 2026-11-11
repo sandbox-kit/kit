@@ -84,21 +84,21 @@ A bare 409 on other operations is `Conflict`. Coded conflicts such as
 `remove`. Paths in the sandbox are absolute. `parents` defaults to true;
 `parents: false` is rejected. `stat` uses Blaxel `fs.ls` (GET-by-path): a
 directory listing succeeds; a file path returns Blaxel's "Directory not found"
-response, then Kit lists the parent. A missing file passed to `copyFromLocal`
-is not found before Blaxel is called, and the error field is `local_path`. A
-local directory is an invalid argument with the same field. `copyToLocal`
-creates a missing local parent directory.
+response and Kit reports a file (no parent listing). A missing file passed to
+`copyFromLocal` is not found before Blaxel is called, and the error field is
+`local_path`. A local directory is an invalid argument with the same field.
+`copyToLocal` creates a missing local parent directory.
 
 **Commands** through `sandbox.process.run`. Set exactly one of `argv` or
 `shell`. `argv` is sent as a POSIX-quoted shell string. `run` waits until the
 command ends. A non-zero exit code is not an SDK error—check `exitCode`.
-Blaxel returns stdout and stderr. Omit or zero `timeout` for no process
-auto-kill; Kit then polls until the command ends or the signal aborts. A
-positive timeout of at most 60 seconds uses Blaxel's blocking completion
-request. A longer timeout sets the process auto-kill and polls. Command
-timeouts must be whole seconds (`2000` is two seconds; `1500` is rejected).
-Aborting the signal rejects the `await`; the remote command may keep running.
-An HTTP 504 during the wait is a timeout error.
+Blaxel returns stdout and stderr. Kit starts without Blaxel's completion hold
+and uses one native `process.wait`. Omit or zero `timeout` for no process
+auto-kill and an unlimited wait (signal can still abort). A positive timeout
+sets auto-kill and the wait budget. Command timeouts must be whole seconds
+(`2000` is two seconds; `1500` is rejected). Aborting the signal rejects the
+`await`; the remote command may keep running. An HTTP 504 during the wait is a
+timeout error.
 
 Omitted memory keeps the Blaxel default. CPU, CPU limit, memory limit, and
 disk overrides are rejected.

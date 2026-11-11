@@ -159,9 +159,8 @@ fmt.Println(result)
 | ---------------------- | ------------------------------------------------------------------------------ |
 | `argv`                 | POSIX-quoted shell string                                                      |
 | `shell`                | shell string as-is                                                             |
-| omit / zero timeout    | no process auto-kill; Kit polls until the command ends or the call is canceled |
-| 1–60 seconds           | process auto-kill; blocking completion request                                 |
-| longer than 60 seconds | process auto-kill; Kit polls until the command ends or the call is canceled    |
+| omit / zero timeout    | no process auto-kill; one native wait until the command ends or cancel         |
+| positive timeout       | process auto-kill; one native wait with that budget                            |
 | fractional (`1500` ms) | rejected (`timeout`)                                                           |
 
 Blaxel returns both `stdout` and `stderr`. `run` waits until the command ends.

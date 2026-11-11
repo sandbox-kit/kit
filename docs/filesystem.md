@@ -216,8 +216,8 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 ## Read metadata
 
 `Stat` returns one path. A symlink result describes the symlink. Blaxel has no
-dedicated stat API: TypeScript uses `fs.ls` (directory listing, or parent
-listing after Blaxel's file-path "Directory not found" response); Go calls the
+dedicated stat API: TypeScript uses `fs.ls` (a directory listing, or a file
+when Blaxel returns "Directory not found" for a file path); Go calls the
 sandbox filesystem GET through a rebuilt lower client because
 `SandboxInstanceFSService` has no public Get/Stat and `LS` always treats the
 response as a directory. Modal can

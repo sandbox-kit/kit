@@ -125,12 +125,12 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both `stdout` and `stderr`. `argv` is sent as a POSIX-quoted
-  shell string. Omit or zero timeout means no process auto-kill; Kit polls until
-  the command ends or the call is canceled. A timeout of at most 60 seconds uses
-  Blaxel's blocking completion request. A longer timeout sets the process
-  auto-kill and polls. `run` waits until the command ends. Aborting the signal
-  stops the wait only; the remote command may keep running. An HTTP 504 while
-  waiting is a timeout error.
+  shell string. Kit starts without Blaxel's completion hold and uses one native
+  wait. Omit or zero timeout means no process auto-kill and an unlimited wait
+  (signal can still abort). A positive timeout sets auto-kill and the wait
+  budget. `run` waits until the command ends. Aborting the signal stops the wait
+  only; the remote command may keep running. An HTTP 504 while waiting is a
+  timeout error.
 </ForProvider>
 
   </Tab>
@@ -156,12 +156,12 @@ Outcome of a finished command.
 
 <ForProvider id="blaxel">
   Blaxel returns both Stdout and Stderr. Argv is sent as a POSIX-quoted shell
-  string. Omit or zero Timeout means no process auto-kill; Kit polls until the
-  command ends or the call is canceled. A Timeout of at most 60 seconds uses
-  Blaxel's blocking completion request. A longer Timeout sets the process
-  auto-kill and polls. Run waits until the command ends. Canceling the context
-  stops the wait only; the remote command may keep running. An HTTP 504 while
-  waiting is a timeout error.
+  string. Kit starts without Blaxel's completion hold and uses one native Wait.
+  Omit or zero Timeout means no process auto-kill and an unlimited wait
+  (context can still cancel). A positive Timeout sets auto-kill and the wait
+  budget. Run waits until the command ends. Canceling the context stops the wait
+  only; the remote command may keep running. An HTTP 504 while waiting is a
+  timeout error.
 </ForProvider>
 
   </Tab>

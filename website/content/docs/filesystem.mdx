@@ -350,8 +350,8 @@ fmt.Println(entries)
 <ForProvider id="blaxel">
   Blaxel has no dedicated stat API. TypeScript uses `fs.ls` (GET-by-path): a
   directory listing succeeds; a file path returns Blaxel's "Directory not
-  found" response, then Kit lists the parent. Go calls the sandbox filesystem
-  GET through a rebuilt lower client because `SandboxInstanceFSService` has no
+  found" response and Kit reports a file. Go calls the sandbox filesystem GET
+  through a rebuilt lower client because `SandboxInstanceFSService` has no
   public Get/Stat and `LS` always treats the response as a directory.
 </ForProvider>
 

@@ -1,10 +1,7 @@
-import { basename, dirname } from "node:path";
+import { basename } from "node:path";
 import type { Directory, File as BlaxelFile } from "@blaxel/core";
 import {
-  ErrorKind,
-  FileFieldPath,
   FileType,
-  sandboxError,
   type FileInfo,
 } from "@sandbox-kit/sandbox";
 import type { NativeSandboxHandle } from "./native.js";
@@ -34,7 +31,11 @@ export function directoryInfo(info: BlaxelSubdirectory): FileInfo {
   };
 }
 
-/** Blaxel has no Stat; ls wraps GET and rejects file paths with this error. */
+/**
+ * Blaxel has no Stat. `fs.ls` GETs the path: a directory listing succeeds; a
+ * file body makes ls throw "Directory not found". Report that as a File —
+ * one request, no parent-listing workaround (Go uses the same GET via a lower client).
+ */
 export async function blaxelStat(
   fs: NativeSandboxHandle["fs"],
   path: string,
@@ -49,19 +50,13 @@ export async function blaxelStat(
     };
   } catch (error) {
     if (!isBlaxelFilePath(error)) throw error;
+    return {
+      name: basename(path) || path,
+      path,
+      type: FileType.File,
+      size: 0n,
+    };
   }
-  const parent = dirname(path);
-  const name = basename(path);
-  const listing = await fs.ls(parent === "." ? "/" : parent);
-  const file = listing.files.find((entry) => entry.name === name);
-  if (file) return fileInfo(file);
-  throw sandboxError({
-    kind: ErrorKind.NotFound,
-    provider: "blaxel",
-    operation: "stat",
-    field: FileFieldPath,
-    message: `sandbox-kit blaxel: path not found: ${path}`,
-  });
 }
 
 /** Blaxel `fs.ls` throws this when GET returns a file instead of a directory. */

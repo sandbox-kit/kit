@@ -22,7 +22,6 @@ import {
   CreateFieldNetworkPortsTransport,
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
-  FileFieldPath,
 } from "@sandbox-kit/sandbox";
 import {
   mapClientConfig,
@@ -37,7 +36,6 @@ import {
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
-import { remainingWaitBudgetMs } from "./process.js";
 import { projectHandle } from "./native.js";
 import { ResponseError, SandboxInstance } from "@blaxel/core";
 
@@ -808,7 +806,7 @@ describe("Blaxel provider orchestration", () => {
     expect(lookedUp).toBe(false);
   });
 
-  it("keeps short runs on waitForCompletion and polls the rest", async () => {
+  it("starts without waitForCompletion and waits when still running", async () => {
     const seen: Array<{
       command: string;
       waitForCompletion?: boolean;
@@ -819,7 +817,6 @@ describe("Blaxel provider orchestration", () => {
     const waits: Array<{
       identifier: string;
       maxWait?: number;
-      interval?: number;
       signal?: AbortSignal;
     }> = [];
     const signal = new AbortController().signal;
@@ -845,15 +842,6 @@ describe("Blaxel provider orchestration", () => {
                 entry.workingDir = request.workingDir;
               if (request.env !== undefined) entry.env = request.env;
               seen.push(entry);
-              if (request.waitForCompletion) {
-                return {
-                  exitCode: 0,
-                  stdout: "ok",
-                  stderr: "",
-                  status: "completed",
-                  pid: "short",
-                };
-              }
               return {
                 exitCode: 0,
                 stdout: "",
@@ -869,9 +857,6 @@ describe("Blaxel provider orchestration", () => {
                 ...(options?.maxWait === undefined
                   ? {}
                   : { maxWait: options.maxWait }),
-                ...(options?.interval === undefined
-                  ? {}
-                  : { interval: options.interval }),
                 ...(options?.signal === undefined
                   ? {}
                   : { signal: options.signal }),
@@ -903,7 +888,7 @@ describe("Blaxel provider orchestration", () => {
 
     const polled = await backend.run("sandbox-1", { argv: ["echo", "hi"] }, {});
     await backend.run("sandbox-1", { argv: ["echo", "hi"], timeout: 0 }, {});
-    const held = await backend.run(
+    await backend.run(
       "sandbox-1",
       {
         argv: ["echo", "hi"],
@@ -934,25 +919,25 @@ describe("Blaxel provider orchestration", () => {
     expect(polled).toMatchObject({ exitCode: 7 });
     expect(polled.stdout).toEqual(new TextEncoder().encode("out"));
     expect(polled.stderr).toEqual(new TextEncoder().encode("err"));
-    expect(held).toMatchObject({ exitCode: 0 });
-    expect(held.stdout).toEqual(new TextEncoder().encode("ok"));
     expect(seen).toEqual([
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 0 },
       {
         command: "'echo' 'hi'",
-        waitForCompletion: true,
+        waitForCompletion: false,
         timeout: 5,
         workingDir: "/workspace",
         env: { MODE: "test" },
       },
-      { command: "'echo' 'hi'", waitForCompletion: true, timeout: 60 },
+      { command: "'echo' 'hi'", waitForCompletion: false, timeout: 60 },
       { command: "'echo' 'hi'", waitForCompletion: false, timeout: 61 },
     ]);
     expect(waits).toEqual([
-      { identifier: "long", maxWait: -1, interval: 1_000 },
-      { identifier: "long", maxWait: -1, interval: 1_000 },
-      { identifier: "long", maxWait: 61_000, interval: 1_000, signal },
+      { identifier: "long", maxWait: -1 },
+      { identifier: "long", maxWait: -1 },
+      { identifier: "long", maxWait: 5_000 },
+      { identifier: "long", maxWait: 60_000 },
+      { identifier: "long", maxWait: 61_000, signal },
     ]);
   });
 
@@ -980,18 +965,11 @@ describe("Blaxel provider orchestration", () => {
     expect(result.stderr).toEqual(new TextEncoder().encode("stopped"));
   });
 
-  it("subtracts elapsed time from the process wait budget", () => {
-    expect(remainingWaitBudgetMs(undefined, 0, 10_000)).toBe(-1);
-    expect(remainingWaitBudgetMs(90, 1_000, 31_000)).toBe(60_000);
-    expect(remainingWaitBudgetMs(5, 1_000, 6_000)).toBe(0);
-    expect(remainingWaitBudgetMs(5, 1_000, 7_000)).toBeLessThan(0);
-  });
-
-  it("polls when a completion-hold start still returns running", async () => {
+  it("waits when start still returns running", async () => {
     const waits: string[] = [];
     const backend = runBackend({
       async exec(request) {
-        expect(request.waitForCompletion).toBe(true);
+        expect(request.waitForCompletion).toBe(false);
         expect(request.timeout).toBe(5);
         return { status: "running", pid: "held", stdout: "", stderr: "" };
       },
@@ -1092,29 +1070,11 @@ describe("Blaxel filesystem.stat", () => {
     });
   });
 
-  it("reads file metadata from the parent listing when ls rejects a file path", async () => {
+  it("reports a file when ls rejects a file path", async () => {
     const backend = fsBackend({
       async ls(path) {
-        if (path === "/app/readme.txt") {
-          throw new Error(JSON.stringify({ error: "Directory not found" }));
-        }
-        expect(path).toBe("/app");
-        return {
-          name: "app",
-          path: "/app",
-          files: [
-            {
-              name: "readme.txt",
-              path: "/app/readme.txt",
-              size: 12,
-              permissions: "0644",
-              owner: "user",
-              group: "user",
-              lastModified: "2024-01-02T03:04:05Z",
-            },
-          ],
-          subdirectories: [],
-        };
+        expect(path).toBe("/app/readme.txt");
+        throw new Error(JSON.stringify({ error: "Directory not found" }));
       },
     });
     await expect(
@@ -1123,12 +1083,11 @@ describe("Blaxel filesystem.stat", () => {
       name: "readme.txt",
       path: "/app/readme.txt",
       type: FileType.File,
-      size: 12n,
-      permissions: "0644",
+      size: 0n,
     });
   });
 
-  it("propagates non-file ls errors and reports missing files", async () => {
+  it("propagates non-file ls errors", async () => {
     const missing = fsBackend({
       async ls() {
         throw new Error("boom");
@@ -1137,27 +1096,6 @@ describe("Blaxel filesystem.stat", () => {
     await expect(
       missing.stat!("sandbox-1", "/missing", {}, {}),
     ).rejects.toMatchObject({ kind: ErrorKind.Unknown, operation: "stat" });
-
-    const gone = fsBackend({
-      async ls(path) {
-        if (path === "/app/gone.txt") {
-          throw new Error(JSON.stringify({ error: "Directory not found" }));
-        }
-        return {
-          name: "app",
-          path: "/app",
-          files: [],
-          subdirectories: [],
-        };
-      },
-    });
-    await expect(
-      gone.stat!("sandbox-1", "/app/gone.txt", {}, {}),
-    ).rejects.toMatchObject({
-      kind: ErrorKind.NotFound,
-      operation: "stat",
-      field: FileFieldPath,
-    });
   });
 });
 

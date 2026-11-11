@@ -75,11 +75,11 @@ provider quirks). Provider quirks:
 - **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
   omits `timeoutMs` (sending `0` is rejected by Modal).
 - **Blaxel** — omit or zero adds no Blaxel process auto-kill. Timeouts must
-  be whole seconds. A positive timeout of at most 60 seconds uses Blaxel's
-  blocking completion request. Omit, zero, and longer timeouts start the
-  command and poll until it ends. The Kit deadline and cancel stop that
-  wait and leave the remote command running. A positive timeout still sets
-  Blaxel's process auto-kill. An HTTP 504 during the wait is a timeout error.
+  be whole seconds. Kit starts without Blaxel's completion hold and uses one
+  native wait. Omit or zero waits without a Kit budget (context/signal can
+  still cancel). A positive timeout sets auto-kill and the wait budget. The
+  Kit deadline and cancel stop that wait and leave the remote command
+  running. An HTTP 504 during the wait is a timeout error.
 
 Cancel behavior:
 
@@ -87,10 +87,9 @@ Cancel behavior:
   error. The handle stays busy until that provider call returns.
 - **TypeScript** — abort rejects the `await`. The remote command may keep
   running. Daytona and Modal do not observe the signal inside exec. Blaxel
-  polls stop when the signal aborts. A Blaxel run whose timeout is 1–60
-  seconds uses a completion request that does not observe the signal. The
-  handle stays busy until the provider call settles, so the next call on
-  the same handle does not overlap it.
+  waits stop when the signal aborts. The handle stays busy until the
+  provider call settles, so the next call on the same handle does not
+  overlap it.
 
 ```ts
 const result = await sandbox.process.run({

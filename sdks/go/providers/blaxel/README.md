@@ -101,11 +101,11 @@ directory.
 `Process().Run` runs one command and waits for the result. Set exactly one of
 `Argv` or `Shell`. `Argv` is sent as a POSIX-quoted shell string. A non-zero
 exit code is success for the SDK—read `GetExitCode`. Blaxel returns stdout and
-stderr. Omit or zero `Timeout` for no Blaxel process auto-kill; Kit then polls
-until the command ends or the context ends. A positive timeout of at most 60
-seconds uses Blaxel's blocking completion request. A longer timeout sets the
-process auto-kill and polls. Command timeouts must be whole seconds. Cancel
-the context to stop waiting; the remote command may keep running. An HTTP 504
+stderr. Kit starts without Blaxel's completion hold and uses one native
+`Process.Wait`. Omit or zero `Timeout` for no Blaxel process auto-kill and an
+unlimited wait (context can still cancel). A positive timeout sets auto-kill
+and the wait budget. Command timeouts must be whole seconds. Cancel the
+context to stop waiting; the remote command may keep running. An HTTP 504
 during the wait is a timeout error.
 
 `resources.memory_mib` maps 1:1 onto Blaxel's memory field. Blaxel labels that
