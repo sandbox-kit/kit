@@ -6,7 +6,7 @@ Stat one absolute path in a Blaxel sandbox.
 
 `stat` returns `type` (file or directory), `size`, and usually `permissions`,
 `owner`, `group`, and `modifiedAt`. `name` and `path` are whatever Blaxel
-reports.
+reports. Size may be zero when Blaxel does not return it.
 
 ## Edge cases
 

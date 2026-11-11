@@ -40,6 +40,7 @@ interface MappedErrorInput {
   operation: string;
   statusCode?: number;
   providerCode?: string;
+  providerSource?: string;
 }
 
 /** Inputs for throwing a Blaxel-scoped validation or mapping error. */
@@ -156,12 +157,16 @@ export function mapBlaxelError(
   const providerCode = stringifyCode(
     getBlaxelErrorCode(error) ?? getBlaxelErrorCode(cause),
   );
+  // Match Go: X-Blaxel-Source first, then body origin (BlaxelSource / Origin).
+  const providerSource =
+    blaxelProviderSource(error) ?? blaxelProviderSource(cause);
   return create({
     kind: classifyKind({ error, cause, providerCode, statusCode, operation }),
     error,
     operation,
     ...(statusCode === undefined ? {} : { statusCode }),
     ...(providerCode === undefined ? {} : { providerCode }),
+    ...(providerSource === undefined ? {} : { providerSource }),
   });
 }
 
@@ -230,8 +235,52 @@ function stringifyCode(code: unknown): string | undefined {
   return undefined;
 }
 
+function readProperty(value: unknown, key: string): unknown {
+  try {
+    return typeof value === "object" && value !== null
+      ? Reflect.get(value, key)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Same candidate walk as @blaxel/core getBlaxelErrorCode (error / data / nested). */
+function errorBodies(error: unknown): unknown[] {
+  const bodies = [
+    error,
+    readProperty(error, "error"),
+    readProperty(error, "data"),
+  ];
+  return bodies.flatMap((body) => [body, readProperty(body, "error")]);
+}
+
+function headerValue(error: unknown, name: string): string | undefined {
+  try {
+    const headers = readProperty(readProperty(error, "response"), "headers");
+    const get = readProperty(headers, "get");
+    if (typeof get !== "function") return undefined;
+    const value = Reflect.apply(get, headers, [name]);
+    return typeof value === "string" && value !== "" ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Prefer X-Blaxel-Source (Go BlaxelSource), else body origin (Go Origin). */
+function blaxelProviderSource(error: unknown): string | undefined {
+  const fromHeader = headerValue(error, "x-blaxel-source");
+  if (fromHeader !== undefined) return fromHeader;
+  for (const body of errorBodies(error)) {
+    const origin = readProperty(body, "origin");
+    if (typeof origin === "string" && origin !== "") return origin;
+  }
+  return undefined;
+}
+
 function create(input: MappedErrorInput): SandboxError {
-  const { kind, error, operation, statusCode, providerCode } = input;
+  const { kind, error, operation, statusCode, providerCode, providerSource } =
+    input;
   const field =
     kind === ErrorKind.NotFound && FILESYSTEM_OPERATIONS.has(operation)
       ? FileFieldPath
@@ -248,6 +297,7 @@ function create(input: MappedErrorInput): SandboxError {
           : "sandbox-kit blaxel: provider operation failed",
       ...(statusCode === undefined ? {} : { statusCode }),
       ...(providerCode === undefined ? {} : { providerCode }),
+      ...(providerSource === undefined ? {} : { providerSource }),
     },
     error,
   );

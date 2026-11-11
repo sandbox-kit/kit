@@ -190,7 +190,7 @@ function mapSecurity(r: CreateOptions): void {
 function mapLifetime(r: CreateOptions, p: SandboxCreateConfiguration): void {
   const v = r.lifetime;
   if (!v) return;
-  // Idle first (matches Go) so idle_terminate errors win over unmapped sibling fields.
+  // Maximum lifetime first, then idle (matches Go creation.go).
   if (v.maximumLifetime !== undefined) {
     p.ttl = durationString({
       ms: v.maximumLifetime,

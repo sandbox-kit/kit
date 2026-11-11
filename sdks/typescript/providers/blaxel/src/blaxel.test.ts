@@ -518,6 +518,38 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("maps X-Blaxel-Source and body origin onto providerSource", () => {
+    const fromHeader = new ResponseError(
+      new Response(null, {
+        status: 500,
+        statusText: "Internal Server Error",
+        headers: { "X-Blaxel-Source": "platform" },
+      }),
+      { error: { code: "INTERNAL_ERROR", message: "boom", origin: "ignored" } },
+      new Error("boom"),
+    );
+    expect(mapBlaxelError(fromHeader, "refresh")).toMatchObject({
+      providerSource: "platform",
+      providerCode: "INTERNAL_ERROR",
+    });
+    const fromOrigin = new ResponseError(
+      new Response(null, { status: 403, statusText: "Forbidden" }),
+      {
+        error: {
+          code: "POLICY_VIOLATION",
+          message: "policy",
+          origin: "gateway",
+          status: 403,
+        },
+      },
+      new Error("policy"),
+    );
+    expect(mapBlaxelError(fromOrigin, "create")).toMatchObject({
+      providerSource: "gateway",
+      providerCode: "POLICY_VIOLATION",
+    });
+  });
+
   it("accepts default egress with outbound domains", () => {
     const plan = mapCreateRequest(
       {
