@@ -1,0 +1,31 @@
+review this branch changes deepply lemme know if there is anything which needs to fix. Everything should be supported by strong reasons.Provider-specific. Then you should have a strong reason for selecting a message, such as using the provider SDK in both languages.
+
+---
+
+expian with examples.  on what u mean code examples are great and much better.
+
+---
+
+fix it
+
+---
+
+cool. are u sure about it + lemme knw what else u think u need to change /
+
+---
+
+explian with code examples
+
+---
+
+ig we shouldn't invent labels in ts. that should be appraoch.
+
+fix 2. 
+
+3. is intentionsal don't change anything in that
+
+4. fix 4
+
+---
+
+cool if u need to chage .mdx or .md with this change do it
