@@ -1435,6 +1435,7 @@ describe("Blaxel filesystem.stat", () => {
                 `ENOENT: no such file or directory, open '${local}'`,
               ) as NodeJS.ErrnoException;
               err.code = "ENOENT";
+              err.path = local;
               throw err;
             },
           } as never,
@@ -1453,6 +1454,44 @@ describe("Blaxel filesystem.stat", () => {
     ).rejects.toMatchObject({
       kind: ErrorKind.NotFound,
       field: FileFieldLocalPath,
+      operation: "copy_to_local",
+    });
+  });
+
+  it("does not tag non-destination Node errors as local_path on copyToLocal", async () => {
+    const local = join(tmpdir(), "kit-blaxel-copy-ok-dest.txt");
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        throw new Error("unexpected create");
+      },
+      async get() {
+        return {
+          metadata: { name: "sandbox-1" },
+          fs: {
+            async download() {
+              const err = new Error(
+                "ENOENT: no such file or directory, open '/other/path'",
+              ) as NodeJS.ErrnoException;
+              err.code = "ENOENT";
+              err.path = "/other/path";
+              throw err;
+            },
+          } as never,
+          process: {} as never,
+        };
+      },
+      async delete() {
+        throw new Error("unexpected delete");
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+    });
+    await expect(
+      backend.copyToLocal!("sandbox-1", "/tmp/note.txt", local, {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.Unknown,
       operation: "copy_to_local",
     });
   });

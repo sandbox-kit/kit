@@ -159,7 +159,8 @@ async function filesystemGet(
   });
 }
 
-function isDirectoryListing(data: unknown): data is Directory {
+/** True when a filesystem GET body is a directory listing (shared with Stat). */
+export function isDirectoryListing(data: unknown): data is Directory {
   return (
     !!data &&
     typeof data === "object" &&

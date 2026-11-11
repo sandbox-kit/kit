@@ -213,7 +213,7 @@ class BlaxelBackend extends BackendBase implements Backend {
         try {
           await sandbox.fs.download(remotePath, localPath);
         } catch (error) {
-          mapCallerPathError(error, "copy_to_local");
+          mapCallerPathError(error, "copy_to_local", localPath);
         }
       },
     });

@@ -1,5 +1,5 @@
 import { mkdir, readFile, stat } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 
 import {
   ErrorKind,
@@ -65,15 +65,29 @@ export async function readLocalFile(
 }
 
 /**
- * Classifies a Node path failure from Blaxel download as `local_path`.
- * Other errors are rethrown for `mapBlaxelError` (matches Go mapCallerPathError).
+ * Classifies a local destination path failure from Blaxel download as
+ * `local_path`. Matches Go: only when the error path equals `localPath`.
+ * Other errors are rethrown for `mapBlaxelError`.
  */
-export function mapCallerPathError(error: unknown, operation: string): never {
+export function mapCallerPathError(
+  error: unknown,
+  operation: string,
+  localPath: string,
+): never {
   if (error instanceof SandboxError) throw error;
-  if (nodeCode(error) || nodeCode(causeOf(error))) {
+  const pathErr = nodePathError(error) ?? nodePathError(causeOf(error));
+  if (pathErr !== undefined && resolve(pathErr.path) === resolve(localPath)) {
     throw localFileError(error, operation);
   }
   throw error;
+}
+
+/** Node `ErrnoException`-style path error (Go `os.PathError` counterpart). */
+function nodePathError(error: unknown): { path: string } | undefined {
+  if (typeof error !== "object" || !error || !("path" in error))
+    return undefined;
+  const path = error.path;
+  return typeof path === "string" && path !== "" ? { path } : undefined;
 }
 
 function causeOf(error: unknown): unknown {

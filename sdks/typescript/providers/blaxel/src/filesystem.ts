@@ -6,7 +6,7 @@ import {
   type FileInfo,
 } from "@sandbox-kit/sandbox";
 import { providerError } from "./errors.js";
-import type { NativeSandboxHandle } from "./native.js";
+import { isDirectoryListing, type NativeSandboxHandle } from "./native.js";
 
 type BlaxelSubdirectory = Directory["subdirectories"][number];
 
@@ -79,8 +79,4 @@ function requireFileIdentity(
       message: "SDK returned no file metadata",
     });
   }
-}
-
-function isDirectoryListing(data: Directory | BlaxelFile): data is Directory {
-  return "files" in data || "subdirectories" in data;
 }
