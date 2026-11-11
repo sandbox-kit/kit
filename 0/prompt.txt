@@ -1,11 +1,3 @@
-cool commit and push
-
----
-
-review again all teh changes in ths branch deeply and check if any weird smells we should fix before merge.
-
----
-
 clean up. 
 
 + i think blaxel version should be 0.1.0 and then make an github issue having plan how to launch and update publish packages in go and typescript for each language seperatley 2 isues.
