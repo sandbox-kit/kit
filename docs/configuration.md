@@ -61,7 +61,7 @@ in each provider package.
 | Environment      | Client, app, and secret lookup environment                 | Unsupported                       | Unsupported                    |
 | Organization ID  | Unsupported                                                | Organization                      | Unsupported                    |
 | Project ID       | Unsupported                                                | Unsupported                       | Unsupported                    |
-| Workspace        | Unsupported                                                | Unsupported                       | Required Blaxel workspace name |
+| Workspace        | Unsupported                                                | Unsupported                       | Blaxel workspace (`BL_WORKSPACE` when omitted) |
 
 A setting the provider does not support fails before the provider client is
 created. Omit `auth` when the provider should use credentials it already finds
