@@ -15,3 +15,10 @@ i mean it takes little efforts I don't have lot of urgency to merge.
 ---
 
 do it. all of tit.
+
+---
+
+cool commit and push
+Note that u have changed .md and mdx using skill we have. 
+
+and not having lot of big big para
