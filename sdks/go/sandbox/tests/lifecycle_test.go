@@ -46,6 +46,15 @@ func (p *lifecycleProvider) NewClient(*sandbox.Config) (sandbox.Backend, error) 
 	return p.backend, nil
 }
 
+type attachLifecycleBackend struct {
+	*lifecycleBackend
+	attach func(context.Context, string) (*sandbox.SandboxInfo, error)
+}
+
+func (b *attachLifecycleBackend) AttachSandbox(ctx context.Context, id string) (*sandbox.SandboxInfo, error) {
+	return b.attach(ctx, id)
+}
+
 func TestLifecycleDispatchAndUnsupportedOperation(t *testing.T) {
 	called := false
 	backend := &lifecycleBackend{start: func(ctx context.Context, id string, options *sandbox.StartOptions) (*sandbox.SandboxInfo, error) {
@@ -167,6 +176,95 @@ func TestGetAndRefreshOwnMetadata(t *testing.T) {
 	}
 	if instance.Info().GetName() != "second" {
 		t.Fatal("refresh did not replace metadata")
+	}
+}
+
+func TestGetAndAttachRejectInconsistentProviderResponses(t *testing.T) {
+	tests := []struct {
+		name      string
+		operation string
+		field     string
+		backend   sandbox.Backend
+		invoke    func(*sandbox.Client) error
+	}{
+		{
+			name:      "get returns a different identity",
+			operation: "get",
+			field:     sandbox.InfoFieldId,
+			backend: &lifecycleBackend{get: func(context.Context, string) (*sandbox.SandboxInfo, error) {
+				return &sandbox.SandboxInfo{Id: "different"}, nil
+			}},
+			invoke: func(client *sandbox.Client) error {
+				_, err := client.Get(context.Background(), "requested")
+				return err
+			},
+		},
+		{
+			name:      "attach returns a different provider",
+			operation: "attach",
+			field:     sandbox.InfoFieldProvider,
+			backend: &attachLifecycleBackend{
+				lifecycleBackend: &lifecycleBackend{},
+				attach: func(_ context.Context, id string) (*sandbox.SandboxInfo, error) {
+					return &sandbox.SandboxInfo{Id: id, Provider: "different"}, nil
+				},
+			},
+			invoke: func(client *sandbox.Client) error {
+				_, err := client.Attach(context.Background(), "requested")
+				return err
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client, err := sandbox.NewClient(&lifecycleProvider{backend: test.backend}, &sandbox.Config{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = test.invoke(client)
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidResponse || detail.Operation != test.operation || detail.Field != test.field {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestRefreshRejectsInconsistentMetadataWithoutUpdatingTheHandle(t *testing.T) {
+	tests := []struct {
+		name  string
+		info  *sandbox.SandboxInfo
+		field string
+	}{
+		{name: "different identity", info: &sandbox.SandboxInfo{Id: "different"}, field: sandbox.InfoFieldId},
+		{name: "different provider", info: &sandbox.SandboxInfo{Id: "created", Provider: "different"}, field: sandbox.InfoFieldProvider},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			backend := &lifecycleBackend{
+				get: func(context.Context, string) (*sandbox.SandboxInfo, error) {
+					return test.info, nil
+				},
+			}
+			client, err := sandbox.NewClient(&lifecycleProvider{backend: backend}, &sandbox.Config{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			instance, err := client.Create(context.Background(), nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			err = instance.Refresh(context.Background())
+			var detail *sandbox.Error
+			if !errors.As(err, &detail) || detail.Kind != sandbox.ErrorKindInvalidResponse || detail.Operation != "refresh" || detail.Field != test.field {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if instance.ID() != "created" || instance.ProviderName() != "lifecycle" {
+				t.Fatalf("refresh changed handle metadata: %#v", instance.Info())
+			}
+		})
 	}
 }
 

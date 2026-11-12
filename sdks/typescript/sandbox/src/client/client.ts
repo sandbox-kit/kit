@@ -140,9 +140,27 @@ export class Client implements AsyncDisposable {
         () => fetch(operationOptions(options, scoped?.signal)),
         scoped.signal,
       );
+      if (!info?.id || info.id !== id)
+        throw sandboxError({
+          kind: ErrorKind.InvalidResponse,
+          provider: this.providerName,
+          operation,
+          field: InfoFieldId,
+          message:
+            "sandbox-kit: provider returned a different sandbox identity",
+        });
+      if (info.provider && info.provider !== this.providerName)
+        throw sandboxError({
+          kind: ErrorKind.InvalidResponse,
+          provider: this.providerName,
+          operation,
+          field: ConfigFieldProvider,
+          message:
+            "sandbox-kit: response provider differs from selected provider",
+        });
       return new Sandbox(sandboxConstructorToken, {
         backend: this.#backend,
-        info: { ...info, id, provider: this.providerName },
+        info: { ...info, provider: this.providerName },
         ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
       });
     } catch (error) {

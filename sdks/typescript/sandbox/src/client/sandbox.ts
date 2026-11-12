@@ -12,7 +12,8 @@ import {
   type StopOptions,
   type TerminateOptions,
 } from "#contracts/sandbox_data_contracts.js";
-import { unsupported, withContext } from "#client/errors.js";
+import { InfoFieldId, InfoFieldProvider } from "#contracts/field_paths.js";
+import { ErrorKind, sandboxError, unsupported, withContext } from "#client/errors.js";
 import {
   awaitWithSignal,
   clone,
@@ -135,6 +136,7 @@ export class Sandbox implements AsyncDisposable {
         const method = this.#backend.refresh;
         if (!method) unsupported(this.providerName, "refresh");
         return this.#storeInfo(
+          "refresh",
           await method.call(
             this.#backend,
             this.id,
@@ -292,6 +294,7 @@ export class Sandbox implements AsyncDisposable {
       async (signal) => {
         if (!method) unsupported(this.providerName, operation);
         return this.#storeInfo(
+          operation,
           await method.call(
             this.#backend,
             this.id,
@@ -302,7 +305,23 @@ export class Sandbox implements AsyncDisposable {
       },
     );
   }
-  #storeInfo(info: SandboxInfo): SandboxInfo {
+  #storeInfo(operation: string, info: SandboxInfo): SandboxInfo {
+    if (!info?.id || info.id !== this.id)
+      throw sandboxError({
+        kind: ErrorKind.InvalidResponse,
+        provider: this.providerName,
+        operation,
+        field: InfoFieldId,
+        message: "sandbox-kit: provider returned a different sandbox identity",
+      });
+    if (info.provider && info.provider !== this.providerName)
+      throw sandboxError({
+        kind: ErrorKind.InvalidResponse,
+        provider: this.providerName,
+        operation,
+        field: InfoFieldProvider,
+        message: "sandbox-kit: provider returned inconsistent sandbox metadata",
+      });
     const stored = clone(info);
     stored.provider = this.providerName;
     this.#info = stored;

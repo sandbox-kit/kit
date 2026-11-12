@@ -5,6 +5,7 @@ import {
   ExecFieldWorkingDirectory,
   FileFieldLocalPath,
   FileFieldPath,
+  InfoFieldId,
   CreateFieldLifetimeIdleStopAfter,
   CreateFieldLifetimeIdleStopMode,
   CreateFieldNetwork,
@@ -187,6 +188,61 @@ describe("Client cleanup", () => {
       kind: ErrorKind.Unsupported,
       operation: "create",
     });
+  });
+});
+
+describe("Provider response validation", () => {
+  it("rejects lookup responses with a different identity or provider", async () => {
+    const attachBackend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async () => ({ id: "different", provider: "test" }),
+    };
+    const attachClient = new Client({
+      provider: { name: attachBackend.name, initialize: () => attachBackend },
+    });
+    await expect(attachClient.attach("requested")).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "attach",
+      field: InfoFieldId,
+    });
+
+    const getBackend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      refresh: async (id) => ({ id, provider: "different" }),
+    };
+    const getClient = new Client({
+      provider: { name: getBackend.name, initialize: () => getBackend },
+    });
+    await expect(getClient.get("requested")).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "get",
+      field: ConfigFieldProvider,
+    });
+  });
+
+  it("preserves a handle when a lifecycle response changes its identity", async () => {
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      refresh: async () => ({ id: "different", provider: "test" }),
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("requested");
+
+    await expect(sandbox.refresh()).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "refresh",
+      field: InfoFieldId,
+    });
+    expect(sandbox.id).toBe("requested");
   });
 });
 

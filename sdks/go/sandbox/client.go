@@ -224,7 +224,7 @@ func (c *Client) Create(ctx context.Context, request *CreateOptions) (instance *
 	if err != nil {
 		return nil, err
 	}
-	instance, err = sandboxFromResponse(c.backend, response, "create")
+	instance, err = sandboxFromResponse(c.backend, response, "create", "")
 	if err != nil {
 		return nil, err
 	}
