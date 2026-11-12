@@ -52,8 +52,9 @@ idle policies or `delete`.
 Token-pair, bearer, and OAuth are rejected. Only `scope.workspace` is accepted
 on scope.
 
-In TypeScript, use one Blaxel client (or one API key) per process. A second
-client with different credentials replaces the first.
+In TypeScript, use one Blaxel configuration per process. A second client with
+different credentials or workspace is rejected before it can replace the
+process-wide SDK configuration.
 
 ## What you can do
 

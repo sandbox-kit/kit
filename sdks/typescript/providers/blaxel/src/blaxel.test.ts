@@ -38,7 +38,7 @@ import {
 } from "#mappings/provider_mappings.js";
 import { captureProviderState } from "#config/provider_config.js";
 import { mapBlaxelError } from "#errors.js";
-import { projectHandle } from "./native.js";
+import { defaultNativeFactory, projectHandle } from "./native.js";
 import { ResponseError, SandboxInstance } from "@blaxel/core";
 
 const provider = { region: "us-pdx-1" };
@@ -578,7 +578,6 @@ describe("Blaxel mappings", () => {
       mapSandboxInfo({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        state: "RUNNING",
         spec: { region: "us-pdx-1", runtime: { memory: 4096 } },
       }),
     ).toMatchObject({
@@ -591,7 +590,6 @@ describe("Blaxel mappings", () => {
     const info = mapSandboxInfo({
       metadata: { name: "demo" },
       status: "DEPLOYED",
-      state: "RUNNING",
       spec: { region: "us-pdx-1" },
     });
     expect(info.labels).toBeUndefined();
@@ -604,7 +602,6 @@ describe("Blaxel mappings", () => {
       mapSandboxInfo({
         metadata: { name: "demo", labels: { team: "kit" } },
         status: "DEPLOYED",
-        state: "RUNNING",
         spec: { region: "us-pdx-1" },
       }).labels,
     ).toEqual({ team: "kit" });
@@ -612,7 +609,6 @@ describe("Blaxel mappings", () => {
       mapSandboxInfo({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        state: "RUNNING",
         spec: { region: "us-pdx-1" },
       }).labels,
     ).toBeUndefined();
@@ -684,72 +680,50 @@ describe("Blaxel mappings", () => {
     );
   });
 
-  it("maps DEPLOYED plus runtime STANDBY to paused", () => {
+  it("maps public DEPLOYED status to running", () => {
     expect(
       mapSandboxIdentity({
         metadata: { name: "demo" },
         status: "DEPLOYED",
-        state: "STANDBY",
         spec: { region: "us-pdx-1" },
       }),
     ).toMatchObject({
       id: "demo",
       providerState: "DEPLOYED",
-      state: SandboxState.Paused,
+      state: SandboxState.Running,
       region: "us-pdx-1",
     });
   });
 
-  it("maps DEPLOYED plus runtime RUNNING to running", () => {
-    expect(
-      mapSandboxIdentity({
-        metadata: { name: "demo" },
-        status: "DEPLOYED",
-        state: "RUNNING",
-      }),
-    ).toMatchObject({
-      providerState: "DEPLOYED",
-      state: SandboxState.Running,
-    });
-  });
-
-  it("maps projected runtime state from the native adapter", () => {
-    expect(
-      mapSandboxIdentity({
-        metadata: { name: "demo" },
-        status: "DEPLOYED",
-        // projectHandle puts wire sandbox.state on the plain handle.
-        state: "STANDBY",
-      }).state,
-    ).toBe(SandboxState.Paused);
-  });
-
-  it("projectHandle projects private wire sandbox.state without mutating", () => {
+  it("projectHandle uses public SDK properties only", () => {
     const instance = new SandboxInstance({
       metadata: { name: "demo" },
       status: "DEPLOYED",
       spec: { region: "us-pdx-1" },
     } as never);
-    // @blaxel/core types sandbox private; seed the wire model for the adapter.
-    Object.assign(instance as object, {
-      sandbox: {
-        metadata: { name: "demo" },
-        status: "DEPLOYED",
-        state: "STANDBY",
-        spec: { region: "us-pdx-1" },
-      },
-    });
     const handle = projectHandle(instance);
-    expect(handle.state).toBe("STANDBY");
-    expect((instance as { state?: string }).state).toBeUndefined();
-    expect(
-      mapSandboxIdentity({
-        metadata: { name: "demo" },
-        status: "DEPLOYED",
-        state: handle.state,
-        spec: { region: "us-pdx-1" },
-      }).state,
-    ).toBe(SandboxState.Paused);
+    expect(handle).toMatchObject({
+      metadata: { name: "demo" },
+      status: "DEPLOYED",
+      spec: { region: "us-pdx-1" },
+    });
+    expect("state" in handle).toBe(false);
+  });
+
+  it("rejects a conflicting process-wide Blaxel configuration", () => {
+    defaultNativeFactory({ apiKey: "first", workspace: "workspace-a" });
+    expect(() =>
+      defaultNativeFactory({ workspace: "workspace-a", apiKey: "first" }),
+    ).not.toThrow();
+
+    expect(() =>
+      defaultNativeFactory({ apiKey: "second", workspace: "workspace-b" }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.FailedPrecondition,
+        operation: "initialize",
+      }),
+    );
   });
 });
 

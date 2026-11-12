@@ -350,8 +350,9 @@ client, err := sandbox.NewClient(modal.New(), config)
 | Region         | `region` — required for create                          |
 | Endpoint       | Unsupported                                             |
 
-In TypeScript, use one Blaxel client (or one API key) per process. A second
-client with different credentials replaces the first.
+In TypeScript, use one Blaxel configuration per process. A second client with
+different credentials or workspace is rejected before it can replace the
+process-wide SDK configuration.
 
 ```ts
 const workspace = process.env.BL_WORKSPACE?.trim();
@@ -541,7 +542,8 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
   and Submitted wait are not supported.
 
   <ForLanguage id="typescript">
-    Use one Blaxel client (or one API key) per process.
+    Use one Blaxel configuration per process. A second client with different
+    credentials or workspace is rejected.
   </ForLanguage>
 </ForProvider>
 

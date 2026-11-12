@@ -56,8 +56,8 @@ console.log(sandbox.id); // same as create name; use with get / BL_SANDBOX_NAME
 ```
 
 `timeout` is milliseconds. Prefer `await using`; otherwise call
-`await client.close()` when finished. Use one Blaxel client (or one API key)
-per process.
+`await client.close()` when finished. Use one Blaxel configuration per process;
+a client with different credentials or workspace is rejected.
 
   </Tab>
   <Tab value="Go">
@@ -171,7 +171,8 @@ Only API key auth and workspace scope are supported. Full rules:
 [Configuration](/docs/configuration).
 
 <ForLanguage id="typescript">
-  Use one Blaxel client (or one API key) per process.
+  Use one Blaxel configuration per process. A client with different credentials
+  or workspace is rejected.
 </ForLanguage>
 
 ## What works

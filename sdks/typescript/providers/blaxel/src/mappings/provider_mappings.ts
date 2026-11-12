@@ -30,11 +30,6 @@ export interface BlaxelSandboxIdentity {
   };
   /** Deployment status (DEPLOYED, FAILED, …). */
   readonly status?: unknown;
-  /**
-   * Runtime state (RUNNING / STANDBY). `@blaxel/core` types `sandbox` private
-   * and has no `state` getter; the native adapter projects wire state here.
-   */
-  readonly state?: unknown;
   readonly spec?: {
     readonly region?: string;
     readonly runtime?: { readonly memory?: number };
@@ -52,13 +47,10 @@ export function mapSandboxIdentity(
     target.id = name;
     target.name = name;
   }
-  const runtime = runtimeState(source);
   if (source.status !== undefined && String(source.status) !== "") {
     target.providerState = String(source.status);
-  } else if (runtime !== undefined) {
-    target.providerState = runtime;
   }
-  const state = mapSandboxState(source.status, runtime);
+  const state = mapSandboxState(source.status);
   if (state !== undefined) target.state = state;
   const region = source.spec?.region;
   if (region !== undefined && region !== "") target.region = region;
@@ -150,22 +142,12 @@ export function mapAllocatedResources(
   return { memoryMib: BigInt(Math.trunc(memory)) };
 }
 
-function runtimeState(source: BlaxelSandboxIdentity): string | undefined {
-  if (source.state !== undefined && String(source.state) !== "")
-    return String(source.state);
-  return undefined;
-}
-
-/** Mirrors Go metadata.go: deployment status, then runtime standby. */
-function mapSandboxState(
-  status: unknown,
-  runtime: string | undefined,
-): SandboxState | undefined {
+/** Maps the public deployment status exposed by @blaxel/core. */
+function mapSandboxState(status: unknown): SandboxState | undefined {
   const normalized =
     status === undefined || String(status) === ""
       ? ""
       : String(status).toUpperCase();
-  const runtimeNormalized = runtime?.toUpperCase();
   switch (normalized) {
     case "UPLOADING":
     case "BUILDING":
@@ -173,9 +155,7 @@ function mapSandboxState(
     case "BUILT":
       return SandboxState.Queued;
     case "DEPLOYED":
-      return runtimeNormalized === "STANDBY"
-        ? SandboxState.Paused
-        : SandboxState.Running;
+      return SandboxState.Running;
     case "DELETING":
     case "DEACTIVATING":
       return SandboxState.Deleting;
@@ -192,13 +172,6 @@ function mapSandboxState(
     case "FAILED":
       return SandboxState.Error;
     default:
-      switch (runtimeNormalized) {
-        case "RUNNING":
-          return SandboxState.Running;
-        case "STANDBY":
-          return SandboxState.Paused;
-        default:
-          return undefined;
-      }
+      return undefined;
   }
 }

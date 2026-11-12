@@ -9,9 +9,11 @@ import {
   type SandboxCreateConfiguration,
   type SandboxFileSystem,
 } from "@blaxel/core";
-import { ErrorKind, FileFieldPath } from "@sandbox-kit/sandbox";
+import { ConfigFieldAuth, ErrorKind, FileFieldPath } from "@sandbox-kit/sandbox";
 import type { BlaxelSandboxIdentity } from "#mappings/provider_mappings.js";
 import { providerError } from "./errors.js";
+
+let configuredProcessConfig: string | undefined;
 
 export interface BlaxelProcessResult {
   readonly pid?: string;
@@ -67,10 +69,10 @@ export interface NativeBlaxel {
 export type NativeFactory = (config: NativeClientConfig) => NativeBlaxel;
 
 export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
-  settings.setConfig(config);
+  configureProcessSettings(config);
   return {
     configure(next: NativeClientConfig): void {
-      settings.setConfig(next);
+      configureProcessSettings(next);
     },
     async create(params, options) {
       return projectHandle(
@@ -91,19 +93,11 @@ export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
   };
 }
 
-/**
- * `@blaxel/core` types `SandboxInstance.sandbox` private and has no `state`
- * getter. Project a plain Kit handle (identity + wrapped fs/process) so
- * mapping never mutates the native instance or reaches into its private wire
- * model after projection. Wrap `fs` with `get` so Stat uses the same
- * filesystem GET as Go.
- */
+/** Projects public SDK properties and wraps filesystem/process helpers. */
 export function projectHandle(instance: SandboxInstance): NativeSandboxHandle {
-  const state = readWireRuntimeState(instance);
   return {
     metadata: instance.metadata,
     status: instance.status,
-    ...(state !== undefined ? { state } : {}),
     spec: instance.spec,
     fs: wrapFilesystem(instance.fs),
     process: {
@@ -178,18 +172,24 @@ function isFileMetadata(data: unknown): data is BlaxelFile {
   );
 }
 
-/**
- * Runtime state lives on Blaxel's private wire model (`sandbox.state`). The
- * published `SandboxInstance` typings expose status/spec getters but not state,
- * so this is the single boundary that reads it for Kit's handle projection.
- */
-type BlaxelWireRuntime = {
-  readonly sandbox?: { readonly state?: unknown };
-};
-
-function readWireRuntimeState(instance: SandboxInstance): string | undefined {
-  const value = (instance as unknown as BlaxelWireRuntime).sandbox?.state;
-  if (value === undefined || value === null || value === "") return undefined;
-  const text = String(value);
-  return text === "" ? undefined : text;
+function configureProcessSettings(config: NativeClientConfig): void {
+  const serialized = JSON.stringify(
+    Object.entries(config)
+      .filter(([, value]) => value !== undefined)
+      .sort(([left], [right]) => left.localeCompare(right)),
+  );
+  if (
+    configuredProcessConfig !== undefined &&
+    configuredProcessConfig !== serialized
+  ) {
+    providerError({
+      kind: ErrorKind.FailedPrecondition,
+      operation: "initialize",
+      field: ConfigFieldAuth,
+      message:
+        "a Blaxel TypeScript client with a different configuration already exists in this process",
+    });
+  }
+  settings.setConfig(config);
+  configuredProcessConfig = serialized;
 }

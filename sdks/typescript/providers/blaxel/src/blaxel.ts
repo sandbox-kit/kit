@@ -399,8 +399,8 @@ function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {
  * `auth.apiKey` and `scope.workspace`, or omit them to use `BL_API_KEY` /
  * `BL_WORKSPACE` from the environment. Set `memoryMib` for memory size;
  * Blaxel documents that value as MB and Kit does not convert units. Volumes
- * are not part of create. In TypeScript, use one Blaxel client (or one API
- * key) per process.
+ * are not part of create. In TypeScript, one process accepts one Blaxel
+ * configuration; a conflicting client configuration is rejected.
  */
 export function blaxel(): Provider {
   return new BlaxelProvider();

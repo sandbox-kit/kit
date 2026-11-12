@@ -49,8 +49,9 @@ await using client = new Client({
 
 <ForProvider id="blaxel">
   Set client or create `timeout` for how long create may wait. `region` is
-  required for create. `endpoint` is not supported. Use one Blaxel client (or
-  one API key) per process.
+  required for create. `endpoint` is not supported. Use one Blaxel
+  configuration per process; a client with different credentials or workspace
+  is rejected.
 </ForProvider>
 
   </Tab>
