@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Buffer } from "node:buffer";
+import { getEventListeners } from "node:events";
 import {
   ExecFieldArgv,
   ExecFieldShell,
@@ -701,6 +702,47 @@ describe("Shared client configuration validation", () => {
 });
 
 describe("Operation cancellation", () => {
+  it("observes a provider rejection after a synchronous abort", async () => {
+    const controller = new AbortController();
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: () => {
+        controller.abort();
+        return Promise.reject(new Error("provider failure"));
+      },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    await expect(client.create({}, { signal: controller.signal })).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+    });
+    // Give Node an event-loop turn to detect an unhandled provider rejection.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  });
+
+  it("removes its listener from the original lifecycle signal", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      refresh: async (id) => { await blocked; return { id, provider: "test" }; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = new AbortController();
+    const second = new AbortController();
+    const options = { signal: first.signal };
+    const pending = sandbox.refresh(options);
+    options.signal = second.signal;
+    release();
+    await pending;
+    expect(getEventListeners(first.signal, "abort")).toHaveLength(0);
+    expect(getEventListeners(second.signal, "abort")).toHaveLength(0);
+  });
   it("keeps long timeouts active until the requested deadline", async () => {
     vi.useFakeTimers();
     try {

@@ -45,12 +45,16 @@ func (f *Filesystem) ReadFile(ctx context.Context, path string, options *FileRea
 // WriteFile replaces the file at path with data and creates missing parent directories.
 // path is absolute. A nil context returns ErrorKindInvalidArgument.
 func (f *Filesystem) WriteFile(ctx context.Context, path string, data []byte, options *FileWriteOptions) error {
+	ownedData := append([]byte(nil), data...)
+	if data != nil && ownedData == nil {
+		ownedData = []byte{}
+	}
 	return f.call(ctx, "write_file", options.GetTimeout(), path, nil, func(operationContext context.Context, id string) error {
 		files, err := f.files("write_file")
 		if err != nil {
 			return err
 		}
-		return files.WriteFile(operationContext, id, path, data, cloneMessage(options))
+		return files.WriteFile(operationContext, id, path, ownedData, cloneMessage(options))
 	})
 }
 
