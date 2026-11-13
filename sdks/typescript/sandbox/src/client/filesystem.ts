@@ -62,6 +62,7 @@ export class Filesystem {
     data: Uint8Array,
     options: FileCall<FileWriteOptions> = {},
   ): Promise<void> {
+    const providerData = new Uint8Array(data);
     return this.#call("write_file", path, options, (signal) => {
       const method = this.host.backend.writeFile;
       if (!method) unsupported(this.host.providerName, "write_file");
@@ -69,7 +70,7 @@ export class Filesystem {
         this.host.backend,
         this.host.id,
         path,
-        data.slice(),
+        providerData,
         requestFields(options),
         operationOptions(options, signal),
       );

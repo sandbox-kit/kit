@@ -41,15 +41,17 @@ export class Process {
    * A non-zero exit code is not an error.
    */
   async run(options: ProcessCall): Promise<ExecResult> {
-    validateExecOptions(this.host.providerName, "run", options);
-    return this.host.run("run", options, (signal) => {
+    const request = requestFields(options);
+    const callOptions = operationOptions(options, options.signal);
+    validateExecOptions(this.host.providerName, "run", request);
+    return this.host.run("run", callOptions, (signal) => {
       const method = this.host.backend.run;
       if (!method) unsupported(this.host.providerName, "run");
       return method.call(
         this.host.backend,
         this.host.id,
-        requestFields(options),
-        operationOptions(options, signal),
+        request,
+        operationOptions(callOptions, signal),
       );
     });
   }

@@ -123,9 +123,10 @@ are omitted.
 Serialization policy is separate from validation. Client representation metadata
 marks credential fields `sensitive`. Handwritten Go contract serialization
 follows that inventory and excludes credentials from standard-library
-`encoding/json` output without treating secrecy as a value-validity rule. Do
-not use protobuf JSON serialization for client configuration because protobuf
-JSON represents every schema field.
+`encoding/json` output when credentials are passed by pointer, including within
+`*sandbox.Config`. Credential values passed directly to `json.Marshal` are not
+redacted; do not serialize them by value. Protobuf JSON serialization also
+represents every schema field and must not be used for client configuration.
 
 | Constraint          | Meaning                                       |
 | ------------------- | --------------------------------------------- |

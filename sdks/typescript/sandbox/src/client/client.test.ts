@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Buffer } from "node:buffer";
 import {
   ExecFieldArgv,
   ExecFieldShell,
@@ -514,7 +515,7 @@ describe("Provider input ownership", () => {
   });
 
   it("keeps write buffers owned by the caller", async () => {
-    const data = new Uint8Array([1, 2, 3]);
+    const data = Buffer.from([1, 2, 3]);
     const backend: Backend = {
       name: "test",
       close: async () => {},
@@ -531,7 +532,44 @@ describe("Provider input ownership", () => {
 
     await sandbox.filesystem.writeFile("/tmp/file", data);
 
-    expect(data).toEqual(new Uint8Array([1, 2, 3]));
+    expect([...data]).toEqual([1, 2, 3]);
+  });
+
+  it("captures process and file inputs before queued operations run", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    let observedArgv: string[] | undefined;
+    let observedEnvironment: Record<string, string> | undefined;
+    let observedData: number[] | undefined;
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      start: async (id) => { await blocked; return { id, provider: "test" }; },
+      run: async (_id, request) => {
+        observedArgv = request.argv;
+        observedEnvironment = request.environment;
+        return { exitCode: 0 };
+      },
+      writeFile: async (_id, _path, data) => { observedData = [...data]; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = sandbox.start();
+    const argv = ["echo", "hello"];
+    const environment = { KEY: "original" };
+    const data = Buffer.from([1, 2, 3]);
+    const command = sandbox.process.run({ argv, environment });
+    const write = sandbox.filesystem.writeFile("/tmp/file", data);
+    argv.length = 0;
+    environment.KEY = "changed";
+    data[0] = 9;
+    release();
+    await Promise.all([first, command, write]);
+    expect(observedArgv).toEqual(["echo", "hello"]);
+    expect(observedEnvironment).toEqual({ KEY: "original" });
+    expect(observedData).toEqual([1, 2, 3]);
   });
 });
 
