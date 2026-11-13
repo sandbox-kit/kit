@@ -57,7 +57,7 @@ uses its asynchronous create/get and lifecycle methods. Blaxel create uses
 `SandboxInstance.create` (not create-if-not-exists); get/refresh look up by
 sandbox name; delete removes the resource. Handwritten mappings and error
 classification preserve the same portable semantics in both languages.
-Blaxel memory is a 1:1 integer pass-through onto Blaxel's memory field; Kit
+Blaxel memory converts Kit MiB to Blaxel's decimal MB field, rounding up; Kit
 rejects CPU/disk overrides and has no portable volume fields. TypeScript
 Blaxel credentials go through process-global `@blaxel/core` `settings`.
 

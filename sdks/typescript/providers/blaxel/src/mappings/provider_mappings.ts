@@ -22,6 +22,11 @@ import { providerError } from "#errors.js";
 
 type Mutable<T> = { -readonly [K in keyof T]: T[K] };
 
+// Blaxel uses decimal MB; Kit uses binary MiB. Keep this rational to avoid
+// float rounding at the public boundary.
+const BLAXEL_MB_PER_MIB_NUMERATOR = 131_072n;
+const BLAXEL_MB_PER_MIB_DENOMINATOR = 125_000n;
+
 /** Minimal native sandbox shape used for identity mapping. */
 export interface BlaxelSandboxIdentity {
   readonly metadata?: {
@@ -116,7 +121,15 @@ export function mapResources(
         message: "memory_mib cannot be represented",
         operation,
       });
-    target.memory = Number(value);
+    const megabytes = mibToBlaxelMb(value);
+    if (megabytes > BigInt(Number.MAX_SAFE_INTEGER))
+      providerError({
+        kind: ErrorKind.InvalidArgument,
+        field: CreateFieldResourcesMemoryMib,
+        message: "memory_mib cannot be represented",
+        operation,
+      });
+    target.memory = Number(megabytes);
   }
   return target;
 }
@@ -131,7 +144,7 @@ export function mapAPIKeyCredentials(
   return target;
 }
 
-/** Maps native Blaxel memory (MB) onto Kit `resources.memoryMib` 1:1. */
+/** Maps native decimal MB onto the whole binary MiB guaranteed by that value. */
 export function mapAllocatedResources(
   source: BlaxelSandboxIdentity | undefined,
 ): Resources | undefined {
@@ -139,7 +152,25 @@ export function mapAllocatedResources(
   if (memory === undefined || !Number.isFinite(memory) || memory <= 0) {
     return undefined;
   }
-  return { memoryMib: BigInt(Math.trunc(memory)) };
+  return { memoryMib: blaxelMbToMib(BigInt(Math.trunc(memory))) };
+}
+
+/** Rounds up so a Kit request is never under-provisioned by Blaxel. */
+function mibToBlaxelMb(mib: bigint): bigint {
+  return (
+    (mib * BLAXEL_MB_PER_MIB_NUMERATOR +
+      BLAXEL_MB_PER_MIB_DENOMINATOR -
+      1n) /
+    BLAXEL_MB_PER_MIB_DENOMINATOR
+  );
+}
+
+/** Reports the whole MiB guaranteed by a native decimal-MB allocation. */
+function blaxelMbToMib(megabytes: bigint): bigint {
+  return (
+    (megabytes * BLAXEL_MB_PER_MIB_DENOMINATOR) /
+    BLAXEL_MB_PER_MIB_NUMERATOR
+  );
 }
 
 /** Maps the public deployment status exposed by @blaxel/core. */

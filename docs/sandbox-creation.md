@@ -52,7 +52,7 @@ selected provider does not support fails there too.
 | Resource         | Modal                                           | Daytona                                      | Blaxel                                                                 |
 | ---------------- | ----------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
 | CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; Kit rejects CPU overrides               |
-| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` (Blaxel documents MB; Kit does not convert) |
+| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` (Kit converts to Blaxel decimal MB) |
 | Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported                                          |
 | Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | At least 5 minutes when set                                            |
 

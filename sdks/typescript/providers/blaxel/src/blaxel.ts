@@ -104,6 +104,12 @@ class BlaxelBackend extends BackendBase implements Backend {
         plan.params,
         timeoutSeconds === undefined ? undefined : { timeout: timeoutSeconds },
       );
+      await deleteCreatedSandboxAfterAbort(
+        this.native,
+        sandbox,
+        request.name,
+        options.signal,
+      );
       return { sandbox: mapSandboxInfo(sandbox) };
     } catch (error) {
       throw mapBlaxelError(error, "create");
@@ -318,10 +324,16 @@ class BlaxelBackend extends BackendBase implements Backend {
   }
 
   async #withSandbox<T>(args: WithSandboxArgs<T>): Promise<T> {
+    let sandbox: NativeSandboxHandle;
     try {
       throwIfAborted(args.options.signal);
-      const sandbox = await this.native.get(args.id);
+      sandbox = await this.native.get(args.id);
       throwIfAborted(args.options.signal);
+    } catch (error) {
+      // A 404 here identifies the sandbox, not the requested filesystem path.
+      throw mapBlaxelError(error, args.operation, false);
+    }
+    try {
       return await args.body(sandbox);
     } catch (error) {
       throw mapBlaxelError(error, args.operation);
@@ -366,6 +378,28 @@ class BlaxelBackend extends BackendBase implements Backend {
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   signal?.throwIfAborted();
+}
+
+// @blaxel/core create has no AbortSignal. If Kit's outer race has already
+// returned cancellation, delete the eventually-created named sandbox so it
+// does not become an orphaned resource.
+async function deleteCreatedSandboxAfterAbort(
+  native: NativeBlaxel,
+  sandbox: NativeSandboxHandle,
+  requestedName: string | undefined,
+  signal: AbortSignal | undefined,
+): Promise<void> {
+  if (!signal?.aborted) return;
+  const name = sandbox.metadata?.name ?? requestedName;
+  if (name) {
+    try {
+      await native.delete(name);
+    } catch {
+      // Preserve the caller's cancellation; a cleanup failure cannot safely
+      // replace it with a successful create result.
+    }
+  }
+  throwIfAborted(signal);
 }
 
 function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {

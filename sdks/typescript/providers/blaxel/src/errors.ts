@@ -41,6 +41,7 @@ interface MappedErrorInput {
   statusCode?: number;
   providerCode?: string;
   providerSource?: string;
+  filesystemNotFound?: boolean;
 }
 
 /** Inputs for throwing a Blaxel-scoped validation or mapping error. */
@@ -145,6 +146,7 @@ const STATUS_KINDS: Record<number, ErrorInfo["kind"]> = {
 export function mapBlaxelError(
   error: unknown,
   operation: string,
+  filesystemNotFound: boolean = FILESYSTEM_OPERATIONS.has(operation),
 ): SandboxError {
   if (error instanceof SandboxError) return error;
   if (error instanceof DOMException && error.name === "AbortError")
@@ -164,6 +166,7 @@ export function mapBlaxelError(
     kind: classifyKind({ error, cause, providerCode, statusCode, operation }),
     error,
     operation,
+    filesystemNotFound,
     ...(statusCode === undefined ? {} : { statusCode }),
     ...(providerCode === undefined ? {} : { providerCode }),
     ...(providerSource === undefined ? {} : { providerSource }),
@@ -279,10 +282,17 @@ function blaxelProviderSource(error: unknown): string | undefined {
 }
 
 function create(input: MappedErrorInput): SandboxError {
-  const { kind, error, operation, statusCode, providerCode, providerSource } =
-    input;
+  const {
+    kind,
+    error,
+    operation,
+    statusCode,
+    providerCode,
+    providerSource,
+    filesystemNotFound,
+  } = input;
   const field =
-    kind === ErrorKind.NotFound && FILESYSTEM_OPERATIONS.has(operation)
+    kind === ErrorKind.NotFound && filesystemNotFound
       ? FileFieldPath
       : "";
   return sandboxError(

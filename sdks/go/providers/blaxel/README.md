@@ -83,8 +83,9 @@ as that response arrives. TypeScript may keep waiting until the sandbox is
 ready or your create timeout ends. A Go timeout does not always mean the
 sandbox was never created — call `Get` by name before recreating.
 
-Set `Resources.MemoryMib` for memory size. Blaxel documents that value as MB;
-Kit does not convert units. CPU follows memory on Blaxel — do not set CPU or
+Set `Resources.MemoryMib` for memory size. Kit converts MiB to Blaxel's decimal
+MB value, rounding up so a request is never under-provisioned. CPU follows
+memory on Blaxel — do not set CPU or
 disk overrides. If you omit memory, Blaxel applies its default. Volumes are not
 part of create.
 

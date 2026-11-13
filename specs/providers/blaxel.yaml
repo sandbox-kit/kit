@@ -210,7 +210,8 @@ groups:
           to: region,
           notes: "required for create; taken from captured client Config.region",
         }
-  # memory_mib → Blaxel memory is 1:1; Blaxel labels the unit MB; Kit does not convert.
+  # memory_mib → Blaxel decimal MB. Request mapping rounds up; response mapping
+  # reports the whole MiB guaranteed by the returned MB value.
   - name: mapResources
     direction: request
     source: { name: Resources }
@@ -230,7 +231,7 @@ groups:
           from: memory_mib,
           to: memory,
           cast: integer,
-          notes: "reject 0; Go caps at MaxInt64, TypeScript at MAX_SAFE_INTEGER",
+          notes: "reject 0 and unrepresentable values; converts MiB to decimal MB by rounding up",
         }
   - name: mapLifetimeDuration
     direction: request
@@ -363,4 +364,4 @@ groups:
           fields: { memory: spec.runtime.memory }
     target: { name: Resources }
     fields:
-      - { from: memory, to: memory_mib, cast: number }
+      - { from: memory, to: memory_mib, cast: number, notes: "decimal MB to whole guaranteed MiB" }

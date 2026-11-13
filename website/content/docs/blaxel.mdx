@@ -189,7 +189,8 @@ Only API key auth and workspace scope are supported. Full rules:
 | Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
 | Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
 
-Pass a memory value (Blaxel treats it as MB), or omit it for Blaxel’s default.
+Pass memory in MiB, or omit it for Blaxel’s default. Kit converts it to
+Blaxel’s decimal MB field and rounds up so the request is not under-provisioned.
 CPU and disk overrides are not supported. Runtime and isolation are not
 supported.
 

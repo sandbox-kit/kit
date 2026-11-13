@@ -37,7 +37,7 @@ func TestPlanCreateMapsRequiredFields(t *testing.T) {
 	if !plan.params.Sandbox.Spec.Region.Valid() || plan.params.Sandbox.Spec.Region.Value != "us-pdx-1" {
 		t.Fatalf("region = %#v", plan.params.Sandbox.Spec.Region)
 	}
-	if !plan.params.Sandbox.Spec.Runtime.Memory.Valid() || plan.params.Sandbox.Spec.Runtime.Memory.Value != 4096 {
+	if !plan.params.Sandbox.Spec.Runtime.Memory.Valid() || plan.params.Sandbox.Spec.Runtime.Memory.Value != 4295 {
 		t.Fatalf("memory = %#v", plan.params.Sandbox.Spec.Runtime.Memory)
 	}
 	if !plan.params.Sandbox.Spec.Runtime.Ttl.Valid() || plan.params.Sandbox.Spec.Runtime.Ttl.Value != "30m" {
@@ -52,6 +52,16 @@ func TestPlanCreateMapsRequiredFields(t *testing.T) {
 	}
 	if plan.params.CreateIfNotExist.Valid() {
 		t.Fatal("createIfNotExist must stay unset for native create")
+	}
+}
+
+func TestBlaxelMemoryUnitConversion(t *testing.T) {
+	mb, ok := mibToBlaxelMB(4096)
+	if !ok || mb != 4295 {
+		t.Fatalf("4096 MiB = (%d, %t) MB, want (4295, true)", mb, ok)
+	}
+	if mib := blaxelMBToMib(4295); mib != 4096 {
+		t.Fatalf("4295 MB = %d MiB, want 4096", mib)
 	}
 }
 
@@ -87,7 +97,7 @@ func TestMapSandboxInfoUsesNameAsID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.State != sandbox.SandboxStateRunning || observed.Resources.GetMemoryMib() != 2048 {
+	if observed.State != sandbox.SandboxStateRunning || observed.Resources.GetMemoryMib() != 1953 {
 		t.Fatalf("observed = %#v", observed)
 	}
 	// Blaxel keeps SandboxInfo to YAML mapSandboxInfo fields; no metadata bag or createdAt.

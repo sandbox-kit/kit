@@ -164,7 +164,7 @@ describe("Blaxel mappings", () => {
       params: {
         name: "example",
         image: "blaxel/base-image:latest",
-        memory: 4096,
+        memory: 4295,
         region: "us-pdx-1",
         ttl: "1d",
         labels: { purpose: "test" },
@@ -190,8 +190,8 @@ describe("Blaxel mappings", () => {
         },
         provider,
       ).params.memory,
-    ).toBe(128);
-    expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4096 });
+    ).toBe(135);
+    expect(mapResources({ memoryMib: 4096n })).toEqual({ memory: 4295 });
   });
 
   it("accepts kit create timeout as the client deadline", () => {
@@ -573,7 +573,7 @@ describe("Blaxel mappings", () => {
         metadata: { name: "demo" },
         spec: { runtime: { memory: 2048 } },
       }),
-    ).toEqual({ memoryMib: 2048n });
+    ).toEqual({ memoryMib: 1953n });
     expect(
       mapSandboxInfo({
         metadata: { name: "demo" },
@@ -582,7 +582,7 @@ describe("Blaxel mappings", () => {
       }),
     ).toMatchObject({
       id: "demo",
-      resources: { memoryMib: 4096n },
+      resources: { memoryMib: 3906n },
     });
   });
 
@@ -774,7 +774,7 @@ describe("Blaxel provider orchestration", () => {
     expect(created).toMatchObject({
       name: "example",
       image: "blaxel/base-image:latest",
-      memory: 2048,
+      memory: 2148,
       region: "us-pdx-1",
     });
     expect(createOptions).toEqual({ timeout: 30 });
@@ -805,6 +805,7 @@ describe("Blaxel provider orchestration", () => {
     })).initialize({
       auth: { apiKey: { key: "bl_key" } },
       scope: { workspace: "ws" },
+      region: "us-pdx-1",
     });
     if (backend.refresh === undefined) throw new Error("refresh is missing");
     const info = await backend.refresh("existing", {});
@@ -992,6 +993,57 @@ describe("Blaxel provider orchestration", () => {
       operation: "create",
     });
     expect(created).toBe(false);
+  });
+
+  it("deletes a sandbox created after the caller aborts", async () => {
+    const controller = new AbortController();
+    let resolveCreate: ((value: {
+      metadata: { name: string };
+      fs: never;
+      process: never;
+    }) => void) | undefined;
+    const created = new Promise<{
+      metadata: { name: string };
+      fs: never;
+      process: never;
+    }>((resolve) => {
+      resolveCreate = resolve;
+    });
+    const deleted: string[] = [];
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        return created;
+      },
+      async get() {
+        throw new Error("unexpected get");
+      },
+      async delete(name) {
+        deleted.push(name);
+        return { metadata: { name } };
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+      region: "us-pdx-1",
+    });
+    if (backend.create === undefined) throw new Error("create is missing");
+
+    const pending = backend.create(
+      {
+        name: "example",
+        source: { image: { reference: "blaxel/base-image:latest" } },
+      },
+      { signal: controller.signal },
+    );
+    controller.abort();
+    resolveCreate?.({ metadata: { name: "example" }, fs: {} as never, process: {} as never });
+
+    await expect(pending).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+      operation: "create",
+    });
+    expect(deleted).toEqual(["example"]);
   });
 
   it("rejects a missing or directory local file before Blaxel is called", async () => {
@@ -1296,6 +1348,31 @@ describe("Blaxel provider orchestration", () => {
 });
 
 describe("Blaxel filesystem.stat", () => {
+  it("does not label a missing sandbox as a missing filesystem path", async () => {
+    const backend = new BlaxelProvider(() => ({
+      configure() {},
+      async create() {
+        throw new Error("unexpected create");
+      },
+      async get() {
+        throw new ResponseError(new Response(null, { status: 404 }), {}, {});
+      },
+      async delete() {
+        throw new Error("unexpected delete");
+      },
+    })).initialize({
+      auth: { apiKey: { key: "bl_key" } },
+      scope: { workspace: "ws" },
+    });
+    await expect(
+      backend.readFile!("deleted-sandbox", "/app/readme.txt", {}, {}),
+    ).rejects.toMatchObject({
+      kind: ErrorKind.NotFound,
+      operation: "read_file",
+      field: "",
+    });
+  });
+
   it("returns directory metadata from get on the path", async () => {
     const backend = fsBackend({
       async get(path) {

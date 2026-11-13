@@ -68,7 +68,9 @@ idle-delete (≥1 minute). You cannot disable idle terminate. Runtime and
 isolation are not supported. `info().labels` is set only when Blaxel reports
 labels. If you omit memory, Blaxel applies its default. CPU and disk overrides
 are rejected — Blaxel derives CPU from memory. Set `memoryMib` for memory size;
-Blaxel documents that value as MB and Kit does not convert units.
+Kit converts `memoryMib` to Blaxel's decimal MB value, rounding up so a request
+is never under-provisioned. Reported native MB values are converted back to
+whole MiB.
 
 Set client or create `timeout` for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name. Ready/Started/Submitted wait is not

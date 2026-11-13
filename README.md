@@ -284,7 +284,7 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
   Daytona: whole cores and whole GiB expressed as MiB. Blaxel: set
-  `memoryMib` / `memory_mib` (Blaxel documents MB; Kit does not convert); CPU
+  `memoryMib` / `memory_mib` (Kit converts MiB to Blaxel's decimal MB); CPU
   follows memory.
 
 Guides: [configuration](docs/configuration.md) ·

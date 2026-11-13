@@ -10,6 +10,13 @@ import (
 	"github.com/sandbox-kit/kit/sdks/go/sandbox"
 )
 
+const (
+	// Blaxel measures memory in decimal MB while Kit exposes binary MiB.
+	// 1 MiB = 1.048576 MB = 131072 / 125000 MB.
+	blaxelMegabytesPerMebibyteNumerator   uint64 = 131072
+	blaxelMegabytesPerMebibyteDenominator uint64 = 125000
+)
+
 // mapCommonCreateFields maps name, environment, and labels into the native
 // create request and returns the fields that were not mapped.
 func mapCommonCreateFields(source *sandbox.CreateOptions) (blaxel.SandboxNewParams, *sandbox.CreateOptions, error) {
@@ -57,7 +64,15 @@ func mapResources(source *sandbox.Resources) (blaxel.SandboxRuntimeParam, *sandb
 				"memory_mib cannot be represented",
 			)
 		}
-		target.Memory = blaxel.Int(int64(value))
+		memory, ok := mibToBlaxelMB(value)
+		if !ok {
+			return target, remaining, providerCheckError(
+				sandbox.ErrorKindInvalidArgument,
+				sandbox.CreateFieldResourcesMemoryMib,
+				"memory_mib cannot be represented",
+			)
+		}
+		target.Memory = blaxel.Int(memory)
 	}
 	remaining.MemoryMib = nil
 	return target, remaining, nil
@@ -95,8 +110,25 @@ func mapAllocatedResources(source *blaxel.Sandbox) (*sandbox.Resources, error) {
 	if source == nil || source.Spec.Runtime.Memory <= 0 {
 		return target, nil
 	}
-	target.MemoryMib = sandbox.Value(uint64(source.Spec.Runtime.Memory))
+	target.MemoryMib = sandbox.Value(blaxelMBToMib(uint64(source.Spec.Runtime.Memory)))
 	return target, nil
+}
+
+// mibToBlaxelMB rounds up so a Kit request is never under-provisioned.
+func mibToBlaxelMB(mib uint64) (int64, bool) {
+	if mib == 0 || mib > math.MaxInt64/blaxelMegabytesPerMebibyteNumerator {
+		return 0, false
+	}
+	mb := (mib*blaxelMegabytesPerMebibyteNumerator + blaxelMegabytesPerMebibyteDenominator - 1) / blaxelMegabytesPerMebibyteDenominator
+	if mb > math.MaxInt64 {
+		return 0, false
+	}
+	return int64(mb), true
+}
+
+// blaxelMBToMib reports the whole MiB guaranteed by a native decimal-MB value.
+func blaxelMBToMib(mb uint64) uint64 {
+	return mb * blaxelMegabytesPerMebibyteDenominator / blaxelMegabytesPerMebibyteNumerator
 }
 
 // formatBlaxelDuration formats a whole-second duration as a Blaxel TTL string.
