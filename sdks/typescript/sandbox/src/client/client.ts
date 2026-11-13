@@ -211,7 +211,7 @@ export class Client implements AsyncDisposable {
           ),
         scoped.signal,
       );
-      if (!result.sandbox?.id)
+      if (!result?.sandbox?.id)
         throw sandboxError({
           kind: ErrorKind.InvalidResponse,
           provider: this.providerName,

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Buffer } from "node:buffer";
 import {
   ExecFieldArgv,
@@ -195,6 +195,20 @@ describe("Client cleanup", () => {
 });
 
 describe("Provider response validation", () => {
+  it.each([undefined, null])("rejects an absent create result: %s", async (result) => {
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: async () => result as unknown as CreateResult,
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    await expect(client.create()).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "create",
+      field: InfoFieldId,
+    });
+  });
   it("reports the public get operation and preserves the provider error", async () => {
     const native = new Error("native failure");
     const providerError = sandboxError(
@@ -489,6 +503,36 @@ describe("Public create options for providers", () => {
 });
 
 describe("Provider input ownership", () => {
+  it("captures queued filesystem options before callers can change them", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    let removed: { recursive?: boolean; timeout?: number } | undefined;
+    let directory: { parents?: boolean; timeout?: number } | undefined;
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      start: async (id) => { await blocked; return { id, provider: "test" }; },
+      remove: async (_id, _path, request) => { removed = request; },
+      makeDirectory: async (_id, _path, request) => { directory = request; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = sandbox.start();
+    const removeOptions = { recursive: false, timeout: 60_000 };
+    const mkdirOptions = { parents: false, timeout: 60_000 };
+    const remove = sandbox.filesystem.remove("/data", removeOptions);
+    const mkdir = sandbox.filesystem.makeDirectory("/directory", mkdirOptions);
+    removeOptions.recursive = true;
+    removeOptions.timeout = 1;
+    mkdirOptions.parents = true;
+    mkdirOptions.timeout = 1;
+    release();
+    await Promise.all([first, remove, mkdir]);
+    expect(removed).toEqual({ recursive: false, timeout: 60_000 });
+    expect(directory).toEqual({ parents: false, timeout: 60_000 });
+  });
   it("keeps process arrays and maps owned by the caller", async () => {
     const argv = ["echo", "hello"];
     const environment = { ORIGINAL: "value" };
@@ -657,6 +701,21 @@ describe("Shared client configuration validation", () => {
 });
 
 describe("Operation cancellation", () => {
+  it("keeps long timeouts active until the requested deadline", async () => {
+    vi.useFakeTimers();
+    try {
+      const { client } = hangingFixture();
+      const promise = client.create({}, { timeout: 2_147_483_648 });
+      const assertion = expect(promise).rejects.toMatchObject({ kind: ErrorKind.Timeout });
+      await vi.advanceTimersByTimeAsync(2_147_483_647);
+      expect(vi.getTimerCount()).toBe(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await assertion;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("does not invoke the provider for an already-aborted operation", async () => {
     const { client, backend } = fixture();
     const controller = new AbortController();

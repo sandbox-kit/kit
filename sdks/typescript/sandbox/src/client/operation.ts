@@ -28,16 +28,24 @@ export function operationSignal(
   const abort = () => controller.abort(options.signal?.reason);
   if (options.signal?.aborted) abort();
   else options.signal?.addEventListener("abort", abort, { once: true });
-  const timer =
-    timeout !== undefined && timeout > 0
-      ? setTimeout(
-          () =>
-            controller.abort(
-              new DOMException("The operation timed out", "TimeoutError"),
-            ),
-          timeout,
-        )
-      : undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  if (timeout !== undefined && timeout > 0) {
+    let remaining = timeout;
+    let started = performance.now();
+    const schedule = () => {
+      timer = setTimeout(() => {
+        const now = performance.now();
+        remaining -= now - started;
+        if (remaining <= 0) {
+          controller.abort(new DOMException("The operation timed out", "TimeoutError"));
+        } else {
+          started = now;
+          schedule();
+        }
+      }, Math.min(remaining, 2_147_483_647));
+    };
+    schedule();
+  }
   return {
     signal: controller.signal,
     dispose() {

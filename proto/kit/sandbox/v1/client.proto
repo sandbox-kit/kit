@@ -54,7 +54,7 @@ message AuthConfig {
 }
 // APIKeyCredentials is an API-key credential. Daytona uses Key.
 message APIKeyCredentials {
-  // The secret API key. Go encoding/json output excludes it.
+  // The secret API key. Go encoding/json output excludes it when marshaling a pointer.
   string key = 1 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
@@ -63,13 +63,13 @@ message APIKeyCredentials {
 }
 // TokenPairCredentials is a token-id and token-secret pair. Modal uses both fields.
 message TokenPairCredentials {
-  // The token identifier. Go encoding/json output excludes it.
+  // The token identifier. Go encoding/json output excludes it when marshaling a pointer.
   string id = 1 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
     expression: "this.trim() != ''"
   }];
-  // The token secret. Go encoding/json output excludes it.
+  // The token secret. Go encoding/json output excludes it when marshaling a pointer.
   string secret = 2 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
@@ -78,7 +78,7 @@ message TokenPairCredentials {
 }
 // BearerTokenCredentials is a bearer or JWT credential. Daytona also requires an organization.
 message BearerTokenCredentials {
-  // The bearer token. Go encoding/json output excludes it.
+  // The bearer token. Go encoding/json output excludes it when marshaling a pointer.
   string token = 1 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
@@ -96,7 +96,7 @@ message OAuthCredentials {
       }
     ]
   };
-  // The refresh token. Go encoding/json output excludes it.
+  // The refresh token. Go encoding/json output excludes it when marshaling a pointer.
   string refresh_token = 1 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
@@ -108,13 +108,13 @@ message OAuthCredentials {
     message: "must not be blank"
     expression: "this.trim() != ''"
   }];
-  // One client secret. Do not set this together with JWTKey. Go encoding/json output excludes it.
+  // One client secret. Do not set this together with JWTKey. Go encoding/json excludes it when marshaling a pointer.
   optional string client_secret = 3 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"
     expression: "this.trim() != ''"
   }];
-  // One JWT signing key. Do not set this together with ClientSecret. Go encoding/json output excludes it.
+  // One JWT signing key. Do not set this together with ClientSecret. Go encoding/json excludes it when marshaling a pointer.
   optional string jwt_key = 4 [(buf.validate.field).cel = {
     id: "nonblank"
     message: "must not be blank"

@@ -43,6 +43,7 @@ export class Filesystem {
     path: string,
     options: FileCall<FileReadOptions> = {},
   ): Promise<Uint8Array> {
+    options = { ...options };
     return this.#call("read_file", path, options, (signal) => {
       const method = this.host.backend.readFile;
       if (!method) unsupported(this.host.providerName, "read_file");
@@ -62,6 +63,7 @@ export class Filesystem {
     data: Uint8Array,
     options: FileCall<FileWriteOptions> = {},
   ): Promise<void> {
+    options = { ...options };
     const providerData = new Uint8Array(data);
     return this.#call("write_file", path, options, (signal) => {
       const method = this.host.backend.writeFile;
@@ -83,6 +85,7 @@ export class Filesystem {
     remotePath: string,
     options: FileCall<FileCopyOptions> = {},
   ): Promise<void> {
+    options = { ...options };
     return this.#copy(
       "copy_from_local",
       localPath,
@@ -113,6 +116,7 @@ export class Filesystem {
     localPath: string,
     options: FileCall<FileCopyOptions> = {},
   ): Promise<void> {
+    options = { ...options };
     return this.#copy(
       "copy_to_local",
       localPath,
@@ -142,6 +146,7 @@ export class Filesystem {
     path: string,
     options: FileCall<MakeDirectoryOptions> = {},
   ): Promise<void> {
+    options = { ...options };
     return this.#call("make_directory", path, options, (signal) => {
       const method = this.host.backend.makeDirectory;
       if (!method) unsupported(this.host.providerName, "make_directory");
@@ -160,6 +165,7 @@ export class Filesystem {
     path: string,
     options: FileCall<ListDirectoryOptions> = {},
   ): Promise<FileInfo[]> {
+    options = { ...options };
     return this.#call("list_directory", path, options, (signal) => {
       const method = this.host.backend.listDirectory;
       if (!method) unsupported(this.host.providerName, "list_directory");
@@ -175,6 +181,7 @@ export class Filesystem {
 
   /** Returns metadata for one path. A symlink result describes the symlink. */
   stat(path: string, options: FileCall<StatOptions> = {}): Promise<FileInfo> {
+    options = { ...options };
     return this.#call("stat", path, options, (signal) => {
       const method = this.host.backend.stat;
       if (!method) unsupported(this.host.providerName, "stat");
@@ -193,6 +200,7 @@ export class Filesystem {
    * An omitted `recursive` flag removes a file or an empty directory.
    */
   remove(path: string, options: FileCall<RemoveOptions> = {}): Promise<void> {
+    options = { ...options };
     return this.#call("remove", path, options, (signal) => {
       const method = this.host.backend.remove;
       if (!method) unsupported(this.host.providerName, "remove");
