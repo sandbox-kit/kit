@@ -26,6 +26,8 @@ import {
   Client,
   EgressMode,
   ErrorKind,
+  SandboxError,
+  sandboxError,
   PolicyMode,
   validateCreateOptions,
   type Backend,
@@ -192,6 +194,41 @@ describe("Client cleanup", () => {
 });
 
 describe("Provider response validation", () => {
+  it("reports the public get operation and preserves the provider error", async () => {
+    const native = new Error("native failure");
+    const providerError = sandboxError(
+      {
+        kind: ErrorKind.Unknown,
+        provider: "wrong-provider",
+        operation: "refresh",
+        field: "",
+        message: "lookup failed",
+      },
+      native,
+    );
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      refresh: async () => {
+        throw providerError;
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+
+    const error = await client.get("requested").catch((reason: unknown) => reason);
+    expect(error).toBeInstanceOf(SandboxError);
+    expect(error).toMatchObject({
+      provider: "test",
+      operation: "get",
+      message: "lookup failed",
+    });
+    expect((error as Error).cause).toBe(providerError);
+    expect(providerError.cause).toBe(native);
+  });
+
   it("rejects lookup responses with a different identity or provider", async () => {
     const attachBackend: Backend = {
       name: "test",
@@ -382,6 +419,48 @@ describe("Shared request validation", () => {
 });
 
 describe("Public create options for providers", () => {
+  it("keeps nested create input owned by the caller", async () => {
+    const request: CreateOptions = {
+      environment: { ORIGINAL: "value" },
+      runtime: { entrypoint: ["echo"] },
+    };
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: async (providerRequest) => {
+        providerRequest.environment!.ORIGINAL = "mutated";
+        providerRequest.runtime!.entrypoint!.push("mutated");
+        return { sandbox: { id: "sandbox-1", provider: "test" } };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+
+    await client.create(request);
+
+    expect(request).toEqual({
+      environment: { ORIGINAL: "value" },
+      runtime: { entrypoint: ["echo"] },
+    });
+  });
+
+  it("keeps nested client configuration owned by the caller", () => {
+    const auth = { apiKey: { key: "secret" } } as const;
+    const provider: Provider = {
+      name: "test",
+      initialize: (config) => {
+        config.auth!.apiKey!.key = "mutated";
+        return new RecordingBackend();
+      },
+    };
+
+    new Client({ provider, auth });
+
+    expect(auth.apiKey.key).toBe("secret");
+  });
+
   it("hands the provider public create options after a create call", async () => {
     const { client, backend } = fixture();
 
@@ -408,7 +487,86 @@ describe("Public create options for providers", () => {
   });
 });
 
+describe("Provider input ownership", () => {
+  it("keeps process arrays and maps owned by the caller", async () => {
+    const argv = ["echo", "hello"];
+    const environment = { ORIGINAL: "value" };
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      run: async (_id, request) => {
+        request.argv!.push("mutated");
+        request.environment!.ORIGINAL = "mutated";
+        return { exitCode: 0 };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("sandbox-1");
+
+    await sandbox.process.run({ argv, environment });
+
+    expect(argv).toEqual(["echo", "hello"]);
+    expect(environment).toEqual({ ORIGINAL: "value" });
+  });
+
+  it("keeps write buffers owned by the caller", async () => {
+    const data = new Uint8Array([1, 2, 3]);
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      writeFile: async (_id, _path, providerData) => {
+        providerData[0] = 9;
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("sandbox-1");
+
+    await sandbox.filesystem.writeFile("/tmp/file", data);
+
+    expect(data).toEqual(new Uint8Array([1, 2, 3]));
+  });
+});
+
 describe("Shared client configuration validation", () => {
+  it.each([
+    ["https://api.example.test/api", true],
+    ["http://127.0.0.1:1234", true],
+    ["http://[::1]:1234", true],
+    ["http://[0:0:0:0:0:0:0:1]:1234", true],
+    ["http://localhost:1234", true],
+    ["http://LOCALHOST:1234", true],
+    ["http://api.example.test", false],
+    ["http://127.0.0.1.evil.test", false],
+    ["http://0.0.0.0:1234", false],
+    ["https://user:secret@api.example.test", false],
+    ["https://api.example.test/#fragment", false],
+    ["http://@localhost", false],
+    ["http://127.1", false],
+  ])("validates secure endpoint %s as %s", (endpoint, valid) => {
+    const provider: Provider = {
+      name: "test",
+      initialize: () => new RecordingBackend(),
+    };
+    const construct = () => new Client({ provider, endpoint });
+
+    if (valid) expect(construct).not.toThrow();
+    else
+      expect(construct).toThrowError(
+        expect.objectContaining({
+          kind: ErrorKind.InvalidArgument,
+          field: ConfigFieldEndpoint,
+        }),
+      );
+  });
+
   it("rejects insecure remote endpoints before initializing the provider", () => {
     const backend = new RecordingBackend();
     let initialized = false;

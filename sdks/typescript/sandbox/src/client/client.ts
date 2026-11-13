@@ -19,6 +19,7 @@ import {
   awaitWithSignal,
   operationOptions,
   operationSignal,
+  clone,
 } from "#client/operation.js";
 import { Sandbox, sandboxConstructorToken } from "#client/sandbox.js";
 import type { Backend, ClientConfig, OperationOptions } from "#client/types.js";
@@ -69,7 +70,7 @@ export class Client implements AsyncDisposable {
     this.#timeout = config.timeout;
     try {
       const { provider: _provider, ...shared } = config;
-      this.#backend = config.provider.initialize(shared);
+      this.#backend = config.provider.initialize(clone(shared));
     } catch (error) {
       throw withContext(error, config.provider.name, "initialize");
     }
@@ -188,7 +189,7 @@ export class Client implements AsyncDisposable {
       const create = this.#backend.create;
       if (!create) unsupported(this.providerName, "create");
       const providerRequest: CreateOptions = {
-        ...request,
+        ...clone(request),
         ...(timeout === undefined
           ? {}
           : {

@@ -139,7 +139,7 @@ func secureEndpoint(value string) bool {
 		return false
 	}
 	ip, err := netip.ParseAddr(u.Hostname())
-	return u.Hostname() == "localhost" || (err == nil && ip.IsLoopback())
+	return strings.EqualFold(u.Hostname(), "localhost") || (err == nil && ip.IsLoopback())
 }
 
 // ProviderName returns "daytona", "modal", or "blaxel".

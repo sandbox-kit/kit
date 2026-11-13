@@ -121,8 +121,11 @@ field uses that field, such as `resources.cpu_limit_cores`. A constraint that
 names several fields uses their parent message. List indexes and oneof names
 are omitted.
 Serialization policy is separate from validation. Client representation metadata
-marks credential fields `sensitive`, which excludes them from Go JSON output
-without treating secrecy as a value-validity rule.
+marks credential fields `sensitive`. Handwritten Go contract serialization
+follows that inventory and excludes credentials from standard-library
+`encoding/json` output without treating secrecy as a value-validity rule. Do
+not use protobuf JSON serialization for client configuration because protobuf
+JSON represents every schema field.
 
 | Constraint          | Meaning                                       |
 | ------------------- | --------------------------------------------- |

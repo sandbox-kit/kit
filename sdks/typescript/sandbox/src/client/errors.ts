@@ -63,8 +63,8 @@ export function withContext(
     return sandboxError(
       {
         kind: error.kind as ErrorInfo["kind"],
-        provider: error.provider || provider,
-        operation: error.operation || operation,
+        provider: provider || error.provider,
+        operation: operation || error.operation,
         field: error.field,
         message: error.message,
         ...(error.rule === undefined ? {} : { rule: error.rule }),
@@ -78,7 +78,7 @@ export function withContext(
           ? {}
           : { providerSource: error.providerSource }),
       },
-      error.cause,
+      error,
     );
   }
   if (error instanceof DOMException && error.name === "AbortError")

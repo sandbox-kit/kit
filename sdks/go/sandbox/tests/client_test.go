@@ -2,8 +2,10 @@ package sandbox_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -130,6 +132,17 @@ func TestConfigContractsAreProtobufMessages(t *testing.T) {
 	config := &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "secret-id", Secret: "secret-value"}}}}
 	if _, ok := any(config).(proto.Message); !ok {
 		t.Fatal("config is not a protobuf message")
+	}
+}
+
+func TestConfigJSONRedactsCredentials(t *testing.T) {
+	config := &sandbox.Config{Auth: &sandbox.AuthConfig{Credentials: &sandbox.TokenPair{TokenPair: &sandbox.TokenPairCredentials{Id: "sensitive-id", Secret: "sensitive-secret"}}}}
+	encoded, err := json.Marshal(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(encoded), "sensitive-id") || strings.Contains(string(encoded), "sensitive-secret") {
+		t.Fatalf("config JSON contains credentials: %s", encoded)
 	}
 }
 

@@ -69,7 +69,7 @@ export class Filesystem {
         this.host.backend,
         this.host.id,
         path,
-        data,
+        data.slice(),
         requestFields(options),
         operationOptions(options, signal),
       );

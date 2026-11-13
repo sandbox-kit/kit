@@ -105,13 +105,13 @@ function validateExecOptions(
 
 function requestFields(options: ProcessCall): ExecOptions {
   const request: ExecOptions = {};
-  if (options.argv !== undefined) request.argv = options.argv;
+  if (options.argv !== undefined) request.argv = [...options.argv];
   if (options.shell !== undefined) request.shell = options.shell;
   if (options.workingDirectory !== undefined) {
     request.workingDirectory = options.workingDirectory;
   }
   if (options.environment !== undefined) {
-    request.environment = options.environment;
+    request.environment = { ...options.environment };
   }
   if (options.timeout !== undefined) request.timeout = options.timeout;
   return request;
