@@ -1,0 +1,32 @@
+what else u sugested to chagne ?
+
+---
+
+explian 1 and 3 with examples code I wanna understand
+
+---
+
+do u recommend all teh fixes ?
+
+---
+
+i mean it takes little efforts I don't have lot of urgency to merge.
+
+---
+
+do it. all of tit.
+
+---
+
+cool commit and push
+Note that u have changed .md and mdx using skill we have. 
+
+and not having lot of big big para
+
+---
+
++ can u make sure website and mdx doesn't mention go specifcs when typescript is selected and vice versa do it for every website docs we have regardless if it is blaxel or not.
+
+---
+
+hello
