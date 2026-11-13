@@ -81,6 +81,14 @@ func TestRejectedCreateSettings(t *testing.T) {
 			field: sandbox.CreateFieldNetworkOutboundDomainsEntries,
 		},
 		{
+			name: "nil port",
+			request: namedImage(&sandbox.CreateOptions{
+				Network: &sandbox.NetworkConfig{Ports: []*sandbox.PortBinding{nil}},
+			}),
+			kind:  sandbox.ErrorKindInvalidArgument,
+			field: sandbox.CreateFieldNetworkPorts,
+		},
+		{
 			name: "cpu cores",
 			request: namedImage(&sandbox.CreateOptions{
 				Resources: &sandbox.Resources{CpuCores: sandbox.Value(2.0)},

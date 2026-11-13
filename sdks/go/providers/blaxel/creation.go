@@ -203,8 +203,8 @@ func (c *creation) network() error {
 		c.params.Sandbox.Spec.Network.AllowedDomains = append([]string(nil), config.OutboundDomains.Entries...)
 		config.OutboundDomains = nil
 	}
-	if len(config.Ports) > 0 {
-		ports, err := mapPorts(config.Ports)
+	if len(c.request.Network.Ports) > 0 {
+		ports, err := mapPorts(c.request.Network.Ports)
 		if err != nil {
 			return err
 		}
@@ -223,7 +223,11 @@ func mapPorts(bindings []*sandbox.PortBinding) ([]blaxel.PortParam, error) {
 	ports := make([]blaxel.PortParam, 0, len(bindings))
 	for _, binding := range bindings {
 		if binding == nil {
-			continue
+			return nil, providerCheckError(
+				sandbox.ErrorKindInvalidArgument,
+				sandbox.CreateFieldNetworkPorts,
+				"port binding is required",
+			)
 		}
 		if isReservedPort(binding.Port) {
 			return nil, providerCheckError(sandbox.ErrorKindInvalidArgument, sandbox.CreateFieldNetworkPortsPort, "ports 80, 443, and 8080 are reserved by Blaxel")
