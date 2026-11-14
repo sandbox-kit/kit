@@ -14,10 +14,10 @@ func TestCredentialJSONRedactsSensitiveFields(t *testing.T) {
 		credentials []any
 		want        string
 	}{
-		{name: "api key", credentials: []any{sandboxv1.APIKeyCredentials{Key: "api-key-secret"}, &sandboxv1.APIKeyCredentials{Key: "api-key-secret"}}, want: `{}`},
-		{name: "token pair", credentials: []any{sandboxv1.TokenPairCredentials{Id: "token-id-secret", Secret: "token-secret"}, &sandboxv1.TokenPairCredentials{Id: "token-id-secret", Secret: "token-secret"}}, want: `{}`},
-		{name: "bearer token", credentials: []any{sandboxv1.BearerTokenCredentials{Token: "bearer-secret"}, &sandboxv1.BearerTokenCredentials{Token: "bearer-secret"}}, want: `{}`},
-		{name: "OAuth", credentials: []any{sandboxv1.OAuthCredentials{RefreshToken: "refresh-secret", ClientId: "public-client", ClientSecret: sandboxv1String("client-secret"), JwtKey: sandboxv1String("jwt-secret")}, &sandboxv1.OAuthCredentials{RefreshToken: "refresh-secret", ClientId: "public-client", ClientSecret: sandboxv1String("client-secret"), JwtKey: sandboxv1String("jwt-secret")}}, want: `{"client_id":"public-client"}`},
+		{name: "api key", credentials: []any{&sandboxv1.APIKeyCredentials{Key: "api-key-secret"}}, want: `{}`},
+		{name: "token pair", credentials: []any{&sandboxv1.TokenPairCredentials{Id: "token-id-secret", Secret: "token-secret"}}, want: `{}`},
+		{name: "bearer token", credentials: []any{&sandboxv1.BearerTokenCredentials{Token: "bearer-secret"}}, want: `{}`},
+		{name: "OAuth", credentials: []any{&sandboxv1.OAuthCredentials{RefreshToken: "refresh-secret", ClientId: "public-client", ClientSecret: sandboxv1String("client-secret"), JwtKey: sandboxv1String("jwt-secret")}}, want: `{"client_id":"public-client"}`},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

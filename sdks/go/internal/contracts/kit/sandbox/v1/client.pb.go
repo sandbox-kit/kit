@@ -230,7 +230,7 @@ func (*AuthConfig_OauthRefresh) isAuthConfig_Credentials() {}
 // APIKeyCredentials is an API-key credential. Daytona uses Key.
 type APIKeyCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The secret API key. Go encoding/json output excludes it.
+	// The secret API key. Go encoding/json output excludes it when marshaling a pointer.
 	Key           string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -276,9 +276,9 @@ func (x *APIKeyCredentials) GetKey() string {
 // TokenPairCredentials is a token-id and token-secret pair. Modal uses both fields.
 type TokenPairCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The token identifier. Go encoding/json output excludes it.
+	// The token identifier. Go encoding/json output excludes it when marshaling a pointer.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// The token secret. Go encoding/json output excludes it.
+	// The token secret. Go encoding/json output excludes it when marshaling a pointer.
 	Secret        string `protobuf:"bytes,2,opt,name=secret,proto3" json:"secret,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -331,7 +331,7 @@ func (x *TokenPairCredentials) GetSecret() string {
 // BearerTokenCredentials is a bearer or JWT credential. Daytona also requires an organization.
 type BearerTokenCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The bearer token. Go encoding/json output excludes it.
+	// The bearer token. Go encoding/json output excludes it when marshaling a pointer.
 	Token         string `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -377,13 +377,13 @@ func (x *BearerTokenCredentials) GetToken() string {
 // OAuthCredentials is an OAuth refresh credential. Supply ClientID and exactly one of ClientSecret or JWTKey.
 type OAuthCredentials struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The refresh token. Go encoding/json output excludes it.
+	// The refresh token. Go encoding/json output excludes it when marshaling a pointer.
 	RefreshToken string `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	// The OAuth client identifier.
 	ClientId string `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
-	// One client secret. Do not set this together with JWTKey. Go encoding/json excludes it.
+	// One client secret. Do not set this together with JWTKey. Go encoding/json excludes it when marshaling a pointer.
 	ClientSecret *string `protobuf:"bytes,3,opt,name=client_secret,json=clientSecret,proto3,oneof" json:"client_secret,omitempty"`
-	// One JWT signing key. Do not set this together with ClientSecret. Go encoding/json excludes it.
+	// One JWT signing key. Do not set this together with ClientSecret. Go encoding/json excludes it when marshaling a pointer.
 	JwtKey        *string `protobuf:"bytes,4,opt,name=jwt_key,json=jwtKey,proto3,oneof" json:"jwt_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
