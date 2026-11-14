@@ -8,6 +8,7 @@ Workspace for the published TypeScript packages:
 | `@sandbox-kit/sandbox`   | Core client                                      |
 | `@sandbox-kit/daytona`   | Daytona provider                                 |
 | `@sandbox-kit/modal`     | Modal provider                                   |
+| `@sandbox-kit/blaxel`    | Blaxel provider                                  |
 
 ## Local development
 
@@ -42,6 +43,7 @@ cd contracts && npm publish
 cd ../sandbox && npm publish
 cd ../providers/daytona && npm publish
 cd ../providers/modal && npm publish
+cd ../providers/blaxel && npm publish
 ```
 
 Before a real publish, dry-run each package:
@@ -51,6 +53,7 @@ cd sdks/typescript/contracts && npm pack --dry-run
 cd ../sandbox && npm pack --dry-run
 cd ../providers/daytona && npm pack --dry-run
 cd ../providers/modal && npm pack --dry-run
+cd ../providers/blaxel && npm pack --dry-run
 ```
 
 `prepublishOnly` deletes `dist/` then rebuilds so stale outputs are not packed.

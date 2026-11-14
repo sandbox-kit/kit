@@ -28,7 +28,7 @@ type Config = {
 | `auth?`     | [`AuthInput`](#auth) | Credential set. Omit to use env/profile credentials from the provider. |
 | `endpoint?` | `string`             | Provider endpoint URL override. Remote URLs must be HTTPS.             |
 | `region?`   | `string`             | Default region or target preference                                    |
-| `scope?`    | [`Scope`](#scope)    | App, environment, organization, or project                             |
+| `scope?`    | [`Scope`](#scope)    | App, environment, organization, project, or workspace                  |
 | `timeout?`  | `number`             | Default deadline (ms) for calls that omit their own timeout            |
 
 **Example**
@@ -45,6 +45,13 @@ await using client = new Client({
 <ForProvider id="daytona">
   This sets the client deadline only. If a create/start/stop/pause/delete call
   omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Set client or create `timeout` for how long create may wait. `region` is
+  required for create. `endpoint` is not supported. Use one Blaxel
+  configuration per process; a client with different credentials or workspace
+  is rejected.
 </ForProvider>
 
   </Tab>
@@ -67,7 +74,7 @@ Pass `config` to `NewClient(provider, config)`.
 | `Auth`     | Credential set. Nil uses env/profile credentials from the provider. |
 | `Endpoint` | Provider endpoint URL override                                      |
 | `Region`   | Default region or target preference                                 |
-| `Scope`    | App, environment, organization, or project                          |
+| `Scope`    | App, environment, organization, project, or workspace               |
 | `Timeout`  | Default client deadline via `sandbox.Duration`                      |
 
 **Example**
@@ -85,6 +92,11 @@ client, err := sandbox.NewClient(provider, &sandbox.Config{
 <ForProvider id="daytona">
   This sets the client deadline only. If a create/start/stop/pause/delete call
   omits its own timeout, Daytona still uses a **60s** default on its side.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Set client or create `Timeout` for how long create may wait. `Region` is
+  required for create. `Endpoint` is not supported.
 </ForProvider>
 
   </Tab>
@@ -147,22 +159,24 @@ type AuthInput =
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-| Field            | Description                     |
-| ---------------- | ------------------------------- |
-| `appName`        | Application name                |
-| `environment`    | Environment name (often `main`) |
-| `organizationId` | Organization id                 |
-| `projectId`      | Project id                      |
+| Field            | Description                                        |
+| ---------------- | -------------------------------------------------- |
+| `appName`        | Application name                                   |
+| `environment`    | Environment name (often `main`)                    |
+| `organizationId` | Organization id                                    |
+| `projectId`      | Project id                                         |
+| `workspace`      | Blaxel workspace name (required for Blaxel create) |
 
   </Tab>
   <Tab value="Go">
 
-| Field            | Description                     |
-| ---------------- | ------------------------------- |
-| `AppName`        | Application name                |
-| `Environment`    | Environment name (often `main`) |
-| `OrganizationId` | Organization id                 |
-| `ProjectId`      | Project id                      |
+| Field            | Description                                        |
+| ---------------- | -------------------------------------------------- |
+| `AppName`        | Application name                                   |
+| `Environment`    | Environment name (often `main`)                    |
+| `OrganizationId` | Organization id                                    |
+| `ProjectId`      | Project id                                         |
+| `Workspace`      | Blaxel workspace name (required for Blaxel create) |
 
   </Tab>
 </Tabs>

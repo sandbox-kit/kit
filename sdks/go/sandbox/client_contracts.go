@@ -11,7 +11,8 @@ import (
 type (
 	// Config is the configuration passed to NewClient.
 	// Set Auth for the provider account. Modal also requires Scope.AppName.
-	// An omitted Endpoint uses the provider default. Modal rejects Endpoint.
+	// Blaxel create also requires Region. An omitted Endpoint uses the provider
+	// default. Modal and Blaxel reject Endpoint.
 	Config = sandboxv1.Config
 
 	// AuthConfig is the credential set on Config.Auth.
@@ -19,7 +20,7 @@ type (
 	AuthConfig = sandboxv1.AuthConfig
 
 	// APIKey is the API-key form of AuthConfig.Credentials.
-	// Daytona accepts an API key.
+	// Daytona and Blaxel accept an API key.
 	APIKey = sandboxv1.AuthConfig_ApiKey
 
 	// TokenPair is the id-and-secret form of AuthConfig.Credentials.
@@ -47,6 +48,7 @@ type (
 	// Scope selects the account boundary for the client.
 	// Modal requires AppName. Environment is often "main".
 	// Daytona accepts OrganizationId.
+	// Workspace is the Blaxel workspace name.
 	Scope = sandboxv1.Scope
 )
 

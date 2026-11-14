@@ -1,0 +1,239 @@
+---
+title: Blaxel
+description: Install, authenticate, and create a Blaxel sandbox.
+---
+
+Use Blaxel when you want named image creates, get/refresh by name, filesystem, blocking process runs, and delete.
+
+## Install
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
+```
+
+  </Tab>
+</Tabs>
+
+## Create
+
+Set `BL_API_KEY` and `BL_WORKSPACE`. Create needs a Blaxel-valid `name`
+(required; blank or whitespace-only is rejected; lowercase alphanumeric with
+single hyphens, ≤49 characters), an image, and client `region`.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+import { blaxel } from "@sandbox-kit/blaxel";
+import { Client } from "@sandbox-kit/sandbox";
+
+const workspace = process.env.BL_WORKSPACE?.trim();
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  ...(workspace ? { scope: { workspace } } : {}),
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+});
+console.log(sandbox.id); // same as create name; use with get / BL_SANDBOX_NAME
+```
+
+`timeout` is milliseconds. Prefer `await using`; otherwise call
+`await client.close()` when finished. Use one Blaxel configuration per process;
+a client with different credentials or workspace is rejected.
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+		}},
+		Region:  sandbox.Value("us-pdx-1"),
+		Timeout: sandbox.Duration(2 * time.Minute),
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Name: sandbox.Value("kit-example"),
+		Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+			Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+		}},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(instance.ID()) // same as create name; use with Get / BL_SANDBOX_NAME
+}
+```
+
+Optional strings use `sandbox.Value`.
+
+  </Tab>
+</Tabs>
+
+Omit `auth` and `scope.workspace` to use `BL_API_KEY` and `BL_WORKSPACE` from
+the environment. `region` is still required for create. `endpoint` is not
+supported. Closing the client does not delete the sandbox.
+
+## Configuration
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Setting        | Notes                                                   |
+| -------------- | ------------------------------------------------------- |
+| API key        | `auth.apiKey`                                           |
+| Omitted `auth` | Uses `BL_API_KEY` / `BL_WORKSPACE` from the environment |
+| Workspace      | `scope.workspace` — or `BL_WORKSPACE` when omitted      |
+| Region         | `region` — required for create                          |
+| Endpoint       | Unsupported                                             |
+
+```ts
+const workspace = process.env.BL_WORKSPACE?.trim();
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  ...(workspace ? { scope: { workspace } } : {}),
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000,
+});
+```
+
+  </Tab>
+  <Tab value="Go">
+
+| Setting   | Notes                                              |
+| --------- | -------------------------------------------------- |
+| API key   | `Auth` with `APIKey`                               |
+| Workspace | `Scope.Workspace` — or `BL_WORKSPACE` when omitted |
+| Region    | `Config.Region` — required for create              |
+| Endpoint  | Unsupported                                        |
+
+```go
+config := &sandbox.Config{
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
+}
+if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+}
+client, err := sandbox.NewClient(blaxel.New(), config)
+```
+
+  </Tab>
+</Tabs>
+
+Only API key auth and workspace scope are supported. Full rules:
+[Configuration](/docs/configuration).
+
+<ForLanguage id="typescript">
+  Use one Blaxel configuration per process. A client with different credentials
+  or workspace is rejected.
+</ForLanguage>
+
+## What works
+
+| Area      | Notes                                                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle                                            |
+| Volumes   | Not available on create                                                                                         |
+| Open      | Look up or refresh by sandbox name                                                                               |
+| Lifecycle | Delete or close — no start, stop, pause, archive, terminate, or attach                                          |
+| Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
+| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict; bad TTL/idle → InvalidArgument       |
+| Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
+| Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
+
+Pass memory in MiB, or omit it for Blaxel’s default. Kit converts it to
+Blaxel’s decimal MB field and rounds up so the request is not under-provisioned.
+CPU and disk overrides are not supported. Runtime and isolation are not
+supported.
+
+<ForLanguage id="typescript">
+  Labels on `info()` appear only when Blaxel reports them.
+</ForLanguage>
+
+<ForLanguage id="go">
+  Labels on `Info()` appear only when Blaxel reports them.
+</ForLanguage>
+
+Default ports are HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not
+supported. Ready/Started/Submitted wait and idle disable are not supported.
+
+Set a client or create timeout for how long create may wait. With a 1–50s
+timeout, a timed-out create frees the name.
+
+<ForLanguage id="typescript">
+  If Blaxel’s edge returns HTTP 504 during create, the client may keep waiting
+  until the sandbox is ready or your create timeout ends. A timeout does not
+  always mean the sandbox was never created—call `get` by name before
+  recreating.
+</ForLanguage>
+
+<ForLanguage id="go">
+  If Blaxel’s edge returns HTTP 504 during create, the call returns a timeout as
+  soon as that response arrives. A timeout does not always mean the sandbox was
+  never created—call `Get` by name before recreating.
+</ForLanguage>
+
+## Related
+
+- Labels, ports, TTL/idle — [Create](/docs/create)
+- get / refresh / delete — [Lifecycle](/docs/lifecycle)
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+Example: [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-sandbox)
+
+  </Tab>
+  <Tab value="Go">
+
+Example: [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-sandbox)
+
+  </Tab>
+</Tabs>

@@ -38,6 +38,17 @@ npm install && npm run build && npm start
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/typescript/blaxel/configuration/create-blaxel-sandbox
+cp .env.example .env   # set BL_API_KEY, BL_WORKSPACE, BL_REGION (or us-pdx-1)
+npm install && npm run build && npm start
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -60,6 +71,17 @@ go run .
 git clone https://github.com/sandbox-kit/kit.git
 cd kit/examples/go/modal/configuration/create-modal-sandbox
 cp .env.example .env   # set MODAL_TOKEN_ID, MODAL_TOKEN_SECRET, MODAL_APP_NAME
+go run .
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```sh
+git clone https://github.com/sandbox-kit/kit.git
+cd kit/examples/go/blaxel/configuration/create-blaxel-sandbox
+cp .env.example .env   # set BL_API_KEY, BL_WORKSPACE, BL_REGION (or us-pdx-1)
 go run .
 ```
 
@@ -394,6 +416,151 @@ go run .
 | Example | Project                                                                                                          |
 | ------- | ---------------------------------------------------------------------------------------------------------------- |
 | Errors  | [handle-modal-errors](https://github.com/sandbox-kit/kit/tree/main/examples/go/modal/errors/handle-modal-errors) |
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+## Catalog
+
+### Create
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-sandbox) |
+| Resources | [create-blaxel-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-resources) |
+| Labels | [create-blaxel-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-labels) |
+| TTL | [create-blaxel-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-ttl) |
+| Idle delete | [create-blaxel-idle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-idle) |
+| Client timeout | [create-blaxel-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-client-timeout) |
+| Ports | [create-blaxel-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-ports) |
+| Outbound domains | [create-blaxel-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/configuration/create-blaxel-with-allowlists) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Creation | [create-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-sandbox) |
+| Resources | [create-blaxel-with-resources](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-resources) |
+| Labels | [create-blaxel-with-labels](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-labels) |
+| TTL | [create-blaxel-with-ttl](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-ttl) |
+| Idle delete | [create-blaxel-idle](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-idle) |
+| Client timeout | [create-blaxel-client-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-client-timeout) |
+| Ports | [create-blaxel-with-ports](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-ports) |
+| Outbound domains | [create-blaxel-with-allowlists](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/configuration/create-blaxel-with-allowlists) |
+
+  </Tab>
+</Tabs>
+
+### Process
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-command) |
+| Shell command | [run-blaxel-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-shell-command) |
+| Run with cwd | [run-blaxel-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-with-cwd) |
+| Run with env | [run-blaxel-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-with-env) |
+| Run with timeout | [run-blaxel-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-with-timeout) |
+| Check exit | [run-blaxel-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/process/run-blaxel-check-exit) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Run command | [run-blaxel-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-command) |
+| Shell command | [run-blaxel-shell-command](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-shell-command) |
+| Run with cwd | [run-blaxel-with-cwd](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-with-cwd) |
+| Run with env | [run-blaxel-with-env](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-with-env) |
+| Run with timeout | [run-blaxel-with-timeout](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-with-timeout) |
+| Check exit | [run-blaxel-check-exit](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/process/run-blaxel-check-exit) |
+
+  </Tab>
+</Tabs>
+
+### Filesystem
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/read-blaxel-file) |
+| Write file | [write-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/write-blaxel-file) |
+| Copy in | [copy-file-into-blaxel](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/copy-file-into-blaxel) |
+| Copy out | [copy-file-from-blaxel](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/copy-file-from-blaxel) |
+| Directory | [make-blaxel-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/make-blaxel-directory) |
+| List | [list-blaxel-directory](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/list-blaxel-directory) |
+| Stat | [stat-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/stat-blaxel-file) |
+| Remove | [remove-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/filesystem/remove-blaxel-file) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Read file | [read-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/read-blaxel-file) |
+| Write file | [write-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/write-blaxel-file) |
+| Copy in | [copy-file-into-blaxel](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/copy-file-into-blaxel) |
+| Copy out | [copy-file-from-blaxel](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/copy-file-from-blaxel) |
+| Directory | [make-blaxel-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/make-blaxel-directory) |
+| List | [list-blaxel-directory](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/list-blaxel-directory) |
+| Stat | [stat-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/stat-blaxel-file) |
+| Remove | [remove-blaxel-file](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/filesystem/remove-blaxel-file) |
+
+  </Tab>
+</Tabs>
+
+### Lifecycle
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Get | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/lifecycle/get-blaxel-sandbox) |
+| Refresh | [refresh-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/lifecycle/refresh-blaxel-sandbox) |
+| Delete | [delete-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/lifecycle/delete-blaxel-sandbox) |
+| Close handle | [close-blaxel-handle](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/lifecycle/close-blaxel-handle) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Get | [get-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/lifecycle/get-blaxel-sandbox) |
+| Refresh | [refresh-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/lifecycle/refresh-blaxel-sandbox) |
+| Delete | [delete-blaxel-sandbox](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/lifecycle/delete-blaxel-sandbox) |
+| Close handle | [close-blaxel-handle](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/lifecycle/close-blaxel-handle) |
+
+  </Tab>
+</Tabs>
+
+### Errors
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-blaxel-errors](https://github.com/sandbox-kit/kit/tree/main/examples/typescript/blaxel/errors/handle-blaxel-errors) |
+
+  </Tab>
+  <Tab value="Go">
+
+| Example | Project |
+| ------- | ------- |
+| Errors | [handle-blaxel-errors](https://github.com/sandbox-kit/kit/tree/main/examples/go/blaxel/errors/handle-blaxel-errors) |
 
   </Tab>
 </Tabs>

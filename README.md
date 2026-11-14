@@ -2,19 +2,20 @@
 
 A multi-provider SDK for creating and managing cloud sandboxes. Choose a
 provider, install the core SDK and its provider package, then create and manage
-sandboxes through a consistent client interface. Daytona and Modal are
-supported.
+sandboxes through a consistent client interface. Daytona, Modal, and Blaxel are supported.
 
 ## npm
 
-The TypeScript SDK is published on npm at version 0.1.7. Each badge counts every
-download npm has recorded for that package.
+TypeScript packages on npm: `@sandbox-kit/sandbox`, `@sandbox-kit/daytona`, and
+`@sandbox-kit/modal` are 0.1.7; `@sandbox-kit/blaxel` is 0.1.0. Each badge shows
+that package's registry version and download count.
 
 | Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fsandbox)](https://www.npmjs.com/package/@sandbox-kit/sandbox) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fsandbox?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/sandbox) |
 | [`@sandbox-kit/daytona`](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fdaytona)](https://www.npmjs.com/package/@sandbox-kit/daytona) | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fdaytona?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/daytona) |
 | [`@sandbox-kit/modal`](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fmodal)](https://www.npmjs.com/package/@sandbox-kit/modal)     | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fmodal?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/modal)     |
+| [`@sandbox-kit/blaxel`](https://www.npmjs.com/package/@sandbox-kit/blaxel)   | [![npm](https://img.shields.io/npm/v/%40sandbox-kit%2Fblaxel)](https://www.npmjs.com/package/@sandbox-kit/blaxel)   | [![downloads](https://img.shields.io/npm/d18m/%40sandbox-kit%2Fblaxel?label=downloads)](https://www.npmjs.com/package/@sandbox-kit/blaxel)   |
 
 Install `@sandbox-kit/sandbox` and one provider.
 
@@ -27,9 +28,10 @@ Requires Node.js 20, 22, or 24.15+. Install the core SDK and one provider:
 ```sh
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or: npm install @sandbox-kit/sandbox @sandbox-kit/modal
+# or: npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
-Set `DAYTONA_API_KEY`, then create a sandbox:
+Set `DAYTONA_API_KEY`, then create a Daytona sandbox:
 
 ```ts
 import { daytona } from "@sandbox-kit/daytona";
@@ -53,8 +55,10 @@ await sandbox.filesystem.writeFile(
 );
 ```
 
-Use `await client.close()` in a `finally` block when `await using` is not
-available. Timeouts are milliseconds in TypeScript.
+Empty `create()` uses Daytona's default snapshot. Modal needs an image. Blaxel
+needs `name`, an image, and client `region`. Use `await client.close()` in a
+`finally` block when `await using` is not available. Timeouts are milliseconds
+in TypeScript.
 
 ### Go
 
@@ -64,9 +68,10 @@ Requires Go 1.26.0 or later. Install the core SDK and one provider:
 go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
 go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 # or: go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
+# or: go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ```
 
-Set `DAYTONA_API_KEY`, then create a sandbox:
+Set `DAYTONA_API_KEY`, then create a Daytona sandbox:
 
 ```go
 package main
@@ -113,15 +118,17 @@ func main() {
 }
 ```
 
+`Create` with a nil request uses Daytona's default snapshot. Modal needs an
+image. Blaxel needs `Name`, an image, and client `Region`.
+
 ### What gets installed
 
-| Language   | Core SDK                                     | Providers                                      |
-| ---------- | -------------------------------------------- | ---------------------------------------------- |
-| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`   |
-| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal` |
+| Language   | Core SDK                                     | Providers                                                              |
+| ---------- | -------------------------------------------- | ---------------------------------------------------------------------- |
+| TypeScript | `@sandbox-kit/sandbox`                       | `@sandbox-kit/daytona`, `@sandbox-kit/modal`, `@sandbox-kit/blaxel`    |
+| Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` | `.../providers/daytona`, `.../providers/modal`, `.../providers/blaxel` |
 
-Install only the provider you use. The core SDK exposes the shared client
-interface; the provider package connects it to the provider's native SDK.
+Install only the provider you use.
 
 Closing a client or sandbox handle releases local SDK resources. It does not
 stop, terminate, archive, or delete the cloud sandbox.
@@ -153,11 +160,16 @@ Modal needs a token pair and an existing app:
 [TypeScript](examples/typescript/modal/configuration/create-modal-sandbox/README.md) ·
 [Go](examples/go/modal/configuration/create-modal-sandbox/README.md).
 
-Creation examples provision real sandboxes. Filesystem, process, and lifecycle examples
-use the ID in `.env` (stop / terminate / archive / delete can destroy that
-resource; filesystem examples use the path you set; process examples run one
-command). Error-handling examples
-fail locally and create nothing. Skip copying `.env.example` if you already
+Blaxel needs an API key, a workspace, and a client region:
+[TypeScript](examples/typescript/blaxel/configuration/create-blaxel-sandbox/README.md) ·
+[Go](examples/go/blaxel/configuration/create-blaxel-sandbox/README.md).
+
+Creation examples provision real sandboxes. Filesystem, process, and lifecycle
+examples use the sandbox id in `.env` (`DAYTONA_SANDBOX_ID`, `MODAL_SANDBOX_ID`,
+or Blaxel `BL_SANDBOX_NAME` — Blaxel id is the create name). Stop / terminate /
+archive / delete can destroy that resource; filesystem examples use the path
+you set; process examples run one command. Error-handling examples fail
+locally and create nothing. Skip copying `.env.example` if you already
 have a configured `.env`.
 
 Full catalog: [examples/README.md](examples/README.md) ·
@@ -165,7 +177,7 @@ Full catalog: [examples/README.md](examples/README.md) ·
 
 ## Handle errors
 
-Same portable kinds in both languages. Native causes stay on the TypeScript
+The same error kinds in both languages. Native causes stay on the TypeScript
 `cause` property and on Go `Unwrap` / `errors.As`. Kinds do not imply safe retries.
 
 ### TypeScript
@@ -191,6 +203,15 @@ function handleError(error: unknown): void {
       console.error(
         "Your account does not have permission for this operation.",
       );
+      break;
+    case ErrorKind.NotFound:
+      console.error("Sandbox or file path not found.");
+      break;
+    case ErrorKind.AlreadyExists:
+      console.error("Named resource already exists.");
+      break;
+    case ErrorKind.Conflict:
+      console.error("Current state rejects this operation.");
       break;
     case ErrorKind.RateLimited:
     case ErrorKind.ResourceExhausted:
@@ -233,6 +254,12 @@ func handleError(err error) {
         fmt.Fprintln(os.Stderr, "Check your provider credentials.")
     case sandbox.ErrorKindPermissionDenied:
         fmt.Fprintln(os.Stderr, "Your account does not have permission for this operation.")
+    case sandbox.ErrorKindNotFound:
+        fmt.Fprintln(os.Stderr, "Sandbox or file path not found.")
+    case sandbox.ErrorKindAlreadyExists:
+        fmt.Fprintln(os.Stderr, "Named resource already exists.")
+    case sandbox.ErrorKindConflict:
+        fmt.Fprintln(os.Stderr, "Current state rejects this operation.")
     case sandbox.ErrorKindRateLimited, sandbox.ErrorKindResourceExhausted:
         fmt.Fprintln(os.Stderr, "The provider's rate or resource limit was reached.")
     case sandbox.ErrorKindCanceled:
@@ -256,7 +283,9 @@ More detail: [responses and errors](docs/responses-and-errors.md).
   Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
 - Unsupported settings fail before provider calls; quotas stay provider-enforced.
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
-  Daytona: whole cores and whole GiB expressed as MiB.
+  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: set
+  `memoryMib` / `memory_mib` (Kit converts MiB to Blaxel's decimal MB); CPU
+  follows memory.
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·
@@ -277,17 +306,17 @@ Open http://localhost:3000. Docs are organized as Quickstart, Concepts, Provider
 
 These pages are the behavior reference for the same API:
 
-| Guide                                                                                                          | Covers                                        |
-| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| [Client configuration](docs/configuration.md)                                                                  | Auth, scope, defaults, deadlines              |
-| [Sandbox creation](docs/sandbox-creation.md)                                                                   | Fields, units, policies                       |
-| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                 | Get, attach, capabilities                     |
-| [Filesystem](docs/filesystem.md)                                                                               | Read, write, copy, list, stat, mkdir, remove  |
-| [Process](docs/process.md)                                                                                     | Run a command and wait for exit code + output |
-| [Providers](docs/providers.md)                                                                                 | Daytona and Modal                             |
-| [Responses and errors](docs/responses-and-errors.md)                                                           | Error details and provider causes             |
-| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) | TypeScript provider notes                     |
-| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md)                 | Go provider notes                             |
+| Guide                                                                                                                                                                 | Covers                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| [Client configuration](docs/configuration.md)                                                                                                                         | Auth, scope, defaults, deadlines              |
+| [Sandbox creation](docs/sandbox-creation.md)                                                                                                                          | Fields, units, policies                       |
+| [Sandbox lifecycle](docs/sandbox-lifecycle.md)                                                                                                                        | Get, attach, capabilities                     |
+| [Filesystem](docs/filesystem.md)                                                                                                                                      | Read, write, copy, list, stat, mkdir, remove  |
+| [Process](docs/process.md)                                                                                                                                            | Run a command and wait for exit code + output |
+| [Providers](docs/providers.md)                                                                                                                                        | Daytona, Modal, and Blaxel                    |
+| [Responses and errors](docs/responses-and-errors.md)                                                                                                                  | Error details and provider causes             |
+| [TS Daytona](sdks/typescript/providers/daytona/README.md) / [Modal](sdks/typescript/providers/modal/README.md) / [Blaxel](sdks/typescript/providers/blaxel/README.md) | TypeScript provider notes                     |
+| [Go Daytona](sdks/go/providers/daytona/README.md) / [Modal](sdks/go/providers/modal/README.md) / [Blaxel](sdks/go/providers/blaxel/README.md)                         | Go provider notes                             |
 
 ## License
 

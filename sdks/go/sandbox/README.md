@@ -1,7 +1,7 @@
 # Sandbox client
 
 Create and manage cloud sandboxes with one Go client. Install this module and
-either the Daytona provider or the Modal provider.
+one provider (Daytona, Modal, or Blaxel).
 
 Requires Go 1.26.0 or later.
 
@@ -12,8 +12,10 @@ go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
 go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 ```
 
-For Modal, install `github.com/sandbox-kit/kit/sdks/go/providers/modal` instead
-of the Daytona provider.
+For Modal or Blaxel, install
+`github.com/sandbox-kit/kit/sdks/go/providers/modal` or
+`github.com/sandbox-kit/kit/sdks/go/providers/blaxel` instead of the Daytona
+provider.
 
 ## Create a sandbox
 
@@ -37,12 +39,14 @@ fmt.Println(instance.ID())
 ```
 
 `Create` with a nil request uses the provider default when that default is
-valid. Daytona uses its default snapshot. Modal requires an image.
+valid. Daytona uses its default snapshot. Modal requires an image. Blaxel
+requires a name and an image, plus client `Region`.
 
-`client.Close` closes your connection to Daytona or Modal. `instance.Close`
-does not stop, terminate, or delete the sandbox, and you can keep using the
-handle. The sandbox keeps running until you stop, terminate, archive, or
-delete it.
+`client.Close` closes your connection to Daytona, Modal, or Blaxel.
+`instance.Close` does not stop, terminate, or delete the sandbox, and you can
+keep using the handle. Reclaim a Daytona sandbox with Stop, Archive, or
+Delete; a Modal sandbox with Terminate or lifetime; a Blaxel sandbox with
+Delete or TTL/idle. Blaxel has no Stop, Terminate, or Archive.
 
 ## Run a command
 
@@ -88,11 +92,12 @@ Paths inside the sandbox are absolute. The same handle also supports
 | ---------------------------------------------------------------------------------- | --------------- | ------------------------ |
 | [Daytona](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/daytona) | `daytona.New()` | `client.Get`             |
 | [Modal](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/modal)     | `modal.New()`   | `client.Attach`          |
+| [Blaxel](https://pkg.go.dev/github.com/sandbox-kit/kit/sdks/go/providers/blaxel)   | `blaxel.New()`  | `client.Get` (by name)   |
 
-`Supports` reports whether the provider implements that operation. An
-unimplemented method returns an error and does not call the provider. A
-provider rejection, including one from a closed SDK, comes back as that
-provider's error.
+`Supports` tells you whether this handle can attempt that operation. On
+Blaxel, you can `Get`, `Refresh`, `Delete`, and `Close`. Other lifecycle
+methods are not available. If the provider rejects a supported call, you get
+that provider's error.
 
 ## Read an error
 

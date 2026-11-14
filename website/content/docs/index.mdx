@@ -41,6 +41,14 @@ npm install @sandbox-kit/sandbox @sandbox-kit/modal
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```sh
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -62,6 +70,15 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```sh
+go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
+go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
+```
+
+</ForProvider>
+
   </Tab>
 </Tabs>
 
@@ -71,6 +88,11 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
 
 <ForProvider id="modal">
   Set a Modal token pair and app name ([Modal](/docs/modal)), then:
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Set `BL_API_KEY`, `BL_WORKSPACE`, and a client `region`
+  ([Blaxel](/docs/blaxel)), then:
 </ForProvider>
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
@@ -119,6 +141,31 @@ const sandbox = await client.create({
   source: { image: { reference: "alpine:3.21" } },
 });
 console.log(sandbox.id);
+```
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+```ts
+import { blaxel } from "@sandbox-kit/blaxel";
+import { Client } from "@sandbox-kit/sandbox";
+
+const workspace = process.env.BL_WORKSPACE?.trim();
+
+await using client = new Client({
+  provider: blaxel(),
+  auth: { apiKey: { key: process.env.BL_API_KEY! } },
+  ...(workspace ? { scope: { workspace } } : {}),
+  region: process.env.BL_REGION || "us-pdx-1",
+  timeout: 120_000, // default client deadline (ms)
+});
+
+const sandbox = await client.create({
+  name: "kit-example",
+  source: { image: { reference: "blaxel/base-image:latest" } },
+});
+console.log(sandbox.id); // same as create name
 ```
 
 </ForProvider>
@@ -213,6 +260,55 @@ func main() {
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/sandbox-kit/kit/sdks/go/providers/blaxel"
+	"github.com/sandbox-kit/kit/sdks/go/sandbox"
+)
+
+func main() {
+	config := &sandbox.Config{
+		Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+		}},
+		Region:  sandbox.Value("us-pdx-1"),
+		Timeout: sandbox.Duration(2 * time.Minute),
+	}
+	if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
+		config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	}
+	client, err := sandbox.NewClient(blaxel.New(), config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Close(context.Background())
+
+	instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
+		Name: sandbox.Value("kit-example"),
+		Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+			Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+		}},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(instance.ID()) // same as create name
+}
+```
+
+</ForProvider>
+
   </Tab>
 </Tabs>
 
@@ -220,6 +316,7 @@ func main() {
   Provider setup: [Daytona](/docs/daytona).
 </ForProvider>
 <ForProvider id="modal">Provider setup: [Modal](/docs/modal).</ForProvider>
+<ForProvider id="blaxel">Provider setup: [Blaxel](/docs/blaxel).</ForProvider>
 
 ## 3. Run a command
 
@@ -293,9 +390,9 @@ err = instance.Filesystem().WriteFile(
 Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 
 <Callout title="Close does not stop the sandbox">
-  `client.close()` and handle `close` only release local resources. The cloud
-  sandbox keeps running until an explicit lifecycle call or a lifetime policy
-  ends it. See [Concepts](/docs/concepts) and [Lifecycle](/docs/lifecycle).
+  Closing a client or handle only releases local resources. The cloud sandbox
+  keeps running until an explicit lifecycle call or a lifetime policy ends it.
+  See [Concepts](/docs/concepts) and [Lifecycle](/docs/lifecycle).
 </Callout>
 
 ## Next
@@ -306,5 +403,6 @@ Sandbox paths are absolute. More: [Filesystem](/docs/filesystem).
 | Types and methods         | [SDK reference](/docs/sdk) · [Client](/docs/sdk/client) · [Sandbox](/docs/sdk/sandbox) |
 | Daytona setup             | [Daytona](/docs/daytona)                                                               |
 | Modal setup               | [Modal](/docs/modal)                                                                   |
+| Blaxel setup              | [Blaxel](/docs/blaxel)                                                                 |
 | Auth, region, timeouts    | [Configuration](/docs/configuration)                                                   |
 | Runnable example projects | [Examples](/docs/examples)                                                             |

@@ -62,6 +62,11 @@ How far provisioning wait-for waits before create returns.
 | `Started`   | Return once the sandbox has started                                     |
 | `Ready`     | Return once readiness succeeds (probe + positive timeout when required) |
 
+<ForProvider id="blaxel">
+  Use only `Default` or `Scheduled`. Ready, Started, and Submitted are not
+  supported.
+</ForProvider>
+
 ## EgressMode
 
 Outbound network policy on create.
@@ -83,6 +88,13 @@ Transport for a published port.
 | `Tls`      | TLS                                 |
 | `Http2Tls` | HTTP/2 over TLS                     |
 | `Plain`    | Unencrypted / plain transport       |
+
+<ForProvider id="modal">
+  Modal requires an explicit transport (`Default` is rejected).
+</ForProvider>
+<ForProvider id="blaxel">
+  `Default` is HTTP. `Plain` is TCP. `Tls` is TLS. `Http2Tls` is not supported.
+</ForProvider>
 
 ## IsolationKind
 

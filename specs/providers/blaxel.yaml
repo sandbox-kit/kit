@@ -1,0 +1,367 @@
+version: 1
+provider: blaxel
+# Create checks are handwritten. Name/image/placement/resources/env live in
+# provider_checks; readiness/security/observability/provisioning/ports/network/
+# runtime/isolation/lifetime live in create mapping (Go creation.go, TS
+# mappings/mappings.ts). Keep this list in sync; it is not emitted.
+checks:
+  - {
+      path: name,
+      required: true,
+      format: blaxel_sandbox_name,
+      notes: "lowercase alphanumeric with single hyphens, max 49",
+    }
+  - { path: source.image, required: true }
+  - { path: source.snapshot, unsupported: true }
+  - { path: source.warm_pool, unsupported: true }
+  - { path: environment, format: env_name }
+  - { path: placement, unsupported: true }
+  - { path: resources.cpu_cores, unsupported: true }
+  - { path: resources.cpu_limit_cores, unsupported: true }
+  - { path: resources.memory_limit_mib, unsupported: true }
+  - { path: resources.disk_mib, unsupported: true }
+  - {
+      path: runtime,
+      unsupported: true,
+      notes: "working_directory, user, language, version, entrypoint, and PTY; enforced in create mapping",
+    }
+  - {
+      path: isolation,
+      notes: "Default-only / empty is a no-op; non-default kind, providerKind, and nestedVirtualization rejected in create mapping",
+    }
+  - {
+      path: lifetime.maximum_lifetime,
+      notes: "whole seconds ≥5m (Blaxel ttl-max-age floor); enforced in create mapping",
+    }
+  - {
+      path: lifetime.idle_terminate,
+      notes: "PolicyModeDisabled rejected; After maps to ttl-idle ≥60s; enforced in create mapping",
+    }
+  - {
+      path: lifetime.ephemeral,
+      unsupported: true,
+      notes: "with idle_stop, idle_pause, stopped_archive, and stopped_delete",
+    }
+  - {
+      path: network.ports.port,
+      notes: "reject reserved 80, 443, and 8080; enforced in create mapping",
+    }
+  - {
+      path: network.ports.transport,
+      allowed: [default, plain, tls],
+      notes: "Default omits protocol (Blaxel HTTP); Plain→TCP; TLS→TLS; Http2Tls → Unsupported in create mapping",
+    }
+  - {
+      path: network.outbound_domains.entries,
+      format: domain,
+      notes: "mapped to allowedDomains; wildcard prefix *. is stripped for format check",
+    }
+  - {
+      path: network.outbound_cidrs,
+      unsupported: true,
+      notes: "with outbound_proxy_url, inbound_cidrs, private_network, and related fields",
+    }
+  - { path: readiness, unsupported: true }
+  - { path: security, unsupported: true }
+  - { path: observability, unsupported: true }
+  - { path: provisioning.queue_timeout, unsupported: true }
+  - {
+      path: provisioning.timeout,
+      notes: "Kit create deadline; when whole seconds 1..50 also X-Blaxel-Creation-Timeout / SandboxInstance.create timeout so Blaxel frees the name",
+    }
+  - {
+      path: provisioning.wait_for,
+      allowed: [default, scheduled],
+      notes: "Ready/Started/Submitted rejected; enforced in create mapping",
+    }
+client:
+  target:
+    name: ClientOptions
+    bindings:
+      go: { import: github.com/blaxel-ai/sdk-go/option, name: RequestOption }
+      # Handwritten TS maps into @blaxel/core settings Config (process-global).
+      typescript: { import: "@blaxel/core", name: Config }
+  managed: [provider, timeout]
+  retained: [region]
+  rejected:
+    {
+      endpoint: "Endpoint cannot be configured through this SDK's public client constructor",
+    }
+  scope: { field: scope, group: mapClientScope, retained: [workspace] }
+  auth:
+    - { field: api_key, group: mapAPIKeyCredentials }
+runtime:
+  go:
+    # Native SDK entry used by Provider.NewClient.
+    constructor: { function: NewClient }
+    state:
+      - {
+          name: region,
+          type: string,
+          optional: true,
+          capture: region,
+          doc: "is the captured default region. Nil means the caller omitted it; create requires a region.",
+        }
+    cleanup: { method: Close, accepts_context: true, returns_error: false }
+  typescript:
+    # @blaxel/core has no client class; credentials go through process-global settings.
+    constructor: { function: settings.setConfig }
+    state:
+      - {
+          name: region,
+          type: string,
+          optional: true,
+          capture: region,
+          doc: "is the captured default region. Omission means create rejects with Config.region required.",
+        }
+    cleanup: { method: close, accepts_context: false, returns_error: false }
+# Mapping groups are handwritten in sdks/*/providers/blaxel (provider_mappings
+# plus create mapping for image/region/ports/network). Keep in sync; not emitted.
+groups:
+  - name: mapClientScope
+    direction: request
+    source: { name: Scope }
+    target:
+      name: ClientOptions
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go/option
+          name: RequestOption
+          fields: { workspace: WithWorkspace }
+        typescript:
+          import: "@blaxel/core"
+          name: Config
+          fields: { workspace: workspace }
+    fields:
+      - { from: workspace, to: workspace }
+  - name: mapAPIKeyCredentials
+    direction: request
+    source: { name: APIKeyCredentials }
+    target:
+      name: ClientOptions
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go/option
+          name: RequestOption
+          fields: { key: WithAPIKey }
+        typescript:
+          import: "@blaxel/core"
+          name: Config
+          # Handwritten field is apiKey; @blaxel/core Config documents apikey.
+          fields: { key: apiKey }
+    fields:
+      - { from: key, to: key }
+  - name: mapCommonCreateFields
+    direction: request
+    source: { name: CreateOptions }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields:
+            {
+              name: Sandbox.Metadata.Name,
+              environment: Sandbox.Spec.Runtime.Envs,
+              labels: Sandbox.Metadata.Labels,
+            }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { name: name, environment: envs, labels: labels }
+    fields:
+      - { from: name, to: name }
+      - { from: environment, to: environment }
+      - { from: labels, to: labels }
+  - name: mapImage
+    direction: request
+    source: { name: ImageSource }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { image: Sandbox.Spec.Runtime.Image }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { image: image }
+    fields:
+      - { from: reference, to: image }
+  - name: mapCreateRegion
+    direction: request
+    source: { name: Config }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { region: Sandbox.Spec.Region }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { region: region }
+    fields:
+      - {
+          from: region,
+          to: region,
+          notes: "required for create; taken from captured client Config.region",
+        }
+  # memory_mib → Blaxel decimal MB. Request mapping rounds up; response mapping
+  # reports the whole MiB guaranteed by the returned MB value.
+  - name: mapResources
+    direction: request
+    source: { name: Resources }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { memory: Sandbox.Spec.Runtime.Memory }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { memory: memory }
+    fields:
+      - {
+          from: memory_mib,
+          to: memory,
+          cast: integer,
+          notes: "reject 0 and unrepresentable values; converts MiB to decimal MB by rounding up",
+        }
+  - name: mapLifetimeDuration
+    direction: request
+    source: { name: LifetimePolicy }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { ttl: Sandbox.Spec.Runtime.Ttl }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { ttl: ttl }
+    fields:
+      - {
+          from: maximum_lifetime,
+          to: ttl,
+          transform: duration_blaxel,
+          notes: "whole seconds ≥5m",
+        }
+  - name: mapIdleDuration
+    error_path: lifetime.idle_terminate
+    direction: request
+    source: { name: AutomaticAction }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { lifecycle: Sandbox.Spec.Lifecycle.ExpirationPolicies }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { lifecycle: lifecycle }
+    fields:
+      - { from: after, to: lifecycle, transform: duration_blaxel_idle }
+  - name: mapPorts
+    direction: request
+    source: { name: PortBinding }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { ports: Sandbox.Spec.Runtime.Ports }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { ports: ports }
+    fields:
+      - { from: port, to: target }
+      - {
+          from: transport,
+          to: protocol,
+          notes: "Default omits protocol; Plain→TCP; TLS→TLS",
+        }
+  - name: mapOutboundDomains
+    direction: request
+    source: { name: NetworkConfig }
+    target:
+      name: SandboxNewParams
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: SandboxNewParams
+          fields: { outbound_domains: Sandbox.Spec.Network.AllowedDomains }
+        typescript:
+          import: "@blaxel/core"
+          name: SandboxCreateConfiguration
+          fields: { outbound_domains: network.allowedDomains }
+    fields:
+      - { from: outbound_domains, to: outbound_domains }
+  - name: mapSandboxInfo
+    direction: response
+    source:
+      name: Sandbox
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: Sandbox
+          fields:
+            {
+              id: Metadata.Name,
+              name: Metadata.Name,
+              state: Status,
+              region: Spec.Region,
+              labels: Metadata.Labels,
+            }
+        typescript:
+          import: "@blaxel/core"
+          name: Sandbox
+          fields:
+            {
+              id: metadata.name,
+              name: metadata.name,
+              state: status,
+              region: spec.region,
+              labels: metadata.labels,
+            }
+    target: { name: SandboxInfo }
+    fields:
+      - { from: id, to: id }
+      - { from: name, to: name }
+      - {
+          from: state,
+          to: provider_state,
+          cast: string,
+          notes: "Status preferred; runtime State used when Status empty; DELETED/TERMINATED/DEACTIVATED → Deleted with terminal=true",
+        }
+      - { from: region, to: region }
+      - { from: labels, to: labels }
+  - name: mapAllocatedResources
+    direction: response
+    when:
+      - { field: memory, greater_than: 0 }
+    source:
+      name: Sandbox
+      bindings:
+        go:
+          import: github.com/blaxel-ai/sdk-go
+          name: Sandbox
+          fields: { memory: Spec.Runtime.Memory }
+        typescript:
+          import: "@blaxel/core"
+          name: Sandbox
+          fields: { memory: spec.runtime.memory }
+    target: { name: Resources }
+    fields:
+      - { from: memory, to: memory_mib, cast: number, notes: "decimal MB to whole guaranteed MiB" }

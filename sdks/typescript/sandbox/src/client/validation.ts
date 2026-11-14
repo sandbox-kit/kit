@@ -87,15 +87,30 @@ function validationError(input: ValidationErrorInput): never {
 function validSecureEndpoint(value: string): boolean {
   try {
     const url = new URL(value);
-    if (!url.hostname || url.username || url.password || url.hash) return false;
+    const authorityStart = value.indexOf("://");
+    if (authorityStart < 0) return false;
+    const authority = value
+      .slice(authorityStart + 3)
+      .split(/[/?#]/, 1)[0]!;
+    if (
+      !url.hostname ||
+      authority.includes("@") ||
+      url.username ||
+      url.password ||
+      url.hash
+    )
+      return false;
     if (url.protocol === "https:") return true;
     if (url.protocol !== "http:") return false;
     const host = url.hostname.toLowerCase();
+    const rawHost = authority.startsWith("[")
+      ? authority.slice(0, authority.indexOf("]") + 1).toLowerCase()
+      : authority.split(":", 1)[0]!.toLowerCase();
     return (
-      host === "localhost" ||
+      (host === "localhost" && rawHost === host) ||
       host === "[::1]" ||
       host === "::1" ||
-      /^127(?:\.[0-9]{1,3}){3}$/.test(host)
+      (/^127(?:\.[0-9]{1,3}){3}$/.test(host) && rawHost === host)
     );
   } catch {
     return false;

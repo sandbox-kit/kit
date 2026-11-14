@@ -13,16 +13,20 @@ cp .env.example .env
 go run .
 ```
 
-Skip copying if `.env` already exists. Programs load `.env` with `godotenv`;
-shell variables win. The SDK does not load files. Modal app setup:
+Skip copying if `.env` already exists. Programs load only that project’s
+`.env` with `godotenv` (it does not override existing shell env). There is no
+provider-level `.env`. The SDK does not load files. Modal app setup:
 [create-modal-sandbox](modal/configuration/create-modal-sandbox/README.md).
+Blaxel needs an API key, workspace, and client region:
+[create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md).
 
 Creation programs provision real sandboxes (linked Daytona creates a parent and
-child). Filesystem, process, and lifecycle programs use the configured sandbox
-ID. Read the guide before a destructive stop, terminate, archive, delete, or
-remove.
+child). Filesystem, process, and lifecycle programs use the sandbox id in
+`.env` (`DAYTONA_SANDBOX_ID`, `MODAL_SANDBOX_ID`, or Blaxel `BL_SANDBOX_NAME` —
+Blaxel id is the create name). Read the guide before a destructive stop,
+terminate, archive, delete, or remove.
 Error-handling programs fail locally. Closing a handle leaves the sandbox as it is. Closing the client
-closes your connection to Daytona or Modal.
+closes your connection to Daytona, Modal, or Blaxel.
 
 ## Catalog
 
@@ -111,6 +115,38 @@ closes your connection to Daytona or Modal.
 | [request-modal-termination](modal/lifecycle/request-modal-termination/README.md)           | non-waited termination                     |
 | [close-modal-handle](modal/lifecycle/close-modal-handle/README.md)                         | close the handle; sandbox keeps running    |
 
+### Blaxel
+
+| Project | Demonstrates |
+| -------------------------------------------------------------------------------------------- | --------------------------------------- |
+| [create-blaxel-sandbox](blaxel/configuration/create-blaxel-sandbox/README.md)                              | named image create                      |
+| [create-blaxel-with-resources](blaxel/configuration/create-blaxel-with-resources/README.md)                | memory MiB                              |
+| [create-blaxel-with-labels](blaxel/configuration/create-blaxel-with-labels/README.md)                      | labels and environment                  |
+| [create-blaxel-with-ttl](blaxel/configuration/create-blaxel-with-ttl/README.md)                            | maximum lifetime TTL                    |
+| [create-blaxel-idle](blaxel/configuration/create-blaxel-idle/README.md)                                    | idle delete policy                      |
+| [create-blaxel-client-timeout](blaxel/configuration/create-blaxel-client-timeout/README.md)                | client timeout                          |
+| [create-blaxel-with-ports](blaxel/configuration/create-blaxel-with-ports/README.md)                        | published ports                         |
+| [create-blaxel-with-allowlists](blaxel/configuration/create-blaxel-with-allowlists/README.md)              | outbound domains                        |
+| [run-blaxel-command](blaxel/process/run-blaxel-command/README.md)                                          | run one command                         |
+| [run-blaxel-shell-command](blaxel/process/run-blaxel-shell-command/README.md)                              | run one shell string                    |
+| [run-blaxel-with-cwd](blaxel/process/run-blaxel-with-cwd/README.md)                                        | run with working directory              |
+| [run-blaxel-with-env](blaxel/process/run-blaxel-with-env/README.md)                                        | run with environment variables          |
+| [run-blaxel-with-timeout](blaxel/process/run-blaxel-with-timeout/README.md)                                | run with a whole-second timeout         |
+| [run-blaxel-check-exit](blaxel/process/run-blaxel-check-exit/README.md)                                    | non-zero exit in the result             |
+| [read-blaxel-file](blaxel/filesystem/read-blaxel-file/README.md)                                           | read one file                           |
+| [write-blaxel-file](blaxel/filesystem/write-blaxel-file/README.md)                                         | write one file                          |
+| [copy-file-into-blaxel](blaxel/filesystem/copy-file-into-blaxel/README.md)                                 | copy a local file in                    |
+| [copy-file-from-blaxel](blaxel/filesystem/copy-file-from-blaxel/README.md)                                 | copy a sandbox file out                 |
+| [make-blaxel-directory](blaxel/filesystem/make-blaxel-directory/README.md)                                 | create a directory                      |
+| [list-blaxel-directory](blaxel/filesystem/list-blaxel-directory/README.md)                                 | list one directory                      |
+| [stat-blaxel-file](blaxel/filesystem/stat-blaxel-file/README.md)                                           | stat one path                           |
+| [remove-blaxel-file](blaxel/filesystem/remove-blaxel-file/README.md)                                       | remove one path                         |
+| [get-blaxel-sandbox](blaxel/lifecycle/get-blaxel-sandbox/README.md)                                        | remote retrieval and metadata           |
+| [refresh-blaxel-sandbox](blaxel/lifecycle/refresh-blaxel-sandbox/README.md)                                | metadata refresh                        |
+| [delete-blaxel-sandbox](blaxel/lifecycle/delete-blaxel-sandbox/README.md)                                  | delete by name                          |
+| [close-blaxel-handle](blaxel/lifecycle/close-blaxel-handle/README.md)                                      | close the handle; sandbox keeps running |
+| [handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md)                                       | typed validation errors                 |
+
 ## Verify without credentials
 
 ```sh
@@ -126,9 +162,11 @@ Repository-wide: `sandbox-kit test go` from `tooling/`.
 
 ## Error handling
 
-[handle-modal-errors](modal/errors/handle-modal-errors/README.md) and
-[handle-daytona-errors](daytona/errors/handle-daytona-errors/README.md) switch on
+[handle-modal-errors](modal/errors/handle-modal-errors/README.md),
+[handle-daytona-errors](daytona/errors/handle-daytona-errors/README.md), and
+[handle-blaxel-errors](blaxel/errors/handle-blaxel-errors/README.md) switch on
 `*sandbox.Error` `Kind` in `main.go`. Other create projects print and exit.
 Cleanup failures do not replace creation failures.
 
-Modal errors: unsupported disk. Daytona errors: invalid CPU.
+Modal errors: unsupported disk. Daytona errors: invalid CPU. Blaxel errors:
+invalid create configuration.

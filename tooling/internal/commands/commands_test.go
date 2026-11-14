@@ -210,7 +210,7 @@ func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 	if err := command.ExecuteContext(context.Background()); err != nil {
 		t.Fatal(err)
 	}
-	if len(runner.steps) != 9 {
+	if len(runner.steps) != 11 {
 		t.Fatalf("unexpected TypeScript verification steps: %#v", runner.steps)
 	}
 	for _, task := range runner.steps {
@@ -218,7 +218,8 @@ func TestTypeScriptVerificationBuildsBeforeTests(t *testing.T) {
 			t.Fatalf("TypeScript verification did not use configured npm: %#v", runner.steps)
 		}
 	}
-	if strings.Join(runner.steps[0].args, " ") != "run build" || strings.Join(runner.steps[1].args, " ") != "run build" || strings.Join(runner.steps[2].args, " ") != "test" || strings.Join(runner.steps[8].args, " ") != "run build" {
+	last := len(runner.steps) - 1
+	if strings.Join(runner.steps[0].args, " ") != "run build" || strings.Join(runner.steps[1].args, " ") != "run build" || strings.Join(runner.steps[2].args, " ") != "test" || strings.Join(runner.steps[last].args, " ") != "run build" {
 		t.Fatalf("TypeScript verification order is incorrect: %#v", runner.steps)
 	}
 }

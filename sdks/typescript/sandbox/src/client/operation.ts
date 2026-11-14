@@ -22,27 +22,36 @@ export function operationSignal(
       message: "sandbox-kit: timeout must be a finite non-negative number",
     });
   }
-  if ((timeout === undefined || timeout === 0) && options.signal === undefined)
+  const parentSignal = options.signal;
+  if ((timeout === undefined || timeout === 0) && parentSignal === undefined)
     return { dispose() {} };
   const controller = new AbortController();
-  const abort = () => controller.abort(options.signal?.reason);
-  if (options.signal?.aborted) abort();
-  else options.signal?.addEventListener("abort", abort, { once: true });
-  const timer =
-    timeout !== undefined && timeout > 0
-      ? setTimeout(
-          () =>
-            controller.abort(
-              new DOMException("The operation timed out", "TimeoutError"),
-            ),
-          timeout,
-        )
-      : undefined;
+  const abort = () => controller.abort(parentSignal?.reason);
+  if (parentSignal?.aborted) abort();
+  else parentSignal?.addEventListener("abort", abort, { once: true });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  if (timeout !== undefined && timeout > 0) {
+    let remaining = timeout;
+    let started = performance.now();
+    const schedule = () => {
+      timer = setTimeout(() => {
+        const now = performance.now();
+        remaining -= now - started;
+        if (remaining <= 0) {
+          controller.abort(new DOMException("The operation timed out", "TimeoutError"));
+        } else {
+          started = now;
+          schedule();
+        }
+      }, Math.min(remaining, 2_147_483_647));
+    };
+    schedule();
+  }
   return {
     signal: controller.signal,
     dispose() {
       if (timer !== undefined) clearTimeout(timer);
-      options.signal?.removeEventListener("abort", abort);
+      parentSignal?.removeEventListener("abort", abort);
     },
   };
 }
@@ -83,7 +92,11 @@ export async function awaitWithSignal<T>(
 }
 
 function raceSignal<T>(pending: Promise<T>, signal?: AbortSignal): Promise<T> {
-  if (signal?.aborted) throw abortReason(signal);
+  if (signal?.aborted) {
+    // The operation has already started; observe its eventual rejection.
+    void pending.catch(() => {});
+    throw abortReason(signal);
+  }
   if (signal === undefined) return pending;
   return new Promise<T>((resolve, reject) => {
     const aborted = () => reject(abortReason(signal));

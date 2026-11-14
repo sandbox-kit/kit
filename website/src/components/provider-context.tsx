@@ -159,7 +159,7 @@ export function ProviderSelect({ className }: { className?: string }) {
 }
 
 /** Pages that are already scoped to one provider — no page-level selector. */
-const PROVIDER_SCOPED_PAGES = new Set(["daytona", "modal"]);
+const PROVIDER_SCOPED_PAGES = new Set(["daytona", "modal", "blaxel"]);
 
 export function DocsProviderSelect({ path }: { path: string }) {
   const slug =

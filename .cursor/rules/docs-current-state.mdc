@@ -1,5 +1,5 @@
 ---
-description: Keep docs and READMEs as current-state truth; update silently; remove outdated content
+description: Keep docs and READMEs as current-state truth for SDK users; update silently; remove outdated content
 alwaysApply: true
 ---
 
@@ -7,6 +7,9 @@ alwaysApply: true
 
 When APIs, layout, architecture, examples, or dependencies change, update the
 relevant README and project Markdown as part of the same work.
+
+Audience for product and SDK docs is **end users and SDK callers**, not SDK
+builders. Follow `.cursor/rules/docs-sdk-user-audience.mdc` for voice.
 
 ## Write what is true now
 
@@ -30,6 +33,7 @@ relevant README and project Markdown as part of the same work.
 
 ## Scope
 
-- Applies to `README.md`, `docs/`, `examples/**/README.md`, and other project
-  Markdown that describes current behavior.
+- Applies to `README.md`, `docs/`, `examples/**/README.md`,
+  `website/content/docs/**`, SDK package READMEs, and other project Markdown
+  that describes current behavior.
 - Does not replace CHANGELOG or commit/PR history; keep those elsewhere.

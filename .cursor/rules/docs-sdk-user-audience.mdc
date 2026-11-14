@@ -1,0 +1,51 @@
+---
+description: Write product and SDK docs for end users and SDK callers, not SDK builders
+alwaysApply: true
+---
+
+# Docs audience: SDK users, not builders
+
+Write README, guides, website docs, and SDK reference as a technical
+documentation engineer for **people who call the SDK** (application
+developers). Not for people who implement providers or maintain this repo.
+
+## Voice
+
+- Lead with what to call, what to pass, and what you get back.
+- Prefer short how-to prose and working snippets over internal design notes.
+- Keep provider- and language-specific behavior explicit when it differs.
+- Present tense. Current behavior only (see `docs-current-state`).
+
+## Do
+
+- Name the public method and show a realistic call.
+- Describe outcomes the caller can use (`state`, `terminal`, `exitCode`, …).
+- Say what the caller must supply (credentials, name, image, region).
+- Note unsupported operations as “not available” / “not supported” for that
+  provider, with the alternative when there is one.
+
+## Do not
+
+- Explain Kit internals, wire formats, mapping layers, or “unified” plumbing.
+- Document ignored options as acceptance theater (“`wait` is accepted and
+  ignored”). Omit unused options from examples; if needed, say the provider
+  does not wait / does not use that option.
+- Surface native `providerState` strings unless the caller must read them.
+- Negate field catalogs (“does not fill `mode`”) unless that prevents a
+  real mistake; prefer listing what the caller actually receives.
+- Write for SDK maintainers (inventory YAML, proto regeneration, adapter
+  shapes) in user-facing docs. Keep that in `AGENTS.md` / contributor docs.
+
+## Examples
+
+```md
+<!-- Bad: builder voice -->
+
+Deletes and returns unified Deleted metadata (`providerState: "TERMINATED"`).
+`wait` is accepted and ignored.
+
+<!-- Good: SDK-user voice -->
+
+Deletes the sandbox. On success, `info.state` is `deleted` and `terminal` is
+true. Pass `wait: true` to wait until removal finishes.
+```

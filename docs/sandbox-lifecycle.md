@@ -27,7 +27,7 @@ treat zero as no operation timeout. A timeout that is not a whole number of
 seconds is rejected before the native call. A terminate timeout is how long
 Kit waits. Modal does not take that duration as its own terminate timeout.
 With wait, Modal polls until the sandbox exits or the deadline fires.
-`Client.Close` / `client.close()` closes your connection to Daytona or Modal
+`Client.Close` / `client.close()` closes your connection to Daytona, Modal, or Blaxel
 and returns that result. It does not stop or delete the sandbox. A later call
 uses that connection and returns the provider's result.
 `Sandbox.Close` / `sandbox.close()` does not change the sandbox. You can keep
@@ -45,7 +45,7 @@ const sandbox = await client.create(request);
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Disposing a client closes your connection to Daytona or Modal. Disposing a
+Disposing a client closes your connection to Daytona, Modal, or Blaxel. Disposing a
 handle does not stop, terminate, or delete the sandbox. You can keep using the
 handle.
 
@@ -86,16 +86,16 @@ canceled before it starts never reaches the provider.
 
 ## Provider support
 
-| Operation   | Modal                                  | Daytona     |
-| ----------- | -------------------------------------- | ----------- |
-| Attach      | Supported; ID only, no provider lookup | Unsupported |
-| Refresh/Get | Unsupported                            | Supported   |
-| Start       | Unsupported                            | Supported   |
-| Stop        | Unsupported                            | Supported   |
-| Pause       | Unsupported                            | Supported   |
-| Terminate   | Supported                              | Unsupported |
-| Archive     | Unsupported                            | Supported   |
-| Delete      | Unsupported                            | Supported   |
+| Operation   | Modal                                  | Daytona     | Blaxel                             |
+| ----------- | -------------------------------------- | ----------- | ---------------------------------- |
+| Attach      | Supported; ID only, no provider lookup | Unsupported | Unsupported                        |
+| Refresh/Get | Unsupported                            | Supported   | Supported (lookup by sandbox name) |
+| Start       | Unsupported                            | Supported   | Unsupported                        |
+| Stop        | Unsupported                            | Supported   | Unsupported                        |
+| Pause       | Unsupported                            | Supported   | Unsupported                        |
+| Terminate   | Supported                              | Unsupported | Unsupported                        |
+| Archive     | Unsupported                            | Supported   | Unsupported                        |
+| Delete      | Unsupported                            | Supported   | Supported                          |
 
 Daytona reports its resolved sandbox class after creation. Kit maps container
 and Linux VM to shared isolation kinds and preserves Windows as a provider-specific
@@ -108,6 +108,13 @@ Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
 `Stop` or `Delete`. Modal's native `FromID` performs no remote lookup, so Kit
 exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
 
+Blaxel looks up sandboxes by name for `Get` and `Refresh`. After a successful
+`Delete`, the handle reports `Deleted` and `terminal`. Omit `Wait` to return
+when Blaxel accepts the delete; recreating the same name too soon may return
+`Conflict`. Pass `Wait: true` to wait until removal finishes.
+`Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate` are unsupported.
+Closing a Blaxel handle does not contact Blaxel.
+
 File calls on the same handle are documented in [filesystem](filesystem.md).
-Both providers implement the same eight methods; each handle serializes those
-calls with its lifecycle transitions.
+Daytona, Modal, and Blaxel implement the same eight methods; each handle
+serializes those calls with its lifecycle transitions.

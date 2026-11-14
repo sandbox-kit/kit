@@ -260,6 +260,11 @@ Creates the directory at `path`. An omitted `parents` flag is `true` (create mis
   filesystem calls.
 </ForProvider>
 
+<ForProvider id="blaxel">
+  Missing parents are created when `parents` is omitted or `true`. `parents:
+  false` is not supported.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -287,6 +292,11 @@ Creates the directory at `path`. An omitted `Parents` flag is true.
 <ForProvider id="modal">
   Modal accepts a directory that already exists. With `Parents: false`, the
   parent must already exist.
+</ForProvider>
+
+<ForProvider id="blaxel">
+  Missing parents are created when `Parents` is omitted or true. `Parents:
+  false` is not supported.
 </ForProvider>
 
   </Tab>
@@ -364,6 +374,12 @@ const info = await sandbox.filesystem.stat("/tmp/note.txt");
 console.log(info);
 ```
 
+<ForProvider id="blaxel">
+  You get `type` (file or directory), `size`, and usually `permissions`,
+  `owner`, `group`, and `modifiedAt`. `name` and `path` are whatever Blaxel
+  reports.
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -384,6 +400,12 @@ info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 // info: Name, Path, Type, Size, Mode, Permissions, Owner, Group, ModifiedAt, SymlinkTarget
 fmt.Println(info)
 ```
+
+<ForProvider id="blaxel">
+  You get `Type` (file or directory), `Size`, and usually `Permissions`,
+  `Owner`, `Group`, and `ModifiedAt`. `Name` and `Path` are whatever Blaxel
+  reports.
+</ForProvider>
 
   </Tab>
 </Tabs>

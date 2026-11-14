@@ -9,7 +9,8 @@ import (
 )
 
 type fileBackend struct {
-	read func(context.Context, string, string, *sandbox.FileReadOptions) ([]byte, error)
+	read  func(context.Context, string, string, *sandbox.FileReadOptions) ([]byte, error)
+	write func([]byte)
 }
 
 func (*fileBackend) Name() string                { return "files" }
@@ -23,7 +24,10 @@ func (*fileBackend) Create(context.Context, *sandbox.CreateOptions) (*sandbox.Cr
 func (b *fileBackend) ReadFile(ctx context.Context, id, path string, options *sandbox.FileReadOptions) ([]byte, error) {
 	return b.read(ctx, id, path, options)
 }
-func (*fileBackend) WriteFile(context.Context, string, string, []byte, *sandbox.FileWriteOptions) error {
+func (b *fileBackend) WriteFile(_ context.Context, _, _ string, data []byte, _ *sandbox.FileWriteOptions) error {
+	if b.write != nil {
+		b.write(data)
+	}
 	return nil
 }
 func (*fileBackend) CopyFromLocal(context.Context, string, string, string, *sandbox.FileCopyOptions) error {
@@ -105,6 +109,25 @@ func TestFilesystemReadsAbsolutePath(t *testing.T) {
 	}
 	if string(data) != "hello" {
 		t.Fatalf("unexpected bytes %q", data)
+	}
+}
+
+func TestFilesystemWriteOwnsData(t *testing.T) {
+	backend := &fileBackend{write: func(data []byte) { data[0] = 'X' }}
+	client, err := sandbox.NewClient(&fileProvider{backend: backend}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance, err := client.Create(context.Background(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := []byte("hello")
+	if err := instance.Filesystem().WriteFile(context.Background(), "/note", data, nil); err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "hello" {
+		t.Fatalf("caller data changed: %q", data)
 	}
 }
 

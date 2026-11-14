@@ -1,6 +1,7 @@
 # Provider reference verification
 
-Go and TypeScript bindings target Modal v0.11.1 and Daytona v0.225.0
+Go and TypeScript bindings target Modal v0.11.1, Daytona v0.225.0, and Blaxel
+`@blaxel/core@0.3.36` / `github.com/blaxel-ai/sdk-go@v0.31.0`
 (`modal@0.11.1`, `@daytona/sdk@0.225.0`). Latest documentation helps discover
 APIs; pinned SDK source and compilation determine the signatures and
 serialization used by this checkout.
@@ -14,11 +15,13 @@ resolution, and error translation without provisioning cloud resources.
 Filesystem tests cover path validation, local copy classification, timeouts,
 and provider file APIs (Modal `readBytes` / `writeBytes` / `copyFromLocal` /
 `listFiles`; Daytona high-level `FileSystem` plus toolbox list/stat, and
-`downloadFiles` with timeout `0` when Kit adds no transfer limit). Process
-tests cover argv/shell exclusivity, working-directory checks, whole-second
-command timeouts, and command mapping (Daytona POSIX-quoted argv; Modal
-`bash -c` for shell). Provider tests use the pinned SDK's transport/service
-seams; they do not expose those native clients through the public SDK.
+`downloadFiles` with timeout `0` when Kit adds no transfer limit; Blaxel
+filesystem and process adapters against the pinned `@blaxel/core` /
+`sdk-go` seams). Process tests cover argv/shell exclusivity,
+working-directory checks, whole-second command timeouts, and command mapping
+(Daytona and Blaxel POSIX-quoted argv; Modal `bash -c` for shell). Provider
+tests use the pinned SDK's transport/service seams; they do not expose those
+native clients through the public SDK.
 
 ## Reference sources
 
@@ -26,6 +29,7 @@ seams; they do not expose those native clients through the public SDK.
 | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Modal    | [Go client](https://modal.com/docs/sdk/go/latest/Client), [Go sandbox](https://modal.com/docs/sdk/go/latest/Sandbox), [JavaScript/Go SDK guide](https://modal.com/docs/guide/sdk-javascript-go) | [Resources](https://modal.com/docs/guide/resources), [Sandbox resources](https://modal.com/docs/guide/sandbox-resources), [Sandboxes](https://modal.com/docs/guide/sandboxes), [Regions](https://modal.com/docs/guide/region-selection) |
 | Daytona  | [Go client/sandbox](https://www.daytona.io/docs/en/go-sdk/daytona/), [Go types](https://www.daytona.io/docs/en/go-sdk/types/), [TypeScript SDK](https://www.daytona.io/docs/en/typescript-sdk/) | [Sandboxes](https://www.daytona.io/docs/en/sandboxes/), [Limits](https://www.daytona.io/docs/limits)                                                                                                                                    |
+| Blaxel   | [TypeScript SDK](https://docs.blaxel.ai/sdk-reference/sdk-ts), [Go SDK](https://docs.blaxel.ai/sdk-reference/sdk-go)                                                                              | [Sandboxes](https://docs.blaxel.ai/Sandboxes/Overview), [Regions](https://docs.blaxel.ai/Infrastructure/Regions)                                                                                                                        |
 
 Modal creation dependencies also use the [Secret](https://modal.com/docs/sdk/go/latest/Secret),
 [Probe](https://modal.com/docs/sdk/go/latest/Probe),
@@ -46,11 +50,16 @@ retain native behavior. Handwritten error classification exposes shared
 `ErrorKind` values while preserving native classification through the original
 cause.
 
-The TypeScript adapters construct `ModalClient` and `Daytona` directly. Modal
-looks up the app, image, secrets, and attached sandboxes through the pinned
-client services. Daytona uses its asynchronous create/get and lifecycle methods.
-Handwritten mappings and error classification preserve the same portable
-semantics in both languages.
+The TypeScript adapters construct `ModalClient`, `Daytona`, and Blaxel
+`SandboxInstance` / `settings` directly. Modal looks up the app, image,
+secrets, and attached sandboxes through the pinned client services. Daytona
+uses its asynchronous create/get and lifecycle methods. Blaxel create uses
+`SandboxInstance.create` (not create-if-not-exists); get/refresh look up by
+sandbox name; delete removes the resource. Handwritten mappings and error
+classification preserve the same portable semantics in both languages.
+Blaxel memory converts Kit MiB to Blaxel's decimal MB field, rounding up; Kit
+rejects CPU/disk overrides and has no portable volume fields. TypeScript
+Blaxel credentials go through process-global `@blaxel/core` `settings`.
 
 ## Conflicting Daytona policy documentation
 
@@ -73,6 +82,7 @@ See the [policy matrix](sandbox-creation.md#policy-semantics).
 | Modal                     | 0.125 physical CPU cores and 128 MiB | Five-minute maximum lifetime |
 | Daytona image creation    | 1 vCPU, 1 GiB memory, 3 GiB disk     | Provider/class defaults      |
 | Daytona snapshot creation | Snapshot resource allocation         | Provider/class defaults      |
+| Blaxel                    | Provider default when memory omitted | Provider defaults; TTL ≥5m, idle ≥1m when set |
 
 Kit leaves omitted fields to the provider. It does not inject these documented
 defaults into requests.

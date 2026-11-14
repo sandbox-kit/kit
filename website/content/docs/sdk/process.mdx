@@ -113,7 +113,7 @@ Outcome of a finished command.
 
 <ForProvider id="daytona">
   Daytona returns stdout only; `stderr` is empty (stdout may include merged
-  streams). `argv` is sent as a POSIX-quoted shell string. Omit/zero timeout
+  streams). `argv` is sent as one quoted shell command string. Omit/zero timeout
   sends `0` so Daytona does not apply its 10s command default.
 </ForProvider>
 
@@ -121,6 +121,14 @@ Outcome of a finished command.
   Modal returns both `stdout` and `stderr`. `argv` is passed as-is; `shell` runs
   via `bash -c`. Omit/zero timeout omits Modal's `timeoutMs` (Modal rejects an
   explicit 0).
+</ForProvider>
+
+<ForProvider id="blaxel">
+You get `stdout` and `stderr`. `argv` becomes one shell command string.
+
+Omit or zero `timeout` to wait until the command ends. A positive timeout must
+be whole seconds and caps how long the command may run. Abort stops the wait
+only — the remote command may keep running.
 </ForProvider>
 
   </Tab>
@@ -134,7 +142,7 @@ Outcome of a finished command.
 
 <ForProvider id="daytona">
   Daytona returns Stdout only; Stderr is empty (Stdout may include merged
-  streams). Argv is sent as a POSIX-quoted shell string. Omit/zero Timeout sends
+  streams). Argv is sent as one quoted shell command string. Omit/zero Timeout sends
   0 so Daytona does not apply its 10s command default.
 </ForProvider>
 
@@ -142,6 +150,14 @@ Outcome of a finished command.
   Modal returns both Stdout and Stderr. Argv is passed as-is; Shell runs via
   `bash -c`. Omit/zero Timeout omits Modal's timeoutMs (Modal rejects an
   explicit 0).
+</ForProvider>
+
+<ForProvider id="blaxel">
+You get Stdout and Stderr. Argv becomes one shell command string.
+
+Omit or zero Timeout to wait until the command ends. A positive Timeout must be
+whole seconds and caps how long the command may run. Cancel stops the wait
+only — the remote command may keep running.
 </ForProvider>
 
   </Tab>

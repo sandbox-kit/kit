@@ -54,13 +54,14 @@ descriptors; SDKs evaluate create and client-config rules at runtime
 exports compiled descriptors from `dist/` via `@sandbox-kit/contracts/sandbox`
 and `@sandbox-kit/contracts/client`.
 
-`test go` tests the public SDK, tooling, both providers, and every independent
-Go example module registered by the command. It also checks that `go.work.sum`
-matches the checksums written by loading those modules' packages. Example tests
-use dummy credentials and local servers; they create no cloud resources.
+`test go` tests the public SDK, tooling, all providers (Daytona, Modal, Blaxel),
+and every independent Go example module registered by the command. It also
+checks that `go.work.sum` matches the checksums written by loading those
+modules' packages. Example tests use dummy credentials and local servers; they
+create no cloud resources.
 
 `test typescript` builds contracts first, then builds and tests the shared
-package and both providers, discovers every TypeScript example containing a
+package and all providers, discovers every TypeScript example containing a
 `package.json`, and builds each example without making provider calls. Install
 TypeScript workspace deps once from `sdks/typescript/` (`npm install`) before
 running it. Manual npm publish steps live in

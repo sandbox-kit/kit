@@ -56,3 +56,4 @@ validation:
         environment: { nonblank: true }
         organization_id: { nonblank: true }
         project_id: { nonblank: true }
+        workspace: { nonblank: true }

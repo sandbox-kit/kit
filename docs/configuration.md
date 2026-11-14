@@ -22,20 +22,20 @@ await using client = new Client({
 ```
 
 Call `client.Close(ctx)` in Go, or `await client.close()` or `await using` in
-TypeScript. That closes your connection to Daytona or Modal. The sandboxes keep
+TypeScript. That closes your connection to Daytona, Modal, or Blaxel. The sandboxes keep
 running. You can keep using a handle. The next call returns the provider's
 result. Closing one handle does not close the client.
 
 ## Configuration fields
 
-| Go / TypeScript         | Purpose                                                             |
-| ----------------------- | ------------------------------------------------------------------- |
-| Provider / `provider`   | `daytona.New()` / `daytona()`, or `modal.New()` / `modal()`         |
-| `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials |
-| `Scope` / `scope`       | App, environment, organization, or project                          |
-| `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                   |
-| `Region` / `region`     | Provider target or default placement                                |
-| `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds  |
+| Go / TypeScript         | Purpose                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| Provider / `provider`   | `daytona.New()` / `daytona()`, `modal.New()` / `modal()`, or `blaxel.New()` / `blaxel()` |
+| `Auth` / `auth`         | One credential shape. Omit it to use the provider's own credentials                      |
+| `Scope` / `scope`       | App, environment, organization, project, or workspace                                    |
+| `Endpoint` / `endpoint` | Provider API URL, where the provider supports one                                        |
+| `Region` / `region`     | Provider target or default placement                                                     |
+| `Timeout` / `timeout`   | Default deadline. Go: `sandbox.Duration`. TypeScript: milliseconds                       |
 
 TypeScript auth is one nested shape: `auth: { apiKey: { key } }`, `tokenPair`,
 `bearerToken`, or `oauthRefresh`.
@@ -46,25 +46,30 @@ does not change the handle.
 
 ## Provider support
 
-The bindings use Modal v0.11.1 and Daytona v0.225.0.
+The bindings target Modal, Daytona, and Blaxel. Pinned dependency versions live
+in each provider package.
 
-| Setting          | Modal                                                      | Daytona                           |
-| ---------------- | ---------------------------------------------------------- | --------------------------------- |
-| API key          | Unsupported                                                | `APIKey`                          |
-| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       |
-| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required |
-| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       |
-| Endpoint         | Unsupported                                                | API URL                           |
-| Region           | Default sandbox region preference                          | Target                            |
-| App name         | Required for app lookup                                    | Unsupported                       |
-| Environment      | Client, app, and secret lookup environment                 | Unsupported                       |
-| Organization ID  | Unsupported                                                | Organization                      |
-| Project ID       | Unsupported                                                | Unsupported                       |
+| Setting          | Modal                                                      | Daytona                           | Blaxel                         |
+| ---------------- | ---------------------------------------------------------- | --------------------------------- | ------------------------------ |
+| API key          | Unsupported                                                | `APIKey`                          | `APIKey`                       |
+| Token pair       | `TokenID` and `TokenSecret`                                | Unsupported                       | Unsupported                    |
+| Bearer/JWT token | Unsupported                                                | `JWTToken`; organization required | Unsupported                    |
+| OAuth refresh    | Refresh token, client ID, and one client secret or JWT key | Unsupported                       | Unsupported                    |
+| Endpoint         | Unsupported                                                | API URL                           | Unsupported                    |
+| Region           | Default sandbox region preference                          | Target                            | Required for create            |
+| App name         | Required for app lookup                                    | Unsupported                       | Unsupported                    |
+| Environment      | Client, app, and secret lookup environment                 | Unsupported                       | Unsupported                    |
+| Organization ID  | Unsupported                                                | Organization                      | Unsupported                    |
+| Project ID       | Unsupported                                                | Unsupported                       | Unsupported                    |
+| Workspace        | Unsupported                                                | Unsupported                       | Blaxel workspace (`BL_WORKSPACE` when omitted) |
 
 A setting the provider does not support fails before the provider client is
 created. Omit `auth` when the provider should use credentials it already finds
 in the environment. Daytona can take the organization from that environment
 when you use a bearer token and leave organization unset.
+
+In TypeScript, use one Blaxel configuration per process. A client with
+different credentials or workspace is rejected.
 
 A remote endpoint uses HTTPS. HTTP is accepted for `localhost` or a loopback
 address. A URL with a username, password, or fragment is rejected. Daytona uses
@@ -85,7 +90,10 @@ deadline or abort signal that arrives earlier still applies.
 Daytona create keeps its 60-second default when the timeout is omitted and
 when it is explicit zero. Daytona start, stop, pause, and delete use that
 60-second default when the timeout is omitted, and treat explicit zero as no
-operation timeout.
+operation timeout. On Blaxel, your client/create `timeout` is how long create
+may take. An edge HTTP 504 during create can leave TypeScript waiting until
+the sandbox is ready or that timeout ends; Go returns a timeout when the 504
+arrives.
 
 ## Credentials
 

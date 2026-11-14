@@ -19,6 +19,7 @@ import {
   awaitWithSignal,
   operationOptions,
   operationSignal,
+  clone,
 } from "#client/operation.js";
 import { Sandbox, sandboxConstructorToken } from "#client/sandbox.js";
 import type { Backend, ClientConfig, OperationOptions } from "#client/types.js";
@@ -69,7 +70,7 @@ export class Client implements AsyncDisposable {
     this.#timeout = config.timeout;
     try {
       const { provider: _provider, ...shared } = config;
-      this.#backend = config.provider.initialize(shared);
+      this.#backend = config.provider.initialize(clone(shared));
     } catch (error) {
       throw withContext(error, config.provider.name, "initialize");
     }
@@ -93,13 +94,14 @@ export class Client implements AsyncDisposable {
       });
     }
   }
-  /** `"daytona"` or `"modal"`. */
+  /** `"daytona"`, `"modal"`, or `"blaxel"`. */
   get providerName(): string {
     return this.#providerName;
   }
   /**
    * Returns a handle for an existing sandbox ID without looking it up.
-   * Modal supports attach. Daytona throws `ErrorKind.Unsupported`. Use `get`.
+   * Modal supports attach. Daytona and Blaxel throw `ErrorKind.Unsupported`.
+   * Use `get`.
    */
   async attach(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("attach", id, options, (fetchOptions) => {
@@ -109,7 +111,8 @@ export class Client implements AsyncDisposable {
   }
   /**
    * Looks up a sandbox by ID and returns a handle the provider has verified.
-   * Daytona supports get. Modal throws `ErrorKind.Unsupported`. Use `attach`.
+   * Daytona and Blaxel support get. Modal throws `ErrorKind.Unsupported`. Use
+   * `attach`.
    */
   async get(id: string, options: OperationOptions = {}): Promise<Sandbox> {
     return this.#openById("get", id, options, (fetchOptions) => {
@@ -138,9 +141,27 @@ export class Client implements AsyncDisposable {
         () => fetch(operationOptions(options, scoped?.signal)),
         scoped.signal,
       );
+      if (!info?.id || info.id !== id)
+        throw sandboxError({
+          kind: ErrorKind.InvalidResponse,
+          provider: this.providerName,
+          operation,
+          field: InfoFieldId,
+          message:
+            "sandbox-kit: provider returned a different sandbox identity",
+        });
+      if (info.provider && info.provider !== this.providerName)
+        throw sandboxError({
+          kind: ErrorKind.InvalidResponse,
+          provider: this.providerName,
+          operation,
+          field: ConfigFieldProvider,
+          message:
+            "sandbox-kit: response provider differs from selected provider",
+        });
       return new Sandbox(sandboxConstructorToken, {
         backend: this.#backend,
-        info: { ...info, id, provider: this.providerName },
+        info: { ...info, provider: this.providerName },
         ...(this.#timeout === undefined ? {} : { timeout: this.#timeout }),
       });
     } catch (error) {
@@ -152,7 +173,7 @@ export class Client implements AsyncDisposable {
   /**
    * Creates one sandbox and returns its handle.
    * An empty request uses the provider default. Daytona uses its default
-   * snapshot. Modal requires an image.
+   * snapshot. Modal requires an image. Blaxel requires a name and an image.
    */
   async create(
     request: CreateOptions = {},
@@ -168,7 +189,7 @@ export class Client implements AsyncDisposable {
       const create = this.#backend.create;
       if (!create) unsupported(this.providerName, "create");
       const providerRequest: CreateOptions = {
-        ...request,
+        ...clone(request),
         ...(timeout === undefined
           ? {}
           : {
@@ -190,7 +211,7 @@ export class Client implements AsyncDisposable {
           ),
         scoped.signal,
       );
-      if (!result.sandbox?.id)
+      if (!result?.sandbox?.id)
         throw sandboxError({
           kind: ErrorKind.InvalidResponse,
           provider: this.providerName,
