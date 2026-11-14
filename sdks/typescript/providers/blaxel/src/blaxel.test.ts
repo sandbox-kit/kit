@@ -23,6 +23,7 @@ import {
   CreateFieldProvisioningWaitFor,
   FileFieldLocalPath,
   FileFieldPath,
+  InfoFieldResourcesMemoryMib,
 } from "@sandbox-kit/sandbox";
 import {
   blaxelCreateTimeoutSeconds,
@@ -586,6 +587,20 @@ describe("Blaxel mappings", () => {
     });
   });
 
+  it("rejects fractional allocated memory from the SDK", () => {
+    expect(() =>
+      mapAllocatedResources({
+        metadata: { name: "demo" },
+        spec: { runtime: { memory: 2048.5 } },
+      }),
+    ).toThrowError(
+      expect.objectContaining({
+        kind: ErrorKind.InvalidResponse,
+        field: InfoFieldResourcesMemoryMib,
+      }),
+    );
+  });
+
   it("omits labels when Blaxel does not return them", () => {
     const info = mapSandboxInfo({
       metadata: { name: "demo" },
@@ -741,10 +756,9 @@ describe("Blaxel provider orchestration", () => {
       process: {} as never,
     };
     const client = new Client({
-      provider: new BlaxelProvider(() => ({
-        configure(config) {
-          configured = config;
-        },
+      provider: new BlaxelProvider((config) => {
+        configured = config;
+        return {
         async create(params, options) {
           created = params;
           createOptions = options;
@@ -753,10 +767,11 @@ describe("Blaxel provider orchestration", () => {
         async get() {
           throw new Error("unexpected get");
         },
-        async delete() {
+          async delete() {
           throw new Error("unexpected delete");
-        },
-      })),
+          },
+        };
+      }),
       auth: { apiKey: { key: "bl_key" } },
       scope: { workspace: "ws" },
       region: "us-pdx-1",
@@ -785,7 +800,6 @@ describe("Blaxel provider orchestration", () => {
   it("looks up sandboxes by name for get/refresh", async () => {
     let lookedUp: string | undefined;
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -816,7 +830,6 @@ describe("Blaxel provider orchestration", () => {
   it("unifies a successful delete as Deleted", async () => {
     const deleted: string[] = [];
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -846,7 +859,6 @@ describe("Blaxel provider orchestration", () => {
   it("does not poll get when wait is omitted", async () => {
     let gets = 0;
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -871,7 +883,6 @@ describe("Blaxel provider orchestration", () => {
     try {
       let gets = 0;
       const backend = new BlaxelProvider(() => ({
-        configure() {},
         async create() {
           throw new Error("unexpected create");
         },
@@ -920,7 +931,6 @@ describe("Blaxel provider orchestration", () => {
     try {
       const controller = new AbortController();
       const backend = new BlaxelProvider(() => ({
-        configure() {},
         async create() {
           throw new Error("unexpected create");
         },
@@ -963,7 +973,6 @@ describe("Blaxel provider orchestration", () => {
     const controller = new AbortController();
     let created = false;
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         created = true;
         throw new Error("native create");
@@ -1011,7 +1020,6 @@ describe("Blaxel provider orchestration", () => {
     });
     const deleted: string[] = [];
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         return created;
       },
@@ -1049,7 +1057,6 @@ describe("Blaxel provider orchestration", () => {
   it("rejects a missing or directory local file before Blaxel is called", async () => {
     let lookedUp = false;
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1121,7 +1128,6 @@ describe("Blaxel provider orchestration", () => {
     }> = [];
     const signal = new AbortController().signal;
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1350,7 +1356,6 @@ describe("Blaxel provider orchestration", () => {
 describe("Blaxel filesystem.stat", () => {
   it("does not label a missing sandbox as a missing filesystem path", async () => {
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1468,7 +1473,6 @@ describe("Blaxel filesystem.stat", () => {
 
   it("rejects list entries with empty name and path", async () => {
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1505,7 +1509,6 @@ describe("Blaxel filesystem.stat", () => {
   it("maps Node path failures from copyToLocal to local_path", async () => {
     const local = join(tmpdir(), "kit-blaxel-copy-fail.txt");
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1544,7 +1547,6 @@ describe("Blaxel filesystem.stat", () => {
   it("does not tag non-destination Node errors as local_path on copyToLocal", async () => {
     const local = join(tmpdir(), "kit-blaxel-copy-ok-dest.txt");
     const backend = new BlaxelProvider(() => ({
-      configure() {},
       async create() {
         throw new Error("unexpected create");
       },
@@ -1608,7 +1610,6 @@ function fsBackend(fs: {
   >;
 }) {
   return new BlaxelProvider(() => ({
-    configure() {},
     async create() {
       throw new Error("unexpected create");
     },
@@ -1651,7 +1652,6 @@ function runBackend(process: {
   }>;
 }) {
   return new BlaxelProvider(() => ({
-    configure() {},
     async create() {
       throw new Error("unexpected create");
     },

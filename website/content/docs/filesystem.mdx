@@ -144,7 +144,9 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileR
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
 
-Timeouts are milliseconds. `1500` ends the call at 1.5s.
+Timeouts are milliseconds. `1500` ends the caller's await at 1.5s. The Blaxel
+filesystem API has no abort parameter, so an in-flight remote file operation
+can still finish after that cancellation.
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 1_500 });

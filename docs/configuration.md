@@ -68,8 +68,8 @@ created. Omit `auth` when the provider should use credentials it already finds
 in the environment. Daytona can take the organization from that environment
 when you use a bearer token and leave organization unset.
 
-In TypeScript, use one Blaxel client (or one API key) per process. A second
-client with different credentials replaces the first.
+In TypeScript, use one Blaxel configuration per process. A client with
+different credentials or workspace is rejected.
 
 A remote endpoint uses HTTPS. HTTP is accepted for `localhost` or a loopback
 address. A URL with a username, password, or fragment is rejected. Daytona uses

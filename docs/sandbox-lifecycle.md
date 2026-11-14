@@ -113,8 +113,7 @@ Blaxel looks up sandboxes by name for `Get` and `Refresh`. After a successful
 when Blaxel accepts the delete; recreating the same name too soon may return
 `Conflict`. Pass `Wait: true` to wait until removal finishes.
 `Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate` are unsupported.
-Closing a Blaxel handle does not contact Blaxel. On `Get` / `Refresh`, an idle
-sandbox shows as paused and an active one shows as running.
+Closing a Blaxel handle does not contact Blaxel.
 
 File calls on the same handle are documented in [filesystem](filesystem.md).
 Daytona, Modal, and Blaxel implement the same eight methods; each handle

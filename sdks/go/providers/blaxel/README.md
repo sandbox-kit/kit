@@ -102,9 +102,6 @@ true. Omit `Wait` to return as soon as Blaxel accepts the delete — recreating
 the same name too soon may return `Conflict`. Pass `Wait: true` to wait until
 removal finishes before the call returns.
 
-On `Get` / `Refresh` / `Info`, an idle sandbox shows as `Paused`; an active
-one shows as `Running`.
-
 ### Filesystem
 
 You get the usual file APIs: read, write, copy in/out, mkdir, list, stat, and

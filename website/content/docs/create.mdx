@@ -273,7 +273,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Source    | Registry image and Blaxel-valid `name` required (blank/whitespace rejected; lowercase alphanumeric with single hyphens, ≤49)                        |
 | CPU       | Derived from memory; CPU overrides are not supported                                                                                                |
-| Memory    | Memory value (Blaxel treats the value as MB)                                                                                                         |
+| Memory    | Memory in MiB; Kit converts to Blaxel decimal MB and rounds up                                                                                      |
 | Disk      | Cannot be set                                                                                                                                       |
 | Lifetime  | Maximum lifetime (≥5m) and idle terminate (≥1m); idle disable / ephemeral siblings not supported                                                    |
 | Placement | Client `region` required; placement on the request is not supported                                                                                 |

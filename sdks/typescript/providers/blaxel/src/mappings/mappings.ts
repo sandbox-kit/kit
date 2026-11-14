@@ -291,7 +291,10 @@ export function blaxelCreateTimeoutSeconds(
 }
 
 /** Maps native fields into shared metadata. Does not invent values Blaxel omitted. */
-export function mapSandboxInfo(value: BlaxelSandboxIdentity): SandboxInfo {
+export function mapSandboxInfo(
+  value: BlaxelSandboxIdentity,
+  operation: string = "create",
+): SandboxInfo {
   const mapped = generatedMapSandboxIdentity(value);
   const id = mapped.id ?? value.metadata?.name ?? "";
   const result: SandboxInfo = {
@@ -305,7 +308,7 @@ export function mapSandboxInfo(value: BlaxelSandboxIdentity): SandboxInfo {
   if (mapped.providerState !== undefined)
     mutable(result).providerState = mapped.providerState;
   if (result.state === SandboxState.Deleted) mutable(result).terminal = true;
-  const resources = mapAllocatedResources(value);
+  const resources = mapAllocatedResources(value, operation);
   if (resources !== undefined) mutable(result).resources = resources;
   return result;
 }

@@ -56,7 +56,6 @@ export interface NativeSandboxHandle extends BlaxelSandboxIdentity {
 }
 
 export interface NativeBlaxel {
-  configure(config: NativeClientConfig): void;
   create(
     params: SandboxCreateConfiguration,
     /** Blaxel create timeout in whole seconds (1..50). */
@@ -71,9 +70,6 @@ export type NativeFactory = (config: NativeClientConfig) => NativeBlaxel;
 export function defaultNativeFactory(config: NativeClientConfig): NativeBlaxel {
   configureProcessSettings(config);
   return {
-    configure(next: NativeClientConfig): void {
-      configureProcessSettings(next);
-    },
     async create(params, options) {
       return projectHandle(
         await SandboxInstance.create(

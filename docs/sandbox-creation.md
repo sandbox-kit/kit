@@ -59,8 +59,8 @@ selected provider does not support fails there too.
 Daytona request conversion divides MiB exactly by 1024. Allocated metadata
 converts GiB back to MiB. Snapshot creation inherits snapshot resources.
 Positive CPU or memory limits require a corresponding request and cannot be
-lower than that request. On Blaxel, pass memory as an integer; Kit does not
-convert units.
+lower than that request. On Blaxel, pass memory in MiB; Kit converts it to
+decimal MB and rounds up so the request is not under-provisioned.
 
 Local checks cover syntax, known enums, documented bounds, precision, and
 supported combinations. Account quotas, class-specific permissions, image

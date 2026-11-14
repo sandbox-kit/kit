@@ -53,8 +53,7 @@ Token-pair, bearer, and OAuth are rejected. Only `scope.workspace` is accepted
 on scope.
 
 In TypeScript, use one Blaxel configuration per process. A second client with
-different credentials or workspace is rejected before it can replace the
-process-wide SDK configuration.
+different credentials or workspace is rejected.
 
 ## What you can do
 
@@ -96,9 +95,6 @@ After a successful `delete`, `state` is `deleted` and `terminal` is true.
 Omit `wait` to return as soon as Blaxel accepts the delete — recreating the
 same name too soon may return `Conflict`. Pass `wait: true` to wait until
 removal finishes before the call returns.
-
-On `get` / `refresh` / `info`, an idle sandbox shows as `paused`; an active one
-shows as `running`.
 
 ### Filesystem
 

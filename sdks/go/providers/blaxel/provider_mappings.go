@@ -128,7 +128,13 @@ func mibToBlaxelMB(mib uint64) (int64, bool) {
 
 // blaxelMBToMib reports the whole MiB guaranteed by a native decimal-MB value.
 func blaxelMBToMib(mb uint64) uint64 {
-	return mb * blaxelMegabytesPerMebibyteDenominator / blaxelMegabytesPerMebibyteNumerator
+	// Divide first so a large, but valid, native int64 memory value cannot
+	// overflow before conversion. The remainder product stays below
+	// numerator*denominator, and the quotient product remains below uint64's
+	// maximum.
+	whole := mb / blaxelMegabytesPerMebibyteNumerator
+	remainder := mb % blaxelMegabytesPerMebibyteNumerator
+	return whole*blaxelMegabytesPerMebibyteDenominator + remainder*blaxelMegabytesPerMebibyteDenominator/blaxelMegabytesPerMebibyteNumerator
 }
 
 // formatBlaxelDuration formats a whole-second duration as a Blaxel TTL string.

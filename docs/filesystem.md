@@ -56,9 +56,10 @@ omitted, the abort signal carries the client deadline.
 `makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
 `1500` ends the call at 1.5 seconds. Every Go file call uses the context as
 the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
-and Blaxel file calls use the context or the abort signal. `1500` milliseconds
-ends the call at 1.5 seconds. Blaxel does not support `parents: false`
-(field `parents`).
+file calls use the abort signal. TypeScript Blaxel calls reject the caller's
+`await` when the signal aborts, but the Blaxel filesystem API has no abort
+parameter, so an in-flight remote file operation can still finish.
+Blaxel does not support `parents: false` (field `parents`).
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });

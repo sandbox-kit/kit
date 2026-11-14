@@ -121,7 +121,7 @@ export const AuthConfigSchema: GenMessage<AuthConfig> = /*@__PURE__*/
  */
 export type APIKeyCredentials = Message<"kit.sandbox.v1.APIKeyCredentials"> & {
   /**
-   * The secret API key. Go encoding/json output excludes it when marshaling a pointer.
+   * The secret API key. Go encoding/json output excludes it.
    *
    * @generated from field: string key = 1;
    */
@@ -142,14 +142,14 @@ export const APIKeyCredentialsSchema: GenMessage<APIKeyCredentials> = /*@__PURE_
  */
 export type TokenPairCredentials = Message<"kit.sandbox.v1.TokenPairCredentials"> & {
   /**
-   * The token identifier. Go encoding/json output excludes it when marshaling a pointer.
+   * The token identifier. Go encoding/json output excludes it.
    *
    * @generated from field: string id = 1;
    */
   id: string;
 
   /**
-   * The token secret. Go encoding/json output excludes it when marshaling a pointer.
+   * The token secret. Go encoding/json output excludes it.
    *
    * @generated from field: string secret = 2;
    */
@@ -170,7 +170,7 @@ export const TokenPairCredentialsSchema: GenMessage<TokenPairCredentials> = /*@_
  */
 export type BearerTokenCredentials = Message<"kit.sandbox.v1.BearerTokenCredentials"> & {
   /**
-   * The bearer token. Go encoding/json output excludes it when marshaling a pointer.
+   * The bearer token. Go encoding/json output excludes it.
    *
    * @generated from field: string token = 1;
    */
@@ -191,7 +191,7 @@ export const BearerTokenCredentialsSchema: GenMessage<BearerTokenCredentials> = 
  */
 export type OAuthCredentials = Message<"kit.sandbox.v1.OAuthCredentials"> & {
   /**
-   * The refresh token. Go encoding/json output excludes it when marshaling a pointer.
+   * The refresh token. Go encoding/json output excludes it.
    *
    * @generated from field: string refresh_token = 1;
    */
@@ -205,14 +205,14 @@ export type OAuthCredentials = Message<"kit.sandbox.v1.OAuthCredentials"> & {
   clientId: string;
 
   /**
-   * One client secret. Do not set this together with JWTKey. Go encoding/json excludes it when marshaling a pointer.
+   * One client secret. Do not set this together with JWTKey. Go encoding/json excludes it.
    *
    * @generated from field: optional string client_secret = 3;
    */
   clientSecret?: string | undefined;
 
   /**
-   * One JWT signing key. Do not set this together with ClientSecret. Go encoding/json excludes it when marshaling a pointer.
+   * One JWT signing key. Do not set this together with ClientSecret. Go encoding/json excludes it.
    *
    * @generated from field: optional string jwt_key = 4;
    */

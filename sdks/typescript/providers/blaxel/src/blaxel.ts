@@ -66,7 +66,6 @@ export class BlaxelProvider extends ProviderBase {
     try {
       const nativeConfig = mapClientConfig(config);
       const native = this.nativeFactory(nativeConfig);
-      native.configure(nativeConfig);
       return new BlaxelBackend(native, captureProviderState(config));
     } catch (error) {
       throw mapBlaxelError(error, "initialize");
@@ -121,7 +120,7 @@ class BlaxelBackend extends BackendBase implements Backend {
       operation: "refresh",
       id,
       options,
-      body: async (sandbox) => mapSandboxInfo(sandbox),
+      body: async (sandbox) => mapSandboxInfo(sandbox, "refresh"),
     });
   }
 
@@ -140,7 +139,7 @@ class BlaxelBackend extends BackendBase implements Backend {
       }
       // DELETE accepted; Blaxel may still finish asynchronously.
       return {
-        ...mapSandboxInfo(deleted),
+        ...mapSandboxInfo(deleted, "delete"),
         state: SandboxState.Deleted,
         terminal: true,
         providerState: "TERMINATED",
@@ -349,7 +348,7 @@ class BlaxelBackend extends BackendBase implements Backend {
       throwIfAborted(signal);
       await delay(1_000, signal);
       try {
-        const info = mapSandboxInfo(await this.native.get(id));
+        const info = mapSandboxInfo(await this.native.get(id), "delete");
         if (info.state === SandboxState.Deleted) {
           return { ...info, terminal: true, providerState: "TERMINATED" };
         }
@@ -431,10 +430,11 @@ function delay(ms: number, signal: AbortSignal | undefined): Promise<void> {
  *
  * Create needs `name`, an image source, and client `region`. Set
  * `auth.apiKey` and `scope.workspace`, or omit them to use `BL_API_KEY` /
- * `BL_WORKSPACE` from the environment. Set `memoryMib` for memory size;
- * Blaxel documents that value as MB and Kit does not convert units. Volumes
- * are not part of create. In TypeScript, one process accepts one Blaxel
- * configuration; a conflicting client configuration is rejected.
+ * `BL_WORKSPACE` from the environment. Set `memoryMib` for memory size; Kit
+ * converts MiB to Blaxel decimal MB, rounding up so the request is not
+ * under-provisioned. Volumes are not part of create. In TypeScript, one process
+ * accepts one Blaxel configuration; a conflicting client configuration is
+ * rejected.
  */
 export function blaxel(): Provider {
   return new BlaxelProvider();

@@ -1,6 +1,7 @@
 package blaxel
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -62,6 +63,9 @@ func TestBlaxelMemoryUnitConversion(t *testing.T) {
 	}
 	if mib := blaxelMBToMib(4295); mib != 4096 {
 		t.Fatalf("4295 MB = %d MiB, want 4096", mib)
+	}
+	if mib := blaxelMBToMib(math.MaxInt64); mib <= math.MaxInt64/2 {
+		t.Fatalf("MaxInt64 MB = %d MiB, want a non-overflowing conversion", mib)
 	}
 }
 

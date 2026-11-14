@@ -4,6 +4,7 @@
 import {
   ConfigFieldScopeWorkspace,
   ErrorKind,
+  InfoFieldResourcesMemoryMib,
   SandboxState,
   type SandboxInfo,
   type Scope,
@@ -147,10 +148,17 @@ export function mapAPIKeyCredentials(
 /** Maps native decimal MB onto the whole binary MiB guaranteed by that value. */
 export function mapAllocatedResources(
   source: BlaxelSandboxIdentity | undefined,
+  operation: string = "create",
 ): Resources | undefined {
   const memory = source?.spec?.runtime?.memory;
-  if (memory === undefined || !Number.isFinite(memory) || memory <= 0) {
-    return undefined;
+  if (memory === undefined) return undefined;
+  if (!Number.isSafeInteger(memory) || memory <= 0) {
+    providerError({
+      kind: ErrorKind.InvalidResponse,
+      operation,
+      field: InfoFieldResourcesMemoryMib,
+      message: "memory cannot be represented",
+    });
   }
   return { memoryMib: blaxelMbToMib(BigInt(Math.trunc(memory))) };
 }

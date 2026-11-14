@@ -184,7 +184,6 @@ Only API key auth and workspace scope are supported. Full rules:
 | Open      | Look up or refresh by sandbox name                                                                               |
 | Lifecycle | Delete or close — no start, stop, pause, archive, terminate, or attach                                          |
 | Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
-| State     | Idle → paused; active → running                                                                                 |
 | Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict; bad TTL/idle → InvalidArgument       |
 | Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
 | Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |

@@ -78,7 +78,8 @@ volume fields; Blaxel, Daytona, and Modal volumes stay out of create),
 browsers, streaming process handles, sessions, PTY, and macOS or Windows
 creation are outside it.
 
-In TypeScript, use one Blaxel client (or one API key) per process.
+In TypeScript, use one Blaxel configuration per process. A client with
+different credentials or workspace is rejected.
 
 See [configuration](configuration.md), [creation](sandbox-creation.md),
 [lifecycle](sandbox-lifecycle.md), [filesystem](filesystem.md), and

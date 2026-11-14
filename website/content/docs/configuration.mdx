@@ -351,8 +351,7 @@ client, err := sandbox.NewClient(modal.New(), config)
 | Endpoint       | Unsupported                                             |
 
 In TypeScript, use one Blaxel configuration per process. A second client with
-different credentials or workspace is rejected before it can replace the
-process-wide SDK configuration.
+different credentials or workspace is rejected.
 
 ```ts
 const workspace = process.env.BL_WORKSPACE?.trim();
