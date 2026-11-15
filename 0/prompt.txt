@@ -1,9 +1,3 @@
-commit and push
+so we shoudl commit and push to main ? 
 
----
-
-cool now check the open issue for typesript
-
-lets bump version / match version whcih we ned to next publicsh
-
-then install dependency of sdk + examples sdk and updates .mdx / .md if needed.
+then publsih >
