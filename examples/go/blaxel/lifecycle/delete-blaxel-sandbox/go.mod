@@ -5,7 +5,7 @@ go 1.26.0
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/sandbox-kit/kit/sdks/go/providers/blaxel v0.1.0
-	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.5
+	github.com/sandbox-kit/kit/sdks/go/sandbox v0.1.6
 )
 
 require (
@@ -15,8 +15,8 @@ require (
 	cel.dev/expr v0.25.3 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/blaxel-ai/sdk-go v0.31.0 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.5 // indirect
-	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.5 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/contracts v0.1.6 // indirect
+	github.com/sandbox-kit/kit/sdks/go/internal/sdk v0.1.6 // indirect
 	github.com/tidwall/gjson v1.19.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
