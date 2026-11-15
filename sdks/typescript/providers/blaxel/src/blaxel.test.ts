@@ -695,19 +695,18 @@ describe("Blaxel mappings", () => {
     );
   });
 
-  it("maps public DEPLOYED status to running", () => {
-    expect(
-      mapSandboxIdentity({
-        metadata: { name: "demo" },
-        status: "DEPLOYED",
-        spec: { region: "us-pdx-1" },
-      }),
-    ).toMatchObject({
+  it("keeps public DEPLOYED status as an unknown runtime state", () => {
+    const source = {
+      metadata: { name: "demo" },
+      status: "DEPLOYED",
+      spec: { region: "us-pdx-1" },
+    };
+    expect(mapSandboxIdentity(source)).toMatchObject({
       id: "demo",
       providerState: "DEPLOYED",
-      state: SandboxState.Running,
       region: "us-pdx-1",
     });
+    expect(mapSandboxInfo(source).state).toBe(SandboxState.Unknown);
   });
 
   it("projectHandle uses public SDK properties only", () => {

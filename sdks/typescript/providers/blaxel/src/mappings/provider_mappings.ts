@@ -193,8 +193,11 @@ function mapSandboxState(status: unknown): SandboxState | undefined {
     case "DEPLOYING":
     case "BUILT":
       return SandboxState.Queued;
+    // DEPLOYED describes deployment completion, not the runtime state. The
+    // TypeScript SDK does not expose the runtime state, so reporting Running
+    // here would misrepresent a standby sandbox.
     case "DEPLOYED":
-      return SandboxState.Running;
+      return undefined;
     case "DELETING":
     case "DEACTIVATING":
       return SandboxState.Deleting;
