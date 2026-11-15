@@ -1,13 +1,1 @@
-you are technical documentation engineer & technical writer. 
-
-check whole documentation, webstite in short all the .md and .mdx 
-
-you need to write doc for sdk users not builders of this sdk. 
-
-make sure everythin is crisp and no big big para. check blaxel and changes in this branch to fix there is more .agents .cursor in skills and rules around how to proceed.
-
-everything should be provider speciic + language specific go specific shouldn't merge in typescript and content too.
-
----
-
 commit and push entire changes to branch + also make sure
