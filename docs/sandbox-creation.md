@@ -1,154 +1,129 @@
 # Sandbox creation
 
-Go's `Client.Create(ctx, options)` and TypeScript's `client.create(options)`
-return a sandbox handle with copied metadata. Creation settings are distinct
-from lifecycle operations on an existing sandbox.
+Create returns a sandbox handle. Creation settings are separate from lifecycle
+calls on an existing sandbox.
+
+## TypeScript
+
+```ts
+const sandbox = await client.create(options, { timeout: 60_000 });
+```
+
+Create options use nested exclusive fields (`source: { image: … }`,
+`readiness: { tcpPort }` or `{ command }`), plain `environment` / `labels`
+maps, and millisecond durations. A missing property means the field was
+omitted.
+
+## Go
+
+```go
+instance, err := client.Create(ctx, options)
+```
+
+Use `sandbox.Value(v)` for optional scalars (including zero or false) and
+`sandbox.Duration(d)` for timeouts.
 
 ## Supported creation settings
 
-Go and TypeScript integrations target Modal, Daytona, and Blaxel. Pinned
-dependency versions live in each provider package.
+| Setting                | Modal                                                                                  | Daytona                                                      | Blaxel                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                 | Named create (Blaxel name rules); registry image required                       |
+| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                    | Unsupported                                                                     |
+| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                 | Unsupported                                                                     |
+| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image required for overrides  | Memory in MiB; CPU/disk overrides not supported                                 |
+| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                 | Client `region` required; request placement unsupported                         |
+| Environment and labels | Environment map and tags                                                               | Environment map and labels                                   | Environment map and labels                                                      |
+| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                 | Unsupported                                                                     |
+| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox            | Ports (not 80/443/8080; default → HTTP); outbound domains                       |
+| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral, stop/pause/archive/delete policies           | Maximum lifetime (≥5m) and idle terminate (≥1m); idle disable not supported     |
+| Observability          | Verbose output                                                                         | Telemetry endpoint                                           | Unsupported                                                                     |
 
-| Setting                | Modal                                                                                  | Daytona                                                            | Blaxel                                                                                                                 |
-| ---------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| Source                 | Explicit registry image and an existing app                                            | Default/specified snapshot or registry image                       | Named create (Blaxel name rules); registry image required                                                              |
-| Runtime                | Entrypoint, absolute working directory, PTY                                            | Toolbox language and user                                          | Unsupported                                                                                                            |
-| Isolation              | Default, gVisor container, Linux VM                                                    | Nested KVM flag; class inherited from source                       | Unsupported                                                                                                            |
-| Resources              | Fractional CPU, CPU limit, memory request/limit                                        | Whole CPU and GiB memory/disk; image source required for overrides | Memory (`memory_mib` / `memoryMib`); CPU/disk overrides rejected                                                       |
-| Placement              | Cloud and region preferences                                                           | Client target; request placement unsupported                       | Client `region` required for create; request placement unsupported                                                     |
-| Environment and labels | Environment map and tags                                                               | Environment map and labels                                         | Environment map and labels                                                                                             |
-| Security               | Named secrets and workload identity                                                    | Egress-placeholder secrets and public access                       | Unsupported                                                                                                            |
-| Network                | Egress allowlists, inbound CIDRs, private network, managed proxy, ports, custom domain | Egress allowlists, outbound proxy, linked sandbox                  | Ports (not 80/443/8080; Default → Blaxel HTTP); outbound domains                                                       |
-| Lifetime               | Maximum lifetime and idle termination                                                  | TTL, ephemeral behavior, stop/pause/archive/delete policies        | Maximum lifetime (≥5m) and idle terminate (≥1m); explicit idle disable rejected                                        |
-| Wait                   | Default/scheduled; ready requires a probe and positive timeout                         | Go: default, submitted, or started. TypeScript: default or started | Create `timeout`; 1–50s frees the name on timeout; waitFor Default/Scheduled only; Ready/Started/Submitted unsupported; edge HTTP 504: TypeScript may keep waiting, Go returns timeout (get by name before recreate) |
-| Observability          | Verbose output                                                                         | Telemetry endpoint                                                 | Unsupported                                                                                                            |
+Volumes are not available on create for any provider.
 
-Kit has no portable volume fields; Blaxel volumes stay out of create the same
-way Daytona and Modal volumes do.
+Unsupported fields fail before the provider call. The error names the field
+(for example `resources.disk_mib`).
 
-Modal default, snapshot, and warm-pool sources are unavailable. Daytona warm
-pools and explicit snapshot kinds are unavailable. A field the provider does
-not support is rejected before the provider call. The error names that field,
-such as `resources.disk_mib`.
+### Wait behavior
 
-The Daytona TypeScript SDK returns only after startup, so a submitted wait is
-rejected there. Go can return once the sandbox is submitted.
+**Modal.** Default or scheduled wait. Ready wait needs a probe and a positive
+create timeout.
 
-## Presence, units, and limits
+**Daytona (TypeScript).** Default or started wait. Submitted wait is not
+supported — create returns after startup.
 
-Omitted fields keep the provider default. In Go, `sandbox.Value(v)` marks an
-optional scalar as set, including zero or false, and `sandbox.Duration(d)`
-sets a duration.
+**Daytona (Go).** Default, submitted, or started wait.
 
-TypeScript create options use nested exclusive fields (`source: { image: … }`,
-`readiness: { tcpPort }` or `{ command }`), `string[]` allowlists, plain
-`environment` and `labels` maps, and millisecond durations (`timeout`,
-`after`, `maximumLifetime`). A missing property, or `undefined`, means the
-field was omitted.
+**Blaxel.** Ready, Started, and Submitted wait are not supported. Set a create
+timeout; with 1–50 seconds, a timed-out create frees the name.
 
-Invalid combinations fail in the client before the provider call. A field the
-selected provider does not support fails there too.
+**Blaxel TypeScript.** If the edge returns HTTP 504 during create, the client
+may keep waiting until the sandbox is ready or the create timeout ends. Call
+`get` by name before recreating.
 
-| Resource         | Modal                                           | Daytona                                      | Blaxel                                                                 |
-| ---------------- | ----------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
-| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; Kit rejects CPU overrides               |
-| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | `memory_mib` / `memoryMib` (Kit converts to Blaxel decimal MB) |
-| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported                                          |
-| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | At least 5 minutes when set                                            |
+**Blaxel Go.** If the edge returns HTTP 504 during create, the call returns a
+timeout as soon as that response arrives. Call `Get` by name before recreating.
 
-Daytona request conversion divides MiB exactly by 1024. Allocated metadata
-converts GiB back to MiB. Snapshot creation inherits snapshot resources.
-Positive CPU or memory limits require a corresponding request and cannot be
-lower than that request. On Blaxel, pass memory in MiB; Kit converts it to
-decimal MB and rounds up so the request is not under-provisioned.
+## Units and limits
 
-Local checks cover syntax, known enums, documented bounds, precision, and
-supported combinations. Account quotas, class-specific permissions, image
-existence, regions, and capacity remain provider-enforced. Metadata availability
-varies; resource and label fields on the handle are what the provider reported,
-not a copy of the create request.
+Omitted fields keep the provider default. Invalid combinations fail in the
+client before the provider call.
+
+| Resource         | Modal                                           | Daytona                                      | Blaxel                                      |
+| ---------------- | ----------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| CPU              | Physical cores; minimum 0.125, precision 0.001  | Whole CPU cores                              | Derived by Blaxel from memory; overrides rejected |
+| Memory           | MiB; minimum request 128                        | Whole GiB expressed as MiB                   | Pass memory in MiB; omit for Blaxel default |
+| Disk             | Creation override unsupported                   | Whole GiB expressed as MiB                   | Creation override unsupported               |
+| Maximum lifetime | Positive whole seconds, up to 24 hours (TS: ms) | Whole-minute TTL (TS: ms); zero disables TTL | At least 5 minutes when set                 |
+
+Account quotas, image existence, regions, and capacity remain
+provider-enforced. Resources and labels on the handle are what the provider
+reported.
 
 ## Policy semantics
 
-Default mode defers to the provider (`PolicyModeDefault` / `PolicyMode.Default`).
-Disabled mode requests explicit disabling (`PolicyModeDisabled` /
-`PolicyMode.Disabled`). After mode supplies a delay (`PolicyModeAfter` /
-`PolicyMode.After`); a zero delay requests an immediate action and must not be
-interpreted as disabling. TypeScript delays are millisecond numbers.
+| Mode     | Meaning                                      |
+| -------- | -------------------------------------------- |
+| Default  | Defer to the provider                        |
+| Disabled | Explicitly disable that policy               |
+| After    | Apply after a delay (zero = immediate action)|
 
-Daytona applies these policy values:
+TypeScript delays are milliseconds.
 
-| Action          | Disabled    | AFTER zero  | Positive delay                 |
+### Daytona
+
+| Action          | Disabled    | After zero  | Positive delay                 |
 | --------------- | ----------- | ----------- | ------------------------------ |
 | Idle stop       | Native zero | Rejected    | Whole minutes                  |
 | Idle pause      | Native zero | Rejected    | Whole minutes                  |
 | Stopped archive | Rejected    | Rejected    | Whole minutes, at most 30 days |
 | Stopped delete  | Rejected    | Native zero | Whole minutes                  |
 
-A zero archive delay is rejected. Daytona treats that zero as 30 days, so it
-is not an immediate archive. A negative interval, the value Daytona uses to
-disable deletion, is rejected at creation.
+Positive stop and pause delays are mutually exclusive. Ephemeral cannot combine
+with positive pause, archive, or delayed-delete. Linked sandboxes must be
+ephemeral.
 
-Positive stop and pause delays are mutually exclusive. Ephemeral requests cannot
-combine with positive pause, archive, or delayed-delete policies. Positive pause
-also conflicts with immediate deletion.
+### Modal
 
-Daytona linked sandboxes must be ephemeral. Kit rejects a linked-sandbox request
-before provider calls unless `lifetime.ephemeral` is explicitly true.
+Idle termination supports disabled or positive whole-second delays. Maximum
+lifetime and idle delay are separate settings.
 
-Modal idle termination supports disabled or positive whole-second delays.
-Its maximum lifetime and idle delay remain separate settings.
+### Blaxel
 
-Blaxel idle terminate supports only `PolicyModeAfter` with a delay of at least
-1m, or provider default. `PolicyModeDisabled` on idle terminate is rejected.
-Maximum lifetime, when set, must be at least 5m. Ephemeral, idle stop/pause,
-stopped archive/delete, runtime, and isolation are rejected.
+Idle terminate supports only After with a delay of at least 1m, or provider
+default. Disabled idle terminate is rejected. Maximum lifetime, when set, must
+be at least 5m. Ephemeral, idle stop/pause, stopped archive/delete, runtime,
+and isolation are rejected.
 
-Image references support lowercase repository paths, optional registry hostnames
-and ports, tags up to 128 characters, and SHA-256 digests, within 512 characters.
-IPv6 registry literals and other digest algorithms are unsupported.
+## Networking
 
-## Networking and waiting
-
-A present empty allowlist means deny-all. Modal outbound wrappers preserve this.
-Empty inbound Modal allowlists and empty Daytona allowlists are rejected because
-their native meanings do not match that intent.
-
-Mapped network values receive CIDR/domain checks. Modal validates environment
-keys; Daytona validates secret environment-variable names. Cloud names and
-toolbox languages use declared supported values. Secrets are references to
+A present empty allowlist means deny-all. Empty inbound Modal allowlists and
+empty Daytona allowlists are rejected. Secrets are references to
 provider-managed secrets, not authentication credentials.
-
-Creation timeout, queue timeout, and lifetime are distinct. Omitted creation
-timeout inherits `Config.Timeout` / `timeout`; explicit zero adds no Kit
-deadline. A caller-context deadline still applies. A Daytona creation timeout
-must be a whole number of seconds. An omitted Daytona creation timeout and an
-explicit zero both leave Daytona's 60-second create default in place. Modal
-ready waiting also requires a readiness probe and a positive creation timeout.
-On Blaxel, an edge HTTP 504 during create can leave TypeScript waiting until
-the sandbox is ready or the create timeout ends, while Go returns a timeout as
-soon as that response arrives. A Go timeout does not always mean the sandbox
-was never created — call `Get` by name before recreating.
 
 ## Results and cleanup
 
-`Info()` returns a copy of the metadata. Editing that copy leaves the handle
-unchanged. Errors include a kind, field, and message. The provider's own error
-stays available as the cause. Go forwards cancellation into the provider call.
-TypeScript rejects the `await` on abort; create itself is not queued behind
-other client calls. Kit does not retry, and it does not delete a sandbox when a
-call fails.
+`info()` / `Info()` returns a copy. Editing that copy leaves the handle
+unchanged. Closing the client or handle does not delete the sandbox.
 
-Closing the client closes your connection to the provider. The sandbox keeps
-running. Closing a handle leaves the sandbox as it is. You can keep using the
-handle. The next call returns the provider's result.
-Lifecycle operations are described in the [lifecycle guide](sandbox-lifecycle.md).
-Files inside a sandbox are described in the [filesystem guide](filesystem.md).
-
-Creation covers the sandbox itself. GPU requests, resizing, storage volumes
-(including Blaxel volumes), browsers, streaming process handles, sessions,
-PTY, and macOS or Windows creation are outside it. Blocking command execution
-is covered in [process](process.md).
-
-See [configuration](configuration.md), [lifecycle](sandbox-lifecycle.md), and
-[filesystem](filesystem.md).
+Lifecycle: [lifecycle guide](sandbox-lifecycle.md). Files:
+[filesystem](filesystem.md). Commands: [process](process.md).

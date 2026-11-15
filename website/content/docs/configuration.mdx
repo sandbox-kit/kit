@@ -350,8 +350,8 @@ client, err := sandbox.NewClient(modal.New(), config)
 | Region         | `region` — required for create                          |
 | Endpoint       | Unsupported                                             |
 
-In TypeScript, use one Blaxel configuration per process. A second client with
-different credentials or workspace is rejected.
+Use one Blaxel configuration per process. A second client with different
+credentials or workspace is rejected.
 
 ```ts
 const workspace = process.env.BL_WORKSPACE?.trim();

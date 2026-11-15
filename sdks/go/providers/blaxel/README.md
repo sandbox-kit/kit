@@ -18,29 +18,29 @@ go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 
 ```go
 config := &sandbox.Config{
-    Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
-        ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
-    }},
-    Region:  sandbox.Value("us-pdx-1"),
-    Timeout: sandbox.Duration(2 * time.Minute),
+	Auth: &sandbox.AuthConfig{Credentials: &sandbox.APIKey{
+		ApiKey: &sandbox.APIKeyCredentials{Key: os.Getenv("BL_API_KEY")},
+	}},
+	Region:  sandbox.Value("us-pdx-1"),
+	Timeout: sandbox.Duration(2 * time.Minute),
 }
 if workspace := strings.TrimSpace(os.Getenv("BL_WORKSPACE")); workspace != "" {
-    config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
+	config.Scope = &sandbox.Scope{Workspace: sandbox.Value(workspace)}
 }
 client, err := sandbox.NewClient(blaxel.New(), config)
 if err != nil {
-    log.Fatal(err)
+	log.Fatal(err)
 }
 defer client.Close(context.Background())
 
 instance, err := client.Create(context.Background(), &sandbox.CreateOptions{
-    Name: sandbox.Value("my-sandbox"),
-    Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
-        Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
-    }},
+	Name: sandbox.Value("my-sandbox"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
 })
 if err != nil {
-    log.Fatal(err)
+	log.Fatal(err)
 }
 fmt.Println(instance.ID())
 ```
@@ -65,48 +65,46 @@ rejected. `Scope` fields other than `Workspace` are rejected.
 
 ### Create
 
-You need a name and an image. Name is required (blank or whitespace-only is
+Required: a name and an image. Name is required (blank or whitespace-only is
 rejected). Names are lowercase alphanumeric with single hyphens (max 49
-characters). You can also set labels, environment variables,
-memory, ports, outbound domains, maximum lifetime (≥5 minutes), and idle
-terminate (≥1 minute). You cannot disable idle terminate. Runtime and
-isolation are not supported. `Info().Labels` is set only when Blaxel reports
-labels. Ports 80, 443, and 8080 are reserved. Default port transport is HTTP;
-plain is TCP; TLS is TLS; HTTP/2 over TLS is not supported.
+characters).
+
+Optional: labels, environment, memory, ports, outbound domains, maximum
+lifetime (≥5 minutes), and idle terminate (≥1 minute).
+
+Not supported: idle disable, runtime, isolation, volumes, CPU/disk overrides
+(Blaxel derives CPU from memory). Ports 80, 443, and 8080 are reserved.
+Default port transport is HTTP; plain is TCP; TLS is TLS; HTTP/2 over TLS is
+not supported.
+
+Pass memory with `Resources.MemoryMib`, or omit it for Blaxel’s default.
+`Info().Labels` appears only when Blaxel reports labels.
 
 Set client or create timeout for how long create may wait. With a 1–50s
-timeout, a timed-out create frees the name. Ready/Started/Submitted wait and
-readiness probes are not supported (`WaitFor` only Default or Scheduled).
+timeout, a timed-out create frees the name. Ready, Started, and Submitted wait
+and readiness probes are not supported.
 
-If Blaxel’s edge returns HTTP 504 during create, Go returns a timeout as soon
-as that response arrives. TypeScript may keep waiting until the sandbox is
-ready or your create timeout ends. A Go timeout does not always mean the
-sandbox was never created — call `Get` by name before recreating.
-
-Set `Resources.MemoryMib` for memory size. Kit converts MiB to Blaxel's decimal
-MB value, rounding up so a request is never under-provisioned. CPU follows
-memory on Blaxel — do not set CPU or
-disk overrides. If you omit memory, Blaxel applies its default. Volumes are not
-part of create.
+If Blaxel’s edge returns HTTP 504 during create, the call returns a timeout as
+soon as that response arrives. A timeout does not always mean the sandbox was
+never created — call `Get` by name before recreating.
 
 If the name already exists, you get `AlreadyExists`.
 
 ### Lifecycle
 
-You can `Get`, `Refresh`, `Delete`, and `Close`. Lookup is by name
+Available: `Get`, `Refresh`, `Delete`, and `Close`. Lookup is by name
 (`ID()` equals the create name). Attach, start, stop, pause, archive, and
 terminate are not available. `Close` only drops the local handle.
 
 After a successful `Delete`, `Info().State` is `Deleted` and `Terminal` is
 true. Omit `Wait` to return as soon as Blaxel accepts the delete — recreating
 the same name too soon may return `Conflict`. Pass `Wait: true` to wait until
-removal finishes before the call returns.
+removal finishes.
 
 ### Filesystem
 
-You get the usual file APIs: read, write, copy in/out, mkdir, list, stat, and
-remove. Paths must be absolute. `Parents` defaults to true; Blaxel does not
-support `Parents: false`.
+Methods: read, write, copy in/out, mkdir, list, stat, and remove. Paths must
+be absolute. `Parents` defaults to true; `Parents: false` is not supported.
 
 `Stat` returns `Type` (file or directory), `Size`, and usually `Permissions`,
 `Owner`, `Group`, and `ModifiedAt`. `Name` and `Path` are whatever Blaxel
@@ -116,9 +114,8 @@ reports. Missing local files for `CopyFromLocal`, and local write failures from
 ### Process
 
 `Process().Run` runs one command and waits for it to finish. Set exactly one of
-`Argv` or `Shell`. `Argv` is sent as one quoted shell command string. A
-non-zero exit code is not an error — read `GetExitCode`. You get both stdout
-and stderr.
+`Argv` or `Shell`. A non-zero exit code is not an error — read `GetExitCode`.
+You get both stdout and stderr.
 
 Omit or zero `Timeout` to wait without a Blaxel process time limit (your
 context can still cancel). A positive timeout must be whole seconds and caps

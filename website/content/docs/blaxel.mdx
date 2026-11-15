@@ -177,21 +177,20 @@ Only API key auth and workspace scope are supported. Full rules:
 
 ## What works
 
-| Area      | Notes                                                                                                           |
-| --------- | --------------------------------------------------------------------------------------------------------------- |
-| Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle                                            |
-| Volumes   | Not available on create                                                                                         |
-| Open      | Look up or refresh by sandbox name                                                                               |
-| Lifecycle | Delete or close — no start, stop, pause, archive, terminate, or attach                                          |
-| Delete    | Succeeds as `deleted` / `terminal`; omit `wait` may `Conflict` on quick recreate; `wait: true` waits until gone |
-| Errors    | Name taken on create → AlreadyExists; delete still in progress → Conflict; bad TTL/idle → InvalidArgument       |
-| Files     | Shared filesystem methods — [Filesystem](/docs/filesystem)                                                      |
-| Process   | `run` waits for the command — [Run a command](/docs/process)                                                    |
+| Area      | Notes |
+| --------- | ----- |
+| Create    | Name + image; memory, labels, env, ports, outbound domains, TTL/idle |
+| Volumes   | Not available on create |
+| Open      | Look up or refresh by sandbox name |
+| Lifecycle | Delete or close — no start, stop, pause, archive, terminate, or attach |
+| Delete    | On success, `state` is `deleted` and `terminal` is true. Pass `wait: true` to wait until removal finishes. Quick recreate without wait may return `Conflict`. |
+| Errors    | Name taken → `AlreadyExists`. Delete still finishing → `Conflict`. Bad TTL/idle → `InvalidArgument`. |
+| Files     | [Filesystem](/docs/filesystem) |
+| Process   | Blocking `run` — [Run a command](/docs/process) |
 
-Pass memory in MiB, or omit it for Blaxel’s default. Kit converts it to
-Blaxel’s decimal MB field and rounds up so the request is not under-provisioned.
-CPU and disk overrides are not supported. Runtime and isolation are not
-supported.
+Pass memory in MiB, or omit it for Blaxel’s default. CPU and disk overrides
+are not supported — Blaxel derives CPU from memory. Runtime and isolation are
+not supported.
 
 <ForLanguage id="typescript">
   Labels on `info()` appear only when Blaxel reports them.
@@ -202,7 +201,8 @@ supported.
 </ForLanguage>
 
 Default ports are HTTP; plain is TCP; TLS is TLS. HTTP/2 over TLS is not
-supported. Ready/Started/Submitted wait and idle disable are not supported.
+supported. Ready, Started, and Submitted wait are not supported. Idle disable
+is not supported.
 
 Set a client or create timeout for how long create may wait. With a 1–50s
 timeout, a timed-out create frees the name.

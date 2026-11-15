@@ -276,16 +276,25 @@ More detail: [responses and errors](docs/responses-and-errors.md).
 
 ## Configuration
 
-- TypeScript: `new Client({ provider, ... })`. Go: `NewClient(provider, &Config{...})`.
-- Config covers auth, scope, endpoint, region, and default timeout.
-- Create options cover source, resources, runtime, network, and policies.
-- TypeScript: property presence; duration fields are milliseconds.
-  Go helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts.
-- Unsupported settings fail before provider calls; quotas stay provider-enforced.
+### TypeScript
+
+- `new Client({ provider, ... })`
+- Duration fields are milliseconds
+- Property presence marks a field as set
+
+### Go
+
+- `NewClient(provider, &Config{...})`
+- Helpers: `Value(v)` for optional scalars, `Duration(d)` for timeouts
+
+### Shared
+
+- Config covers auth, scope, endpoint, region, and default timeout
+- Create options cover source, resources, runtime, network, and policies
+- Unsupported settings fail before provider calls; quotas stay provider-enforced
 - Memory and disk are MiB. Modal CPU: fractional cores from 0.125 (0.001 steps).
-  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: set
-  `memoryMib` / `memory_mib` (Kit converts MiB to Blaxel's decimal MB); CPU
-  follows memory.
+  Daytona: whole cores and whole GiB expressed as MiB. Blaxel: pass memory in
+  MiB (`memoryMib` / `MemoryMib`); CPU follows memory.
 
 Guides: [configuration](docs/configuration.md) ·
 [creation](docs/sandbox-creation.md) ·

@@ -7,16 +7,7 @@ Install the core package and the provider you use.
 | TypeScript | `@sandbox-kit/sandbox` and `@sandbox-kit/daytona`                        | `@sandbox-kit/sandbox` and `@sandbox-kit/modal`                        | `@sandbox-kit/sandbox` and `@sandbox-kit/blaxel`                        |
 | Go         | `github.com/sandbox-kit/kit/sdks/go/sandbox` and `.../providers/daytona` | `github.com/sandbox-kit/kit/sdks/go/sandbox` and `.../providers/modal` | `github.com/sandbox-kit/kit/sdks/go/sandbox` and `.../providers/blaxel` |
 
-```go
-client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
-    Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.TokenPair{
-            TokenPair: &sandbox.TokenPairCredentials{Id: tokenID, Secret: tokenSecret},
-        },
-    },
-    Scope: &sandbox.Scope{AppName: sandbox.Value("existing-app")},
-})
-```
+## TypeScript
 
 ```ts
 await using client = new Client({
@@ -26,18 +17,6 @@ await using client = new Client({
 });
 ```
 
-```go
-client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
-    Auth: &sandbox.AuthConfig{
-        Credentials: &sandbox.APIKey{
-            ApiKey: &sandbox.APIKeyCredentials{Key: apiKey},
-        },
-    },
-    Scope:  &sandbox.Scope{Workspace: sandbox.Value("my-workspace")},
-    Region: sandbox.Value("us-pdx-1"),
-})
-```
-
 ```ts
 await using client = new Client({
   provider: blaxel(),
@@ -45,6 +24,34 @@ await using client = new Client({
   scope: { workspace: "my-workspace" },
   region: "us-pdx-1",
 });
+```
+
+Use one Blaxel configuration per process. A client with different credentials
+or workspace is rejected.
+
+## Go
+
+```go
+client, err := sandbox.NewClient(modal.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{
+		Credentials: &sandbox.TokenPair{
+			TokenPair: &sandbox.TokenPairCredentials{Id: tokenID, Secret: tokenSecret},
+		},
+	},
+	Scope: &sandbox.Scope{AppName: sandbox.Value("existing-app")},
+})
+```
+
+```go
+client, err := sandbox.NewClient(blaxel.New(), &sandbox.Config{
+	Auth: &sandbox.AuthConfig{
+		Credentials: &sandbox.APIKey{
+			ApiKey: &sandbox.APIKeyCredentials{Key: apiKey},
+		},
+	},
+	Scope:  &sandbox.Scope{Workspace: sandbox.Value("my-workspace")},
+	Region: sandbox.Value("us-pdx-1"),
+})
 ```
 
 ## What each provider can do
@@ -59,27 +66,24 @@ await using client = new Client({
 | Filesystem                  | Same eight shared methods          | Same eight shared methods                  | Same eight shared methods              |
 | Process                     | Same blocking `Run`                | Same blocking `Run`                        | Same blocking `Run`                    |
 
-`supports` reports whether the provider implements that operation. A missing
-operation fails before the provider call. Daytona still accepts or rejects a
-supported call for a particular sandbox, and Kit returns that error.
+`supports` / `Supports` reports whether the provider implements that operation.
+A missing operation fails before the provider call. Daytona may still reject a
+supported call for a particular sandbox.
 
-Set Daytona's target with `region` on the client. A placement block on the
-create request is rejected. Modal accepts cloud and region on the create
-request, and rejects a placement target. Blaxel create requires
-`Config.Region` / `region` on the client. Per-request placement is rejected.
+### Placement
+
+- **Daytona** — set the target with `region` on the client. Placement on the
+  create request is rejected.
+- **Modal** — set cloud and region on the create request. A placement target
+  on the client is rejected.
+- **Blaxel** — `region` on the client is required for create. Per-request
+  placement is rejected.
 
 Closing the client closes your connection to the provider. The sandboxes keep
-running. Closing a handle leaves the sandbox as it is. You can keep using the
-handle. The next call returns the provider's result.
+running. Closing a handle leaves the sandbox as it is.
 
-The public API covers create, lifecycle, files, and blocking command execution
-inside the sandbox. GPU requests, resizing, storage volumes (no portable
-volume fields; Blaxel, Daytona, and Modal volumes stay out of create),
-browsers, streaming process handles, sessions, PTY, and macOS or Windows
-creation are outside it.
-
-In TypeScript, use one Blaxel configuration per process. A client with
-different credentials or workspace is rejected.
+GPU requests, resizing, storage volumes, browsers, streaming process handles,
+sessions, PTY, and macOS or Windows creation are outside this API.
 
 See [configuration](configuration.md), [creation](sandbox-creation.md),
 [lifecycle](sandbox-lifecycle.md), [filesystem](filesystem.md), and

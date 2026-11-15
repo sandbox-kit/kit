@@ -16,9 +16,13 @@ Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 | Delete a file or directory    | `Remove`        | `remove`        |
 
 Calls on one handle run one at a time, including lifecycle and process. A
-second handle for the same sandbox does not wait. Abort or deadline rejects the
-TypeScript `await` (and ends the Go wait), but the handle stays busy until that
-provider call settles so the next call does not overlap it.
+second handle for the same sandbox does not wait.
+
+**TypeScript.** Abort or deadline rejects the `await`. The handle stays busy
+until that provider call settles.
+
+**Go.** Cancel or deadline ends the wait. The handle stays busy until that
+provider call returns.
 
 ## Paths
 
@@ -43,32 +47,39 @@ An existing destination file is replaced.
 ## Timeouts
 
 Leave the timeout unset to use the client deadline. Set it to zero when this
-call should add no Kit deadline. TypeScript records the timeout in
-milliseconds. Go records it as a `time.Duration`.
+call should add no client deadline.
 
-TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
-pass that duration to Daytona as a whole number of seconds. `2000` is two
-seconds. `1500` is 1.5 seconds, so those four calls reject it. The error field
-is `timeout`. An omitted timeout, and an explicit zero, on those four calls
-are passed as `0`. Daytona adds no transfer limit. When the timeout is
-omitted, the abort signal carries the client deadline.
+### TypeScript
 
-`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
-`1500` ends the call at 1.5 seconds. Every Go file call uses the context as
-the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
-file calls use the abort signal. TypeScript Blaxel calls reject the caller's
-`await` when the signal aborts, but the Blaxel filesystem API has no abort
-parameter, so an in-flight remote file operation can still finish.
-Blaxel does not support `parents: false` (field `parents`).
+Timeouts are milliseconds.
+
+**Daytona.** `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
+require whole seconds (`2000` is fine; `1500` is rejected, field `timeout`).
+Omitted or zero means no Daytona transfer limit. `makeDirectory`,
+`listDirectory`, `stat`, and `remove` use the abort signal, so `1500` ends at
+1.5 seconds.
+
+**Modal.** File calls use the abort signal.
+
+**Blaxel.** Abort rejects the caller’s `await`. An in-flight remote file
+operation can still finish. `parents: false` is not supported (field
+`parents`).
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
 await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
 ```
 
+### Go
+
+Timeouts are `time.Duration`. Every file call uses the context as the
+deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds.
+
+**Blaxel.** `Parents: false` is not supported (field `parents`).
+
 ```go
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
-    Timeout: sandbox.Duration(1500 * time.Millisecond),
+	Timeout: sandbox.Duration(1500 * time.Millisecond),
 })
 ```
 

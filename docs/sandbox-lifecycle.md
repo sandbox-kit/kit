@@ -1,88 +1,78 @@
 # Sandbox lifecycle
 
-`CreateOptions` describes creation intent and automatic policies. Lifecycle
-methods operate on the resolved sandbox returned by `Client.Create`, a
-provider-verified `Client.Get`, or an explicitly unverified `Client.Attach`;
-they do not reuse or mutate the creation request.
+Lifecycle methods operate on a handle from `Create`, a provider-verified
+`Get`, or Modal `Attach`. They do not reuse the creation request.
 
-```go
-instance, err := client.Create(ctx, options)
-if err != nil {
-    return err
-}
-if !instance.Supports(sandbox.LifecycleCapabilityStop) {
-    return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
-}
-return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Minute)})
-```
-
-An operation-specific timeout overrides `Config.Timeout` / `timeout` as Kit's
-deadline for that call. An omitted timeout inherits the client deadline.
-Explicit zero adds no Kit deadline of its own. The provider receives a timeout
-only when the call sets one.
-
-Daytona start, stop, pause, and delete use the native 60-second default when
-the timeout is omitted. An explicit zero is passed through, and those methods
-treat zero as no operation timeout. A timeout that is not a whole number of
-seconds is rejected before the native call. A terminate timeout is how long
-Kit waits. Modal does not take that duration as its own terminate timeout.
-With wait, Modal polls until the sandbox exits or the deadline fires.
-`Client.Close` / `client.close()` closes your connection to Daytona, Modal, or Blaxel
-and returns that result. It does not stop or delete the sandbox. A later call
-uses that connection and returns the provider's result.
-`Sandbox.Close` / `sandbox.close()` does not change the sandbox. You can keep
-using the handle. Closing a Daytona handle does not contact Daytona. Closing a
-Modal handle does not terminate the sandbox.
-
-TypeScript clients and sandbox handles implement `AsyncDisposable`. Prefer a
-scoped client when its lifetime matches the current block. Lifecycle call
-options use millisecond `timeout` (for example
-`await sandbox.stop({ force: true, timeout: 60_000 })`):
+## TypeScript
 
 ```ts
 await using client = new Client(config);
 const sandbox = await client.create(request);
+if (!sandbox.supports(LifecycleCapability.Stop)) {
+  throw new Error(`sandbox ${sandbox.id} cannot be stopped`);
+}
 await sandbox.stop({ timeout: 60_000 });
 ```
 
-Disposing a client closes your connection to Daytona, Modal, or Blaxel. Disposing a
-handle does not stop, terminate, or delete the sandbox. You can keep using the
-handle.
+Clients and handles implement `AsyncDisposable`. Prefer `await using` when the
+lifetime matches the block. Timeouts are milliseconds.
 
-## Operation semantics
+Abort rejects the `await`. The handle stays busy until the provider call
+settles, so the next call on the same handle does not overlap it.
 
-`Start` enters the running state from a provider-supported retained state.
-`Stop` requests a stop. An ephemeral sandbox can still be destroyed by its
-configured policy.
-`Pause` requests a provider memory-preserving transition; successful return
-means the provider left its pausing transition and callers should inspect the
-returned handle metadata for the resolved state. `Terminate` permanently finishes
-an execution without promising deletion of its provider record. `Archive` moves
-retained state to provider archive storage. `Delete` irreversibly removes the
-provider sandbox resource. These meanings are not aliases.
+## Go
 
-Unsupported operations return `ErrorKindUnsupported` before a provider call
-when the selected provider does not implement them. Daytona accepts or rejects
-a call for a particular sandbox, and Kit returns that error. Account
-permissions and dynamically enabled features remain provider-enforced.
+```go
+instance, err := client.Create(ctx, options)
+if err != nil {
+	return err
+}
+if !instance.Supports(sandbox.LifecycleCapabilityStop) {
+	return fmt.Errorf("sandbox %s cannot be stopped", instance.ID())
+}
+return instance.Stop(ctx, &sandbox.StopOptions{Timeout: sandbox.Duration(time.Minute)})
+```
 
-`Capabilities` lists the operations the selected provider implements.
-`Supports` checks one of them. Close does not clear the list.
+Cancel or a deadline on the context ends the wait. The handle stays busy until
+the provider call returns.
 
-`SandboxInfo.State` is Kit's portable lifecycle state. `ProviderState` retains
-the provider's exact value. `Terminal` is present when the provider reports
-that the sandbox is finished. A later lifecycle call still goes to the provider,
-and Kit returns that result.
+## Timeouts
 
-Each SDK serializes lifecycle transitions on one handle (with filesystem and
-process). This does not serialize a different handle or process referring to
-the same remote sandbox. A caller waiting behind an in-progress transition can
-still cancel its context or abort signal, or reach its deadline. Go forwards
-that context into the native SDK and keeps the handle busy until the provider
-call returns. TypeScript rejects the `await` on abort or deadline; Daytona and
-Modal often ignore `AbortSignal` mid-call, so the remote work may continue, but
-the handle stays busy until that provider call settles. A queued call that is
-canceled before it starts never reaches the provider.
+An operation-specific timeout overrides the client default. Omitted timeout
+inherits the client deadline. Explicit zero adds no client deadline.
+
+**Daytona.** Start, stop, pause, and delete use a native 60-second default when
+the timeout is omitted. Explicit zero means no operation timeout. Non-whole
+seconds are rejected.
+
+**Modal.** A terminate timeout is how long the SDK waits. With wait, Modal
+polls until the sandbox exits or the deadline fires.
+
+## Close
+
+`client.close()` / `Client.Close` closes your connection to the provider. It
+does not stop or delete the sandbox.
+
+`sandbox.close()` / `Sandbox.Close` releases local handle resources only. You
+can keep using the handle afterward for Daytona and Blaxel local close; Modal
+close does not terminate the sandbox.
+
+## Operation meanings
+
+| Method    | Meaning                                                              |
+| --------- | -------------------------------------------------------------------- |
+| Start     | Enter the running state from a retained state                        |
+| Stop      | Request a stop (ephemeral policy may still destroy the sandbox)      |
+| Pause     | Memory-preserving transition; inspect returned metadata for state    |
+| Terminate | Permanently finish execution; does not promise record deletion       |
+| Archive   | Move retained state to archive storage                               |
+| Delete    | Irreversibly remove the provider sandbox                             |
+
+Unsupported operations return `Unsupported` before a provider call.
+`supports` / `Supports` checks whether the provider implements an operation.
+
+Prefer portable `state` / `State` and `terminal` / `Terminal` on the handle.
+A later lifecycle call still goes to the provider.
 
 ## Provider support
 
@@ -97,24 +87,21 @@ canceled before it starts never reaches the provider.
 | Archive     | Unsupported                            | Supported   | Unsupported                        |
 | Delete      | Unsupported                            | Supported   | Supported                          |
 
-Daytona reports its resolved sandbox class after creation. Kit maps container
-and Linux VM to shared isolation kinds and preserves Windows as a provider-specific
-kind. GPU allocation is provider metadata and does not replace the underlying
-isolation class. Whether a sandbox accepts pause, archive, or stop is Daytona's
-decision.
+### Daytona
 
-Modal gVisor and Linux VM sandboxes share Modal's terminal execution lifecycle.
-`Terminate` maps to Modal termination; it is deliberately not presented as
-`Stop` or `Delete`. Modal's native `FromID` performs no remote lookup, so Kit
-exposes it as `Client.Attach`; Modal does not advertise `Get` or `Refresh`.
+Whether a sandbox accepts pause, archive, or stop is Daytona’s decision.
 
-Blaxel looks up sandboxes by name for `Get` and `Refresh`. After a successful
-`Delete`, the handle reports `Deleted` and `terminal`. Omit `Wait` to return
-when Blaxel accepts the delete; recreating the same name too soon may return
-`Conflict`. Pass `Wait: true` to wait until removal finishes.
-`Attach`, `Start`, `Stop`, `Pause`, `Archive`, and `Terminate` are unsupported.
-Closing a Blaxel handle does not contact Blaxel.
+### Modal
 
-File calls on the same handle are documented in [filesystem](filesystem.md).
-Daytona, Modal, and Blaxel implement the same eight methods; each handle
-serializes those calls with its lifecycle transitions.
+`Terminate` is not presented as stop or delete. `Attach` builds a handle from
+an id with no remote lookup. `Get` and `Refresh` are not available.
+
+### Blaxel
+
+Lookup is by name for `Get` and `Refresh`. After a successful `Delete`,
+`state` is deleted and `terminal` is true. Omit wait to return when Blaxel
+accepts the delete; recreating the same name too soon may return `Conflict`.
+Pass wait to wait until removal finishes. Attach, start, stop, pause, archive,
+and terminate are not available.
+
+File calls: [filesystem](filesystem.md).

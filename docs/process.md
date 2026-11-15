@@ -52,11 +52,13 @@ When the command finishes you get:
 A non-zero exit code is **not** an SDK error. Check the exit code in your
 code.
 
-| Provider | Output                                                            |
-| -------- | ----------------------------------------------------------------- |
-| Daytona  | stdout only; `stderr` is empty (Go returns a non-nil empty slice) |
-| Modal    | both stdout and stderr                                            |
-| Blaxel   | both stdout and stderr                                            |
+| Provider | Output                                      |
+| -------- | ------------------------------------------- |
+| Daytona  | stdout only; `stderr` is empty              |
+| Modal    | both stdout and stderr                      |
+| Blaxel   | both stdout and stderr                      |
+
+**Go / Daytona.** `stderr` is a non-nil empty slice.
 
 ## Timeouts and cancel
 
@@ -66,28 +68,15 @@ code.
 | `timeout: 0` / `Duration(0)` | Do not add an extra client deadline for this call                                                                                 |
 | Positive timeout             | Cap this call; must be a whole number of seconds (`5000` ms or `5 * time.Second` is fine; `1500` ms is rejected, field `timeout`) |
 
-Omit or zero also means **no separate provider process time limit** (see
-provider quirks). Provider quirks:
+Omit or zero also means **no separate provider process time limit**:
 
-- **Daytona** — if you omit a native timeout, Daytona defaults to 10 seconds.
-  This client therefore uses timeout `0` for omit/zero so the command is not
-  capped at 10 seconds.
-- **Modal** — omit/zero adds no Modal command limit. In TypeScript the client
-  omits `timeoutMs` (sending `0` is rejected by Modal).
-- **Blaxel** — omit or zero waits until the command ends (or you cancel), with
-  no Blaxel process time limit. Positive timeouts must be whole seconds and
-  cap how long the command may run. Canceling stops waiting; the remote
-  command may keep running. If the wait times out, you get a timeout error.
+- **Daytona** — omit/zero avoids Daytona’s 10-second default so the command is
+  not capped at 10 seconds.
+- **Modal** — omit/zero adds no Modal command limit.
+- **Blaxel** — omit/zero waits until the command ends (or you cancel). Positive
+  timeouts must be whole seconds.
 
-Cancel behavior:
-
-- **Go** — cancel or a deadline on the context ends the wait and returns an
-  error. The handle stays busy until that provider call returns.
-- **TypeScript** — abort rejects the `await`. The remote command may keep
-  running. Daytona and Modal do not observe the signal inside exec. Blaxel
-  waits stop when the signal aborts. The handle stays busy until the
-  provider call settles, so the next call on the same handle does not
-  overlap it.
+### TypeScript
 
 ```ts
 const result = await sandbox.process.run({
@@ -96,12 +85,24 @@ const result = await sandbox.process.run({
 });
 ```
 
+Abort rejects the `await`. The remote command may keep running. Daytona and
+Modal do not observe the signal inside exec. Blaxel stops waiting when the
+signal aborts. The handle stays busy until the provider call settles.
+
+For Modal, omit the timeout field rather than passing `0` (Modal rejects
+`timeoutMs: 0`).
+
+### Go
+
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
 	Argv:    []string{"echo", "hello"},
 	Timeout: sandbox.Duration(5 * time.Second),
 })
 ```
+
+Cancel or a deadline on the context ends the wait and returns an error. The
+handle stays busy until that provider call returns.
 
 ## Run a command
 
