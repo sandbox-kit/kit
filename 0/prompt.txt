@@ -1,0 +1,18 @@
+so we shoudl commit and push to main ? 
+
+then publsih >
+
+---
+
+now do same for golang, install sdk & example dependency + also run generate
+before that bump version + chagne replace and iimport version too.
+
+---
+
+cool give me commands to run for next steps
+
+---
+
+before that the examples which shows up in golang godoc pkg.go.dev is added if required. 
+
++ is there no docs changes right ? usre facing docs.
