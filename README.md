@@ -7,8 +7,8 @@ sandboxes through a consistent client interface. Daytona, Modal, and Blaxel are 
 ## npm
 
 TypeScript packages on npm: `@sandbox-kit/sandbox`, `@sandbox-kit/daytona`, and
-`@sandbox-kit/modal` are 0.1.7. `@sandbox-kit/blaxel` is not on the registry
-yet. Each badge shows that package's registry version and download count.
+`@sandbox-kit/modal` are 0.1.8; `@sandbox-kit/blaxel` is 0.1.0. Each badge shows
+that package's registry version and download count.
 
 | Package                                                                      | Version                                                                                                             | Downloads                                                                                                                                    |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
