@@ -1,6 +1,7 @@
 export const DOC_PROVIDERS = [
   { id: "daytona", label: "Daytona" },
   { id: "modal", label: "Modal" },
+  { id: "blaxel", label: "Blaxel" },
 ] as const;
 
 export type DocProviderId = (typeof DOC_PROVIDERS)[number]["id"];
@@ -24,20 +25,20 @@ export const PROVIDER_SCOPED_HEADINGS: Record<
 > = {
   lifecycle: {
     "stop-start-pause-and-archive": ["daytona"],
-    delete: ["daytona"],
+    delete: ["daytona", "blaxel"],
     terminate: ["modal"],
   },
   client: {
-    get: ["daytona"],
+    get: ["daytona", "blaxel"],
     attach: ["modal"],
   },
   sandbox: {
-    refresh: ["daytona"],
+    refresh: ["daytona", "blaxel"],
     start: ["daytona"],
     stop: ["daytona"],
     pause: ["daytona"],
     archive: ["daytona"],
-    delete: ["daytona"],
+    delete: ["daytona", "blaxel"],
     terminate: ["modal"],
   },
 };

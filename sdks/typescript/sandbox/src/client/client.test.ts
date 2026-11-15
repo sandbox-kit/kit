@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { Buffer } from "node:buffer";
+import { getEventListeners } from "node:events";
 import {
   ExecFieldArgv,
   ExecFieldShell,
   ExecFieldWorkingDirectory,
   FileFieldLocalPath,
   FileFieldPath,
+  InfoFieldId,
   CreateFieldLifetimeIdleStopAfter,
   CreateFieldLifetimeIdleStopMode,
   CreateFieldNetwork,
@@ -25,6 +28,8 @@ import {
   Client,
   EgressMode,
   ErrorKind,
+  SandboxError,
+  sandboxError,
   PolicyMode,
   validateCreateOptions,
   type Backend,
@@ -190,6 +195,110 @@ describe("Client cleanup", () => {
   });
 });
 
+describe("Provider response validation", () => {
+  it.each([undefined, null])("rejects an absent create result: %s", async (result) => {
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: async () => result as unknown as CreateResult,
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    await expect(client.create()).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "create",
+      field: InfoFieldId,
+    });
+  });
+  it("reports the public get operation and preserves the provider error", async () => {
+    const native = new Error("native failure");
+    const providerError = sandboxError(
+      {
+        kind: ErrorKind.Unknown,
+        provider: "wrong-provider",
+        operation: "refresh",
+        field: "",
+        message: "lookup failed",
+      },
+      native,
+    );
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      refresh: async () => {
+        throw providerError;
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+
+    const error = await client.get("requested").catch((reason: unknown) => reason);
+    expect(error).toBeInstanceOf(SandboxError);
+    expect(error).toMatchObject({
+      provider: "test",
+      operation: "get",
+      message: "lookup failed",
+    });
+    expect((error as Error).cause).toBe(providerError);
+    expect(providerError.cause).toBe(native);
+  });
+
+  it("rejects lookup responses with a different identity or provider", async () => {
+    const attachBackend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async () => ({ id: "different", provider: "test" }),
+    };
+    const attachClient = new Client({
+      provider: { name: attachBackend.name, initialize: () => attachBackend },
+    });
+    await expect(attachClient.attach("requested")).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "attach",
+      field: InfoFieldId,
+    });
+
+    const getBackend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      refresh: async (id) => ({ id, provider: "different" }),
+    };
+    const getClient = new Client({
+      provider: { name: getBackend.name, initialize: () => getBackend },
+    });
+    await expect(getClient.get("requested")).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "get",
+      field: ConfigFieldProvider,
+    });
+  });
+
+  it("preserves a handle when a lifecycle response changes its identity", async () => {
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      refresh: async () => ({ id: "different", provider: "test" }),
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("requested");
+
+    await expect(sandbox.refresh()).rejects.toMatchObject({
+      kind: ErrorKind.InvalidResponse,
+      operation: "refresh",
+      field: InfoFieldId,
+    });
+    expect(sandbox.id).toBe("requested");
+  });
+});
+
 describe("Shared request validation", () => {
   it("exposes validateCreateOptions for public CreateOptions", () => {
     expect(() => validateCreateOptions({})).not.toThrow();
@@ -326,6 +435,48 @@ describe("Shared request validation", () => {
 });
 
 describe("Public create options for providers", () => {
+  it("keeps nested create input owned by the caller", async () => {
+    const request: CreateOptions = {
+      environment: { ORIGINAL: "value" },
+      runtime: { entrypoint: ["echo"] },
+    };
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: async (providerRequest) => {
+        providerRequest.environment!.ORIGINAL = "mutated";
+        providerRequest.runtime!.entrypoint!.push("mutated");
+        return { sandbox: { id: "sandbox-1", provider: "test" } };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+
+    await client.create(request);
+
+    expect(request).toEqual({
+      environment: { ORIGINAL: "value" },
+      runtime: { entrypoint: ["echo"] },
+    });
+  });
+
+  it("keeps nested client configuration owned by the caller", () => {
+    const auth = { apiKey: { key: "secret" } } as const;
+    const provider: Provider = {
+      name: "test",
+      initialize: (config) => {
+        config.auth!.apiKey!.key = "mutated";
+        return new RecordingBackend();
+      },
+    };
+
+    new Client({ provider, auth });
+
+    expect(auth.apiKey.key).toBe("secret");
+  });
+
   it("hands the provider public create options after a create call", async () => {
     const { client, backend } = fixture();
 
@@ -352,7 +503,153 @@ describe("Public create options for providers", () => {
   });
 });
 
+describe("Provider input ownership", () => {
+  it("captures queued filesystem options before callers can change them", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    let removed: { recursive?: boolean; timeout?: number } | undefined;
+    let directory: { parents?: boolean; timeout?: number } | undefined;
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      start: async (id) => { await blocked; return { id, provider: "test" }; },
+      remove: async (_id, _path, request) => { removed = request; },
+      makeDirectory: async (_id, _path, request) => { directory = request; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = sandbox.start();
+    const removeOptions = { recursive: false, timeout: 60_000 };
+    const mkdirOptions = { parents: false, timeout: 60_000 };
+    const remove = sandbox.filesystem.remove("/data", removeOptions);
+    const mkdir = sandbox.filesystem.makeDirectory("/directory", mkdirOptions);
+    removeOptions.recursive = true;
+    removeOptions.timeout = 1;
+    mkdirOptions.parents = true;
+    mkdirOptions.timeout = 1;
+    release();
+    await Promise.all([first, remove, mkdir]);
+    expect(removed).toEqual({ recursive: false, timeout: 60_000 });
+    expect(directory).toEqual({ parents: false, timeout: 60_000 });
+  });
+  it("keeps process arrays and maps owned by the caller", async () => {
+    const argv = ["echo", "hello"];
+    const environment = { ORIGINAL: "value" };
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      run: async (_id, request) => {
+        request.argv!.push("mutated");
+        request.environment!.ORIGINAL = "mutated";
+        return { exitCode: 0 };
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("sandbox-1");
+
+    await sandbox.process.run({ argv, environment });
+
+    expect(argv).toEqual(["echo", "hello"]);
+    expect(environment).toEqual({ ORIGINAL: "value" });
+  });
+
+  it("keeps write buffers owned by the caller", async () => {
+    const data = Buffer.from([1, 2, 3]);
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      writeFile: async (_id, _path, providerData) => {
+        providerData[0] = 9;
+      },
+    };
+    const client = new Client({
+      provider: { name: backend.name, initialize: () => backend },
+    });
+    const sandbox = await client.attach("sandbox-1");
+
+    await sandbox.filesystem.writeFile("/tmp/file", data);
+
+    expect([...data]).toEqual([1, 2, 3]);
+  });
+
+  it("captures process and file inputs before queued operations run", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    let observedArgv: string[] | undefined;
+    let observedEnvironment: Record<string, string> | undefined;
+    let observedData: number[] | undefined;
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      start: async (id) => { await blocked; return { id, provider: "test" }; },
+      run: async (_id, request) => {
+        observedArgv = request.argv;
+        observedEnvironment = request.environment;
+        return { exitCode: 0 };
+      },
+      writeFile: async (_id, _path, data) => { observedData = [...data]; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = sandbox.start();
+    const argv = ["echo", "hello"];
+    const environment = { KEY: "original" };
+    const data = Buffer.from([1, 2, 3]);
+    const command = sandbox.process.run({ argv, environment });
+    const write = sandbox.filesystem.writeFile("/tmp/file", data);
+    argv.length = 0;
+    environment.KEY = "changed";
+    data[0] = 9;
+    release();
+    await Promise.all([first, command, write]);
+    expect(observedArgv).toEqual(["echo", "hello"]);
+    expect(observedEnvironment).toEqual({ KEY: "original" });
+    expect(observedData).toEqual([1, 2, 3]);
+  });
+});
+
 describe("Shared client configuration validation", () => {
+  it.each([
+    ["https://api.example.test/api", true],
+    ["http://127.0.0.1:1234", true],
+    ["http://[::1]:1234", true],
+    ["http://[0:0:0:0:0:0:0:1]:1234", true],
+    ["http://localhost:1234", true],
+    ["http://LOCALHOST:1234", true],
+    ["http://api.example.test", false],
+    ["http://127.0.0.1.evil.test", false],
+    ["http://0.0.0.0:1234", false],
+    ["https://user:secret@api.example.test", false],
+    ["https://api.example.test/#fragment", false],
+    ["http://@localhost", false],
+    ["http://127.1", false],
+  ])("validates secure endpoint %s as %s", (endpoint, valid) => {
+    const provider: Provider = {
+      name: "test",
+      initialize: () => new RecordingBackend(),
+    };
+    const construct = () => new Client({ provider, endpoint });
+
+    if (valid) expect(construct).not.toThrow();
+    else
+      expect(construct).toThrowError(
+        expect.objectContaining({
+          kind: ErrorKind.InvalidArgument,
+          field: ConfigFieldEndpoint,
+        }),
+      );
+  });
+
   it("rejects insecure remote endpoints before initializing the provider", () => {
     const backend = new RecordingBackend();
     let initialized = false;
@@ -405,6 +702,62 @@ describe("Shared client configuration validation", () => {
 });
 
 describe("Operation cancellation", () => {
+  it("observes a provider rejection after a synchronous abort", async () => {
+    const controller = new AbortController();
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      create: () => {
+        controller.abort();
+        return Promise.reject(new Error("provider failure"));
+      },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    await expect(client.create({}, { signal: controller.signal })).rejects.toMatchObject({
+      kind: ErrorKind.Canceled,
+    });
+    // Give Node an event-loop turn to detect an unhandled provider rejection.
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  });
+
+  it("removes its listener from the original lifecycle signal", async () => {
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => { release = resolve; });
+    const backend: Backend = {
+      name: "test",
+      close: async () => {},
+      closeSandbox: async () => {},
+      attach: async (id) => ({ id, provider: "test" }),
+      refresh: async (id) => { await blocked; return { id, provider: "test" }; },
+    };
+    const client = new Client({ provider: { name: "test", initialize: () => backend } });
+    const sandbox = await client.attach("sandbox-1");
+    const first = new AbortController();
+    const second = new AbortController();
+    const options = { signal: first.signal };
+    const pending = sandbox.refresh(options);
+    options.signal = second.signal;
+    release();
+    await pending;
+    expect(getEventListeners(first.signal, "abort")).toHaveLength(0);
+    expect(getEventListeners(second.signal, "abort")).toHaveLength(0);
+  });
+  it("keeps long timeouts active until the requested deadline", async () => {
+    vi.useFakeTimers();
+    try {
+      const { client } = hangingFixture();
+      const promise = client.create({}, { timeout: 2_147_483_648 });
+      const assertion = expect(promise).rejects.toMatchObject({ kind: ErrorKind.Timeout });
+      await vi.advanceTimersByTimeAsync(2_147_483_647);
+      expect(vi.getTimerCount()).toBe(1);
+      await vi.advanceTimersByTimeAsync(1);
+      await assertion;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("does not invoke the provider for an already-aborted operation", async () => {
     const { client, backend } = fixture();
     const controller = new AbortController();

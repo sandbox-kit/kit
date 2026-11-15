@@ -7,58 +7,20 @@ sandbox metadata.
 
 ## What you get back
 
-`Create` returns a sandbox handle. `Info()` returns an independent copy.
-Optional fields that the provider left unset stay absent. Resource numbers on
-the handle are what the provider reported, which can differ from the request.
+Create returns a sandbox handle. `info()` / `Info()` returns an independent
+copy. Resource numbers on the handle are what the provider reported.
 
-```go
-info := instance.Info()
-if info.Resources != nil {
-    fmt.Println(info.Resources.GetCpuCores())
-}
-```
+Field paths use the same string in both languages (for example
+`resources.cpu_limit_cores`). A rule about several settings names their parent
+(for example `network`).
 
-A present optional value keeps explicit zero, false, and empty strings. A
-present map or slice keeps an empty collection. A create or lookup fails in
-the client when the provider returns no sandbox ID. When the provider sets
-`provider`, it must match the provider you selected.
+## TypeScript
 
-## Read an error
-
-Initialization, creation, lifecycle calls, filesystem calls, and cleanup return
-the same error shape: `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and
-`Message`. `StatusCode`, `ProviderCode`, and `ProviderSource` carry the
-provider's own codes when it sent them. `NotFound` covers a missing sandbox or
-a missing file path.
-
-```go
-var detail *sandbox.Error
-if errors.As(err, &detail) {
-    switch detail.Kind {
-    case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
-        fmt.Println("Check configuration:", detail.Field)
-    case sandbox.ErrorKindAuthentication:
-        fmt.Println("Check provider credentials")
-    }
-}
-```
-
-The same switch works for either provider. Runnable examples:
-[Modal unsupported settings](../examples/go/modal/errors/handle-modal-errors/README.md)
-and
-[Daytona invalid configuration](../examples/go/daytona/errors/handle-daytona-errors/README.md).
-
-Go and TypeScript use the same field string. A rule about one setting names
-that setting, such as `resources.cpu_limit_cores`. A rule about several
-settings names their parent, such as `network`.
-
-TypeScript operations reject with `SandboxError`. Use `instanceof` before
-reading it, and compare `error.field` with the exported field constants:
+Operations reject with `SandboxError`. Use `instanceof` before reading it:
 
 ```ts
 import {
   CreateFieldResourcesCpuCores,
-  ErrorKind,
   SandboxError,
 } from "@sandbox-kit/sandbox";
 
@@ -77,35 +39,74 @@ try {
 }
 ```
 
-TypeScript examples:
-[handle-daytona-errors](../examples/typescript/daytona/errors/handle-daytona-errors/README.md)
-and
-[handle-modal-errors](../examples/typescript/modal/errors/handle-modal-errors/README.md).
+The provider’s own error stays on `cause`.
 
-## Provider errors
+Examples:
+[handle-daytona-errors](../examples/typescript/daytona/errors/handle-daytona-errors/README.md),
+[handle-modal-errors](../examples/typescript/modal/errors/handle-modal-errors/README.md),
+[handle-blaxel-errors](../examples/typescript/blaxel/errors/handle-blaxel-errors/README.md).
 
-The provider's own error stays attached. In Go, `Unwrap` returns it, so
-`errors.Is` and `errors.As` still match cancellation and the provider type:
+## Go
 
 ```go
-if errors.Is(err, context.Canceled) {
-    // The original cancellation still matches.
-}
-var native *sdkerrors.DaytonaError
-if errors.As(err, &native) {
-    // Native code, source, status, and headers stay available.
+info := instance.Info()
+if info.Resources != nil {
+	fmt.Println(info.Resources.GetCpuCores())
 }
 ```
 
-The last snippet imports Daytona's error package as `sdkerrors`. You can
-branch on `Kind` without importing that package.
+```go
+var detail *sandbox.Error
+if errors.As(err, &detail) {
+	switch detail.Kind {
+	case sandbox.ErrorKindInvalidArgument, sandbox.ErrorKindUnsupported:
+		fmt.Println("Check configuration:", detail.Field)
+	case sandbox.ErrorKindAuthentication:
+		fmt.Println("Check provider credentials")
+	case sandbox.ErrorKindAlreadyExists:
+		fmt.Println("Named resource already exists")
+	case sandbox.ErrorKindConflict:
+		fmt.Println("Current state rejects this operation")
+	}
+}
+```
 
-TypeScript keeps the provider error on the standard `cause` property of
-`SandboxError`.
+`Unwrap` keeps the provider error, so `errors.Is` / `errors.As` still match
+cancellation and native types:
 
-An error that Kit could not classify keeps an unknown kind and the original
-cause. A kind is a category. It is not a signal that retrying is safe, and
-Kit does not retry for you.
+```go
+if errors.Is(err, context.Canceled) {
+	// The original cancellation still matches.
+}
+var native *sdkerrors.DaytonaError
+if errors.As(err, &native) {
+	// Native code, source, status, and headers stay available.
+}
+```
+
+Examples:
+[handle-modal-errors](../examples/go/modal/errors/handle-modal-errors/README.md),
+[handle-daytona-errors](../examples/go/daytona/errors/handle-daytona-errors/README.md),
+[handle-blaxel-errors](../examples/go/blaxel/errors/handle-blaxel-errors/README.md).
+
+## Error shape
+
+Failed calls return `Kind`, `Provider`, `Operation`, `Field`, `Rule`, and
+`Message`. `StatusCode`, `ProviderCode`, and `ProviderSource` carry provider
+codes when present. `NotFound` covers a missing sandbox or file path.
+
+A kind is a category, not a retry signal. The SDK does not retry for you.
+
+### Blaxel
+
+| Situation                                         | Kind              |
+| ------------------------------------------------- | ----------------- |
+| Create when the name already exists               | `AlreadyExists`   |
+| Delete still finishing / other conflict           | `Conflict`        |
+| Lifetime below floor or not whole seconds         | `InvalidArgument` |
+| Unsupported create field                          | `Unsupported`     |
+
+Control-plane codes appear on `providerCode` / `ProviderCode` when present.
 
 ## After a failure
 

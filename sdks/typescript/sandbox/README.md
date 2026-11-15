@@ -1,8 +1,9 @@
 # `@sandbox-kit/sandbox`
 
 Create and manage cloud sandboxes with a consistent TypeScript client interface.
-Pick a provider package (`@sandbox-kit/daytona` or `@sandbox-kit/modal`),
-construct a client, then create or open sandboxes through that client.
+Pick a provider package (`@sandbox-kit/daytona`, `@sandbox-kit/modal`, or
+`@sandbox-kit/blaxel`), construct a client, then create or open sandboxes
+through that client.
 
 Closing a client or handle releases **local** SDK resources only. It does not
 stop, terminate, or delete the remote sandbox.
@@ -13,11 +14,15 @@ stop, terminate, or delete the remote sandbox.
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or
 npm install @sandbox-kit/sandbox @sandbox-kit/modal
+# or
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
 Requires Node.js 20, 22, or 24.15+.
 
 ## Quick start
+
+Daytona sample (`create()` with no body uses Daytona's default snapshot):
 
 ```ts
 import { daytona } from "@sandbox-kit/daytona";
@@ -40,20 +45,22 @@ Prefer `await using` when available. Otherwise call `await client.close()` in a
 
 Pass the provider on `ClientConfig`, then shared settings:
 
-| Field      | Purpose                                                         |
-| ---------- | --------------------------------------------------------------- |
-| `provider` | Provider factory (`daytona()`, `modal()`, …)                    |
-| `auth`     | One credential shape (`apiKey`, `bearerToken`, `tokenPair`, …)  |
-| `scope`    | App, environment, organization, or project (provider-dependent) |
-| `endpoint` | API URL when the provider supports it                           |
-| `region`   | Target or placement preference                                  |
-| `timeout`  | Default operation deadline in **milliseconds**                  |
+| Field      | Purpose                                                                    |
+| ---------- | -------------------------------------------------------------------------- |
+| `provider` | Provider factory (`daytona()`, `modal()`, `blaxel()`)                      |
+| `auth`     | One credential shape (`apiKey`, `bearerToken`, `tokenPair`, …)             |
+| `scope`    | App, environment, organization, project, or workspace (provider-dependent) |
+| `endpoint` | API URL when the provider supports it                                      |
+| `region`   | Target or placement preference                                             |
+| `timeout`  | Default operation deadline in **milliseconds**                             |
 
 Omit `auth` when the provider SDK should resolve credentials from its own
 environment. Provider-specific auth and scope rules live in each provider
 package README.
 
 ## Create a sandbox
+
+Daytona example:
 
 ```ts
 const sandbox = await client.create({
@@ -63,15 +70,16 @@ const sandbox = await client.create({
 ```
 
 `create()` with no options uses the provider default when that is valid (for
-example Daytona's default snapshot). Timeouts and delays are millisecond
+example Daytona's default snapshot). Modal requires an image. Blaxel requires
+`name`, an image, and client `region`. Timeouts and delays are millisecond
 numbers. Nested exclusive fields use shapes like `source: { image: … }` or
 `auth: { apiKey: … }`.
 
 ## Open an existing sandbox
 
 ```ts
-const attached = await client.attach(id); // provider must support attach
-const fetched = await client.get(id); // provider-verified lookup
+const attached = await client.attach(id); // Modal: id only, no existence check
+const fetched = await client.get(id); // Daytona: sandbox id; Blaxel: create name
 ```
 
 ## Run a command
@@ -124,9 +132,10 @@ Sandbox paths are absolute. The same handle also supports `copyFromLocal`,
 | `filesystem`     | Read, write, copy, list, mkdir, stat, remove  |
 | `process`        | Run a command and wait for exit code + output |
 
-`supports` reports whether the provider implements that operation. An
-unimplemented method throws before the provider call. A provider rejection,
-including one from a closed SDK, comes back as that provider's error.
+Check `supports` before a lifecycle call that might be unavailable. On Blaxel,
+you can `get`, `refresh`, `delete`, and `close`. Other lifecycle methods are
+not available. If the provider rejects a supported call, you get that
+provider's error.
 
 ## Errors
 
@@ -153,6 +162,7 @@ try {
 | ---------------------- | ----------------- |
 | `@sandbox-kit/daytona` | Daytona sandboxes |
 | `@sandbox-kit/modal`   | Modal sandboxes   |
+| `@sandbox-kit/blaxel`  | Blaxel sandboxes  |
 
 ## Examples
 

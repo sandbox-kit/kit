@@ -2,11 +2,12 @@ package sandbox
 
 import "context"
 
-// SandboxCreator creates sandboxes. Daytona and Modal implement it.
+// SandboxCreator creates sandboxes. Daytona, Modal, and Blaxel implement it.
 // Call Client.Create.
 type SandboxCreator interface {
 	// Create creates one sandbox.
-	// A nil request is Daytona's default snapshot. Modal requires an image in the request.
+	// A nil request is Daytona's default snapshot. Modal requires an image in the
+	// request. Blaxel requires a name and an image.
 	Create(context.Context, *CreateOptions) (*CreateResult, error)
 }
 
@@ -18,7 +19,7 @@ type SandboxAttacher interface {
 }
 
 // SandboxRefresher loads current metadata for a sandbox ID.
-// Daytona implements it. Call Client.Get or Sandbox.Refresh.
+// Daytona and Blaxel implement it. Call Client.Get or Sandbox.Refresh.
 type SandboxRefresher interface {
 	// RefreshSandbox loads current metadata for id.
 	RefreshSandbox(context.Context, string) (*SandboxInfo, error)
@@ -39,7 +40,7 @@ type SandboxStopper interface {
 }
 
 // SandboxPauser pauses a sandbox.
-// Daytona implements it and accepts or rejects the sandbox. Modal does not.
+// Daytona implements it and accepts or rejects the sandbox. Modal and Blaxel do not.
 type SandboxPauser interface {
 	// PauseSandbox pauses the sandbox identified by id.
 	PauseSandbox(context.Context, string, *PauseOptions) (*SandboxInfo, error)
@@ -53,7 +54,7 @@ type SandboxTerminator interface {
 }
 
 // SandboxArchiver archives a sandbox.
-// Daytona implements it and accepts or rejects the sandbox. Modal does not.
+// Daytona implements it and accepts or rejects the sandbox. Modal and Blaxel do not.
 type SandboxArchiver interface {
 	// ArchiveSandbox archives the sandbox identified by id.
 	ArchiveSandbox(context.Context, string, *ArchiveOptions) (*SandboxInfo, error)
@@ -61,7 +62,7 @@ type SandboxArchiver interface {
 
 // SandboxFiles performs file operations in a sandbox: read, write, copy to or
 // from the caller, make directory, list directory, stat, and remove.
-// Daytona and Modal implement it. Use Sandbox.Filesystem.
+// Daytona, Modal, and Blaxel implement it. Use Sandbox.Filesystem.
 type SandboxFiles interface {
 	// ReadFile returns the bytes of one file.
 	ReadFile(context.Context, string, string, *FileReadOptions) ([]byte, error)
@@ -71,7 +72,8 @@ type SandboxFiles interface {
 	CopyFromLocal(context.Context, string, string, string, *FileCopyOptions) error
 	// CopyToLocal copies a sandbox file onto the caller's disk.
 	CopyToLocal(context.Context, string, string, string, *FileCopyOptions) error
-	// MakeDirectory creates a directory. A nil Parents flag is true. Daytona rejects false.
+	// MakeDirectory creates a directory. A nil Parents flag is true. Daytona and
+	// Blaxel reject false.
 	MakeDirectory(context.Context, string, string, *MakeDirectoryOptions) error
 	// ListDirectory lists the entries in one directory.
 	ListDirectory(context.Context, string, string, *ListDirectoryOptions) ([]*FileInfo, error)
@@ -82,7 +84,7 @@ type SandboxFiles interface {
 }
 
 // SandboxProcess runs a command in a sandbox and waits for it to finish.
-// Daytona and Modal implement it. Use Sandbox.Process.
+// Daytona, Modal, and Blaxel implement it. Use Sandbox.Process.
 type SandboxProcess interface {
 	// RunCommand runs one command and returns its exit code and output.
 	// A non-zero exit code is not an error.
@@ -90,7 +92,7 @@ type SandboxProcess interface {
 }
 
 // SandboxDeleter deletes a sandbox.
-// Daytona implements it. Call Sandbox.Delete. Close does not delete the cloud sandbox.
+// Daytona and Blaxel implement it. Call Sandbox.Delete. Close does not delete the cloud sandbox.
 type SandboxDeleter interface {
 	// DeleteSandbox deletes the sandbox identified by id.
 	DeleteSandbox(context.Context, string, *DeleteOptions) (*SandboxInfo, error)

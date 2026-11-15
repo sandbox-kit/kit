@@ -3,7 +3,28 @@ title: Client
 description: Construct a client; create, get or attach, and close.
 ---
 
-Creates sandboxes and reopens them by id (`get` or `attach`). Closing the client only drops the local connection—cloud sandboxes keep running.
+Creates sandboxes and reopens them.
+
+<ForProvider id="daytona">
+  <ForLanguage id="typescript">Reopen with [`get`](#get) by sandbox id.</ForLanguage>
+  <ForLanguage id="go">Reopen with [`Get`](#get) by sandbox id.</ForLanguage>
+</ForProvider>
+<ForProvider id="modal">
+  <ForLanguage id="typescript">
+    Reopen with [`attach`](#attach) by sandbox id. It does not check that the
+    sandbox exists.
+  </ForLanguage>
+  <ForLanguage id="go">
+    Reopen with [`Attach`](#attach) by sandbox id. It does not check that the
+    sandbox exists.
+  </ForLanguage>
+</ForProvider>
+<ForProvider id="blaxel">
+  <ForLanguage id="typescript">Reopen with [`get`](#get) by create name. Blaxel id is the name.</ForLanguage>
+  <ForLanguage id="go">Reopen with [`Get`](#get) by create name. Blaxel id is the name.</ForLanguage>
+</ForProvider>
+
+Closing the client only drops the local connection—cloud sandboxes keep running.
 
 ## Construction
 
@@ -14,7 +35,7 @@ Creates sandboxes and reopens them by id (`get` or `attach`). Closing the client
 new Client(config: ClientConfig)
 ```
 
-Validates config and initializes the selected provider. Throws on invalid config.
+Creates a client for the selected provider. Throws if config is invalid.
 
 **Parameters**
 
@@ -46,7 +67,7 @@ await using client = new Client({
 func NewClient(provider Provider, config *Config) (*Client, error)
 ```
 
-Validates config and initializes the provider. Invalid config returns a nil client and an error.
+Creates a client for the selected provider. Invalid config returns a nil client and an error.
 
 **Parameters**
 
@@ -104,7 +125,17 @@ defer client.Close(context.Background())
 create(request?: CreateOptions, options?: OperationOptions): Promise<Sandbox>
 ```
 
-Creates one sandbox and returns its handle. Omit the request (or pass `{}`) to use provider defaults.
+Creates one sandbox and returns its handle.
+
+<ForProvider id="daytona">
+  Omit the request (or pass `{}`) to use Daytona's default snapshot.
+</ForProvider>
+<ForProvider id="modal">
+  Pass an `image` source. Empty options are rejected.
+</ForProvider>
+<ForProvider id="blaxel">
+  Pass a Blaxel-valid `name`, an `image` source, and client `region`.
+</ForProvider>
 
 **Parameters**
 
@@ -143,6 +174,21 @@ console.log(sandbox.id);
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```ts
+const sandbox = await client.create(
+  {
+    name: "kit-example",
+    source: { image: { reference: "blaxel/base-image:latest" } },
+  },
+  { timeout: 60_000 }, // deadline for this call (ms)
+);
+console.log(sandbox.id);
+```
+
+</ForProvider>
+
   </Tab>
   <Tab value="Go">
 
@@ -150,7 +196,17 @@ console.log(sandbox.id);
 func (c *Client) Create(ctx context.Context, request *CreateOptions) (*Sandbox, error)
 ```
 
-Creates one sandbox and returns its handle. A nil request uses provider defaults.
+Creates one sandbox and returns its handle.
+
+<ForProvider id="daytona">
+  A nil request uses Daytona's default snapshot.
+</ForProvider>
+<ForProvider id="modal">
+  Pass an image source. A nil request is rejected.
+</ForProvider>
+<ForProvider id="blaxel">
+  Pass a Blaxel-valid `Name`, an image source, and client `Region`.
+</ForProvider>
 
 **Parameters**
 
@@ -195,6 +251,22 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+```go
+instance, err := client.Create(ctx, &sandbox.CreateOptions{
+	Name: sandbox.Value("kit-example"),
+	Source: &sandbox.SandboxSource{Kind: &sandbox.Image{
+		Image: &sandbox.ImageSource{Reference: "blaxel/base-image:latest"},
+	}},
+	Provisioning: &sandbox.ProvisioningOptions{
+		Timeout: sandbox.Duration(60 * time.Second), // deadline for this call
+	},
+})
+```
+
+</ForProvider>
+
   </Tab>
 </Tabs>
 
@@ -202,7 +274,7 @@ instance, err := client.Create(ctx, &sandbox.CreateOptions{
 
 ### get
 
-Looks up a sandbox by id and returns a handle the provider has verified.
+Looks up a sandbox by id and returns a handle. The provider confirms that sandbox exists.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -226,10 +298,7 @@ get(id: string, options?: OperationOptions): Promise<Sandbox>
 
 ```ts
 const sandbox = await client.get(knownId);
-const info = sandbox.info();
-// info: { id, provider, name?, providerState?, region?, isolation?,
-//         resources?, labels, createdAt?, providerMetadata?, state, terminal? }
-console.log(info);
+console.log(sandbox.info());
 ```
 
   </Tab>
@@ -254,8 +323,45 @@ func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
 
 ```go
 instance, err := client.Get(ctx, knownID)
-// Info(): Id, Provider, Name, ProviderState, Region, Isolation,
-//         Resources, Labels, CreatedAt, ProviderMetadata, State, Terminal
+fmt.Println(instance.Info())
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
+<ForProvider id="blaxel">
+
+### get
+
+Looks up a sandbox by **name**. The id is the create name.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+get(id: string, options?: OperationOptions): Promise<Sandbox>
+```
+
+**Example**
+
+```ts
+const sandbox = await client.get(knownName);
+console.log(sandbox.info());
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+func (c *Client) Get(ctx context.Context, id string) (*Sandbox, error)
+```
+
+**Example**
+
+```go
+instance, err := client.Get(ctx, knownName)
 fmt.Println(instance.Info())
 ```
 
@@ -268,7 +374,7 @@ fmt.Println(instance.Info())
 
 ### attach
 
-Builds a handle for an existing sandbox id without a lookup round trip. It does not ask the provider whether that sandbox exists.
+Builds a handle from a sandbox id. It does not check that the sandbox exists.
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

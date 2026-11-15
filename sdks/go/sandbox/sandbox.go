@@ -25,9 +25,9 @@ type Sandbox struct {
 	info *SandboxInfo
 }
 
-// sandboxFromResponse checks that creation returned an identifier
-// and consistent provider metadata.
-func sandboxFromResponse(backend Backend, response *CreateResult, operation string) (*Sandbox, error) {
+// sandboxFromResponse checks that a provider returned the expected identifier
+// and consistent provider metadata. An empty expectedID accepts creation IDs.
+func sandboxFromResponse(backend Backend, response *CreateResult, operation, expectedID string) (*Sandbox, error) {
 	if response == nil || response.Sandbox == nil || response.Sandbox.Id == "" {
 		return nil, NewError(&ErrorInfo{
 			Kind:      ErrorKindInvalidResponse,
@@ -35,6 +35,15 @@ func sandboxFromResponse(backend Backend, response *CreateResult, operation stri
 			Operation: operation,
 			Field:     InfoFieldId,
 			Message:   "sandbox-kit: provider returned no sandbox identity",
+		}, nil)
+	}
+	if expectedID != "" && response.Sandbox.Id != expectedID {
+		return nil, NewError(&ErrorInfo{
+			Kind:      ErrorKindInvalidResponse,
+			Provider:  backend.Name(),
+			Operation: operation,
+			Field:     InfoFieldId,
+			Message:   "sandbox-kit: provider returned a different sandbox identity",
 		}, nil)
 	}
 	info := cloneSandboxInfo(response.Sandbox)
@@ -58,7 +67,7 @@ func (s *Sandbox) ID() string {
 	return s.currentID()
 }
 
-// ProviderName returns "daytona" or "modal".
+// ProviderName returns "daytona", "modal", or "blaxel".
 // A nil handle returns an empty string.
 func (s *Sandbox) ProviderName() string {
 	if s == nil {

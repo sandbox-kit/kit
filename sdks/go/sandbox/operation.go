@@ -74,12 +74,16 @@ func (s *Sandbox) replaceInfo(operation string, info *SandboxInfo) error {
 		return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: s.ProviderName(), Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: provider returned no sandbox identity"}, nil)
 	}
 	provider := s.ProviderName()
+	if info.Id != s.currentID() {
+		return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldId, Message: "sandbox-kit: provider returned a different sandbox identity"}, nil)
+	}
 	if info.Provider != "" && info.Provider != provider {
 		return NewError(&ErrorInfo{Kind: ErrorKindInvalidResponse, Provider: provider, Operation: operation, Field: InfoFieldProvider, Message: "sandbox-kit: provider returned inconsistent sandbox metadata"}, nil)
 	}
-	info.Provider = provider
+	stored := cloneSandboxInfo(info)
+	stored.Provider = provider
 	s.mu.Lock()
-	s.info = cloneSandboxInfo(info)
+	s.info = stored
 	s.mu.Unlock()
 	return nil
 }

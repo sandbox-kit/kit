@@ -33,7 +33,7 @@ func (c *Client) resolveSandbox(ctx context.Context, id, operation string, invok
 	if err != nil {
 		return nil, sdk.WithErrorContext(err, provider, operation)
 	}
-	instance, err := sandboxFromResponse(c.backend, &CreateResult{Sandbox: info}, operation)
+	instance, err := sandboxFromResponse(c.backend, &CreateResult{Sandbox: info}, operation, id)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,8 @@ go get github.com/sandbox-kit/kit/sdks/go/sandbox@latest
 go get github.com/sandbox-kit/kit/sdks/go/providers/daytona@latest
 # or
 go get github.com/sandbox-kit/kit/sdks/go/providers/modal@latest
+# or
+go get github.com/sandbox-kit/kit/sdks/go/providers/blaxel@latest
 ```
 
 ## License

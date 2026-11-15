@@ -1,7 +1,7 @@
 // Package sandbox creates and manages cloud sandboxes through one client.
 //
-// Install this module and one provider. Pass daytona.New or modal.New to
-// [NewClient]. [Client.Create] returns a [Sandbox] handle.
+// Install this module and one provider. Pass daytona.New, modal.New, or
+// blaxel.New to [NewClient]. [Client.Create] returns a [Sandbox] handle.
 //
 // [Client.Close] and [Sandbox.Close] release local resources. They leave the
 // cloud sandbox running. Stop, terminate, archive, or delete it with a
@@ -13,5 +13,6 @@
 // Compare it with [CreateFieldResourcesCpuCores], [ConfigFieldEndpoint],
 // [FileFieldPath], and the other field constants.
 //
-// [Client.Create] with a nil request uses Daytona's default snapshot. Modal requires an image.
+// [Client.Create] with a nil request uses Daytona's default snapshot. Modal
+// requires an image. Blaxel requires a name and an image.
 package sandbox

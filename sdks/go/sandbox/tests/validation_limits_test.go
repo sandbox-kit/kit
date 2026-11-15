@@ -13,8 +13,9 @@ func TestSecureEndpoints(t *testing.T) {
 		endpoint string
 		valid    bool
 	}{
-		{"https://api.example.test/api", true}, {"http://127.0.0.1:1234", true}, {"http://[::1]:1234", true}, {"http://localhost:1234", true},
+		{"https://api.example.test/api", true}, {"http://127.0.0.1:1234", true}, {"http://[::1]:1234", true}, {"http://[0:0:0:0:0:0:0:1]:1234", true}, {"http://localhost:1234", true}, {"http://LOCALHOST:1234", true},
 		{"http://api.example.test", false}, {"http://127.0.0.1.evil.test", false}, {"http://0.0.0.0:1234", false}, {"https://user:secret@api.example.test", false}, {"https://api.example.test/#fragment", false},
+		{"http://@localhost", false}, {"http://127.1", false},
 	} {
 		t.Run(tc.endpoint, func(t *testing.T) {
 			err := sandbox.ValidateConfig(&sandbox.Config{Endpoint: sandbox.Value(tc.endpoint)})
@@ -46,4 +47,3 @@ func TestImageReferenceValidationBeforeBackend(t *testing.T) {
 		})
 	}
 }
-

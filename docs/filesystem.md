@@ -1,7 +1,7 @@
 # Filesystem
 
-File calls live on the sandbox handle, next to lifecycle. Daytona and Modal
-implement the same methods. Open the handle with `Create`, Daytona `Get`, or
+File calls live on the sandbox handle, next to lifecycle. Daytona, Modal, and Blaxel
+implement the same methods. Open the handle with `Create`, Daytona or Blaxel `Get`, or
 Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 
 | You want to                   | Go              | TypeScript      |
@@ -16,15 +16,19 @@ Modal `Attach`, then call `Filesystem` / `sandbox.filesystem`.
 | Delete a file or directory    | `Remove`        | `remove`        |
 
 Calls on one handle run one at a time, including lifecycle and process. A
-second handle for the same sandbox does not wait. Abort or deadline rejects the
-TypeScript `await` (and ends the Go wait), but the handle stays busy until that
-provider call settles so the next call does not overlap it.
+second handle for the same sandbox does not wait.
+
+**TypeScript.** Abort or deadline rejects the `await`. The handle stays busy
+until that provider call settles.
+
+**Go.** Cancel or deadline ends the wait. The handle stays busy until that
+provider call returns.
 
 ## Paths
 
 A path inside the sandbox is absolute: `/tmp/note.txt`. A relative path, a
-blank path, or a path that contains a NUL byte is rejected before the provider
-is called. The error field is `path`.
+blank path, or a path that contains a NUL byte is rejected. The error field
+is `path`.
 
 A path on your machine, used by copy, may be relative to the process, such as
 `./note.txt`. It must be non-blank and must not contain a NUL byte. A rejected
@@ -43,30 +47,39 @@ An existing destination file is replaced.
 ## Timeouts
 
 Leave the timeout unset to use the client deadline. Set it to zero when this
-call should add no Kit deadline. TypeScript records the timeout in
-milliseconds. Go records it as a `time.Duration`.
+call should add no client deadline.
 
-TypeScript Daytona `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
-pass that duration to Daytona as a whole number of seconds. `2000` is two
-seconds. `1500` is 1.5 seconds, so those four calls reject it. The error field
-is `timeout`. An omitted timeout, and an explicit zero, on those four calls
-are passed as `0`. Daytona adds no transfer limit. When the timeout is
-omitted, the abort signal carries the client deadline.
+### TypeScript
 
-`makeDirectory`, `listDirectory`, `stat`, and `remove` use the abort signal.
-`1500` ends the call at 1.5 seconds. Every Go file call uses the context as
-the deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds. Modal
-file calls use the context or the abort signal. `1500` milliseconds ends the
-call at 1.5 seconds.
+Timeouts are milliseconds.
+
+**Daytona.** `readFile`, `writeFile`, `copyFromLocal`, and `copyToLocal`
+require whole seconds (`2000` is fine; `1500` is rejected, field `timeout`).
+Omitted or zero means no Daytona transfer limit. `makeDirectory`,
+`listDirectory`, `stat`, and `remove` use the abort signal, so `1500` ends at
+1.5 seconds.
+
+**Modal.** File calls use the abort signal.
+
+**Blaxel.** Abort rejects the caller’s `await`. An in-flight remote file
+operation can still finish. `parents: false` is not supported (field
+`parents`).
 
 ```ts
 await sandbox.filesystem.readFile("/tmp/note.txt", { timeout: 2_000 });
 await sandbox.filesystem.listDirectory("/tmp", { timeout: 1_500 });
 ```
 
+### Go
+
+Timeouts are `time.Duration`. Every file call uses the context as the
+deadline, so `1500 * time.Millisecond` ends the call at 1.5 seconds.
+
+**Blaxel.** `Parents: false` is not supported (field `parents`).
+
 ```go
 data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", &sandbox.FileReadOptions{
-    Timeout: sandbox.Duration(1500 * time.Millisecond),
+	Timeout: sandbox.Duration(1500 * time.Millisecond),
 })
 ```
 
@@ -87,7 +100,9 @@ data, err := instance.Filesystem().ReadFile(ctx, "/tmp/note.txt", nil)
 [Go Daytona](../examples/go/daytona/filesystem/read-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/read-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/read-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/read-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/read-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/read-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/read-blaxel-file/README.md).
 
 ## Write a file
 
@@ -106,7 +121,9 @@ err := instance.Filesystem().WriteFile(ctx, "/tmp/kit-files/note.txt", []byte("h
 [Go Daytona](../examples/go/daytona/filesystem/write-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/write-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/write-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/write-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/write-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/write-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/write-blaxel-file/README.md).
 
 ## Copy a file
 
@@ -140,34 +157,47 @@ Into the sandbox:
 [Go Daytona](../examples/go/daytona/filesystem/copy-file-into-daytona/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-into-daytona/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/copy-file-into-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-into-modal/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-into-modal/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/copy-file-into-blaxel/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/copy-file-into-blaxel/README.md).
 
 Out of the sandbox:
 [Go Daytona](../examples/go/daytona/filesystem/copy-file-from-daytona/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/copy-file-from-daytona/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/copy-file-from-modal/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-from-modal/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/copy-file-from-modal/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/copy-file-from-blaxel/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/copy-file-from-blaxel/README.md).
 
 ## Create a directory
 
 `parents` defaults to true, so the call creates missing parents. Modal accepts
 a directory that already exists. Daytona returns the provider error when it
-already exists.
+already exists. Blaxel creates missing parents when `parents` is omitted or
+true.
 
 Set `parents` to false when the parent directory must already exist. Modal
 then requires that parent, and returns an error if the new directory is
-already there. Daytona rejects `false` before the call. The error field is
+already there. Daytona and Blaxel do not support `false`. The error field is
 `parents`.
 
 ```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files");
+```
+
+```go
+err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
+```
+
+Modal accepts `parents: false`:
+
+```ts
 await sandbox.filesystem.makeDirectory("/tmp/kit-files/nested", {
   parents: false,
 });
 ```
 
 ```go
-err := instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files", nil)
 err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox.MakeDirectoryOptions{
 	Parents: sandbox.Value(false),
 })
@@ -176,7 +206,9 @@ err = instance.Filesystem().MakeDirectory(ctx, "/tmp/kit-files/nested", &sandbox
 [Go Daytona](../examples/go/daytona/filesystem/make-daytona-directory/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/make-daytona-directory/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/make-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/make-modal-directory/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/make-modal-directory/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/make-blaxel-directory/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/make-blaxel-directory/README.md).
 
 ## List a directory
 
@@ -197,15 +229,18 @@ entries, err := instance.Filesystem().ListDirectory(ctx, "/tmp/kit-files", nil)
 [Go Daytona](../examples/go/daytona/filesystem/list-daytona-directory/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/list-daytona-directory/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/list-modal-directory/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/list-modal-directory/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/list-modal-directory/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/list-blaxel-directory/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/list-blaxel-directory/README.md).
 
 ## Read metadata
 
-`Stat` returns one path. A symlink result describes the symlink. Modal can
-report a symlink. Daytona reports a file or a directory. `mode` is an octal
-string when the provider supplies one, such as `0644`. `permissions`, `owner`,
-and `group` are set when the provider supplies them. `modifiedAt` is set when
-the provider supplies a time.
+`Stat` returns one path. A symlink result describes the symlink.
+
+On Blaxel, you get `type` (file or directory), `size`, and usually
+`permissions`, `owner`, `group`, and `modifiedAt`. `name` and `path` are
+whatever Blaxel reports. Modal can report a symlink. Daytona reports a file
+or a directory. `mode` is an octal string when present, such as `0644`.
 
 ```ts
 const info = await sandbox.filesystem.stat("/tmp/note.txt");
@@ -219,7 +254,9 @@ info, err := instance.Filesystem().Stat(ctx, "/tmp/note.txt", nil)
 [Go Daytona](../examples/go/daytona/filesystem/stat-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/stat-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/stat-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/stat-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/stat-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/stat-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/stat-blaxel-file/README.md).
 
 ## Delete a file or directory
 
@@ -248,4 +285,6 @@ if err := files.Remove(ctx, "/tmp/kit-files", &sandbox.RemoveOptions{
 [Go Daytona](../examples/go/daytona/filesystem/remove-daytona-file/README.md) ·
 [TypeScript Daytona](../examples/typescript/daytona/filesystem/remove-daytona-file/README.md) ·
 [Go Modal](../examples/go/modal/filesystem/remove-modal-file/README.md) ·
-[TypeScript Modal](../examples/typescript/modal/filesystem/remove-modal-file/README.md).
+[TypeScript Modal](../examples/typescript/modal/filesystem/remove-modal-file/README.md) ·
+[Go Blaxel](../examples/go/blaxel/filesystem/remove-blaxel-file/README.md) ·
+[TypeScript Blaxel](../examples/typescript/blaxel/filesystem/remove-blaxel-file/README.md).

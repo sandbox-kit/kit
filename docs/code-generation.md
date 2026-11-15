@@ -94,9 +94,9 @@ Portable messages come from standard protobuf generation into contract packages.
 SDK runtimes alias them and keep handwritten clone helpers (for example Go
 `clone.go` and TypeScript metadata helpers).
 
-Provider error classification is not generated: Modal and Daytona mappers live
-in handwritten `errors.go` / `errors.ts`. Unavailable fields receive no
-fabricated values.
+Provider error classification is not generated: Modal, Daytona, and Blaxel
+mappers live in handwritten `errors.go` / `errors.ts`. Unavailable fields
+receive no fabricated values.
 
 See [responses and errors](responses-and-errors.md) for the public contract,
 native cause preservation, and copy restrictions.
@@ -121,8 +121,12 @@ field uses that field, such as `resources.cpu_limit_cores`. A constraint that
 names several fields uses their parent message. List indexes and oneof names
 are omitted.
 Serialization policy is separate from validation. Client representation metadata
-marks credential fields `sensitive`, which excludes them from Go JSON output
-without treating secrecy as a value-validity rule.
+marks credential fields `sensitive`. Handwritten Go contract serialization
+follows that inventory and excludes credentials from standard-library
+`encoding/json` output when credentials are passed by pointer, including within
+`*sandbox.Config`. Credential values passed directly to `json.Marshal` are not
+redacted; do not serialize them by value. Protobuf JSON serialization also
+represents every schema field and must not be used for client configuration.
 
 | Constraint          | Meaning                                       |
 | ------------------- | --------------------------------------------- |

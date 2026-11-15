@@ -5,6 +5,7 @@
   "workspaces": [
     "contracts",
     "sandbox",
+    "providers/blaxel",
     "providers/daytona",
     "providers/modal"
   ]

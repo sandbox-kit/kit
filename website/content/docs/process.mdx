@@ -29,13 +29,13 @@ Set **exactly one** of:
 | `argv`  | Program + arguments      | `["echo", "hello"]` |
 | `shell` | One shell command string | `"echo hello"`      |
 
-| Field              | Rules                                                                     |
-| ------------------ | ------------------------------------------------------------------------- |
-| Both or neither    | Rejected. Field: `argv`                                                   |
-| Blank `shell`      | Rejected after trim. Field: `shell`                                       |
-| `workingDirectory` | Absolute when set. Relative, blank, or NUL → field `working_directory`    |
-| `environment`      | For this call only. Omit → provider default. Empty map → add no variables |
-| `timeout`          | See [Timeouts](#timeouts-and-cancel)                                      |
+| Setting           | Rules                                                                     |
+| ----------------- | ------------------------------------------------------------------------- |
+| Program or shell  | Set exactly one. A request with both or neither is rejected.              |
+| Shell command     | A blank command is rejected after trimming.                               |
+| Working directory | Absolute when set. Relative, blank, or NUL is rejected.                   |
+| Environment       | Applies only to this call. Omit for the provider default.                 |
+| Timeout           | See [Timeouts](#timeouts-and-cancel)                                      |
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">
@@ -78,7 +78,7 @@ fmt.Println(result)
 
 | You pass               | On Daytona                                                      |
 | ---------------------- | --------------------------------------------------------------- |
-| `argv`                 | POSIX-quoted shell string                                       |
+| `argv`                 | One quoted shell command string                                 |
 | `shell`                | shell string as-is                                              |
 | omit / zero timeout    | no command limit (`0`, so Daytona does not use its 10s default) |
 | fractional (`1500` ms) | rejected (`timeout`)                                            |
@@ -90,7 +90,7 @@ Daytona returns stdout only; `stderr` is empty. stdout may include merged stream
 
 ```ts
 const result = await sandbox.process.run({
-  argv: ["echo", "hello"], // sent as a POSIX-quoted shell string
+  argv: ["echo", "hello"], // sent as one quoted shell command string
 });
 // result: { exitCode, stdout, stderr } — stderr often empty on Daytona
 console.log(result);
@@ -101,7 +101,7 @@ console.log(result);
 
 ```go
 result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
-	Argv: []string{"echo", "hello"}, // sent as a POSIX-quoted shell string
+	Argv: []string{"echo", "hello"}, // sent as one quoted shell command string
 })
 if err != nil {
 	return err
@@ -153,17 +153,58 @@ fmt.Println(result)
 
 </ForProvider>
 
+<ForProvider id="blaxel">
+
+| You pass               | What happens                                          |
+| ---------------------- | ----------------------------------------------------- |
+| `argv`                 | Sent as one shell command string                      |
+| `shell`                | Run as-is                                             |
+| omit / zero timeout    | Wait until the command ends                           |
+| positive timeout       | Cap how long the command may run (whole seconds only) |
+| fractional (`1500` ms) | Not supported                                         |
+
+You get `stdout` and `stderr`. `run` waits until the command ends. Abort stops
+the wait only — the remote command may keep running.
+
+<Tabs groupId="language" items={['TypeScript', 'Go']} persist>
+  <Tab value="TypeScript">
+
+```ts
+const result = await sandbox.process.run({
+  argv: ["echo", "hello"], // sent as one quoted shell command string
+});
+// result: { exitCode, stdout, stderr }
+console.log(result);
+```
+
+  </Tab>
+  <Tab value="Go">
+
+```go
+result, err := instance.Process().Run(ctx, &sandbox.ExecOptions{
+	Argv: []string{"echo", "hello"}, // sent as one quoted shell command string
+})
+// result: ExitCode, Stdout, Stderr
+fmt.Println(result)
+```
+
+  </Tab>
+</Tabs>
+
+</ForProvider>
+
 A non-zero exit code is **not** an SDK error.
 
 ## Timeouts and cancel
 
 | Setting        | Meaning                                                           |
 | -------------- | ----------------------------------------------------------------- |
-| Omit `timeout` | Use the client default deadline                                   |
+| Omit timeout   | Use the client default deadline                                   |
 | `0`            | No extra client deadline for this call                            |
 | Positive value | Cap this call; must be whole seconds (`5000` ok, `1500` rejected) |
 
-Omit or zero also means no separate provider command limit.
+Omit or zero also means no separate provider process time limit (see the
+provider tables above).
 
 <Tabs groupId="language" items={['TypeScript', 'Go']} persist>
   <Tab value="TypeScript">

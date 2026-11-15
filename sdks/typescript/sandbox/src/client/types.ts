@@ -177,7 +177,7 @@ export interface Provider {
   initialize(config: Config): Backend;
 }
 
-/** Settings for `new Client`, including the provider (`daytona()` or `modal()`). */
+/** Settings for `new Client`, including the provider (`daytona()`, `modal()`, or `blaxel()`). */
 export type ClientConfig = Config & {
   readonly provider: Provider;
 };

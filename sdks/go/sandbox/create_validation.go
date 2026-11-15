@@ -27,7 +27,8 @@ var stableRuleIDs = map[string]string{
 
 // ValidateCreateOptions checks a create request before a provider is contacted.
 // A nil request passes this check. Daytona treats that as its default snapshot.
-// Modal still requires an image. Quotas and capacity remain the provider's decision.
+// Modal still requires an image. Blaxel still requires a name and an image.
+// Quotas and capacity remain the provider's decision.
 func ValidateCreateOptions(request *CreateOptions) error {
 	if request == nil {
 		return nil

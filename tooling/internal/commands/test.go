@@ -10,7 +10,7 @@ import (
 )
 
 var goTestModules = []string{
-	"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona",
+	"sdks/go/sandbox", "tooling", "sdks/go/providers/modal", "sdks/go/providers/daytona", "sdks/go/providers/blaxel",
 	"examples/go/modal/configuration/create-modal-sandbox", "examples/go/daytona/configuration/create-daytona-sandbox",
 	"examples/go/modal/configuration/create-modal-with-resources", "examples/go/daytona/configuration/create-daytona-with-policies",
 	"examples/go/daytona/configuration/create-daytona-from-snapshot", "examples/go/daytona/configuration/create-daytona-from-image",
@@ -64,6 +64,33 @@ var goTestModules = []string{
 	"examples/go/modal/process/run-modal-with-cwd",
 	"examples/go/modal/process/run-modal-with-env",
 	"examples/go/modal/process/run-modal-with-timeout",
+	"examples/go/blaxel/configuration/create-blaxel-sandbox",
+	"examples/go/blaxel/configuration/create-blaxel-with-resources",
+	"examples/go/blaxel/configuration/create-blaxel-with-labels",
+	"examples/go/blaxel/configuration/create-blaxel-with-ttl",
+	"examples/go/blaxel/configuration/create-blaxel-idle",
+	"examples/go/blaxel/configuration/create-blaxel-client-timeout",
+	"examples/go/blaxel/configuration/create-blaxel-with-ports",
+	"examples/go/blaxel/configuration/create-blaxel-with-allowlists",
+	"examples/go/blaxel/errors/handle-blaxel-errors",
+	"examples/go/blaxel/lifecycle/get-blaxel-sandbox",
+	"examples/go/blaxel/lifecycle/refresh-blaxel-sandbox",
+	"examples/go/blaxel/lifecycle/delete-blaxel-sandbox",
+	"examples/go/blaxel/lifecycle/close-blaxel-handle",
+	"examples/go/blaxel/filesystem/copy-file-from-blaxel",
+	"examples/go/blaxel/filesystem/copy-file-into-blaxel",
+	"examples/go/blaxel/filesystem/list-blaxel-directory",
+	"examples/go/blaxel/filesystem/make-blaxel-directory",
+	"examples/go/blaxel/filesystem/read-blaxel-file",
+	"examples/go/blaxel/filesystem/remove-blaxel-file",
+	"examples/go/blaxel/filesystem/stat-blaxel-file",
+	"examples/go/blaxel/filesystem/write-blaxel-file",
+	"examples/go/blaxel/process/run-blaxel-check-exit",
+	"examples/go/blaxel/process/run-blaxel-command",
+	"examples/go/blaxel/process/run-blaxel-shell-command",
+	"examples/go/blaxel/process/run-blaxel-with-cwd",
+	"examples/go/blaxel/process/run-blaxel-with-env",
+	"examples/go/blaxel/process/run-blaxel-with-timeout",
 }
 
 var typescriptTestModules = []struct {
@@ -74,6 +101,7 @@ var typescriptTestModules = []struct {
 	{"sdks/typescript/sandbox", true},
 	{"sdks/typescript/providers/daytona", true},
 	{"sdks/typescript/providers/modal", true},
+	{"sdks/typescript/providers/blaxel", true},
 }
 
 func typescriptModules(root string) ([]struct {

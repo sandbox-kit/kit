@@ -9,6 +9,8 @@ Install the public client and a provider instead:
 npm install @sandbox-kit/sandbox @sandbox-kit/daytona
 # or
 npm install @sandbox-kit/sandbox @sandbox-kit/modal
+# or
+npm install @sandbox-kit/sandbox @sandbox-kit/blaxel
 ```
 
 See [`@sandbox-kit/sandbox`](https://www.npmjs.com/package/@sandbox-kit/sandbox)
