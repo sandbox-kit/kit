@@ -64,8 +64,9 @@ create no cloud resources.
 package and all providers, discovers every TypeScript example containing a
 `package.json`, and builds each example without making provider calls. Install
 TypeScript workspace deps once from `sdks/typescript/` (`npm install`) before
-running it. Manual npm publish steps live in
-[`sdks/typescript/README.md`](../sdks/typescript/README.md).
+running it. Manual release steps live in
+[`sdks/typescript/README.md`](../sdks/typescript/README.md) (npm) and
+[`sdks/go/README.md`](../sdks/go/README.md) (Go module tags).
 
 Commands forward cancellation to subprocesses and run Go module commands with
 `GOWORK=off`. Caches stay outside the checkout.
