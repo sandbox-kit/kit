@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.11.4",
+  "checkpoint_id": "01M7F39RDJA3HMXNV878KS1MBA",
+  "strategy": "manual-commit",
+  "branch": "feat/blaxel-provider",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "sdks/typescript/providers/blaxel/src/blaxel.test.ts",
+    "sdks/typescript/providers/blaxel/src/mappings/provider_mappings.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 159676,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 2397056,
+    "output_tokens": 27349,
+    "api_call_count": 2
+  }
+}
